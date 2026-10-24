@@ -1,61 +1,99 @@
-
 import { WebSocialSummaryViewComponent } from '../../../web/social/web-social-summary-view/web-social-summary-view.component';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+import { Subscription, catchError, forkJoin, map, of } from 'rxjs';
 import { SocialSummary } from '../../../../interfaces/chat';
 import { CommunityService } from '../../../../services/entities/community.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
+import { PlatformSocialService, PlatformSocialSummary } from '../../../../services/platform/platform-social.service';
+import { ChatStoreService } from '../../../../services/stores/chat-store.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileSocialSummaryViewComponent } from '../../../mobile/social/mobile-social-summary-view/mobile-social-summary-view.component';
+import { YosiftwareMarkComponent } from '../../common/yosiftware-mark/yosiftware-mark.component';
 
-interface SummaryCard { label: string; value: number; icon: string; path: string; accent?: boolean }
+/** Una tarjeta del resumen: lleva a una sección de Libros (`path`) o a la web social (`href`, con el símbolo). */
+export interface SummaryCard { label: string; value: number; icon: string; path?: string; href?: string; accent?: boolean }
 
+/**
+ * El resumen de Comunidad: los clubes (de Libros), los mensajes sin leer (del chat de la plataforma) y las relaciones
+ * (de la plataforma, que se gestionan en la web social: ecosistema-kit/SOCIAL.md).
+ */
 @Component({
     standalone: true,
     selector: 'app-social-summary',
-    imports: [WebSocialSummaryViewComponent, MatIconModule, RouterLink, MobileSocialSummaryViewComponent],
+    imports: [WebSocialSummaryViewComponent, MatIconModule, RouterLink, MobileSocialSummaryViewComponent, YosiftwareMarkComponent],
     templateUrl: './social-summary.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './social-summary.component.sass'
 })
-export class SocialSummaryComponent implements OnInit {
+export class SocialSummaryComponent implements OnInit, OnDestroy {
     summary: SocialSummary | null = null;
+    relationships: PlatformSocialSummary | null = null;
+    /** Parte del resumen (los clubes o las relaciones) no ha llegado. */
+    partial = false;
     cards: SummaryCard[] = [];
     loading = false;
     error = '';
+    private unreadMessages = 0;
+    private readonly subscriptions = new Subscription();
 
-    constructor(private community: CommunityService, private presentation: PresentationModeService) { }
+    constructor(private community: CommunityService, private social: PlatformSocialService, private chats: ChatStoreService, private session: PlatformSessionService, private presentation: PresentationModeService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
-    ngOnInit(): void { this.load(); }
+    ngOnInit(): void {
+        this.chats.initialize();
+        this.subscriptions.add(this.chats.state$.subscribe(state => {
+            this.unreadMessages = state.conversations.reduce((total, item) => total + item.NoLeidos, 0);
+            if (this.summary || this.relationships) this.cards = this.buildCards();
+        }));
+        this.load();
+    }
+
+    ngOnDestroy(): void { this.subscriptions.unsubscribe(); }
 
     trackCard(_index: number, card: SummaryCard): string { return card.label; }
-
-    private buildCards(summary: SocialSummary): SummaryCard[] {
-        const value = summary.Resumen;
-        return [
-            { label: 'Amistades', value: value.Relaciones.Amistades, icon: 'group', path: '../friendships' },
-            { label: 'Solicitudes pendientes', value: value.Relaciones.SolicitudesRecibidasPendientes, icon: 'person_add', path: '../friendships', accent: value.Relaciones.SolicitudesRecibidasPendientes > 0 },
-            { label: 'Seguidores', value: value.Relaciones.Seguidores, icon: 'diversity_3', path: '../friendships' },
-            { label: 'Siguiendo', value: value.Relaciones.Seguidos, icon: 'person_search', path: '../friendships' },
-            { label: 'Clubes activos', value: value.Clubes.Activos, icon: 'groups_3', path: '../clubs' },
-            { label: 'Invitaciones a clubes', value: value.Clubes.InvitacionesPendientes, icon: 'mark_email_unread', path: '../clubs', accent: value.Clubes.InvitacionesPendientes > 0 },
-            { label: 'Mensajes humanos', value: value.Mensajes.NoLeidosHumanos, icon: 'forum', path: '../messages', accent: value.Mensajes.NoLeidosHumanos > 0 },
-            { label: 'Avisos de Yosiftware', value: value.Mensajes.NoLeidosSistema, icon: 'campaign', path: '../messages', accent: value.Mensajes.NoLeidosSistema > 0 }
-        ];
-    }
 
     load(): void {
         if (this.loading) return;
         this.loading = true;
         this.error = '';
-        this.community.socialSummary().subscribe({
-            next: summary => { this.summary = summary; this.cards = this.buildCards(summary); this.loading = false; },
-            error: error => { this.summary = null; this.cards = []; this.error = getApiErrorMessage(error, 'No se ha podido cargar el resumen social.'); this.loading = false; }
+        forkJoin({
+            clubs: this.community.socialSummary().pipe(map(value => ({ value, failed: null })), catchError(error => of({ value: null, failed: error as unknown }))),
+            relationships: this.social.summary().pipe(map(value => ({ value, failed: null })), catchError(error => of({ value: null, failed: error as unknown })))
+        }).subscribe(({ clubs, relationships }) => {
+            this.loading = false;
+            this.summary = clubs.value;
+            this.relationships = relationships.value;
+            if (!clubs.value && !relationships.value) {
+                this.cards = [];
+                this.error = getApiErrorMessage(clubs.failed, 'No se ha podido cargar el resumen social.');
+                return;
+            }
+            this.partial = !clubs.value || !relationships.value || clubs.value.Parcial;
+            this.cards = this.buildCards();
         });
+    }
+
+    private buildCards(): SummaryCard[] {
+        const cards: SummaryCard[] = [];
+        const relationships = this.relationships;
+        if (relationships) cards.push(
+            { label: 'Amistades', value: relationships.amistades, icon: 'group', href: this.session.socialUrl('amistades') },
+            { label: 'Solicitudes de amistad', value: relationships.solicitudesRecibidas, icon: 'person_add', href: this.session.socialUrl('solicitudes'), accent: relationships.solicitudesRecibidas > 0 },
+            { label: 'Seguidores', value: relationships.seguidores, icon: 'diversity_3', href: this.session.socialUrl('seguidores') },
+            { label: 'Siguiendo', value: relationships.seguidos, icon: 'person_search', href: this.session.socialUrl('seguidos') }
+        );
+        const clubs = this.summary?.Resumen.Clubes;
+        if (clubs) cards.push(
+            { label: 'Clubes activos', value: clubs.Activos, icon: 'groups_3', path: '../clubs' },
+            { label: 'Invitaciones a clubes', value: clubs.InvitacionesPendientes, icon: 'mark_email_unread', path: '../clubs', accent: clubs.InvitacionesPendientes > 0 }
+        );
+        cards.push({ label: 'Mensajes sin leer', value: this.unreadMessages, icon: 'forum', path: '../messages', accent: this.unreadMessages > 0 });
+        return cards;
     }
 }

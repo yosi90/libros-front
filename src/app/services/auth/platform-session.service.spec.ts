@@ -4,32 +4,11 @@ import { TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { environment } from '../../../environment/environment';
 import { GENERACION_PETICION, IdentityChange, PlatformSessionService } from './platform-session.service';
-import { CARGADOR_SDK, CuentaPlataforma, EstadoPlataforma, YosiftwareSdk } from './yosiftware-sdk';
+import { CARGADOR_SDK, CuentaPlataforma, EstadoPlataforma } from './yosiftware-sdk';
+import { YosiftwareSdkDouble } from './yosiftware-sdk.testing';
 
 /** Doble del SDK de la plataforma: el estado lo decide la prueba. */
-class SdkDouble implements YosiftwareSdk {
-    estado: EstadoPlataforma = { tipo: 'comprobando' };
-    tokens: Array<string | null> = ['token-1'];
-    private oyentes: Array<(estado: EstadoPlataforma) => void> = [];
-    readonly salir = jasmine.createSpy('salir').and.resolveTo();
-    readonly entrar = jasmine.createSpy('entrar').and.resolveTo(true);
-    readonly cambiarCuenta = jasmine.createSpy('cambiarCuenta').and.resolveTo(true);
-    readonly editarPerfil = jasmine.createSpy('editarPerfil').and.resolveTo(false);
-    readonly perfil = jasmine.createSpy('perfil').and.resolveTo(null);
-    readonly fetch = jasmine.createSpy('fetch').and.callFake(async () => { this.tokens.shift(); return new Response(null, { status: 200 }); });
-    readonly token = jasmine.createSpy('token').and.callFake(async () => this.tokens[0] ?? null);
-
-    listo(): Promise<EstadoPlataforma> { return Promise.resolve(this.estado); }
-    alCambiar(oyente: (estado: EstadoPlataforma) => void): () => void {
-        this.oyentes.push(oyente);
-        oyente(this.estado);
-        return () => this.oyentes = this.oyentes.filter(item => item !== oyente);
-    }
-    emitir(estado: EstadoPlataforma): void {
-        this.estado = estado;
-        this.oyentes.forEach(oyente => oyente(estado));
-    }
-}
+class SdkDouble extends YosiftwareSdkDouble { }
 
 const cuenta = (id: string, alias = id): CuentaPlataforma => ({ id, alias, correo: `${alias}@example.test` });
 const conSesion = (id: string): EstadoPlataforma => ({ tipo: 'con_sesion', cuenta: cuenta(id) });

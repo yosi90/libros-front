@@ -112,17 +112,11 @@ export interface AdminSummary {
     Cuentas: {
         PorEstado: AdminSummaryCount[];
         PorRol: AdminSummaryCount[];
-        EmailPendienteVerificacion: number;
     };
+    /** Lo que espera una decisión: el correo, las sanciones y las alegaciones son de la plataforma. */
     Colas: {
         PeticionesCatalogo: number;
         ReportesResenas: number;
         DenunciasComunidad: number;
-        Alegaciones: number;
-    };
-    Moderacion: { SancionesActivas: number };
-    Operacion: {
-        RealtimeDeadLetters: number;
-        FirestoreDeadLetters: number;
     };
 }

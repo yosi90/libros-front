@@ -11,6 +11,7 @@ import {
     CuentaPlataforma,
     EstadoPlataforma,
     NormasPendientesPlataforma,
+    ObjetoDenunciaPlataforma,
     RestriccionesPlataforma,
     YosiftwareSdk,
     esCambioDeIdentidad
@@ -189,6 +190,21 @@ export class PlatformSessionService implements OnDestroy {
         return this.token();
     }
 
+    /** Token para la API de la plataforma (`aud: cuentas`). `null` sin sesión o si la cuenta cambia entre medias. */
+    async platformToken(): Promise<string | null> {
+        try {
+            return await (await this.loadSdk()).tokenPlataforma();
+        } catch (error) {
+            if (esCambioDeIdentidad(error)) return null;
+            throw error;
+        }
+    }
+
+    /** El SDK ya cargado, para lo que Libros usa de la plataforma (chat, ajustes, tiempo real, ventanas). */
+    platformSdk(): Promise<YosiftwareSdk> {
+        return this.loadSdk();
+    }
+
     async entrar(vista: 'entrar' | 'registro' = 'entrar'): Promise<boolean> {
         return (await this.loadSdk()).entrar({ vista });
     }
@@ -208,10 +224,30 @@ export class PlatformSessionService implements OnDestroy {
         return guardado;
     }
 
+    /** Errores y propuestas de Yosiftware (`<yosi-reportar>` hace lo mismo). */
+    async reportar(tipo?: 'error' | 'propuesta'): Promise<boolean> {
+        return (await this.loadSdk()).reportar(tipo ? { tipo } : undefined);
+    }
+
+    /** Denunciar algo de la plataforma: una persona o un mensaje del chat (MODERACION.md). */
+    async denunciar(objeto: ObjetoDenunciaPlataforma): Promise<boolean> {
+        return (await this.loadSdk()).denunciar(objeto);
+    }
+
+    /** La privacidad de Yosiftware para Libros, en un diálogo (`<yosi-privacidad>` hace lo mismo). */
+    async privacidad(): Promise<void> {
+        await (await this.loadSdk()).privacidad();
+    }
+
     /** La web social, con una vista si se pide (`cuenta`, `privacidad`…). */
     socialUrl(vista?: string): string {
         const base = environment.plataforma.socialUrl;
         return vista ? `${base}/?vista=${encodeURIComponent(vista)}` : base;
+    }
+
+    /** El perfil público de otra persona en la web social (nunca el de una cuenta borrada). */
+    socialProfileUrl(accountId: string): string {
+        return `${environment.plataforma.socialUrl}/?perfil=${encodeURIComponent(accountId)}`;
     }
 
     /** Vuelve a pedir el usuario local tras un fallo. */

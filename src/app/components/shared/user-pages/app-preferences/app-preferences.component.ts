@@ -2,41 +2,32 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { UserProfileUpdate } from '../../../../interfaces/user';
-import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
-import { ProfileActivityPreferencesComponent } from '../user-profile/preferences/profile-activity-preferences.component';
 import { ProfileChatPreferencesComponent } from '../user-profile/preferences/profile-chat-preferences.component';
-import { ProfileNotificationPreferencesComponent } from '../user-profile/preferences/profile-notification-preferences.component';
-import { ProfilePrivacyPreferencesComponent } from '../user-profile/preferences/profile-privacy-preferences.component';
+import { ProfilePlatformPrivacyComponent } from '../user-profile/preferences/profile-platform-privacy.component';
 import { MobileAppPermissionsComponent } from './mobile-app-permissions.component';
 import { AppearancePreferencesComponent } from './appearance-preferences.component';
 
-type PreferenceSection = 'appearance' | 'privacy' | 'activity' | 'notifications' | 'chat' | 'permissions';
+type PreferenceSection = 'appearance' | 'privacy' | 'chat' | 'permissions';
 
 @Component({
     selector: 'app-app-preferences',
     standalone: true,
-    imports: [MatIconModule, ProfileActivityPreferencesComponent, ProfileChatPreferencesComponent, ProfileNotificationPreferencesComponent, ProfilePrivacyPreferencesComponent, MobileAppPermissionsComponent, AppearancePreferencesComponent],
+    imports: [MatIconModule, ProfileChatPreferencesComponent, ProfilePlatformPrivacyComponent, MobileAppPermissionsComponent, AppearancePreferencesComponent],
     templateUrl: './app-preferences.component.html',
     styleUrl: './app-preferences.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class AppPreferencesComponent {
     activeSection: PreferenceSection = 'privacy';
-    privacyActivationToken = 0;
-    privacySettings = this.currentPrivacySettings();
     readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; description: string; nativeOnly?: boolean; webOnly?: boolean }> = [
         { id: 'appearance', label: 'Apariencia', icon: 'palette', description: 'Tema de la interfaz en este navegador.', webOnly: true },
-        { id: 'privacy', label: 'Privacidad', icon: 'visibility', description: 'Qué pueden ver otras personas de tu perfil.' },
-        { id: 'activity', label: 'Actividad lectora', icon: 'auto_stories', description: 'Qué cambios de tu biblioteca se comparten en Comunidad.' },
-        { id: 'notifications', label: 'Notificaciones', icon: 'notifications', description: 'Qué avisos recibes, en la aplicación o como push.' },
-        { id: 'chat', label: 'Chat', icon: 'forum', description: 'Cómo se comportan tus conversaciones.' },
+        { id: 'privacy', label: 'Privacidad', icon: 'visibility', description: 'Tu privacidad en Libros es la de tu cuenta de Yosiftware.' },
+        { id: 'chat', label: 'Chat', icon: 'forum', description: 'Cómo se comportan tus ventanas de chat en este escritorio.' },
         { id: 'permissions', label: 'Permisos del móvil', icon: 'app_settings_alt', description: 'Permisos del sistema para la aplicación.', nativeOnly: true }
     ];
 
     constructor(
-        private session: PlatformSessionService,
         private presentation: PresentationModeService,
         route: ActivatedRoute
     ) {
@@ -49,7 +40,6 @@ export class AppPreferencesComponent {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get isNativeMobile(): boolean { return this.presentation.snapshot.isNativeMobile; }
-    get user() { return this.session.userObject; }
 
     get isWebPresentation(): boolean { return this.presentation.snapshot.isWebPresentation; }
     /** Vista Web activa (no solo navegador): claro u oscuro con vista propia. */
@@ -58,31 +48,8 @@ export class AppPreferencesComponent {
 
     availableSections() { return this.sections.filter(section => this.isAvailable(section)); }
     select(section: PreferenceSection): void { this.activeSection = section; }
-    openPrivacy(): void { this.activeSection = 'privacy'; this.privacyActivationToken++; }
-    consumePrivacyActivation(): void { this.privacyActivationToken = 0; }
-    // Pendiente del hito 3: la privacidad pasa a `<yosi-privacidad>` de la plataforma.
-    applyPrivacy(update: UserProfileUpdate): void {
-        const current = this.privacySettings;
-        this.privacySettings = {
-            perfilPublico: update.perfilPublico ?? current.perfilPublico,
-            mostrarEstadisticas: update.mostrarEstadisticas ?? current.mostrarEstadisticas,
-            mostrarBiblioteca: update.mostrarBiblioteca ?? current.mostrarBiblioteca,
-            permitirMensajes: update.permitirMensajes ?? current.permitirMensajes
-        };
-    }
-
-    private currentPrivacySettings() {
-        const user = this.session.userObject;
-        return {
-            perfilPublico: user.perfilPublico ?? false,
-            mostrarEstadisticas: user.mostrarEstadisticas ?? false,
-            mostrarBiblioteca: user.mostrarBiblioteca ?? false,
-            permitirMensajes: user.permitirMensajes ?? false
-        };
-    }
-
     private isSection(value: string | null): value is PreferenceSection {
-        return value === 'appearance' || value === 'privacy' || value === 'activity' || value === 'notifications' || value === 'chat' || value === 'permissions';
+        return value === 'appearance' || value === 'privacy' || value === 'chat' || value === 'permissions';
     }
     private section(id: PreferenceSection) { return this.sections.find(section => section.id === id)!; }
     private isAvailable(section: { nativeOnly?: boolean; webOnly?: boolean }): boolean {

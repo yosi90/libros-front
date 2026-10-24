@@ -16,7 +16,7 @@
       <div><p class="m-eyebrow">Club de lectura · {{ club.Visibilidad }}</p><h1 class="m-title">{{ club.Nombre }}</h1><p class="m-supporting">{{ club.DescripcionMarkdown || 'Este club aún no ha añadido una descripción.' }}</p></div>
       <div class="m-club-detail__hero-actions">
         @if (!c.isMember) { <button class="m-button" type="button" (click)="c.joinOrRequest()" [disabled]="c.isJoining"><mat-icon>{{ club.Visibilidad === 'abierto' ? 'group_add' : 'mark_email_unread' }}</mat-icon>{{ c.isJoining ? 'Enviando…' : club.Visibilidad === 'abierto' ? 'Unirme' : 'Solicitar acceso' }}</button> }
-        @if (c.isMember) { <button class="m-button" type="button" (click)="c.openClubChat()" [disabled]="c.isOpeningChat"><mat-icon>forum</mat-icon>{{ c.isOpeningChat ? 'Abriendo…' : 'Abrir chat' }}</button> }
+        @if (c.isMember) { <button class="m-button" type="button" (click)="c.openClubChat()" [disabled]="!c.clubChatAvailable" [title]="c.clubChatUnavailableReason"><mat-icon>forum</mat-icon>Abrir chat</button> }
         @if (!c.isOwner) { <button class="m-button m-button--outline is-danger" type="button" (click)="c.reportClub()" [disabled]="c.isReportingClub"><mat-icon>flag</mat-icon>{{ c.isReportingClub ? 'Enviando…' : 'Denunciar' }}</button> }
       </div>
     </header>

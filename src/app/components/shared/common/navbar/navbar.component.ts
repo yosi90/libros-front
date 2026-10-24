@@ -5,16 +5,17 @@ import { PlatformSessionService } from '../../../../services/auth/platform-sessi
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { YosiftwareAccountComponent } from '../yosiftware-account/yosiftware-account.component';
+import { YosiftwareNotificationsComponent } from '../yosiftware-notifications/yosiftware-notifications.component';
+import { YosiftwareWebsComponent } from '../yosiftware-webs/yosiftware-webs.component';
 
 @Component({
     standalone: true,
     selector:  'app-navbar',
-    imports: [RouterLink, MatButtonModule, MatIconModule, MatTooltipModule, NotificationBellComponent, YosiftwareAccountComponent],
+    imports: [RouterLink, MatButtonModule, MatIconModule, MatTooltipModule, YosiftwareAccountComponent, YosiftwareNotificationsComponent, YosiftwareWebsComponent],
     templateUrl: './navbar.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './navbar.component.sass'

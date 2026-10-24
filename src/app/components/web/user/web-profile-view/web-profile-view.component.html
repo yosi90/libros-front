@@ -1,16 +1,13 @@
 <main class="web-settings">
   <header class="profile-head">
-    <button class="profile-head__avatar" type="button" aria-label="Ir a cambiar imagen de perfil" (click)="goToProfileImage()">
-      <img [src]="avatarUrl" alt="" (error)="controller.handleProfileImageError($event)">
-      <span aria-hidden="true"><mat-icon>photo_camera</mat-icon></span>
+    <!-- El avatar y el nombre son del perfil de Yosiftware: se editan en su vista, sobre la web. -->
+    <button class="profile-head__avatar" type="button" aria-label="Editar tu perfil de Yosiftware" (click)="controller.editPlatformProfile()">
+      @if (controller.avatarUrl) {<img [src]="controller.avatarUrl" alt="" (error)="controller.handleProfileImageError($event)">} @else {<mat-icon class="profile-head__placeholder" aria-hidden="true">account_circle</mat-icon>}
+      <span aria-hidden="true"><mat-icon>edit</mat-icon></span>
     </button>
     <div class="profile-head__identity">
       <h1>{{controller.getProfileDisplayName()}}</h1>
       <p>{{controller.getProfileHandle()}}</p>
-      <div class="profile-head__meta">
-        <span><mat-icon aria-hidden="true">location_on</mat-icon>{{controller.getCountryLabel()}}</span>
-        <span><mat-icon aria-hidden="true">{{controller.userData?.perfilPublico ? 'public' : 'lock'}}</mat-icon>{{controller.userData?.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span>
-      </div>
     </div>
   </header>
 
@@ -74,65 +71,17 @@
         }
 
         @case ('profile') {
-          <header class="web-settings__panel-head"><div><h2>Identidad pública</h2><p>Así te ven otras personas en Comunidad.</p></div></header>
+          <header class="web-settings__panel-head"><div><h2>Perfil</h2><p>Tu perfil es el de tu cuenta de Yosiftware, el mismo en todas sus webs.</p></div></header>
           <div class="fields">
-            @for (field of textFields; track field.id) {
-              <article class="field" [class.is-editing]="controller.inlineProfileEditMode === field.id">
-                <mat-icon class="field__icon" aria-hidden="true">{{field.icon}}</mat-icon>
-                <div class="field__body">
-                  <strong>{{field.label}}</strong>
-                  @if (controller.inlineProfileEditMode === field.id) {
-                    @if (field.multiline) {
-                      <textarea [formControl]="control(field.id)" [attr.maxlength]="field.max" rows="4" [attr.aria-label]="field.label"></textarea>
-                    } @else {
-                      <input [formControl]="control(field.id)" [attr.maxlength]="field.max" [attr.aria-label]="field.label">
-                    }
-                    <small class="field__meta">
-                      @if (control(field.id).invalid) {<span class="field__error">{{error(field.id)}}</span>}
-                      <span>{{control(field.id).value?.length || 0}} / {{field.max}}</span>
-                    </small>
-                  } @else {
-                    <span>{{value(field.id)}}</span>
-                  }
-                </div>
-                @if (controller.inlineProfileEditMode === field.id) {
-                  <div class="field__actions">
-                    <button class="web-button" type="button" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()">Cancelar</button>
-                    <button class="web-button web-button--primary" type="button" [disabled]="control(field.id).invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()">Guardar</button>
-                  </div>
-                } @else {
-                  <button class="web-button web-button--small" type="button" [attr.aria-label]="'Editar ' + field.label.toLocaleLowerCase()" (click)="controller.startInlineProfileEdit(field.id)">Editar</button>
-                }
-              </article>
-            }
-
-            <article class="field field--image" [class.is-highlighted]="imageTargetHighlighted" [class.is-editing]="controller.inlineProfileEditMode === 'image'">
-              <mat-icon class="field__icon" aria-hidden="true">account_box</mat-icon>
-              <div class="field__body">
-                <strong>Imagen de perfil</strong>
-                @if (controller.inlineProfileEditMode === 'image') {
-                  <span>Elige una imagen para mostrarla junto a tu nombre.</span>
-                  <input #imageInput class="field__file-input" type="file" accept="image/*" tabindex="-1" aria-label="Seleccionar imagen de perfil" (change)="selectProfileImage($event)">
-                  <button class="web-button web-button--small field__choose" type="button" (click)="imageInput.click()">Elegir imagen</button>
-                  @if (controller.files[0]; as file) {<span class="field__filename">{{file.name}}</span>}
-                } @else {
-                  <span>Se muestra junto a tu nombre.</span>
-                }
-              </div>
-              @if (controller.inlineProfileEditMode === 'image') {
-                <div class="field__actions">
-                  <button class="web-button" type="button" (click)="controller.cancelInlineProfileEdit()">Cancelar</button>
-                  <button class="web-button web-button--primary" type="button" [disabled]="controller.isInlineEditInvalid()" (click)="controller.saveInlineProfileEdit()">Guardar</button>
-                </div>
-              } @else {
-                <button class="web-button web-button--small" type="button" [class.field__target-action]="imageTargetHighlighted" (click)="editProfileImage()">Cambiar</button>
-              }
-            </article>
-
             <article class="field">
-              <mat-icon class="field__icon" aria-hidden="true">visibility</mat-icon>
-              <div class="field__body"><strong>Privacidad</strong><span>{{controller.userData?.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span></div>
-              <a class="web-button web-button--small" routerLink="/dashboard/profile" [queryParams]="{ section: 'preferences', tab: 'privacy' }">Configurar</a>
+              <mat-icon class="field__icon" aria-hidden="true">badge</mat-icon>
+              <div class="field__body"><strong>{{controller.getProfileDisplayName()}}</strong><span>{{controller.getProfileHandle()}}</span></div>
+              <button class="web-button web-button--small" type="button" (click)="controller.editPlatformProfile()">Editar perfil</button>
+            </article>
+            <article class="field">
+              <mat-icon class="field__icon" aria-hidden="true">public</mat-icon>
+              <div class="field__body"><strong>Tu perfil público</strong><span>Lo que ven las demás personas, en la web social</span></div>
+              <a class="web-button web-button--small" [href]="controller.socialProfileUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Ver</a>
             </article>
           </div>
         }

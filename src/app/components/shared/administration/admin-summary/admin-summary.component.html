@@ -38,12 +38,9 @@
     <span><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong></span>
     }</div></div><div class="admin-summary__donut-card"><div class="admin-summary__donut" [style.background]="donutBackground(accountRoleSlices)"><span>{{total(accountRoleSlices)}}</span></div><div class="admin-summary__legend">@for (slice of accountRoleSlices; track trackSlice($index, slice)) {
     <span><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong></span>
-    }</div></div><div class="admin-summary__donut-card"><div class="admin-summary__donut" [style.background]="donutBackground(verificationSlices)"><span>{{total(verificationSlices)}}</span></div><div class="admin-summary__legend">@for (slice of verificationSlices; track trackSlice($index, slice)) {
-    <span><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong></span>
   }</div></div></section>
   <section class="admin-summary__section admin-summary__section--donuts"><div class="admin-summary__donut-card admin-summary__donut-card--queues"><div class="admin-summary__donut" [style.background]="donutBackground(queueSlices)"><span>{{total(queueSlices)}}</span></div><div class="admin-summary__legend">@for (slice of queueSlices; track trackSlice($index, slice)) {
   <button type="button" (click)="openQueue(slice)"><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong><mat-icon>arrow_forward</mat-icon></button>
 }</div></div></section>
-<section class="admin-summary__section"><h3><mat-icon>gavel</mat-icon>Moderación y operación</h3><div class="admin-summary__grid"><article><strong>{{data.Moderacion.SancionesActivas}}</strong><span>Sanciones activas</span></article><article><strong>{{data.Operacion.RealtimeDeadLetters}}</strong><span>Realtime sin entregar</span></article><article><strong>{{data.Operacion.FirestoreDeadLetters}}</strong><span>Firestore sin entregar</span></article></div></section>
 }
 </section>

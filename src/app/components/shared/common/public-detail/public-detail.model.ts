@@ -44,6 +44,9 @@ export interface PublicDetailController {
     pagedPublicReviewRows(): CatalogPublicReview[];
     publicReviewRows(): CatalogPublicReview[];
     publicReviewAuthorHandle(review: CatalogPublicReview): string;
+    /** «Denunciar» una reseña ajena con la denuncia propia de Libros. */
+    canReportReview(review: CatalogPublicReview): boolean;
+    reportReview(review: CatalogPublicReview): void;
     publicReviewDate(review: CatalogPublicReview): string | null;
     hasPublicReviewPages(): boolean;
     publicReviewTotalPages(): number;

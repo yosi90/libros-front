@@ -27,15 +27,14 @@ describe('CommunityService resumen social', () => {
         service.socialSummary().subscribe(summary => {
             expect(summary.Parcial).toBeTrue();
             expect(summary.BloquesFallidos).toEqual(['Clubes']);
-            expect(summary.Resumen.Mensajes.NoLeidosSistema).toBe(2);
+            expect(summary.Resumen.Clubes.Activos).toBe(0);
         });
 
         const request = http.expectOne(`${environment.apiUrl}comunidad/resumen`);
         expect(request.request.method).toBe('GET');
+        // La API solo trae ya los clubes (ADHESION_YOSIFTWARE.md): las relaciones y los mensajes son de la plataforma.
         request.flush({ success: true, Parcial: true, BloquesFallidos: ['Clubes'], Resumen: {
-            Relaciones: { Amistades: 3, SolicitudesRecibidasPendientes: 1, Seguidores: 4, Seguidos: 5 },
-            Clubes: { Activos: 0, InvitacionesPendientes: 0 },
-            Mensajes: { NoLeidos: 3, NoLeidosHumanos: 1, NoLeidosSistema: 2 }
+            Clubes: { Activos: 0, InvitacionesPendientes: 0 }
         } });
     });
 

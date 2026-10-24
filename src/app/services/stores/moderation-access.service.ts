@@ -3,7 +3,6 @@ import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { ModerationAccessRestriction, ModerationAccessStatus, ModerationScope } from '../../interfaces/moderation';
 import { PlatformSessionService } from '../auth/platform-session.service';
 import { AlcanceRestringido, RestriccionesPlataforma } from '../auth/yosiftware-sdk';
-import { PolicyPromptService } from '../navigation/policy-prompt.service';
 import { describePlatformRestriction } from '../../shared/api-error-message';
 
 /** Lo que bloquea cada alcance de la plataforma en las pantallas de Libros (ADHESION_YOSIFTWARE.md). */
@@ -31,7 +30,7 @@ export class ModerationAccessService {
     get state(): ModerationAccessStatus | null { return this.stateSubject.value; }
     get isLoading(): boolean { return this.loadingSubject.value; }
 
-    constructor(private session: PlatformSessionService, private policyPrompt: PolicyPromptService) {
+    constructor(private session: PlatformSessionService) {
         this.session.restricciones$.subscribe(() => {
             if (this.stateSubject.value && this.session.userIsLogged) this.publish();
         });
@@ -43,7 +42,6 @@ export class ModerationAccessService {
     }
 
     clear(): void {
-        this.policyPrompt.clear();
         this.stateSubject.next(null);
         this.loadingSubject.next(false);
     }

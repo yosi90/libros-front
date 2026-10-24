@@ -27,7 +27,10 @@
       @if (c.hasBookWikiLink()) {
         <button class="icon-button" type="button" matTooltip="Abrir la wiki del libro" aria-label="Abrir la wiki del libro" (click)="c.openBookWiki()"><mat-icon>language</mat-icon></button>
       }
-      <!-- La cuenta de Yosiftware también desde el libro: cambiar de cuenta no obliga a salir de él. -->
+      <!-- Las webs del ecosistema, la campana y la cuenta de Yosiftware también desde el libro: cambiar de cuenta no
+           obliga a salir de él. -->
+      <app-yosiftware-webs class="book__account"></app-yosiftware-webs>
+      <app-yosiftware-notifications class="book__account"></app-yosiftware-notifications>
       <app-yosiftware-account class="book__account"></app-yosiftware-account>
     </div>
   </header>

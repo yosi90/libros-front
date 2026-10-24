@@ -3,7 +3,7 @@ import { StatRow, communityReadingRows } from '../../../../shared/library-stats'
 import { StatRowsComponent } from '../../common/stat-rows/stat-rows.component';
 import { WebClubDetailViewComponent } from '../../../web/social/web-club-detail-view/web-club-detail-view.component';
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -12,9 +12,7 @@ import { ClubCalendarEvent, ClubDebate, ClubDebateDetail, ClubDetail, ClubInvita
 import { CommunityService } from '../../../../services/entities/community.service';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
-import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
-import { Subscription } from 'rxjs';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileClubDetailViewComponent } from '../../../mobile/social/mobile-club-detail-view/mobile-club-detail-view.component';
 
@@ -26,7 +24,7 @@ import { MobileClubDetailViewComponent } from '../../../mobile/social/mobile-clu
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './club-detail.component.sass'
 })
-export class ClubDetailComponent implements OnInit, OnDestroy {
+export class ClubDetailComponent implements OnInit {
     club: ClubDetail | null = null;
     /** Autores más leídos por los miembros (solo clubes abiertos; menos de tres lectores no cuenta). */
     clubReadingAuthors: StatRow[] = [];
@@ -36,7 +34,6 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     isJoining = false;
     joinRequestDialogOpen = false;
     joinRequestMessage = '';
-    isOpeningChat = false;
     actionMessage = '';
     memberActionUserIds = new Set<number>();
     isLeaving = false;
@@ -104,10 +101,9 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     pollActionIds = new Set<number>();
     isCreatingPoll = false;
     pollError = '';
-    private realtimeSubscription: Subscription | null = null;
     private clubId = 0;
 
-    constructor(private route: ActivatedRoute, private community: CommunityService, private session: PlatformSessionService, private router: Router, private realtime: RealtimeSocketService, private universeStore: UniverseStoreService, private presentation: PresentationModeService, private statisticsSrv: StatisticsService) { }
+    constructor(private route: ActivatedRoute, private community: CommunityService, private session: PlatformSessionService, private router: Router, private universeStore: UniverseStoreService, private presentation: PresentationModeService, private statisticsSrv: StatisticsService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
@@ -120,19 +116,11 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
             this.error = 'El club solicitado no es válido.';
             return;
         }
+        // El tiempo real propio del club (`/ws/community`) se retiró con la adhesión: los cambios del club llegarán por el
+        // canal del espacio de la plataforma con los espacios (fase 4 de la API). Hasta entonces, se lee por REST.
         this.load();
-        this.realtime.open('community');
-        this.realtimeSubscription = this.realtime.events$.subscribe(event => {
-            if (event.channel !== 'community') return;
-            if (event.type.startsWith('club.') && this.eventClubId(event.payload) === this.clubId) this.reconcileClubAccess();
-        });
-        this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => {
-            if (event.channel === 'community' && event.reconnected) this.reconcileClubAccess();
-        }));
-        this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(() => this.reconcileClubAccess()));
     }
 
-    ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }
 
     load(): void {
         this.isLoading = true;
@@ -170,7 +158,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
             next: () => {
                 if (this.club?.Visibilidad === 'abierto') {
                     this.isJoining = false;
-                    this.openClubChat();
+                    this.load();
                     return;
                 }
                 this.actionMessage = 'Tu solicitud de acceso se ha enviado.';
@@ -297,14 +285,15 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         });
     }
 
+    /**
+     * La conversación de cada club será la del espacio de la plataforma (fase 4 de la API, `PUT …/conversacion`). La
+     * ruta propia (`POST /chat/clubes/{id}`) se retiró: hasta entonces el botón queda desactivado y lo explica.
+     */
+    readonly clubChatAvailable = false;
+    readonly clubChatUnavailableReason = 'El chat del club llegará con los espacios de Yosiftware.';
+
     openClubChat(): void {
-        if (!this.club || this.isOpeningChat) return;
-        this.isOpeningChat = true;
-        this.actionMessage = '';
-        this.community.prepareClubConversation(this.club.Id).subscribe({
-            next: conversationId => void this.router.navigate(['/dashboard/community/messages', conversationId]),
-            error: error => { this.actionMessage = this.clubMessage(error, 'No se ha podido abrir la conversación del club.'); this.isOpeningChat = false; }
-        });
+        if (!this.clubChatAvailable) this.actionMessage = this.clubChatUnavailableReason;
     }
 
     loadMilestones(): void {
@@ -464,21 +453,6 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
                 this.pollActionIds.delete(poll.Id);
             }
         });
-    }
-
-    private reconcileClubAccess(): void {
-        this.community.club(this.clubId).subscribe({
-            next: club => { this.club = club; this.loadReadings(); this.loadProgress(); this.loadMilestones(); this.loadCalendar(); this.loadDebates(); this.loadPolls(); if (this.canManageClub) this.loadJoinRequests(); },
-            error: () => {
-                this.club = null;
-                void this.router.navigate(['/dashboard/community'], { state: { clubAccessRevoked: true } });
-            }
-        });
-    }
-
-    private eventClubId(payload: Record<string, unknown>): number | null {
-        const value = payload['ClubId'];
-        return typeof value === 'number' && Number.isInteger(value) ? value : null;
     }
 
     private clubLimitMessage(error: unknown): string | null {

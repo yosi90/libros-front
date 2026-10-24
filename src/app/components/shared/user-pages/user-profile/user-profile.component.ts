@@ -2,15 +2,13 @@ import { AccountSecurityComponent } from '../account-security/account-security.c
 import { AppPreferencesComponent } from '../app-preferences/app-preferences.component';
 import { WebProfileViewComponent } from '../../../web/user/web-profile-view/web-profile-view.component';
 import { CatalogRequestField, catalogEntityLabel, catalogRequestActionLabel, catalogRequestPayloadFields } from '../../../../shared/catalog-request-labels';
-import { Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { ApiUserProfile, RecentLibraryActivity, User } from '../../../../interfaces/user';
-import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, finalize, forkJoin, map, merge, of } from 'rxjs';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatCardModule } from '@angular/material/card';
+import { FormsModule } from '@angular/forms';
+import { ApiUserProfile, RecentLibraryActivity, User } from '../../../../interfaces/user';
+import { YosiftwareMarkComponent } from '../../common/yosiftware-mark/yosiftware-mark.component';
+import { catchError, of } from 'rxjs';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { UserService } from '../../../../services/entities/user.service';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,8 +18,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ObjectManagerComponent } from '../object-manager/object-manager.component';
 import { ManagerKind } from '../object-manager/object-manager.models';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { environment } from '../../../../../environment/environment';
-import { NgxDropzoneModule } from 'ngx-dropzone';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Universe, UniverseMetricsResponse } from '../../../../interfaces/universe';
 import { Saga } from '../../../../interfaces/saga';
@@ -30,27 +26,17 @@ import { UniverseStoreService } from '../../../../services/stores/universe-store
 import { Author } from '../../../../interfaces/author';
 import { BookSimple } from '../../../../interfaces/book';
 import { Antology } from '../../../../interfaces/antology';
-import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogRequest, ReportGroup } from '../../../../interfaces/catalog';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { ReportService } from '../../../../services/entities/report.service';
-import { ModerationAppeal, ModerationIncident } from '../../../../interfaces/moderation';
-import { ModerationService } from '../../../../services/entities/moderation.service';
-import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
-import { ModerationPolicy, ModerationPolicyKind } from '../../../../interfaces/moderation';
-import { renderSafeMarkdown } from '../../../../shared/markdown';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { ProfileUniverseMetricsComponent } from './profile-universe-metrics/profile-universe-metrics.component';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-view/mobile-profile-view.component';
-import { NativeProfileImageService } from '../../../../services/native/native-profile-image.service';
-import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { getStatusIcon } from '../../../../shared/reading-status';
 
-type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports' | 'security' | 'preferences' | ManagerKind;
-type InlineProfileEditMode = 'username' | 'displayName' | 'bio' | 'privacy' | 'image';
-type ProfileEditMode = 'identity' | 'publicIdentity' | 'username' | 'displayName' | 'bio' | 'privacy';
+type ProfileSection = 'overview' | 'profile' | 'requests' | 'reports' | 'security' | 'preferences' | ManagerKind;
 
 interface DisplayField {
     label: string;
@@ -60,8 +46,8 @@ interface DisplayField {
 @Component({
     standalone: true,
     selector:  'app-user-profile',
-    imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe, ObjectManagerComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, WebProfileViewComponent, AccountSecurityComponent, AppPreferencesComponent],
+    imports: [MatCardModule, FormsModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule,
+        MatTooltipModule, RouterLink, CoverCachePipe, ObjectManagerComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, WebProfileViewComponent, AccountSecurityComponent, AppPreferencesComponent, YosiftwareMarkComponent],
     templateUrl: './user-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-profile.component.sass'
@@ -82,14 +68,6 @@ export class UserProfileComponent implements OnInit {
         { section: 'preferences', icon: 'settings', label: 'Preferencias' }
     ];
 
-    readonly identityFields: ReadonlyArray<{ mode: InlineProfileEditMode; icon: string; label: string }> = [
-        { mode: 'username', icon: 'alternate_email', label: 'Alias' },
-        { mode: 'displayName', icon: 'badge', label: 'Nombre visible' },
-        { mode: 'bio', icon: 'notes', label: 'Biografía' },
-        { mode: 'privacy', icon: 'visibility', label: 'Privacidad' },
-        { mode: 'image', icon: 'account_box', label: 'Imagen de perfil' }
-    ];
-
     get activeManagerKind(): ManagerKind | null {
         return this.libraryLinks.some(link => link.section === this.activeSection) ? this.activeSection as ManagerKind : null;
     }
@@ -101,8 +79,6 @@ export class UserProfileComponent implements OnInit {
     books: BookSimple[] = [];
     antologies: Antology[] = [];
 
-    imgUrl = environment.getImgUrl;
-    imageCacheBuster: number = Date.now();
     recentActivity: RecentLibraryActivity[] = [];
     isRecentActivityLoading = true;
     accountProfile: ApiUserProfile | null = null;
@@ -117,82 +93,10 @@ export class UserProfileComponent implements OnInit {
     areReportsLoading = true;
     requestResponses: Record<number, string> = {};
     isRespondingRequest = false;
-    moderationIncidents: ModerationIncident[] = [];
-    moderationAppeals: ModerationAppeal[] = [];
-    isModerationLoading = true;
-    appealDrafts: Record<number, string> = {};
-    isSubmittingAppeal = false;
-    policies: ModerationPolicy[] = [];
-    readonly policyKinds: ModerationPolicyKind[] = ['uso', 'creacion'];
-    isPoliciesLoading = true;
-    policiesLoadError = false;
-    acceptingPolicy: ModerationPolicyKind | null = null;
-
-    modImg: boolean = false;
-    photo!: File;
-    files: File[] = [];
-
-    modProfile: boolean = false;
-    profileEditMode: ProfileEditMode = 'identity';
-    inlineProfileEditMode: InlineProfileEditMode | null = null;
     /** Apartado interno de Seguridad o Preferencias (`?tab=`) al abrirlos dentro del Perfil. */
     activeTab: string | null = null;
-    isProfileSaving = false;
-    errorUsernameMessage = '';
-    errorDisplayNameMessage = '';
-    errorBioMessage = '';
-    username = new FormControl('', [
-        Validators.required,
-        Validators.pattern('^[a-zA-Z0-9_]{3,50}$'),
-        Validators.minLength(3),
-        Validators.maxLength(50),
-    ]);
-    displayName = new FormControl('', [
-        Validators.maxLength(80),
-    ]);
-    bio = new FormControl('', [
-        Validators.maxLength(500),
-    ]);
-    perfilPublico = new FormControl(false);
-    mostrarEstadisticas = new FormControl(false);
-    mostrarBiblioteca = new FormControl(false);
-    permitirMensajes = new FormControl(false);
-    fgProfile = this.fBuild.group({
-        username: this.username,
-        displayName: this.displayName,
-        bio: this.bio,
-        perfilPublico: this.perfilPublico,
-        mostrarEstadisticas: this.mostrarEstadisticas,
-        mostrarBiblioteca: this.mostrarBiblioteca,
-        permitirMensajes: this.permitirMensajes,
-    });
-
-    modName: boolean = false;
-    errorNameMessage = '';
-    name = new FormControl('', [
-        Validators.required,
-        Validators.pattern('^[a-zA-Z]{3,15}'),
-        Validators.minLength(3),
-        Validators.maxLength(30),
-    ]);
-    fgName = this.fBuild.group({
-        name: this.name,
-    });
-
-    constructor(private sessionSrv: PlatformSessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
-        private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute, private presentation: PresentationModeService, private nativeProfileImage: NativeProfileImageService) {
-        merge(this.name.statusChanges, this.name.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updateNameErrorMessage());
-        merge(this.username.statusChanges, this.username.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updateUsernameErrorMessage());
-        merge(this.displayName.statusChanges, this.displayName.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updateDisplayNameErrorMessage());
-        merge(this.bio.statusChanges, this.bio.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updateBioErrorMessage());
+    constructor(private sessionSrv: PlatformSessionService, private userSrv: UserService, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
+        private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private route: ActivatedRoute, private presentation: PresentationModeService) {
         this.route.queryParamMap
             .pipe(takeUntilDestroyed())
             .subscribe(params => {
@@ -208,7 +112,6 @@ export class UserProfileComponent implements OnInit {
         this.loader.activateLoader();
         const user = this.sessionSrv.userObject;
         this.userData = user;
-        this.name.setValue(user.name);
         this.loadRecentActivity();
         this.loadAccountProfile();
         this.loadUniverseMetrics();
@@ -235,11 +138,6 @@ export class UserProfileComponent implements OnInit {
     get isNativeMobile(): boolean { return this.presentation.snapshot.isNativeMobile; }
     get mobileController(): this { return this; }
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
-
-    @HostListener('document:keydown.escape')
-    handleEscapeEvent() {
-        this.closeProfileModal();
-    }
 
     handleProfileImageError(event: any) {
         event.target.src = 'assets/media/img/error.png';
@@ -286,54 +184,7 @@ export class UserProfileComponent implements OnInit {
         });
     }
 
-    openProfileEdit(mode: ProfileEditMode = 'identity'): void {
-        this.profileEditMode = mode;
-        if (!this.modProfile)
-            this.invertModProfile();
-    }
-
-    startInlineProfileEdit(mode: InlineProfileEditMode): void {
-        this.populateProfileForm();
-        this.files = [];
-        this.profileEditMode = mode === 'image' ? 'identity' : mode;
-        this.inlineProfileEditMode = mode;
-    }
-
-    identityValue(mode: InlineProfileEditMode): string {
-        const user = this.userData;
-        switch (mode) {
-            case 'username': return user?.username || 'Sin alias';
-            case 'displayName': return user?.displayName || user?.name || '';
-            case 'bio': return user?.bio || 'Sin biografía';
-            case 'privacy': return user?.perfilPublico ? 'Perfil público' : 'Perfil privado';
-            case 'image': return 'Se muestra junto a tu nombre';
-        }
-    }
-
-    isInlineEditInvalid(): boolean {
-        if (this.isProfileSaving) return true;
-        if (this.inlineProfileEditMode === 'image') return this.files.length !== 1;
-        return this.isProfileEditInvalid();
-    }
-
-    cancelInlineProfileEdit(): void {
-        this.inlineProfileEditMode = null;
-        this.profileEditMode = 'identity';
-        this.populateProfileForm();
-    }
-
-    saveInlineProfileEdit(): void {
-        if (!this.inlineProfileEditMode) return;
-        if (this.inlineProfileEditMode === 'image') {
-            this.updateImg();
-            return;
-        }
-        this.updateProfile();
-    }
-
     setActiveSection(section: ProfileSection): void {
-        if (section !== 'profile' && this.inlineProfileEditMode)
-            this.cancelInlineProfileEdit();
         if (section !== this.activeSection)
             this.activeTab = null;
         this.activeSection = section;
@@ -343,89 +194,6 @@ export class UserProfileComponent implements OnInit {
         return value === 'overview' || value === 'profile' || value === 'requests' || value === 'reports'
             || value === 'security' || value === 'preferences'
             || this.libraryLinks.some(link => link.section === value);
-    }
-
-    loadPolicies(): void {
-        this.isPoliciesLoading = true;
-        this.policiesLoadError = false;
-        forkJoin([
-            this.loadPolicy('uso'),
-            this.loadPolicy('creacion')
-        ]).subscribe(results => {
-            this.policies = results.flatMap(result => result.policy ? [result.policy] : []);
-            this.policiesLoadError = results.some(result => result.error);
-            this.isPoliciesLoading = false;
-        });
-    }
-
-    acceptPolicy(kind: ModerationPolicyKind): void {
-        if (this.acceptingPolicy) return;
-        this.acceptingPolicy = kind;
-        this.moderationSrv.acceptPolicy(kind).subscribe({
-            next: () => {
-                this.moderationAccess.refresh().subscribe();
-                this.loadPolicies();
-                this._snackBar.openSnackBar('Norma aceptada correctamente', 'successBar');
-                this.acceptingPolicy = null;
-            },
-            error: error => {
-                this._snackBar.openApiError(error, 'No se ha podido registrar la aceptación');
-                this.acceptingPolicy = null;
-            }
-        });
-    }
-
-    renderPolicyMarkdown(markdown: string): string { return renderSafeMarkdown(markdown); }
-    policyLabel(kind: ModerationPolicyKind): string { return kind === 'uso' ? 'Normas de uso' : 'Normas de creación'; }
-    currentPolicy(kind: ModerationPolicyKind): ModerationPolicy | null { return this.policies.find(policy => policy.Tipo === kind) ?? null; }
-
-    private loadPolicy(kind: ModerationPolicyKind) {
-        return this.moderationSrv.getActivePolicy(kind).pipe(
-            map(policy => ({ policy, error: false })),
-            catchError(error => of({ policy: null, error: getApiErrorCode(error) !== 'active_policy_not_found' }))
-        );
-    }
-
-    loadModeration(): void {
-        this.isModerationLoading = true;
-        this.moderationSrv.listOwnIncidents({ limit: 50 }).subscribe({
-            next: incidents => {
-                this.moderationIncidents = incidents.items;
-                this.moderationSrv.listOwnAppeals().subscribe({
-                    next: appeals => { this.moderationAppeals = appeals; this.isModerationLoading = false; },
-                    error: () => this.isModerationLoading = false
-                });
-            },
-            error: () => this.isModerationLoading = false
-        });
-    }
-
-    hasAppeal(sanctionId: number): boolean { return this.moderationAppeals.some(appeal => appeal.SancionId === sanctionId); }
-
-    submitAppeal(incident: ModerationIncident): void {
-        const sanctionId = incident.Sancion.Id;
-        const text = (this.appealDrafts[sanctionId] || '').trim();
-        if (!sanctionId || incident.Sancion.Estado === 'none' || !text || this.isSubmittingAppeal)
-            return;
-
-        this.isSubmittingAppeal = true;
-        this.moderationSrv.createAppeal(sanctionId, text).subscribe({
-            next: () => {
-                delete this.appealDrafts[sanctionId];
-                this._snackBar.openSnackBar('Alegación enviada', 'successBar');
-                this.isSubmittingAppeal = false;
-                this.loadModeration();
-            },
-            error: error => {
-                this._snackBar.openApiError(error, 'No se ha podido enviar la alegación');
-                this.isSubmittingAppeal = false;
-            }
-        });
-    }
-
-    moderationStatusLabel(status: string): string {
-        const labels: Record<string, string> = { none: 'Sin sanción', banned: 'Cuenta suspendida', blocked: 'Bloqueada', sanctioned: 'Sancionada', revoked: 'Revocada', pendiente: 'Pendiente', en_revision: 'En revisión', aceptada: 'Aceptada', rechazada: 'Rechazada' };
-        return labels[status] ?? status;
     }
 
     loadMyRequests(): void {
@@ -446,26 +214,6 @@ export class UserProfileComponent implements OnInit {
             this.myReports = reports;
             this.areReportsLoading = false;
         });
-    }
-
-    isProfileModalOpen(): boolean {
-        return this.modImg || this.modName || this.modProfile;
-    }
-
-    getProfileModalTitle(): string {
-        if (this.modProfile)
-            return this.getProfileEditTitle();
-        if (this.modName)
-            return 'Cambiar nombre';
-        return 'Actualizar imagen';
-    }
-
-    closeProfileModal(): void {
-        this.modImg = false;
-        this.modName = false;
-        this.modProfile = false;
-        this.profileEditMode = 'identity';
-        this.files = [];
     }
 
     getActivityRoute(activity: RecentLibraryActivity): string[] {
@@ -561,64 +309,31 @@ export class UserProfileComponent implements OnInit {
         return getStatusIcon({ Nombre: statusName });
     }
 
+    /** El nombre del perfil de Yosiftware (o el alias), el mismo que enseña la cabecera. */
     getProfileDisplayName(): string {
-        return this.userData?.displayName || this.userData?.name || '';
+        return this.sessionSrv.userName || this.sessionSrv.cuenta?.alias || '';
     }
 
     getProfileHandle(): string {
-        if (!this.userData) return '';
-        return this.userData.username ? `@${this.userData.username}` : this.userData.email;
+        const alias = this.sessionSrv.cuenta?.alias;
+        return alias ? `@${alias}` : '';
     }
 
-    getEmailVerificationLabel(): string {
-        if (this.userData.emailVerificado)
-            return 'Email verificado';
-        if (this.userData.verificationPending)
-            return 'Verificación pendiente';
-        return 'Email sin verificar';
+    /** La miniatura del avatar de Yosiftware; sin ella, el icono de cuenta. */
+    get avatarUrl(): string | null { return this.sessionSrv.avatarUrl; }
+
+    /** El perfil público en la web social (con el símbolo del ecosistema). */
+    get socialProfileUrl(): string {
+        const id = this.sessionSrv.cuenta?.id;
+        return id ? this.sessionSrv.socialProfileUrl(id) : this.sessionSrv.socialUrl('perfil');
     }
 
-    getAccountStatusLabel(): string {
-        return this.userData.estadoCuenta?.Nombre || 'Cuenta activa';
-    }
-
-    getCountryLabel(): string {
-        if (!this.userData) return 'Sin país';
-        if (this.userData.paisCodigo === 'ES') return '🇪🇸 España (ES)';
-        if (this.userData.paisNombre && this.userData.paisCodigo)
-            return `${this.userData.paisNombre} (${this.userData.paisCodigo})`;
-        return this.userData.paisNombre || this.userData.paisCodigo || 'Sin país';
-    }
-
-    showProfileField(mode: ProfileEditMode): boolean {
-        const editsPublicIdentity = this.profileEditMode === 'publicIdentity'
-            && mode !== 'identity'
-            && mode !== 'publicIdentity'
-            && mode !== 'privacy';
-        return this.profileEditMode === 'identity' || editsPublicIdentity || this.profileEditMode === mode;
-    }
-
-    isProfileEditInvalid(): boolean {
-        if (this.profileEditMode === 'username')
-            return this.username.invalid;
-        if (this.profileEditMode === 'displayName')
-            return this.displayName.invalid;
-        if (this.profileEditMode === 'bio')
-            return this.bio.invalid;
-        return (this.profileEditMode === 'identity' || this.profileEditMode === 'publicIdentity') && this.fgProfile.invalid;
-    }
-
-    private getProfileEditTitle(): string {
-        const titles: Record<ProfileEditMode, string> = {
-            identity: 'Editar identidad pública',
-            publicIdentity: 'Editar perfil público',
-            username: 'Editar alias',
-            displayName: 'Editar nombre visible',
-            bio: 'Editar biografía',
-            privacy: 'Editar privacidad'
-        };
-
-        return titles[this.profileEditMode];
+    /**
+     * El perfil (nombre, biografía, avatar…) es el de la cuenta de Yosiftware: se edita en su vista, sobre la web
+     * (`yosiftware.editarPerfil()`, ecosistema-kit/ACCESO.md, «El perfil»). Libros no guarda nada de eso.
+     */
+    editPlatformProfile(): void {
+        void this.sessionSrv.editarPerfil().catch(error => this._snackBar.openApiError(error, 'No se pudo abrir tu perfil'));
     }
 
 
@@ -636,201 +351,4 @@ export class UserProfileComponent implements OnInit {
             minute: '2-digit'
         });
     }
-
-    onSelect(event: { addedFiles: File[]; }) {
-        // Una sola imagen: la nueva sustituye a la anterior.
-        if (!event.addedFiles.length) return;
-        this.files = [event.addedFiles[0]];
-        this.photo = event.addedFiles[0];
-    }
-
-    onRemove(event: File) {
-        this.files.splice(this.files.indexOf(event), 1);
-    }
-
-    updateNameErrorMessage() {
-        if (this.name.hasError('required'))
-            this.errorNameMessage = 'El nombre no puede quedar vacío';
-        else if (this.name.hasError('minlength'))
-            this.errorNameMessage = 'Nombre demasiado corto';
-        else if (this.name.hasError('maxlength'))
-            this.errorNameMessage = 'Nombre demasiado largo';
-        else this.errorNameMessage = 'Nombre no válido';
-    }
-
-    updateUsernameErrorMessage() {
-        if (this.username.hasError('server'))
-            this.errorUsernameMessage = this.username.getError('server');
-        else if (this.username.hasError('required'))
-            this.errorUsernameMessage = 'El alias no puede quedar vacío';
-        else if (this.username.hasError('minlength'))
-            this.errorUsernameMessage = 'Alias demasiado corto';
-        else if (this.username.hasError('maxlength'))
-            this.errorUsernameMessage = 'Alias demasiado largo';
-        else this.errorUsernameMessage = 'Usa letras, números o guion bajo';
-    }
-
-    updateDisplayNameErrorMessage() {
-        if (this.displayName.hasError('server'))
-            this.errorDisplayNameMessage = this.displayName.getError('server');
-        else if (this.displayName.hasError('maxlength'))
-            this.errorDisplayNameMessage = 'Nombre visible demasiado largo';
-        else this.errorDisplayNameMessage = '';
-    }
-
-    updateBioErrorMessage() {
-        if (this.bio.hasError('server'))
-            this.errorBioMessage = this.bio.getError('server');
-        else if (this.bio.hasError('maxlength'))
-            this.errorBioMessage = 'Biografía demasiado larga';
-        else this.errorBioMessage = '';
-    }
-
-    invertModImg(): void {
-        this.modImg = !this.modImg;
-        if (this.modImg === true) {
-            this.files = [];
-            if (this.modProfile === true) this.invertModProfile();
-            if (this.modName === true) this.invertModName();
-        }
-    }
-
-    async changeProfileImage(): Promise<void> {
-        // Wood y Web editan la imagen dentro del apartado Perfil; el navegador móvil usa su modal.
-        if (!this.isNativeMobile && !this.isMobilePresentation) {
-            this.setActiveSection('profile');
-            this.startInlineProfileEdit('image');
-            return;
-        }
-        if (!this.isNativeMobile) {
-            this.invertModImg();
-            return;
-        }
-        try {
-            const image = await this.nativeProfileImage.choose();
-            if (image)
-                this.uploadProfileImage(image);
-        } catch (error) {
-            this._snackBar.openApiError(error, 'No se pudo abrir la cámara o la galería');
-        }
-    }
-
-    updateImg(): void {
-        if (this.files.length !== 1) {
-            this._snackBar.openSnackBar('Error: problema con la imagen', 'errorBar');
-            return;
-        }
-        this.uploadProfileImage(this.files[0]);
-    }
-
-    private uploadProfileImage(photo: File): void {
-        this.loader.activateLoader();
-        this.userSrv.updateImg(photo).pipe(finalize(() => this.loader.deactivateLoader())).subscribe({
-            next: () => {
-                this.userData = this.sessionSrv.userObject;
-                this.imageCacheBuster = Date.now();
-                this.modImg = false;
-                if (this.inlineProfileEditMode === 'image') this.inlineProfileEditMode = null;
-                this.files = [];
-                this._snackBar.openSnackBar('Imagen de perfil actualizada', 'successBar');
-            },
-            error: (err) => {
-                this._snackBar.openApiError(err, 'No se pudo completar la acción');
-            },
-            complete: () => {
-                this.loader.deactivateLoader();
-            }
-        });
-    }
-
-    invertModName(): void {
-        this.modName = !this.modName;
-        if (this.modName === true) {
-            this.name.setValue(this.userData.name);
-            if (this.modProfile === true) this.invertModProfile();
-            if (this.modImg === true) this.invertModImg();
-        }
-    }
-    updateName(nameNew: string): void {
-        if (this.fgName.invalid || nameNew === this.userData.name) {
-            this._snackBar.openSnackBar('Nombre inválido o sin cambios.', 'errorBar');
-            return;
-        }
-
-        this.loader.activateLoader();
-
-        this.userSrv.updateName(nameNew).subscribe({
-            next: () => {
-                this.userData = { ...this.userData, name: nameNew };
-                this.modName = false;
-                this._snackBar.openSnackBar('Nombre actualizado', 'successBar');
-            },
-            error: (err) => {
-                this._snackBar.openApiError(err, 'No se pudo completar la acción');
-            },
-            complete: () => {
-                this.loader.deactivateLoader();
-            }
-        });
-    }
-
-    invertModProfile(): void {
-        this.modProfile = !this.modProfile;
-        if (this.modProfile === true) {
-            this.populateProfileForm();
-            if (this.modImg === true) this.invertModImg();
-            if (this.modName === true) this.invertModName();
-        }
-    }
-
-    populateProfileForm(): void {
-        this.username.setValue(this.userData.username ?? '');
-        this.displayName.setValue(this.userData.displayName ?? '');
-        this.bio.setValue(this.userData.bio ?? '');
-        this.perfilPublico.setValue(this.userData.perfilPublico ?? false);
-        this.mostrarEstadisticas.setValue(this.userData.mostrarEstadisticas ?? false);
-        this.mostrarBiblioteca.setValue(this.userData.mostrarBiblioteca ?? false);
-        this.permitirMensajes.setValue(this.userData.permitirMensajes ?? false);
-    }
-
-    updateProfile(): void {
-        if (this.isProfileSaving) return;
-        if (this.isProfileEditInvalid()) {
-            this._snackBar.openSnackBar('Revisa los datos del perfil.', 'errorBar');
-            return;
-        }
-
-        const profile = {
-            username: this.showProfileField('username') ? this.username.value?.trim() || null : this.userData.username ?? null,
-            displayName: this.showProfileField('displayName') ? this.displayName.value?.trim() || null : this.userData.displayName ?? null,
-            bio: this.showProfileField('bio') ? this.bio.value?.trim() || null : this.userData.bio ?? null,
-            perfilPublico: this.showProfileField('privacy') ? this.perfilPublico.value ?? false : this.userData.perfilPublico ?? false,
-            mostrarEstadisticas: this.showProfileField('privacy') ? this.mostrarEstadisticas.value ?? false : this.userData.mostrarEstadisticas ?? false,
-            mostrarBiblioteca: this.showProfileField('privacy') ? this.mostrarBiblioteca.value ?? false : this.userData.mostrarBiblioteca ?? false,
-            permitirMensajes: this.showProfileField('privacy') ? this.permitirMensajes.value ?? false : this.userData.permitirMensajes ?? false,
-        };
-
-        this.isProfileSaving = true;
-        this.loader.activateLoader();
-        this.userSrv.updateProfile(profile).pipe(finalize(() => {
-            this.isProfileSaving = false;
-            this.loader.deactivateLoader();
-        })).subscribe({
-            next: () => {
-                this.userData = { ...this.userData, ...profile };
-                this.modProfile = false;
-                this.inlineProfileEditMode = null;
-                this.profileEditMode = 'identity';
-                this._snackBar.openSnackBar('Perfil actualizado', 'successBar');
-            },
-            error: (err) => {
-                // Marca en rojo el campo que rechaza el backend (alias ocupado, bio…).
-                markBackendFieldError({
-                    username: this.username, displayName: this.displayName, bio: this.bio
-                }, err);
-                this._snackBar.openApiError(err, 'No se pudo completar la acción');
-            }
-        });
-    }
-
 }

@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, Input } from '@angular/core';
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { revealActiveTab } from '../../ui/reveal-active-tab';
@@ -11,8 +11,7 @@ import { AccountSecurityComponent } from '../../../shared/user-pages/account-sec
 import { AppPreferencesComponent } from '../../../shared/user-pages/app-preferences/app-preferences.component';
 import { ObjectManagerComponent } from '../../../shared/user-pages/object-manager/object-manager.component';
 import { ProfileUniverseMetricsComponent } from '../../../shared/user-pages/user-profile/profile-universe-metrics/profile-universe-metrics.component';
-
-type TextField = 'username' | 'displayName' | 'bio';
+import { YosiftwareMarkComponent } from '../../../shared/common/yosiftware-mark/yosiftware-mark.component';
 
 /**
  * Vista Web del Perfil. El contenedor conserva datos, formularios y cargas;
@@ -23,27 +22,20 @@ type TextField = 'username' | 'displayName' | 'bio';
     standalone: true,
     imports: [AsyncPipe, DatePipe, FormsModule, ReactiveFormsModule, MatIconModule, RouterLink, CoverCachePipe,
         ObjectManagerComponent, ProfileUniverseMetricsComponent,
-        AccountSecurityComponent, AppPreferencesComponent],
+        AccountSecurityComponent, AppPreferencesComponent, YosiftwareMarkComponent],
     templateUrl: './web-profile-view.component.html',
     styleUrl: './web-profile-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class WebProfileViewComponent implements AfterViewInit {
     @Input({ required: true }) controller!: UserProfileComponent;
-    imageTargetHighlighted = false;
 
     readonly mainSections = [
         { id: 'overview', label: 'Resumen', icon: 'dashboard' },
-        { id: 'profile', label: 'Identidad pública', icon: 'account_circle' },
+        { id: 'profile', label: 'Perfil', icon: 'account_circle' },
         { id: 'requests', label: 'Mis peticiones', icon: 'fact_check' },
         { id: 'reports', label: 'Mis reportes', icon: 'flag' }
     ] as const;
-
-    readonly textFields: ReadonlyArray<{ id: TextField; label: string; icon: string; max: number; multiline?: boolean }> = [
-        { id: 'username', label: 'Alias', icon: 'alternate_email', max: 50 },
-        { id: 'displayName', label: 'Nombre visible', icon: 'badge', max: 80 },
-        { id: 'bio', label: 'Biografía', icon: 'notes', max: 500, multiline: true }
-    ];
 
     constructor(private host: ElementRef<HTMLElement>) { }
 
@@ -52,65 +44,18 @@ export class WebProfileViewComponent implements AfterViewInit {
     }
 
     select(section: Parameters<UserProfileComponent['setActiveSection']>[0]): void {
-        this.imageTargetHighlighted = false;
         this.controller.setActiveSection(section);
         requestAnimationFrame(() => this.revealActiveTab());
-    }
-
-    goToProfileImage(): void {
-        this.controller.setActiveSection('profile');
-        this.imageTargetHighlighted = true;
-        requestAnimationFrame(() => {
-            const button = this.host.nativeElement.querySelector<HTMLButtonElement>('.field--image > .web-button');
-            button?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-            button?.focus({ preventScroll: true });
-        });
-    }
-
-    editProfileImage(): void {
-        this.imageTargetHighlighted = false;
-        this.controller.changeProfileImage();
-    }
-
-    selectProfileImage(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        const file = input.files?.[0];
-        if (file)
-            this.controller.onSelect({ addedFiles: [file] });
-        input.value = '';
     }
 
     private revealActiveTab(): void {
         revealActiveTab(this.host.nativeElement);
     }
 
-    get avatarUrl(): string {
-        const c = this.controller;
-        return `${c.imgUrl}photo/${c.userData?.image}?v=${c.imageCacheBuster}`;
-    }
-
     badge(section: string): number {
         if (section === 'requests') return this.controller.myRequests.length;
         if (section === 'reports') return this.controller.myReports.length;
         return 0;
-    }
-
-    control(field: TextField): FormControl {
-        return this.controller[field] as FormControl;
-    }
-
-    value(field: TextField): string {
-        const user = this.controller.userData;
-        if (field === 'username') return user.username || 'Sin alias';
-        if (field === 'displayName') return user.displayName || user.name;
-        return user.bio || 'Sin biografía';
-    }
-
-    error(field: TextField): string {
-        const c = this.controller;
-        if (field === 'username') return c.errorUsernameMessage;
-        if (field === 'displayName') return c.errorDisplayNameMessage;
-        return c.errorBioMessage;
     }
 
     /** Tono del estado de una petición o reporte: aceptado, rechazado, devuelto o pendiente. */

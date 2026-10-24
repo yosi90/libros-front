@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AdminAuditQuery, AdminAuditRecord, AdminUser, AdminUsersCursor } from '../../../../interfaces/admin';
 import { UserService } from '../../../../services/entities/user.service';
 import { getProductStateMessage } from '../../../../shared/api-error-message';
-import { catchError, forkJoin, map, of } from 'rxjs';
+import { catchError, of } from 'rxjs';
 
 @Component({
     standalone: true,
@@ -129,10 +129,11 @@ export class AdminAuditComponent implements OnInit {
         });
         const pending = [...ids].filter(id => !this.identityNames.has(id));
         if (!pending.length) return;
-        forkJoin(pending.map(id => this.users.getAdminUser(id).pipe(
-            map(response => ({ id, name: response.Usuario.DisplayName || response.Usuario.Nombre })),
-            catchError(() => of({ id, name: 'Persona no disponible' }))
-        ))).subscribe(items => items.forEach(item => this.identityNames.set(item.id, item.name)));
+        // La ficha de cada cuenta (`/admin/usuarios/{id}`) se retiró con la adhesión: los nombres salen del listado.
+        this.users.getAdminUsers({ limit: 100 }).pipe(catchError(() => of({ Usuarios: [], SiguienteCursor: null }))).subscribe(response => {
+            const names = new Map(response.Usuarios.map(user => [user.Id, user.DisplayName || user.Nombre]));
+            pending.forEach(id => this.identityNames.set(id, names.get(id) ?? 'Persona no disponible'));
+        });
     }
 
     private personId(record: AdminAuditRecord, kind: 'actor' | 'target'): number | null {

@@ -6,9 +6,8 @@ import { ManagerViewStateService } from '../../shared/manager-view-state.service
 import { LoaderEmmitterService } from '../emmitters/loader.service';
 import { DecisionNoticeService } from '../navigation/decision-notice.service';
 import { MobileFullscreenReturnService } from '../navigation/mobile-fullscreen-return.service';
-import { PolicyPromptService } from '../navigation/policy-prompt.service';
 import { ReadingReturnService } from '../navigation/reading-return.service';
-import { RealtimeSocketService } from '../realtime/realtime-socket.service';
+import { PlatformRealtimeService } from '../platform/platform-realtime.service';
 import { AuthorStoreService } from '../stores/author-store.service';
 import { BookStoreService } from '../stores/book-store.service';
 import { ChatFloatingCoordinatorService } from '../stores/chat-floating-coordinator.service';
@@ -16,15 +15,14 @@ import { ChatStoreService } from '../stores/chat-store.service';
 import { CommunityCapabilitiesService } from '../stores/community-capabilities.service';
 import { FloatingWindowManagerService } from '../stores/floating-window-manager.service';
 import { ModerationAccessService } from '../stores/moderation-access.service';
-import { NotificationStoreService } from '../stores/notification-store.service';
-import { SessionNotificationStoreService } from '../stores/session-notification-store.service';
 import { UniverseStoreService } from '../stores/universe-store.service';
 import { PlatformSessionService } from './platform-session.service';
 
 /**
  * Lo que Libros guarda en memoria de la persona, en un solo sitio (CAMBIO_DE_CUENTA.md, obligaciones 2 y 3):
  * con cada cambio de identidad se vacían la biblioteca, el libro abierto, el catálogo, los estados de las vistas, los
- * avisos y los canales, antes de presentar la cuenta nueva. Y cuando Libros ya sabe quién es la cuenta nueva, se
+ * avisos, el chat (bandeja, ventanas flotantes y escucha del tiempo real de la plataforma), antes de presentar la
+ * cuenta nueva. Y cuando Libros ya sabe quién es la cuenta nueva, se
  * arrancan sus servicios con su generación.
  */
 @Injectable({ providedIn: 'root' })
@@ -40,13 +38,10 @@ export class AccountScopeService {
         private catalogView: CatalogViewStateService,
         private managerView: ManagerViewStateService,
         private readingReturn: ReadingReturnService,
-        private notifications: NotificationStoreService,
-        private sessionNotifications: SessionNotificationStoreService,
         private decisions: DecisionNoticeService,
-        private policyPrompt: PolicyPromptService,
         private moderationAccess: ModerationAccessService,
         private capabilities: CommunityCapabilitiesService,
-        private realtime: RealtimeSocketService,
+        private realtime: PlatformRealtimeService,
         private chatStore: ChatStoreService,
         private chatFloating: ChatFloatingCoordinatorService,
         private floatingWindows: FloatingWindowManagerService,
@@ -64,14 +59,13 @@ export class AccountScopeService {
 
     clearAccountData(): void {
         this.loader.deactivateLoader();
-        this.realtime.closeAll();
+        // El chat de la plataforma: la escucha del tiempo real (el SDK cierra el socket cuando nadie escucha), la bandeja
+        // y las ventanas flotantes. La campana `<yosi-notificaciones>` se vacía sola con el cambio de sesión del SDK.
+        this.realtime.stop();
         this.chatFloating.clear();
         this.chatStore.clear();
         this.floatingWindows.clear();
-        this.notifications.clear();
-        this.sessionNotifications.resetSession();
         this.decisions.reset();
-        this.policyPrompt.clear();
         this.moderationAccess.clear();
         this.capabilities.clear();
         this.universes.clear();
@@ -87,9 +81,6 @@ export class AccountScopeService {
     private startAccountServices(generation: number, userId: number): void {
         if (!this.session.isCurrentGeneration(generation) || userId < 1) return;
         this.moderationAccess.refresh().subscribe();
-        this.capabilities.initialize(userId).subscribe(() => {
-            if (this.session.isCurrentGeneration(generation) && this.capabilities.isActive('notificaciones'))
-                this.notifications.initialize();
-        });
+        this.capabilities.initialize(userId).subscribe();
     }
 }

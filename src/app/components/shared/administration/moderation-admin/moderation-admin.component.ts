@@ -1,18 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { CommunityContentMeasure, CommunityReportFilter, CommunityReportGroup, JsonValue, ModerationAdminAppeal, ModerationCase, ModerationCaseWrite, ModerationIncident, ModerationScope, ModerationSanction } from '../../../../interfaces/moderation';
+import { CommunityContentMeasure, CommunityReportFilter, CommunityReportGroup, JsonValue } from '../../../../interfaces/moderation';
 import { ModerationService } from '../../../../services/entities/moderation.service';
-import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
-import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
-import { Subscription } from 'rxjs';
-import { AdminUser } from '../../../../interfaces/admin';
-import { UserService } from '../../../../services/entities/user.service';
+import { getApiErrorCode } from '../../../../shared/api-error-message';
 
-type ModerationTab = 'reports' | 'cases' | 'incidents' | 'appeals';
-
+/**
+ * Las denuncias del contenido de Libros (publicaciones y comentarios de los clubes, y los clubes), que siguen siendo
+ * de Libros hasta pasar al plugin de la administración. La moderación de cuentas (casos, incidentes, sanciones y
+ * alegaciones) y las normas son de la plataforma (ecosistema-kit/MODERACION.md) y se retiraron con la adhesión.
+ */
 @Component({
     standalone: true,
     selector: 'app-moderation-admin',
@@ -21,11 +20,7 @@ type ModerationTab = 'reports' | 'cases' | 'incidents' | 'appeals';
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './moderation-admin.component.sass'
 })
-export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
-    @Input() initialTab: Extract<ModerationTab, 'reports' | 'appeals'> = 'reports';
-    @Input() reportsOnly = false;
-    readonly scopes: ModerationScope[] = ['cuenta', 'creacion', 'comunidad', 'publicacion', 'chat', 'clubes'];
-    activeTab: ModerationTab = 'reports';
+export class ModerationAdminComponent implements OnInit {
     readonly reportFilters: CommunityReportFilter[] = ['pendiente', 'aceptada', 'rechazada', 'todos'];
     reportFilter: CommunityReportFilter = 'pendiente';
     communityReports: CommunityReportGroup[] = [];
@@ -34,61 +29,13 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
     resolvingReportId: number | null = null;
     resolutionComment = '';
     resolutionMeasure: CommunityContentMeasure = 'ninguna';
-    linkedCommunityReportId: number | null = null;
-    cases: ModerationCase[] = [];
-    appeals: ModerationAdminAppeal[] = [];
-    incidents: ModerationIncident[] = [];
-    sanctions: ModerationSanction[] = [];
-    sanctionsLoadError = false;
     isLoading = false;
     isSaving = false;
     loadError = false;
-    caseForm: ModerationCaseWrite = this.emptyCaseForm();
-    incidentUserId: number | null = null;
-    incidentUserQuery = '';
-    incidentUserResults: AdminUser[] = [];
-    selectedIncidentUserName = '';
-    isSearchingIncidentUsers = false;
-    incidentCaseCode = '';
-    incidentVisibleMessage = '';
-    revocationReason = '';
-    appealInternalNote = '';
-    private realtimeSubscription: Subscription | null = null;
 
-    constructor(private moderationSrv: ModerationService, private snackBar: SnackbarModule, private realtime: RealtimeSocketService, private userSrv: UserService) { }
+    constructor(private moderationSrv: ModerationService, private snackBar: SnackbarModule) { }
 
-    ngOnInit(): void {
-        this.activeTab = this.reportsOnly ? 'reports' : this.initialTab;
-        this.loadActiveTab();
-        this.realtime.open('community');
-        this.realtimeSubscription = this.realtime.connections$.subscribe(event => {
-            if (event.channel === 'community' && event.reconnected)
-                this.loadActiveTab();
-        });
-    }
-
-    ngOnChanges(changes: SimpleChanges): void {
-        if (changes['initialTab'] && !changes['initialTab'].firstChange && !this.reportsOnly)
-            this.setActiveTab(this.initialTab);
-    }
-
-    ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }
-
-    setActiveTab(tab: ModerationTab): void {
-        if (this.reportsOnly && tab !== 'reports') return;
-        this.activeTab = tab;
-        this.loadActiveTab();
-    }
-
-    loadActiveTab(): void {
-        if (this.activeTab === 'reports') {
-            this.loadCommunityReports();
-        } else if (this.activeTab === 'cases') {
-            this.loadCases();
-        } else if (this.activeTab === 'appeals') {
-            this.loadAppeals();
-        }
-    }
+    ngOnInit(): void { this.loadCommunityReports(); }
 
     get pagedCommunityReports(): CommunityReportGroup[] {
         const start = this.reportPage * this.reportPageSize;
@@ -150,10 +97,7 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
 
     availableMeasures(report: CommunityReportGroup): { value: CommunityContentMeasure; label: string }[] {
         const measures: { value: CommunityContentMeasure; label: string }[] = [{ value: 'ninguna', label: 'Sin medida de contenido' }];
-        if (report.TipoEntidad === 'mensaje') measures.push(
-            { value: 'mensaje_ocultado', label: 'Ocultar mensaje' },
-            { value: 'mensaje_restaurado', label: 'Restaurar mensaje' }
-        );
+        // Los grupos antiguos de perfiles y mensajes (ya de la plataforma) solo se cierran, sin medida.
         if (report.TipoEntidad === 'club') measures.push(
             { value: 'club_retirado_descubrimiento', label: 'Retirar del descubrimiento' },
             { value: 'club_restaurado_descubrimiento', label: 'Restaurar en descubrimiento' }
@@ -176,125 +120,8 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
         }));
     }
 
-    prepareIncidentFromReport(report: CommunityReportGroup): void {
-        if (report.Estado !== 'aceptada') return;
-        this.incidentUserId = report.UsuarioFuente.Id;
-        this.selectedIncidentUserName = report.UsuarioFuente.Nombre;
-        this.incidentUserQuery = report.UsuarioFuente.Nombre;
-        this.linkedCommunityReportId = report.Id;
-        this.incidentVisibleMessage = '';
-        this.activeTab = 'incidents';
-        this.snackBar.openSnackBar('Incidente preparado; selecciona un caso antes de registrarlo', 'successBar');
-    }
-
-    loadCases(): void { this.load(this.moderationSrv.listCases(true), cases => this.cases = cases); }
-
-    createCase(): void {
-        if (!this.caseForm.Codigo.trim() || !this.caseForm.Nombre.trim()) {
-            this.snackBar.openSnackBar('Código y nombre son obligatorios', 'errorBar');
-            return;
-        }
-        this.save(this.moderationSrv.createCase({ ...this.caseForm, Codigo: this.caseForm.Codigo.trim(), Nombre: this.caseForm.Nombre.trim() }), () => {
-            this.caseForm = this.emptyCaseForm();
-            this.loadCases();
-            this.snackBar.openSnackBar('Caso creado', 'successBar');
-        });
-    }
-
-    toggleCase(caseItem: ModerationCase): void {
-        this.save(this.moderationSrv.updateCase(caseItem.Id, { Habilitado: !caseItem.Habilitado }), updated => {
-            this.cases = this.cases.map(item => item.Id === updated.Id ? updated : item);
-        });
-    }
-
-    deleteCase(caseItem: ModerationCase): void {
-        if (confirm(`¿Borrar lógicamente el caso “${caseItem.Nombre}”?`))
-            this.save(this.moderationSrv.deleteCase(caseItem.Id), () => this.loadCases());
-    }
-
-    loadUserModeration(): void {
-        if (!this.incidentUserId || this.incidentUserId < 1) {
-            this.snackBar.openSnackBar('Busca y selecciona una persona', 'errorBar');
-            return;
-        }
-        this.load(this.moderationSrv.listUserHistory(this.incidentUserId), page => this.incidents = page.items);
-        this.sanctionsLoadError = false;
-        this.moderationSrv.listSanctions({ userId: this.incidentUserId }).subscribe({
-            next: page => this.sanctions = page.items,
-            error: () => { this.sanctions = []; this.sanctionsLoadError = true; }
-        });
-    }
-
-    searchIncidentUsers(): void {
-        const query = this.incidentUserQuery.trim();
-        if (query.length < 2 || this.isSearchingIncidentUsers) return;
-        this.isSearchingIncidentUsers = true;
-        this.userSrv.getAdminUsers({ q: query, limit: 8 }).subscribe({
-            next: response => { this.incidentUserResults = response.Usuarios; this.isSearchingIncidentUsers = false; },
-            error: () => { this.incidentUserResults = []; this.isSearchingIncidentUsers = false; this.snackBar.openSnackBar('No se pudo buscar personas', 'errorBar'); }
-        });
-    }
-
-    selectIncidentUser(user: AdminUser): void {
-        this.incidentUserId = user.Id;
-        this.selectedIncidentUserName = user.DisplayName || user.Nombre;
-        this.incidentUserQuery = this.selectedIncidentUserName;
-        this.incidentUserResults = [];
-        this.loadUserModeration();
-    }
-
-    createIncident(): void {
-        if (!this.incidentUserId || !this.incidentCaseCode.trim()) {
-            this.snackBar.openSnackBar('Usuario y código de caso son obligatorios', 'errorBar');
-            return;
-        }
-        this.save(this.moderationSrv.createIncident({
-            UsuarioId: this.incidentUserId,
-            CodigoCaso: this.incidentCaseCode.trim(),
-            Modo: 'force_sanction',
-            MensajeVisible: this.incidentVisibleMessage.trim() || null,
-            ...(this.linkedCommunityReportId ? {
-                DescripcionInterna: 'Incidente vinculado a una denuncia comunitaria seleccionada desde la bandeja',
-                Contexto: { DenunciaComunitariaId: this.linkedCommunityReportId }
-            } : {})
-        }), () => {
-            this.incidentCaseCode = '';
-            this.incidentVisibleMessage = '';
-            this.linkedCommunityReportId = null;
-            this.loadUserModeration();
-            this.snackBar.openSnackBar('Incidente registrado', 'successBar');
-        });
-    }
-
-    revokeSanctions(): void {
-        if (!this.incidentUserId || !this.revocationReason.trim()) {
-            this.snackBar.openSnackBar('Indica el motivo de la revocación', 'errorBar');
-            return;
-        }
-        if (confirm('¿Revocar todas las sanciones activas de este usuario?'))
-            this.save(this.moderationSrv.revokeUserSanctions(this.incidentUserId, this.revocationReason.trim()), result => {
-                this.revocationReason = '';
-                this.loadUserModeration();
-                this.snackBar.openSnackBar(`${result.Revocadas} sanciones revocadas`, 'successBar');
-            });
-    }
-
-    loadAppeals(): void { this.load(this.moderationSrv.listAdminAppeals(), appeals => this.appeals = appeals); }
-
-    resolveAppeal(appeal: ModerationAdminAppeal, estado: 'en_revision' | 'aceptada' | 'rechazada'): void {
-        if (estado === 'aceptada' && !confirm('Aceptar la alegación revocará la sanción vinculada. ¿Continuar?')) return;
-        this.save(this.moderationSrv.resolveAppeal(appeal.Id, estado, this.appealInternalNote.trim() || undefined), () => {
-            this.appealInternalNote = '';
-            this.loadAppeals();
-            this.snackBar.openSnackBar('Alegación actualizada', 'successBar');
-        });
-    }
-
-    scopeLabel(scope: ModerationScope): string { return { cuenta: 'Cuenta', creacion: 'Creación', comunidad: 'Comunidad', publicacion: 'Publicación', chat: 'Chat', clubes: 'Clubes' }[scope]; }
-    scopeLabels(scopes: ModerationScope[]): string { return scopes.map(scope => this.scopeLabel(scope)).join(', '); }
-
     private defaultMeasure(report: CommunityReportGroup): CommunityContentMeasure {
-        return report.TipoEntidad === 'mensaje' ? 'mensaje_ocultado' : report.TipoEntidad === 'club' ? 'club_retirado_descubrimiento' : 'ninguna';
+        return report.TipoEntidad === 'club' ? 'club_retirado_descubrimiento' : 'ninguna';
     }
 
     private contextLabel(key: string): string {
@@ -308,33 +135,9 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
         return String(value);
     }
 
-    private emptyCaseForm(): ModerationCaseWrite {
-        return { Codigo: '', Nombre: '', Descripcion: null, ModoFuente: 'manual_only', Habilitado: true, Alcances: ['cuenta'], Etapas: [{ IndiceEtapa: 1, UmbralReportes: 1, DuracionMinutos: 1440, EsPermanente: false }] };
-    }
-
     private load<T>(source: import('rxjs').Observable<T>, next: (value: T) => void): void {
         this.isLoading = true;
         this.loadError = false;
         source.subscribe({ next, error: () => { this.isLoading = false; this.loadError = true; this.snackBar.openSnackBar('No se pudieron cargar los datos de moderación', 'errorBar'); }, complete: () => this.isLoading = false });
-    }
-
-    private save<T>(source: import('rxjs').Observable<T>, next: (value: T) => void): void {
-        this.isSaving = true;
-        source.subscribe({ next, error: error => { this.isSaving = false; this.handleSaveError(error); }, complete: () => this.isSaving = false });
-    }
-
-    private handleSaveError(error: unknown): void {
-        const code = getApiErrorCode(error);
-        if (code === 'moderation_case_not_found') this.loadCases();
-        if (['moderation_case_disabled', 'moderation_case_has_no_stages', 'moderation_stage_not_found'].includes(code || '')) this.loadCases();
-        if (['user_not_found', 'deleted_account_cannot_be_sanctioned'].includes(code || '')) {
-            this.incidentUserId = null;
-            this.incidents = [];
-            this.sanctions = [];
-            this.sanctionsLoadError = false;
-            this.linkedCommunityReportId = null;
-        }
-        if (['appeal_already_resolved', 'appeal_not_available'].includes(code || '')) this.loadAppeals();
-        this.snackBar.openSnackBar(getProductStateMessage(error, 'No se pudo guardar el cambio de moderación'), 'errorBar');
     }
 }

@@ -1,9 +1,6 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { finalize } from 'rxjs';
-import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { AppPermissionId, AppPermissionStates, NativePermissionsService } from '../../../../services/native/native-permissions.service';
-import { PushNotificationService } from '../../../../services/realtime/push-notification.service';
 import { AppToastService } from '../../../../shared/toast/app-toast.service';
 
 interface PermissionItem {
@@ -35,8 +32,6 @@ export class MobileAppPermissionsComponent implements OnInit {
 
     constructor(
         readonly permissions: NativePermissionsService,
-        private push: PushNotificationService,
-        private session: PlatformSessionService,
         private toasts: AppToastService
     ) { }
 
@@ -56,16 +51,8 @@ export class MobileAppPermissionsComponent implements OnInit {
     request(permission: AppPermissionId): void {
         if (this.busy || this.permissionReady(permission)) return;
         this.busy = permission;
-        if (permission === 'notifications') {
-            this.push.enable(this.session.userId).pipe(finalize(() => this.busy = null)).subscribe({
-                next: () => void this.refresh(),
-                error: () => {
-                    void this.refresh();
-                    this.toasts.showError('No se ha podido activar el permiso y registrar este dispositivo.', { title: 'Notificaciones no activadas', dedupeKey: 'permissions:notifications:error' });
-                }
-            });
-            return;
-        }
+        // El push propio de Libros (registro FCM en su API) se retiró con la adhesión: solo se pide el permiso del
+        // sistema. El push de la APK de Capacitor desaparece con ella (hito 4).
         void this.permissions.request(permission)
             .then(states => this.states = states)
             .catch(() => this.toasts.showError('No se ha podido solicitar el permiso.', { title: 'Permiso no actualizado', dedupeKey: `permissions:${permission}:error` }))
@@ -73,8 +60,6 @@ export class MobileAppPermissionsComponent implements OnInit {
     }
 
     stateLabel(permission: AppPermissionId): string {
-        if (permission === 'notifications' && this.states.notifications === 'granted' && !this.push.isEnabled(this.session.userId))
-            return 'Permitido · dispositivo sin registrar';
         switch (this.states[permission]) {
             case 'granted': return 'Permitido';
             case 'limited': return 'Acceso limitado';
@@ -86,8 +71,6 @@ export class MobileAppPermissionsComponent implements OnInit {
     }
 
     permissionReady(permission: AppPermissionId): boolean {
-        if (permission === 'notifications')
-            return this.states.notifications === 'granted' && this.push.isEnabled(this.session.userId);
         return this.states[permission] === 'granted';
     }
 }

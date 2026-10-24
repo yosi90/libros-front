@@ -5,7 +5,7 @@ import { AdminSummary } from '../../../../interfaces/admin';
 import { UserService } from '../../../../services/entities/user.service';
 import { ApiHealth, ApiHealthComponent, ApiHealthService } from '../../../../services/other/api-health.service';
 
-export type AdminSummaryTarget = 'catalogRequests' | 'reviewReports' | 'moderation';
+export type AdminSummaryTarget = 'catalogRequests' | 'reviewReports' | 'communityReports';
 
 interface DonutSlice { label: string; value: number; color: string; target?: AdminSummaryTarget; }
 interface HealthCard { id: string; label: string; component: ApiHealthComponent; }
@@ -23,7 +23,6 @@ export class AdminSummaryComponent implements OnInit {
     summary: AdminSummary | null = null;
     accountStateSlices: DonutSlice[] = [];
     accountRoleSlices: DonutSlice[] = [];
-    verificationSlices: DonutSlice[] = [];
     queueSlices: DonutSlice[] = [];
     isLoading = false;
     hasError = false;
@@ -80,7 +79,7 @@ export class AdminSummaryComponent implements OnInit {
             this.healthCards = [
                 { id: 'api', label: 'API', component: health.components.api },
                 { id: 'sqlServer', label: 'SQL Server', component: health.components.sqlServer },
-                { id: 'realtimeGateway', label: 'Realtime', component: health.components.realtimeGateway }
+                { id: 'plataformaFeedWorker', label: 'Feed de la plataforma', component: health.components.plataformaFeedWorker }
             ];
         });
     }
@@ -88,21 +87,16 @@ export class AdminSummaryComponent implements OnInit {
     private buildSlices(summary: AdminSummary): void {
         this.accountStateSlices = summary.Cuentas.PorEstado.map((item, index) => ({ label: item.Nombre, value: item.Total, color: this.colorAt(index) }));
         this.accountRoleSlices = summary.Cuentas.PorRol.map((item, index) => ({ label: item.Nombre, value: item.Total, color: this.colorAt(index + 3) }));
-        const totalAccounts = this.total(this.accountStateSlices);
-        const pending = summary.Cuentas.EmailPendienteVerificacion;
-        this.verificationSlices = [{ label: 'Verificadas', value: Math.max(0, totalAccounts - pending), color: '#78bfab' }, { label: 'Pendientes', value: pending, color: '#d9a956' }];
         this.queueSlices = [
             { label: 'Peticiones', value: summary.Colas.PeticionesCatalogo, color: '#d9a956', target: 'catalogRequests' },
             { label: 'Reportes', value: summary.Colas.ReportesResenas, color: '#78bfab', target: 'reviewReports' },
-            { label: 'Denuncias', value: summary.Colas.DenunciasComunidad, color: '#7ca9d9', target: 'moderation' },
-            { label: 'Alegaciones', value: summary.Colas.Alegaciones, color: '#bd83b8', target: 'moderation' }
+            { label: 'Denuncias', value: summary.Colas.DenunciasComunidad, color: '#7ca9d9', target: 'communityReports' }
         ];
     }
 
     private clearSlices(): void {
         this.accountStateSlices = [];
         this.accountRoleSlices = [];
-        this.verificationSlices = [];
         this.queueSlices = [];
     }
 

@@ -43,6 +43,14 @@
         height: 100%
         object-fit: cover
 
+    // Sin avatar en el perfil de Yosiftware: el icono de cuenta.
+    .profile-head__placeholder
+        width: 100%
+        height: 100%
+        color: var(--web-color-ink-subtle)
+        font-size: 96px
+        line-height: 96px
+
     span
         position: absolute
         inset: 0
@@ -68,24 +76,6 @@
     p
         margin: 2px 0 0
         color: var(--web-color-ink-muted)
-
-.profile-head__meta
-    display: flex
-    flex-wrap: wrap
-    gap: var(--web-space-2) var(--web-space-4)
-    margin-top: var(--web-space-2)
-    color: var(--web-color-ink-muted)
-    font-size: 14px
-
-    span
-        display: inline-flex
-        align-items: center
-        gap: 4px
-
-    mat-icon
-        width: 20px
-        height: 20px
-        font-size: 20px
 
 // ---------- Resumen ----------
 
@@ -182,23 +172,6 @@
     padding: var(--web-space-3) 0
     border-bottom: 1px solid var(--web-color-outline)
 
-    &.is-editing
-        align-items: start
-
-        .field__actions
-            grid-column: 2 / -1
-            justify-content: flex-end
-
-    &.is-highlighted
-        padding-inline: var(--web-space-3)
-        background: var(--web-color-primary-soft)
-        border-radius: var(--web-radius-md)
-
-    .field__target-action
-        color: var(--web-color-on-primary)
-        background: var(--web-color-primary)
-        border-color: var(--web-color-primary)
-
 .field__icon
     color: var(--web-color-ink-subtle)
 
@@ -212,59 +185,6 @@
         white-space: pre-line
         overflow-wrap: anywhere
 
-    input,
-    textarea
-        box-sizing: border-box
-        width: 100%
-        padding: var(--web-space-2) var(--web-space-3)
-        color: var(--web-color-ink)
-        font: 14px/1.5 var(--web-font-ui)
-        background: var(--web-color-surface)
-        border: 1px solid var(--web-color-outline-strong)
-        border-radius: var(--web-radius-md)
-        caret-color: var(--web-color-primary)
-
-        &:focus
-            border-color: var(--web-color-primary)
-            box-shadow: 0 0 0 3px var(--web-color-primary-soft)
-            outline: 0
-
-    textarea
-        resize: vertical
-
-    .field__file-input
-        position: absolute
-        width: 1px
-        height: 1px
-        padding: 0
-        overflow: hidden
-        clip: rect(0, 0, 0, 0)
-        white-space: nowrap
-        border: 0
-
-    .field__choose
-        justify-self: start
-
-    .field__filename
-        font-size: 13px
-        overflow-wrap: anywhere
-
-.field__meta
-    display: flex
-    justify-content: space-between
-    gap: var(--web-space-2)
-    color: var(--web-color-ink-subtle)
-    font-size: 12px
-
-    span:last-child
-        margin-left: auto
-
-.field__error
-    color: var(--web-color-danger)
-
-.field__actions
-    display: flex
-    gap: var(--web-space-2)
 
 // ---------- Peticiones y reportes ----------
 
@@ -400,6 +320,3 @@
 
     .field__icon
         display: none
-
-    .field.is-editing .field__actions
-        grid-column: 1 / -1

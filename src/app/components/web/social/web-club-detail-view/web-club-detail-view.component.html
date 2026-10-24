@@ -28,7 +28,7 @@
         @if (!c.isMember) {
           <button class="web-button web-button--primary" type="button" (click)="c.joinOrRequest()" [disabled]="c.isJoining"><mat-icon>{{club.Visibilidad === 'abierto' ? 'group_add' : 'mark_email_unread'}}</mat-icon>{{c.isJoining ? 'Enviando…' : club.Visibilidad === 'abierto' ? 'Unirme' : 'Solicitar acceso'}}</button>
         } @else {
-          <button class="web-button web-button--primary" type="button" (click)="c.openClubChat()" [disabled]="c.isOpeningChat"><mat-icon>forum</mat-icon>{{c.isOpeningChat ? 'Abriendo…' : 'Abrir chat'}}</button>
+          <button class="web-button web-button--primary" type="button" (click)="c.openClubChat()" [disabled]="!c.clubChatAvailable" [title]="c.clubChatUnavailableReason"><mat-icon>forum</mat-icon>Abrir chat</button>
         }
         @if (!c.isOwner) {
           <button class="icon-button" type="button" aria-label="Denunciar club" title="Denunciar club" (click)="c.reportClub()" [disabled]="c.isReportingClub"><mat-icon>flag</mat-icon></button>

@@ -3,18 +3,14 @@ import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
-import { ChatConversation, ChatConversationType } from '../../../../interfaces/chat';
-import { CommunityUser } from '../../../../interfaces/community';
-import { ChatGroupCandidate } from '../../../../interfaces/chat';
-import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
-import { ChatService } from '../../../../services/entities/chat.service';
-import { CommunityService } from '../../../../services/entities/community.service';
+import { ChatConversation, ChatFriendship, ChatGroupCandidate, ChatPerson } from '../../../../interfaces/chat';
+import { PlatformChatService } from '../../../../services/platform/platform-chat.service';
 import { ChatFloatingCoordinatorService } from '../../../../services/stores/chat-floating-coordinator.service';
 import { ChatStoreService } from '../../../../services/stores/chat-store.service';
 import { getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
-import { chatConversationIcon, chatConversationTitle } from '../../../../shared/chat-display';
+import { ChatConversationFilter, chatConversationIcon, chatConversationTitle, friendshipCandidates, matchesConversationFilter } from '../../../../shared/chat-display';
 
-type ConversationFilter = 'todas' | ChatConversationType;
+type ConversationFilter = ChatConversationFilter;
 
 @Component({
     standalone: true,
@@ -33,13 +29,12 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         { id: 'todas', label: 'Todas' },
         { id: 'directa', label: 'Directos' },
         { id: 'club', label: 'Clubes' },
-        { id: 'grupo', label: 'Grupos' },
-        { id: 'sistema', label: 'Sistema' }
+        { id: 'grupo', label: 'Grupos' }
     ];
     creatorOpen = false;
     creatorType: 'direct' | 'group' = 'direct';
     userQuery = '';
-    users: CommunityUser[] = [];
+    users: ChatPerson[] = [];
     searchingUsers = false;
     creatingDirect = false;
     creatorError = '';
@@ -47,16 +42,17 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
     loadingGroupCandidates = false;
     groupTitle = '';
     groupQuery = '';
-    selectedParticipantIds = new Set<number>();
+    selectedParticipantIds = new Set<string>();
+    private friendships: ChatFriendship[] | null = null;
     creatingGroup = false;
     private subscription: Subscription | null = null;
     private searchTimer: ReturnType<typeof setTimeout> | null = null;
     private searchVersion = 0;
 
-    constructor(private store: ChatStoreService, private session: PlatformSessionService, private floating: ChatFloatingCoordinatorService, private community: CommunityService, private chat: ChatService) { }
+    constructor(private store: ChatStoreService, private floating: ChatFloatingCoordinatorService, private chat: PlatformChatService) { }
 
     ngOnInit(): void {
-        this.store.initialize(this.session.userId);
+        this.store.initialize();
         this.subscription = this.store.state$.subscribe(state => { this.conversations = state.conversations; this.loading = state.loading; this.error = state.error; });
     }
 
@@ -67,7 +63,7 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
     }
 
     get filteredConversations(): ChatConversation[] {
-        return this.filter === 'todas' ? this.conversations : this.conversations.filter(item => item.Tipo === this.filter);
+        return this.conversations.filter(item => matchesConversationFilter(item, this.filter));
     }
 
     open(conversation: ChatConversation): void { this.floating.openConversation(conversation.Id); }
@@ -101,7 +97,7 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         this.searchTimer = setTimeout(() => this.searchUsers(query, version), 300);
     }
 
-    startDirect(user: CommunityUser): void {
+    startDirect(user: ChatPerson): void {
         if (this.creatingDirect) return;
         this.creatingDirect = true;
         this.creatorError = '';
@@ -122,8 +118,8 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
 
     onGroupQueryChange(): void { this.loadGroupCandidates(); }
 
-    toggleParticipant(userId: number): void {
-        this.selectedParticipantIds.has(userId) ? this.selectedParticipantIds.delete(userId) : this.selectedParticipantIds.add(userId);
+    toggleParticipant(accountId: string): void {
+        this.selectedParticipantIds.has(accountId) ? this.selectedParticipantIds.delete(accountId) : this.selectedParticipantIds.add(accountId);
     }
 
     createGroup(): void {
@@ -145,30 +141,31 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         });
     }
 
+    /** Las directas son solo entre amistades (CHAT.md): se busca entre ellas. */
     private searchUsers(query: string, version: number): void {
-        this.community.users(query).subscribe({
-            next: users => {
-                if (version !== this.searchVersion) return;
-                this.users = users.filter(user => user.Id !== this.session.userId && user.PermitirMensajes);
-                this.searchingUsers = false;
-            },
-            error: error => {
-                if (version !== this.searchVersion) return;
-                this.searchingUsers = false;
-                this.creatorError = getApiErrorMessage(error, 'No se han podido buscar usuarios.');
-            }
-        });
+        this.withFriendships(friendships => {
+            if (version !== this.searchVersion) return;
+            const term = query.toLocaleLowerCase('es');
+            this.users = friendships.map(item => item.Usuario)
+                .filter(user => user.Nombre.toLocaleLowerCase('es').includes(term) || user.Alias.toLocaleLowerCase('es').includes(term));
+            this.searchingUsers = false;
+        }, () => { if (version === this.searchVersion) this.searchingUsers = false; });
     }
 
     private loadGroupCandidates(): void {
         if (!this.creatorOpen || this.creatorType !== 'group') return;
         this.loadingGroupCandidates = true;
-        this.chat.groupCandidates(this.groupQuery).subscribe({
-            next: page => {
-                this.groupCandidates = [...page.Candidatos].sort((left, right) => Number(right.EsAmistad) - Number(left.EsAmistad) || left.Nombre.localeCompare(right.Nombre));
-                this.loadingGroupCandidates = false;
-            },
-            error: error => { this.loadingGroupCandidates = false; this.creatorError = getApiErrorMessage(error, 'No se han podido cargar personas elegibles.'); }
+        this.withFriendships(friendships => {
+            this.groupCandidates = friendshipCandidates(friendships, this.groupQuery);
+            this.loadingGroupCandidates = false;
+        }, () => { this.loadingGroupCandidates = false; });
+    }
+
+    private withFriendships(apply: (friendships: ChatFriendship[]) => void, failed: () => void): void {
+        if (this.friendships) { apply(this.friendships); return; }
+        this.chat.friendships().subscribe({
+            next: friendships => { this.friendships = friendships; apply(friendships); },
+            error: error => { failed(); this.creatorError = getApiErrorMessage(error, 'No se han podido cargar tus amistades.'); }
         });
     }
 

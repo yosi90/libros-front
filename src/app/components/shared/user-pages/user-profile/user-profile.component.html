@@ -6,8 +6,9 @@
   } @else {
   <aside class="profile-menu" aria-label="Secciones de perfil">
     <section class="profile-hero">
-      <button class="profile-avatar" type="button" (click)="changeProfileImage()" aria-label="Actualizar imagen de perfil">
-                <img [src]="imgUrl + 'photo/' + userData?.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
+      <!-- El avatar y el nombre son del perfil de Yosiftware: se editan en su vista (`yosiftware.editarPerfil()`). -->
+      <button class="profile-avatar" type="button" (click)="editPlatformProfile()" aria-label="Editar tu perfil de Yosiftware">
+                @if (avatarUrl) {<img [src]="avatarUrl" alt="Imagen de perfil" (error)="handleProfileImageError($event)">} @else {<mat-icon aria-hidden="true">account_circle</mat-icon>}
             </button>
             <h1>{{getProfileDisplayName()}}</h1>
             <p>{{getProfileHandle()}}</p>
@@ -20,7 +21,7 @@
             </button>
             <button type="button" [class.profile-menu__item--active]="activeSection === 'profile'" (click)="setActiveSection('profile')">
                 <mat-icon>account_circle</mat-icon>
-                <span><strong>Perfil</strong><small>Identidad pública</small></span>
+                <span><strong>Perfil</strong><small>Tu perfil de Yosiftware</small></span>
             </button>
             <button type="button" [class.profile-menu__item--active]="activeSection === 'reports'" (click)="setActiveSection('reports')">
                 <mat-icon>flag</mat-icon>
@@ -143,56 +144,16 @@
         <section class="profile-panel">
           <header>
             <h2><mat-icon>account_circle</mat-icon>Perfil</h2>
-            <span>Así te ven otras personas en Comunidad</span>
+            <span>Tu perfil es el de tu cuenta de Yosiftware, el mismo en todas sus webs</span>
           </header>
           <div class="settings-list settings-list--single">
-            @for (field of identityFields; track field.mode) {
-              <article class="settings-item" [class.settings-item--editing]="inlineProfileEditMode === field.mode">
-                <div class="settings-item__icon"><mat-icon>{{field.icon}}</mat-icon></div>
-                <div><strong>{{field.label}}</strong><span>{{identityValue(field.mode)}}</span></div>
-                @if (inlineProfileEditMode !== field.mode) {
-                  <button type="button" (click)="startInlineProfileEdit(field.mode)">Editar</button>
-                } @else {
-                  <form class="settings-item__form" (submit)="$event.preventDefault(); saveInlineProfileEdit()">
-                    @switch (field.mode) {
-                      @case ('username') {
-                        <label class="inline-field"><span>Alias</span><input [formControl]="username" maxlength="50" autocomplete="username" (blur)="updateUsernameErrorMessage()"></label>
-                        <small class="inline-field__meta">@if (username.invalid) {<em>{{errorUsernameMessage}}</em>}<b>{{username.value?.length || 0}} / 50</b></small>
-                      }
-                      @case ('displayName') {
-                        <label class="inline-field"><span>Nombre visible</span><input [formControl]="displayName" maxlength="80" (blur)="updateDisplayNameErrorMessage()"></label>
-                        <small class="inline-field__meta">@if (displayName.invalid) {<em>{{errorDisplayNameMessage}}</em>}<b>{{displayName.value?.length || 0}} / 80</b></small>
-                      }
-                      @case ('bio') {
-                        <label class="inline-field"><span>Biografía</span><textarea [formControl]="bio" maxlength="500" rows="4" (blur)="updateBioErrorMessage()"></textarea></label>
-                        <small class="inline-field__meta">@if (bio.invalid) {<em>{{errorBioMessage}}</em>}<b>{{bio.value?.length || 0}} / 500</b></small>
-                      }
-                      @case ('privacy') {
-                        <div class="profile-toggles">
-                          <div class="profile-toggle"><span>Perfil público</span><button type="button" [class.is-on]="perfilPublico.value" [attr.aria-pressed]="perfilPublico.value" (click)="perfilPublico.setValue(!perfilPublico.value)"><i></i><b>Sí</b><em>No</em></button></div>
-                          <div class="profile-toggle"><span>Mostrar estadísticas</span><button type="button" [class.is-on]="mostrarEstadisticas.value" [attr.aria-pressed]="mostrarEstadisticas.value" (click)="mostrarEstadisticas.setValue(!mostrarEstadisticas.value)"><i></i><b>Sí</b><em>No</em></button></div>
-                          <div class="profile-toggle"><span>Mostrar biblioteca</span><button type="button" [class.is-on]="mostrarBiblioteca.value" [attr.aria-pressed]="mostrarBiblioteca.value" (click)="mostrarBiblioteca.setValue(!mostrarBiblioteca.value)"><i></i><b>Sí</b><em>No</em></button></div>
-                          <div class="profile-toggle"><span>Permitir mensajes</span><button type="button" [class.is-on]="permitirMensajes.value" [attr.aria-pressed]="permitirMensajes.value" (click)="permitirMensajes.setValue(!permitirMensajes.value)"><i></i><b>Sí</b><em>No</em></button></div>
-                        </div>
-                      }
-                      @case ('image') {
-                        <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" [multiple]="false" (change)="onSelect($event)">
-                          <ngx-dropzone-label><mat-icon>add_photo_alternate</mat-icon><div>Arrastra una imagen o pulsa para elegirla</div></ngx-dropzone-label>
-                          @for (f of files; track f) {
-                            <ngx-dropzone-image-preview ngProjectAs="ngx-dropzone-preview" [file]="f" [removable]="true" (removed)="onRemove(f)"></ngx-dropzone-image-preview>
-                          }
-                        </div>
-                      }
-                    }
-                    <div class="settings-item__actions">
-                      <button type="button" [disabled]="isProfileSaving" (click)="cancelInlineProfileEdit()">Cancelar</button>
-                      <button class="settings-item__save" type="submit" [disabled]="isInlineEditInvalid()">Guardar</button>
-                    </div>
-                  </form>
-                }
-              </article>
-            }
+            <article class="settings-item">
+              <div class="settings-item__icon"><mat-icon>badge</mat-icon></div>
+              <div><strong>{{getProfileDisplayName()}}</strong><span>{{getProfileHandle()}}</span></div>
+              <button type="button" (click)="editPlatformProfile()">Editar perfil</button>
+            </article>
           </div>
+          <p class="profile-platform-link"><a [href]="socialProfileUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Ver tu perfil en la web social</a></p>
         </section>
       }
       @case ('security') {
@@ -201,58 +162,6 @@
       @case ('preferences') {
         <app-app-preferences class="profile-embedded"></app-app-preferences>
       }
-      @case ('moderation') {
-        <section class="profile-panel">
-          <header><h2><mat-icon>gavel</mat-icon>Moderación</h2><button type="button" (click)="loadModeration()" aria-label="Recargar historial"><mat-icon>refresh</mat-icon></button></header>
-          <p class="moderation-intro">Aquí puedes consultar los avisos y sanciones aplicables a tu cuenta. Las notas internas de moderación no se muestran.</p>
-          @if (!isModerationLoading && moderationIncidents.length) {
-            <div class="moderation-list">
-              @for (incident of moderationIncidents; track incident) {
-                <article><header><div><strong>{{incident.Caso.Nombre}}</strong><span>{{incident.FechaConfirmacion | date:'dd/MM/yyyy HH:mm'}}</span></div><small>{{moderationStatusLabel(incident.Sancion.Estado)}}</small></header>@if (incident.MensajeVisible) {
-                <p>{{incident.MensajeVisible}}</p>
-                }<dl><div><dt>Duración</dt><dd>{{incident.Sancion.EsPermanente ? 'Permanente' : (incident.Sancion.FechaFin ? (incident.Sancion.FechaFin | date:'dd/MM/yyyy HH:mm') : 'Sin vencimiento indicado')}}</dd></div></dl>@if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !hasAppeal(incident.Sancion.Id)) {
-                <form class="moderation-appeal-form" (submit)="$event.preventDefault(); submitAppeal(incident)"><textarea [(ngModel)]="appealDrafts[incident.Sancion.Id]" [name]="'appeal-' + incident.Sancion.Id" maxlength="4000" rows="3" placeholder="Explica tu alegación" required></textarea><button type="submit" [disabled]="isSubmittingAppeal || !(appealDrafts[incident.Sancion.Id] || '').trim()">Enviar alegación</button></form>
-              }</article>
-            }
-          </div>
-        } @else {
-          <div class="recent-empty">{{isModerationLoading ? 'Cargando historial...' : 'No tienes incidencias ni sanciones registradas.'}}</div>
-        }
-        @if (!isModerationLoading && moderationAppeals.length) {
-          <section class="moderation-appeals"><h3>Mis alegaciones</h3>@for (appeal of moderationAppeals; track appeal) {
-          <article><strong>{{appeal.Caso}}</strong><span>{{moderationStatusLabel(appeal.Estado)}} · {{appeal.FechaActualizacion | date:'dd/MM/yyyy HH:mm'}}</span><p>{{appeal.Texto}}</p></article>
-        }</section>
-      }
-    </section>
-  }
-  @case ('policies') {
-    <section class="profile-panel">
-      <header><h2><mat-icon>policy</mat-icon>Normas de comunidad</h2><button type="button" (click)="loadPolicies()" aria-label="Recargar normas"><mat-icon>refresh</mat-icon></button></header>
-      <p class="policies-intro">Consulta las versiones vigentes. Las normas pendientes deben aceptarse para usar las funciones sociales que correspondan.</p>
-      @if (!isPoliciesLoading) {
-        <div class="policy-list">
-          @for (policy of policies; track policy) {
-            <article class="policy-card">
-              <header><div><strong>{{policyLabel(policy.Tipo)}}</strong><span>Versión {{policy.Version}} · publicada {{policy.FechaPublicacion | date:'dd/MM/yyyy'}}</span></div><small [class.policy-card__status--pending]="!policy.Aceptada">{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</small></header>
-              <h3>{{policy.Titulo}}</h3>
-              <div class="policy-card__markdown" [innerHTML]="renderPolicyMarkdown(policy.Markdown)"></div>
-              @if (!policy.Aceptada) {
-                <button type="button" (click)="acceptPolicy(policy.Tipo)" [disabled]="acceptingPolicy !== null">{{acceptingPolicy === policy.Tipo ? 'Registrando aceptación…' : 'Aceptar esta norma'}}</button>
-              }
-            </article>
-          }
-          @if (policies.length === 0) {
-            <p class="recent-empty">No hay normas publicadas para consultar.</p>
-          }
-          @if (policiesLoadError) {
-            <p class="recent-empty recent-empty--error">No se pudieron cargar todas las normas. Puedes reintentarlo.</p>
-          }
-        </div>
-      } @else {
-        <p class="recent-empty">Cargando normas…</p>
-      }
-    </section>
-  }
   @case ('requests') {
     <section class="profile-panel">
       <header>
@@ -346,112 +255,4 @@
 </main>
   }
 
-@if (isProfileModalOpen()) {
-  <section class="profile-modal-backdrop" data-native-back-overlay (click)="closeProfileModal()" aria-modal="true" role="dialog">
-    <article class="profile-modal" (click)="$event.stopPropagation()">
-      <header>
-        <div>
-          <span>Perfil</span>
-          <h2>{{getProfileModalTitle()}}</h2>
-        </div>
-        <button type="button" data-native-back-action (click)="closeProfileModal()" [attr.aria-label]="isNativeMobile ? 'Volver al perfil' : 'Cerrar'">
-          <mat-icon>{{isNativeMobile ? 'arrow_back' : 'close'}}</mat-icon>
-        </button>
-      </header>
-      @if (modName) {
-        <form class="profile-form" [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
-          <mat-form-field appearance="outline">
-            <mat-label>Nombre</mat-label>
-            <input matInput formControlName="name" (blur)="updateNameErrorMessage()" required maxlength="30" tabindex="1">
-            <mat-icon matTextPrefix>account_box</mat-icon>
-            @if (name.invalid) {
-              <mat-error>{{errorNameMessage}}</mat-error>
-            }
-            <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
-          </mat-form-field>
-          <div class="profile-modal-actions">
-            <button type="button" (click)="closeProfileModal()">Cancelar</button>
-            <button mat-raised-button type="submit" [disabled]="fgName.invalid">
-              <mat-icon>border_color</mat-icon>
-              Actualizar
-            </button>
-          </div>
-        </form>
-      }
-      @if (modProfile) {
-        <form class="profile-form profile-form--identity" [formGroup]="fgProfile" (submit)="updateProfile()">
-          @if (showProfileField('username')) {
-            <mat-form-field appearance="outline">
-              <mat-label>Alias de usuario</mat-label>
-              <input matInput formControlName="username" (blur)="updateUsernameErrorMessage()" required maxlength="50" tabindex="1">
-              <mat-icon matTextPrefix>alternate_email</mat-icon>
-              @if (username.invalid) {
-                <mat-error>{{errorUsernameMessage}}</mat-error>
-              }
-              <mat-hint align="end">{{ username.value ? username.value.length : 0 }} / 50</mat-hint>
-            </mat-form-field>
-          }
-          @if (showProfileField('displayName')) {
-            <mat-form-field appearance="outline">
-              <mat-label>Nombre visible</mat-label>
-              <input matInput formControlName="displayName" (blur)="updateDisplayNameErrorMessage()" maxlength="80" tabindex="2">
-              <mat-icon matTextPrefix>badge</mat-icon>
-              @if (displayName.invalid) {
-                <mat-error>{{errorDisplayNameMessage}}</mat-error>
-              }
-              <mat-hint align="end">{{ displayName.value ? displayName.value.length : 0 }} / 80</mat-hint>
-            </mat-form-field>
-          }
-          @if (showProfileField('bio')) {
-            <mat-form-field appearance="outline">
-              <mat-label>Biografía</mat-label>
-              <textarea matInput formControlName="bio" (blur)="updateBioErrorMessage()" maxlength="500" tabindex="3" rows="4"></textarea>
-              <mat-icon matTextPrefix>notes</mat-icon>
-              @if (bio.invalid) {
-                <mat-error>{{errorBioMessage}}</mat-error>
-              }
-              <mat-hint align="end">{{ bio.value ? bio.value.length : 0 }} / 500</mat-hint>
-            </mat-form-field>
-          }
-          @if (showProfileField('privacy')) {
-            <div class="profile-toggles">
-              <div class="profile-toggle"><span>Perfil público</span><button type="button" [class.is-on]="perfilPublico.value" [attr.aria-pressed]="perfilPublico.value" (click)="perfilPublico.setValue(!perfilPublico.value)"><i></i><b>Sí</b><em>No</em></button></div>
-              <div class="profile-toggle"><span>Mostrar estadísticas</span><button type="button" [class.is-on]="mostrarEstadisticas.value" [attr.aria-pressed]="mostrarEstadisticas.value" (click)="mostrarEstadisticas.setValue(!mostrarEstadisticas.value)"><i></i><b>Sí</b><em>No</em></button></div>
-              <div class="profile-toggle"><span>Mostrar biblioteca</span><button type="button" [class.is-on]="mostrarBiblioteca.value" [attr.aria-pressed]="mostrarBiblioteca.value" (click)="mostrarBiblioteca.setValue(!mostrarBiblioteca.value)"><i></i><b>Sí</b><em>No</em></button></div>
-              <div class="profile-toggle"><span>Permitir mensajes</span><button type="button" [class.is-on]="permitirMensajes.value" [attr.aria-pressed]="permitirMensajes.value" (click)="permitirMensajes.setValue(!permitirMensajes.value)"><i></i><b>Sí</b><em>No</em></button></div>
-            </div>
-          }
-          <div class="profile-modal-actions">
-            <button type="button" (click)="closeProfileModal()">Cancelar</button>
-            <button mat-raised-button type="submit" [disabled]="isProfileEditInvalid()">
-              <mat-icon>border_color</mat-icon>
-              Actualizar perfil
-            </button>
-          </div>
-        </form>
-      }
-      @if (modImg) {
-        <div class="profile-upload">
-          <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" (change)="onSelect($event)">
-            <ngx-dropzone-label>
-              <div>Arrastra o selecciona una imagen</div>
-            </ngx-dropzone-label>
-            @for (f of files; track f) {
-              <ngx-dropzone-image-preview ngProjectAs="ngx-dropzone-preview" [file]="f" [removable]="true" (removed)="onRemove(f)">
-                <div></div>
-              </ngx-dropzone-image-preview>
-            }
-          </div>
-          <div class="profile-modal-actions">
-            <button type="button" (click)="closeProfileModal()">Cancelar</button>
-            <button mat-raised-button type="button" [disabled]="files.length !== 1" (click)="updateImg()">
-              <mat-icon>border_color</mat-icon>
-              Actualizar imagen
-            </button>
-          </div>
-        </div>
-      }
-    </article>
-  </section>
-}
 </section>

@@ -16,7 +16,8 @@ export interface ApiHealthComponent {
 export interface ApiHealthComponents {
     api: ApiHealthComponent;
     sqlServer: ApiHealthComponent;
-    realtimeGateway: ApiHealthComponent;
+    /** El lector del feed de cambios de la plataforma (ADHESION_YOSIFTWARE.md, «Lo que hace el backend»). */
+    plataformaFeedWorker: ApiHealthComponent;
 }
 
 export interface ApiHealth {
@@ -24,27 +25,7 @@ export interface ApiHealth {
     label: string;
     detail: string;
     apiAvailable: boolean;
-    realtimeAvailable: boolean | null;
     components: ApiHealthComponents;
-}
-
-export type RealtimeHealthStatus = 'healthy' | 'degraded';
-export type RealtimeHealthIssue = 'realtime_outbox_dead_letters' | 'firestore_outbox_dead_letters' | 'nats_unreachable';
-
-export interface RealtimeOutboxCounters {
-    pending: number;
-    deadLetters: number;
-    oldestAgeSeconds: number;
-    maxAttempts: number;
-}
-
-export interface RealtimeHealth {
-    success: true;
-    status: RealtimeHealthStatus;
-    issues: RealtimeHealthIssue[];
-    realtimeOutbox: RealtimeOutboxCounters;
-    firestoreOutbox: RealtimeOutboxCounters;
-    natsTcpReachable: boolean;
 }
 
 interface OperationalHealthComponent {
@@ -64,7 +45,7 @@ interface VerifyResponse {
     Componentes?: {
         api?: OperationalHealthComponent;
         sqlServer?: OperationalHealthComponent;
-        realtimeGateway?: OperationalHealthComponent;
+        plataformaFeedWorker?: OperationalHealthComponent;
     };
 }
 
@@ -74,7 +55,6 @@ interface VerifyResponse {
 export class ApiHealthService {
 
     private readonly verifyUrl = `${environment.apiUrl}verify`;
-    private readonly realtimeHealthUrl = `${environment.apiUrl}health/realtime`;
 
     constructor(private http: HttpClient) { }
 
@@ -82,8 +62,6 @@ export class ApiHealthService {
         return this.http.get<VerifyResponse>(this.verifyUrl).pipe(
             timeout(5000),
             map(response => {
-                const realtimeState = response.Componentes?.realtimeGateway?.Estado;
-                const realtimeAvailable = realtimeState ? realtimeState === 'healthy' : null;
                 const components = this.toComponents(response.Componentes);
                 if (response.status === 'success' && response.EstadoGeneral === 'healthy') {
                     return {
@@ -91,7 +69,6 @@ export class ApiHealthService {
                         label: 'API operativa',
                         detail: response.message || 'Conexión establecida con éxito',
                         apiAvailable: true,
-                        realtimeAvailable,
                         components
                     } satisfies ApiHealth;
                 }
@@ -101,7 +78,6 @@ export class ApiHealthService {
                     label: 'API con incidencias',
                     detail: response.message || response.detail || 'La API responde, pero informa de un problema',
                     apiAvailable: true,
-                    realtimeAvailable,
                     components
                 } satisfies ApiHealth;
             }),
@@ -111,14 +87,9 @@ export class ApiHealthService {
                 label: 'Comprobando API',
                 detail: 'Consultando el estado del servicio',
                 apiAvailable: false,
-                realtimeAvailable: null,
                 components: this.checkingComponents()
             } satisfies ApiHealth)
         );
-    }
-
-    getRealtimeHealth(): Observable<RealtimeHealth> {
-        return this.http.get<RealtimeHealth>(this.realtimeHealthUrl).pipe(timeout(5000));
     }
 
     private toUnavailableHealth(error: unknown): ApiHealth {
@@ -131,21 +102,20 @@ export class ApiHealthService {
                 ? 'La API no puede conectar con la base de datos.'
                 : 'No se pudo contactar con el servicio.',
             apiAvailable: false,
-            realtimeAvailable: false,
             components: this.toComponents(response?.Componentes, 'unavailable')
         };
     }
 
     private checkingComponents(): ApiHealthComponents {
         const checking = (): ApiHealthComponent => ({ state: 'checking', source: '', latencyMs: null, heartbeatAgeSeconds: null });
-        return { api: checking(), sqlServer: checking(), realtimeGateway: checking() };
+        return { api: checking(), sqlServer: checking(), plataformaFeedWorker: checking() };
     }
 
     private toComponents(components?: VerifyResponse['Componentes'], fallback: ApiHealthComponentState = 'unknown'): ApiHealthComponents {
         return {
             api: this.toComponent(components?.api, fallback),
             sqlServer: this.toComponent(components?.sqlServer, fallback),
-            realtimeGateway: this.toComponent(components?.realtimeGateway, fallback)
+            plataformaFeedWorker: this.toComponent(components?.plataformaFeedWorker, fallback)
         };
     }
 

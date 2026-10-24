@@ -11,8 +11,10 @@ app-mobile-app-bar
     align-items: center
     gap: 0
 
-    // La cuenta de Yosiftware (`<yosi-acceso>`), con las variables `--yosi-*` de Mobile.
-    &__account
+    // La cuenta (`<yosi-acceso>`), las webs del ecosistema (`<yosi-webs>`) y la campana (`<yosi-notificaciones>`), con
+    // las variables `--yosi-*` de Mobile y un objetivo táctil de 48 px.
+    &__account,
+    &__platform
         display: grid
         place-items: center
         min-width: 48px

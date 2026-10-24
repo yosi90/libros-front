@@ -1,4 +1,9 @@
-export type CommunityCapabilityId = 'sanciones' | 'realtime' | 'notificaciones' | 'feed' | 'chat' | 'clubes';
+/**
+ * Lo que la API de Libros activa de su Comunidad: solo los clubes. El chat, las notificaciones, el tiempo real y las
+ * sanciones son de la plataforma, y el muro general (`feed`) se retiró con la adhesión: la web no los mira aunque la
+ * API aún anuncie `feed`.
+ */
+export type CommunityCapabilityId = 'clubes';
 
 export interface CommunityCapability {
     Activa: boolean;
@@ -13,25 +18,4 @@ export interface CommunityCapabilitiesResponse {
     CacheTtlSegundos: number;
     Conservadora: boolean;
     Capacidades: Record<CommunityCapabilityId, CommunityCapability>;
-}
-
-export interface OperationalMetricBucket {
-    Canal: 'realtime' | 'firestore' | 'push';
-    Hora: string;
-    Total: number;
-    Entregadas: number;
-    Pendientes: number;
-    DeadLetters: number;
-    Reintentos: number;
-}
-
-export interface OperationalMetrics {
-    Granularidad: 'hora';
-    VentanaHoras: number;
-    RetrasoEsperadoSegundos: number;
-    RetencionDias: Record<string, number>;
-    Entregas: OperationalMetricBucket[];
-    DenegacionesGate: { Hora: string; Categoria: 'gate'; Codigo: string; VersionConfiguracion: number; Cantidad: number }[];
-    EstadoActual: { MiembrosClubActivos: number; SancionesActivas: number; AlegacionesPendientes: number; VersionConfiguracion: number | null };
-    NoInstrumentado: string[];
 }

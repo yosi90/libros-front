@@ -10,8 +10,7 @@ describe('ModerationAccessService', () => {
             get restricciones() { return restricciones$.value; },
             restricciones$
         };
-        const prompt = jasmine.createSpyObj('PolicyPromptService', ['trigger', 'clear']);
-        return { service: new ModerationAccessService(session as never, prompt), prompt, restricciones$ };
+        return { service: new ModerationAccessService(session as never), restricciones$ };
     }
 
     it('sin restricciones de la plataforma deja hacer todo', () => {
@@ -67,13 +66,12 @@ describe('ModerationAccessService', () => {
         });
     });
 
-    it('al cambiar de cuenta olvida el estado y el aviso de normas', () => {
-        const { service, prompt } = create({ alcances: ['creacion'], hasta: null });
+    it('al cambiar de cuenta olvida el estado', () => {
+        const { service } = create({ alcances: ['creacion'], hasta: null });
         service.refresh().subscribe();
         service.clear();
 
         expect(service.state).toBeNull();
-        expect(prompt.clear).toHaveBeenCalled();
     });
 
     it('traduce los alcances de la plataforma a los de las pantallas', () => {

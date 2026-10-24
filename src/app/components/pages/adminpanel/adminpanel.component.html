@@ -30,16 +30,7 @@
         <app-catalog-moderation view="reports"></app-catalog-moderation>
       }
       @case ('communityReports') {
-        <app-moderation-admin [reportsOnly]="true"></app-moderation-admin>
-      }
-      @case ('moderation') {
-        <app-moderation-admin [initialTab]="moderationTab"></app-moderation-admin>
-      }
-      @case ('policies') {
-        <app-community-policies-admin></app-community-policies-admin>
-      }
-      @case ('operations') {
-        <app-operational-metrics></app-operational-metrics>
+        <app-moderation-admin></app-moderation-admin>
       }
       @case ('audit') {
         <app-admin-audit></app-admin-audit>

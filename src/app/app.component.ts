@@ -25,7 +25,6 @@ import { CommandPaletteService } from './services/ui/command-palette.service';
 import { WebCommandPaletteComponent } from './components/web/ui/web-command-palette/web-command-palette.component';
 import { NativeReaderIslandComponent } from './components/mobile/book/native-reader-island/native-reader-island.component';
 import { NativeReaderSessionService } from './services/navigation/native-reader-session.service';
-import { PushNotificationService } from './services/realtime/push-notification.service';
 import { NativeKeyboardFocusService } from './services/native/native-keyboard-focus.service';
 import { NativeNetworkFeedbackService } from './services/native/native-network-feedback.service';
 
@@ -149,7 +148,6 @@ export class AppComponent implements OnInit {
         private nativeKeyboardFocus: NativeKeyboardFocusService,
         private androidUpdates: AndroidReleaseUpdateService,
         private nativeReader: NativeReaderSessionService,
-        private pushNotifications: PushNotificationService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
     ) {
@@ -165,10 +163,6 @@ export class AppComponent implements OnInit {
     ngOnInit(): void {
         this.nativeKeyboardFocus.initialize();
         void this.nativeReader.state();
-        void this.pushNotifications.initializeNativeListeners().catch(() => this.toasts.showSystem(
-            'Android no pudo preparar la apertura de notificaciones. Puedes reintentarlo al reiniciar la app.',
-            { title: 'Notificaciones parcialmente disponibles', dedupeKey: 'native:push:listeners', durationMs: 8000 }
-        ));
         void this.adaptiveLayout.snapshot;
         void this.presentationMode.snapshot;
         void this.nativeAppLinks.initialize();

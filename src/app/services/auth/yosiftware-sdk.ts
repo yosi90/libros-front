@@ -45,6 +45,43 @@ export interface PerfilPlataforma {
     avatar: { url: string; miniatura: string; version: number } | null;
 }
 
+/** El bloque de ajustes de Libros en la cuenta (ACCESO.md, «Los ajustes de la web»). */
+export interface AjustesPlataforma {
+    version: number;
+    documento: Record<string, unknown>;
+}
+
+/** Un evento del tiempo real de la plataforma (`asyncapi.yaml`): el chat, las notificaciones, la sesión… */
+export interface EventoTiempoReal {
+    secuencia: number;
+    tipo: string;
+    datos: Record<string, unknown> | null;
+    fecha: string;
+}
+
+export type EstadoTiempoReal =
+    | { tipo: 'desconectado' }
+    | { tipo: 'sin_sesion' }
+    | { tipo: 'conectando' }
+    | { tipo: 'conectado' }
+    | { tipo: 'reconectando'; motivo: string; enMs: number };
+
+/** Los avisos efímeros del socket: «escribiendo…» y la presencia de las amistades. */
+export type AvisoTiempoReal =
+    | { tipo: 'escribiendo'; conversacion: number; cuenta: string }
+    | { tipo: 'presencia'; cuenta: string; enLinea: boolean; ultimaVez?: string };
+
+/** Lo que se denuncia a la moderación de Yosiftware (`yosiftware.denunciar`, MODERACION.md). */
+export interface ObjetoDenunciaPlataforma {
+    tipo: 'persona' | 'mensaje' | 'novedad' | 'comentario';
+    referencia: string | number;
+    nombre?: string;
+    extracto?: string;
+    /** Quien lo escribió: al terminar, la ventana propone bloquearla o dejar la amistad. */
+    persona?: string;
+    conversacion?: number;
+}
+
 export interface YosiftwareSdk {
     readonly estado: EstadoPlataforma;
     listo(): Promise<EstadoPlataforma>;
@@ -53,8 +90,29 @@ export interface YosiftwareSdk {
     salir(): Promise<void>;
     cambiarCuenta(): Promise<boolean>;
     token(): Promise<string | null>;
+    /** Token para la API de la plataforma (`aud: cuentas`): el chat, las amistades… Nunca se guarda. */
+    tokenPlataforma(): Promise<string | null>;
     perfil(): Promise<PerfilPlataforma | null>;
     editarPerfil(): Promise<boolean>;
+    reportar(opciones?: { tipo?: 'error' | 'propuesta' }): Promise<boolean>;
+    denunciar(objeto: ObjetoDenunciaPlataforma): Promise<boolean>;
+    privacidad(opciones?: { recorrido?: boolean }): Promise<void>;
+    readonly ajustes: {
+        leer(): Promise<AjustesPlataforma | null>;
+        guardar(cambios: Record<string, unknown>, version?: number): Promise<AjustesPlataforma | null>;
+    };
+    readonly tiempoReal: {
+        readonly estado: EstadoTiempoReal;
+        alEvento(oyente: (evento: EventoTiempoReal) => void): () => void;
+        alCambiar(oyente: (estado: EstadoTiempoReal) => void): () => void;
+        alAviso(oyente: (aviso: AvisoTiempoReal) => void): () => void;
+        sincronizar(): void;
+    };
+    readonly chat: {
+        readonly noLeidos: number;
+        alCambiarNoLeidos(oyente: (noLeidos: number) => void): () => void;
+        escribiendo(idConversacion: number): void;
+    };
     fetch(entrada: string, opciones?: RequestInit): Promise<Response>;
 }
 

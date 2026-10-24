@@ -76,8 +76,16 @@
 
     // El botón de la cuenta de Yosiftware ocupa el sitio del antiguo avatar de perfil.
     .library-sidebar__account
-        margin: 0 0 18px
+        margin: 0 0 12px
         flex: 0 0 auto
+
+    // Las webs del ecosistema y la campana de la plataforma, en columna bajo la cuenta (las pinta el SDK).
+    .library-sidebar__platform
+        display: grid
+        justify-items: center
+        gap: 8px
+        width: 40px
+        margin: 0 0 18px
 
     &__nav,
     &__bottom

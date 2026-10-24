@@ -6,22 +6,12 @@ describe('WebProfileViewComponent', () => {
     function create(user: Record<string, unknown> = {}) {
         const component = new WebProfileViewComponent(new ElementRef(document.createElement('div')));
         component.controller = {
-            userData: { name: 'Lector', username: '', displayName: '', bio: '', ...user },
+            userData: { name: 'Lector', ...user },
             myRequests: [{}, {}],
-            myReports: [],
-            errorBioMessage: 'Biografía demasiado larga'
+            myReports: []
         } as unknown as UserProfileComponent;
         return component;
     }
-
-    it('muestra valores por defecto cuando faltan datos de identidad', () => {
-        const component = create();
-
-        expect(component.value('username')).toBe('Sin alias');
-        expect(component.value('displayName')).toBe('Lector');
-        expect(component.value('bio')).toBe('Sin biografía');
-        expect(component.error('bio')).toBe('Biografía demasiado larga');
-    });
 
     it('cuenta peticiones y reportes para las insignias de la navegación', () => {
         const component = create();

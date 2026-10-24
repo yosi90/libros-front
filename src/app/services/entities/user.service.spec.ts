@@ -36,15 +36,6 @@ describe('UserService administration', () => {
         request.flush({ success: true, user: { Id: 7, Nombre: 'lectora', Role: { Id: 1, Nombre: 'usuario' } } });
     });
 
-    it('pagina el expediente administrativo con los nombres de cursor publicados', () => {
-        service.getAdminUser(7, { incidentLimit: 20, incidentCursorFecha: '2026-07-01T00:00:00Z', incidentCursorId: 4 }).subscribe();
-
-        const request = http.expectOne(req => req.url === `${environment.apiUrl}admin/usuarios/7`);
-        expect(request.request.params.get('incidentLimit')).toBe('20');
-        expect(request.request.params.get('incidentCursorId')).toBe('4');
-        request.flush({ success: true, Usuario: {}, Incidentes: [], SiguienteCursorIncidentes: null });
-    });
-
     it('envia el cambio de rol con motivo obligatorio en el payload', () => {
         service.changeAdminUserRole(7, 2, 'Necesidad operativa').subscribe();
 

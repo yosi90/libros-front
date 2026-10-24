@@ -7,13 +7,14 @@
       <a routerLink="/dashboard/profile" matTooltip="Perfil" matTooltipClass="tt-accent" aria-label="Perfil">
         <mat-icon>person</mat-icon>
       </a>
-      <app-notification-bell placement="navbar"></app-notification-bell>
+      <app-yosiftware-notifications></app-yosiftware-notifications>
       @if (isUserAdmin) {
         <a routerLink="/dashboard/adminpanel" matTooltip="Administración" matTooltipClass="tt-accent">
           <mat-icon>admin_panel_settings</mat-icon>
         </a>
       }
-      <!-- La cuenta de Yosiftware: el avatar abre el panel de cuentas (cambiar, añadir y salir). -->
+      <!-- Las webs del ecosistema y la cuenta de Yosiftware: el avatar abre el panel de cuentas (cambiar, añadir y salir). -->
+      <app-yosiftware-webs></app-yosiftware-webs>
       <app-yosiftware-account class="topbar__account"></app-yosiftware-account>
     </div>
     <a class="topbar__brand" routerLink="/dashboard">Memoria Bibliográfica</a>

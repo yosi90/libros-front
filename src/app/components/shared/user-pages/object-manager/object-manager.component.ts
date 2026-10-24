@@ -23,6 +23,7 @@ import { UniverseStoreService } from '../../../../services/stores/universe-store
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
 import { CatalogService } from '../../../../services/entities/catalog.service';
+import { ReportService } from '../../../../services/entities/report.service';
 import { CatalogItem, CatalogOption } from '../../../../interfaces/catalog';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
@@ -151,9 +152,10 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
         collectionSrv: CollectionService,
         private managerViewState: ManagerViewStateService = new ManagerViewStateService(),
         private presentation: PresentationModeService = { snapshot: { isMobilePresentationActive: false } } as PresentationModeService,
-        private librarySearchState: LibrarySearchStateService = new LibrarySearchStateService()
+        private librarySearchState: LibrarySearchStateService = new LibrarySearchStateService(),
+        reportSrv?: ReportService
     ) {
-        super(catalogSrv, collectionSrv, universeStore, sessionSrv, snackBar);
+        super(catalogSrv, collectionSrv, universeStore, sessionSrv, snackBar, reportSrv);
     }
 
     get isWebPresentation(): boolean { return this.presentation.snapshot.activeMode === 'web'; }

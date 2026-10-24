@@ -20,13 +20,10 @@ describe('AccountScopeService', () => {
             catalogView: spy('CatalogViewStateService', ['reset']),
             managerView: spy('ManagerViewStateService', ['reset']),
             readingReturn: spy('ReadingReturnService', ['dismiss']),
-            notifications: spy('NotificationStoreService', ['clear', 'initialize']),
-            sessionNotifications: spy('SessionNotificationStoreService', ['resetSession']),
             decisions: spy('DecisionNoticeService', ['reset']),
-            policyPrompt: spy('PolicyPromptService', ['clear']),
             moderationAccess: spy('ModerationAccessService', ['clear', 'refresh']),
             capabilities: spy('CommunityCapabilitiesService', ['clear', 'initialize', 'isActive']),
-            realtime: spy('RealtimeSocketService', ['closeAll']),
+            realtime: spy('PlatformRealtimeService', ['stop']),
             chatStore: spy('ChatStoreService', ['clear']),
             chatFloating: spy('ChatFloatingCoordinatorService', ['clear']),
             floatingWindows: spy('FloatingWindowManagerService', ['clear']),
@@ -37,15 +34,14 @@ describe('AccountScopeService', () => {
         stores.capabilities.initialize.and.returnValue(of({}));
         const service = new AccountScopeService(
             session as never, stores.universes, stores.authors, stores.books, stores.librarySearch, stores.catalogView,
-            stores.managerView, stores.readingReturn, stores.notifications, stores.sessionNotifications, stores.decisions,
-            stores.policyPrompt, stores.moderationAccess, stores.capabilities, stores.realtime, stores.chatStore,
-            stores.chatFloating, stores.floatingWindows, stores.mobileFullscreenReturn, stores.loader
+            stores.managerView, stores.readingReturn, stores.decisions, stores.moderationAccess, stores.capabilities,
+            stores.realtime, stores.chatStore, stores.chatFloating, stores.floatingWindows, stores.mobileFullscreenReturn, stores.loader
         );
         service.start();
         return { service, session, stores };
     }
 
-    it('con cada cambio de identidad vacía todo lo que Libros guarda en memoria de la persona', () => {
+    it('con cada cambio de identidad vacía todo lo que Libros guarda en memoria de la persona, también el chat', () => {
         const { session, stores } = create();
 
         session.identityChange$.next({ generation: 2, accountId: 'cuenta-b' });
@@ -54,11 +50,11 @@ describe('AccountScopeService', () => {
             ['universos', stores.universes.clear], ['autores', stores.authors.clear], ['libro', stores.books.clear],
             ['búsqueda de la biblioteca', stores.librarySearch.clear], ['vista del catálogo', stores.catalogView.reset],
             ['vista de los gestores', stores.managerView.reset], ['libro aparcado', stores.readingReturn.dismiss],
-            ['notificaciones', stores.notifications.clear], ['avisos de la sesión', stores.sessionNotifications.resetSession],
-            ['decisiones', stores.decisions.reset], ['normas', stores.policyPrompt.clear], ['restricciones', stores.moderationAccess.clear],
-            ['capacidades', stores.capabilities.clear], ['canales en directo', stores.realtime.closeAll], ['chat', stores.chatStore.clear],
-            ['ventanas del chat', stores.chatFloating.clear], ['ventanas flotantes', stores.floatingWindows.clear],
-            ['vuelta de pantallas completas', stores.mobileFullscreenReturn.clear], ['cargando', stores.loader.deactivateLoader]
+            ['decisiones', stores.decisions.reset], ['restricciones', stores.moderationAccess.clear],
+            ['capacidades', stores.capabilities.clear], ['tiempo real de la plataforma', stores.realtime.stop],
+            ['bandeja del chat', stores.chatStore.clear], ['ventanas del chat', stores.chatFloating.clear],
+            ['ventanas flotantes', stores.floatingWindows.clear], ['vuelta de pantallas completas', stores.mobileFullscreenReturn.clear],
+            ['cargando', stores.loader.deactivateLoader]
         ];
         for (const [name, clear] of clearers)
             expect(clear).withContext(name).toHaveBeenCalledTimes(1);
@@ -66,28 +62,20 @@ describe('AccountScopeService', () => {
 
     it('arranca los servicios de la cuenta cuando Libros ya sabe quién es, con su generación', () => {
         const { session, stores } = create();
-        stores.capabilities.isActive.and.returnValue(false);
         session.userId = 7;
 
         session.userIsLogged$.next(true);
 
         expect(stores.moderationAccess.refresh).toHaveBeenCalled();
         expect(stores.capabilities.initialize).toHaveBeenCalledOnceWith(7);
-        // Las notificaciones propias pasan a la plataforma: no se piden si su capacidad está apagada.
-        expect(stores.notifications.initialize).not.toHaveBeenCalled();
     });
 
-    it('no arranca los servicios de una cuenta que ya ha cambiado', () => {
+    it('no arranca nada sin usuario local de Libros', () => {
         const { session, stores } = create();
-        const capabilities = new Subject<unknown>();
-        stores.capabilities.initialize.and.returnValue(capabilities);
-        stores.capabilities.isActive.and.returnValue(true);
-        session.userId = 7;
+
         session.userIsLogged$.next(true);
 
-        session.generation = 2;
-        capabilities.next({});
-
-        expect(stores.notifications.initialize).not.toHaveBeenCalled();
+        expect(stores.moderationAccess.refresh).not.toHaveBeenCalled();
+        expect(stores.capabilities.initialize).not.toHaveBeenCalled();
     });
 });

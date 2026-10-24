@@ -192,13 +192,9 @@
         &.is-dragging
             transition: none
 
-        &.is-dismiss-down
+        &.is-dismiss-down,
+        &.is-dismiss-up
             opacity: 0
-
-        &.is-deliver-up
-            opacity: 0
-            filter: saturate(1.3)
-            transform: translate3d(var(--toast-drag-x), var(--toast-drag-y), 0) scale(.24)
 
         &--success
             border-color: color-mix(in srgb, var(--mobile-color-success) 48%, var(--mobile-color-outline))
@@ -270,6 +266,3 @@
     :host-context(html[data-presentation-active="native-mobile"])
         .app-toast
             transition-duration: 80ms
-
-            &.is-deliver-up
-                transform: none

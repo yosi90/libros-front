@@ -1,11 +1,9 @@
 <app-mobile-app-bar eyebrow="Memoria Bibliográfica" [title]="title" [leadingIcon]="null">
     <div class="m-dashboard-actions">
-        @if (toastDelivery$ | async; as toastDelivery) {
-            @if (!layout.state().isMedium && (notificationsEnabled || toastDelivery.requested)) {
-                <app-notification-bell placement="navbar"></app-notification-bell>
-            }
-        }
-        <!-- La cuenta de Yosiftware: el avatar abre el panel de cuentas. El Perfil de Libros está en «Más». -->
+        <!-- Las webs del ecosistema, la campana de la plataforma y la cuenta de Yosiftware (el avatar abre el panel de
+             cuentas). El Perfil de Libros está en «Más». -->
+        <app-yosiftware-webs class="m-dashboard-actions__platform"></app-yosiftware-webs>
+        <app-yosiftware-notifications class="m-dashboard-actions__platform"></app-yosiftware-notifications>
         <app-yosiftware-account class="m-dashboard-actions__account"></app-yosiftware-account>
     </div>
 </app-mobile-app-bar>

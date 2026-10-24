@@ -6,14 +6,12 @@
 <section class="profile-panel security">
   <header>
     <h2><mat-icon>shield</mat-icon>Cuenta y seguridad</h2>
-    <button type="button" aria-label="Actualizar" (click)="loadPolicies(); loadModeration(); loadBlockedProfiles()"><mat-icon>refresh</mat-icon></button>
   </header>
 
   <nav class="section-tabs" aria-label="Apartados de cuenta y seguridad">
     @for (section of sections; track section.id) {
       <button type="button" [class.is-active]="woodSection === section.id" [attr.aria-current]="woodSection === section.id ? 'page' : null" (click)="selectWoodSection(section.id)">
         <mat-icon aria-hidden="true">{{section.icon}}</mat-icon>{{section.label}}
-        @if (sectionBadge(section.id); as count) {<b class="section-tabs__badge">{{count}}</b>}
       </button>
     }
   </nav>
@@ -33,6 +31,11 @@
           <div><strong>Cambiar de cuenta</strong><span>Sin salir de Memoria bibliográfica</span></div>
           <button type="button" (click)="switchAccount()">Cambiar</button>
         </article>
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>bug_report</mat-icon></div>
+          <div><strong>Errores y propuestas</strong><span>Cuéntanos qué falla o qué mejorarías</span></div>
+          <yosi-reportar></yosi-reportar>
+        </article>
       </div>
       <div class="security__actions">
         <a class="security__secondary" [href]="socialAccountUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Gestionar tu cuenta de Yosiftware</a>
@@ -40,80 +43,34 @@
       </div>
     }
 
-    @case ('policies') {
-      @if (isPoliciesLoading) {
-        <p class="security__empty">Cargando normas…</p>
-      } @else {
-        <div class="request-list">
-          @for (policy of policies; track policy.Tipo) {
-            <details class="request-card security__policy" [open]="!policy.Aceptada">
-              <summary>
-                <span><strong>{{policyLabel(policy.Tipo)}}</strong><small>{{policy.Titulo}}</small></span>
-                <em class="security__pill" [class.security__pill--pending]="!policy.Aceptada">{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</em>
-                <mat-icon class="security__chevron" aria-hidden="true">expand_more</mat-icon>
-              </summary>
-              <div class="security__markdown" [innerHTML]="renderPolicyMarkdown(policy.Markdown)"></div>
-              @if (!policy.Aceptada) {
-                <button class="security__primary" type="button" [disabled]="acceptingPolicy !== null" (click)="acceptPolicy(policy.Tipo)">{{acceptingPolicy === policy.Tipo ? 'Guardando…' : 'Aceptar norma'}}</button>
-              }
-            </details>
-          } @empty {
-            <p class="security__empty">{{policiesLoadError ? 'No se pudieron cargar las normas.' : 'No hay normas publicadas.'}}</p>
-          }
-        </div>
-      }
+    @case ('privacy') {
+      <div class="settings-list settings-list--single">
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>visibility_off</mat-icon></div>
+          <div><strong>Tu privacidad en Libros</strong><span>Si ocultas que usas Libros y qué te llega al móvil</span></div>
+          <yosi-privacidad></yosi-privacidad>
+        </article>
+      </div>
+      <div class="security__actions">
+        <a class="security__secondary" [href]="socialRulesUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Normas y política de privacidad</a>
+        <a class="security__secondary" [href]="socialModerationUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Tu moderación (avisos y alegaciones)</a>
+        <a class="security__secondary" [href]="socialBlocksUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Personas bloqueadas</a>
+      </div>
     }
 
-    @case ('moderation') {
-      @if (isModerationLoading) {
-        <p class="security__empty">Cargando historial…</p>
-      } @else {
-        <div class="request-list">
-          @for (incident of moderationIncidents; track incident.Sancion.Id) {
-            <article class="request-card">
-              <header><div><strong>{{incident.Caso.Nombre}}</strong></div><small>{{moderationStatusLabel(incident.Sancion.Estado)}}</small></header>
-              @if (incident.MensajeVisible) {<p class="resolution-note">{{incident.MensajeVisible}}</p>}
-              @if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !hasAppeal(incident.Sancion.Id)) {
-                <form class="request-response" (submit)="$event.preventDefault(); submitAppeal(incident)">
-                  <textarea [(ngModel)]="appealDrafts[incident.Sancion.Id]" [name]="'security-appeal-' + incident.Sancion.Id" maxlength="4000" rows="3" placeholder="Explica tu alegación" aria-label="Alegación"></textarea>
-                  <button type="submit" [disabled]="isSubmittingAppeal">Enviar alegación</button>
-                </form>
-              }
-            </article>
-          }
-          @for (appeal of moderationAppeals; track appeal) {
-            <article class="request-card">
-              <header><div><strong>Alegación · {{appeal.Caso}}</strong></div><small>{{moderationStatusLabel(appeal.Estado)}}</small></header>
-              <p class="resolution-note">{{appeal.Texto}}</p>
-            </article>
-          }
-          @if (!moderationItemsCount) {<p class="security__empty">No tienes incidencias registradas.</p>}
-        </div>
-      }
-    }
-
-    @case ('blocks') {
-      @if (areBlockedProfilesLoading) {
-        <p class="security__empty">Cargando perfiles bloqueados…</p>
-      } @else if (blockedProfilesError) {
-        <p class="security__empty security__empty--error" role="alert">{{blockedProfilesError}}</p>
-        <div class="security__actions"><button class="security__secondary" type="button" (click)="loadBlockedProfiles()">Reintentar</button></div>
-      } @else {
-        <div class="settings-list settings-list--single">
-          @for (relationship of blockedProfiles; track relationship.Usuario.Id) {
-            <article class="settings-item">
-              <div class="settings-item__icon"><mat-icon>person_off</mat-icon></div>
-              <div><strong>{{relationship.Usuario.Nombre}}</strong><span>Bloqueado desde {{relationship.FechaCreacion | date:'d MMM y'}}</span></div>
-              <button type="button" [disabled]="blockedProfileActionId !== null" (click)="unblockProfile(relationship)">Desbloquear</button>
-            </article>
-          } @empty {
-            <p class="security__empty">No has bloqueado a ninguna persona.</p>
-          }
-        </div>
-        @if (blockedProfilesNextAfterId) {
-          <div class="security__actions"><button class="security__secondary" type="button" [disabled]="isLoadingMoreBlockedProfiles" (click)="loadBlockedProfiles(blockedProfilesNextAfterId)">{{isLoadingMoreBlockedProfiles ? 'Cargando…' : 'Cargar más'}}</button></div>
-        }
-      }
+    @case ('data') {
+      <div class="settings-list settings-list--single">
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>account_circle</mat-icon></div>
+          <div><strong>Tu cuenta de Yosiftware</strong><span>Descarga o borra lo que guarda la plataforma, en «Más… › Cuenta»</span></div>
+          <a class="security__secondary" [href]="socialDataUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Abrir</a>
+        </article>
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>menu_book</mat-icon></div>
+          <div><strong>Lo que guarda Libros</strong><span>Tu biblioteca, tus notas y tus reseñas no van en esa descarga. Libros aún no tiene descarga propia: pídela y te la preparamos.</span></div>
+          <button type="button" (click)="requestLibrosData()">Pedirla</button>
+        </article>
+      </div>
     }
   }
 </section>

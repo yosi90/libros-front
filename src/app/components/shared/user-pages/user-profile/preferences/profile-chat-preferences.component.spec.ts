@@ -5,25 +5,26 @@ import { ProfileChatPreferencesComponent } from './profile-chat-preferences.comp
 describe('ProfileChatPreferencesComponent', () => {
     const preferences: ChatFloatingPreferences = { VersionShape: 1, Version: 2, FechaActualizacion: null, AutoabrirListado: false, PermitirBurbujas: true, ModoListado: 'normal', PosicionListado: null, TamanoListado: null, ConversacionesFlotantes: [] };
 
-    it('guarda ambas opciones con la versión y adopta la respuesta compatible', () => {
-        const chat = { floatingPreferences: jasmine.createSpy().and.returnValue(of(preferences)), saveFloatingPreferences: jasmine.createSpy().and.returnValue(of({ ...preferences, Version: 3 })) };
+    it('guarda ambas opciones en los ajustes de la cuenta y adopta el resultado', () => {
+        const settings = { load: jasmine.createSpy().and.returnValue(of(preferences)), save: jasmine.createSpy().and.returnValue(of({ ...preferences, Version: 3, AutoabrirListado: true })) };
         const coordinator = { adoptPreferences: jasmine.createSpy() };
         const toasts = jasmine.createSpyObj('AppToastService', ['showSuccess', 'showError', 'showInfo']);
-        const component = new ProfileChatPreferencesComponent(chat as never, coordinator as never, toasts);
+        const component = new ProfileChatPreferencesComponent(settings as never, coordinator as never, toasts);
         component.ngOnInit();
         component.preferences!.AutoabrirListado = true;
         component.save();
-        expect(chat.saveFloatingPreferences).toHaveBeenCalledOnceWith({ Version: 2, AutoabrirListado: true, PermitirBurbujas: true });
+        expect(settings.save).toHaveBeenCalledOnceWith({ AutoabrirListado: true, PermitirBurbujas: true });
         expect(coordinator.adoptPreferences).toHaveBeenCalledWith(jasmine.objectContaining({ Version: 3 }));
+        expect(toasts.showSuccess).toHaveBeenCalled();
     });
 
-    it('recarga ante conflicto de versión', () => {
-        const chat = { floatingPreferences: jasmine.createSpy().and.returnValue(of(preferences)), saveFloatingPreferences: jasmine.createSpy().and.returnValue(throwError(() => ({ code: 'chat_preferences_conflict' }))) };
+    it('avisa si no se pueden guardar', () => {
+        const settings = { load: jasmine.createSpy().and.returnValue(of(preferences)), save: jasmine.createSpy().and.returnValue(throwError(() => ({ code: 'error' }))) };
         const toasts = jasmine.createSpyObj('AppToastService', ['showSuccess', 'showError', 'showInfo']);
-        const component = new ProfileChatPreferencesComponent(chat as never, { adoptPreferences: jasmine.createSpy() } as never, toasts);
+        const component = new ProfileChatPreferencesComponent(settings as never, { adoptPreferences: jasmine.createSpy() } as never, toasts);
         component.ngOnInit();
         component.save();
-        expect(chat.floatingPreferences).toHaveBeenCalledTimes(2);
-        expect(toasts.showInfo).toHaveBeenCalled();
+        expect(component.saving).toBeFalse();
+        expect(toasts.showError).toHaveBeenCalled();
     });
 });

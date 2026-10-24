@@ -12,12 +12,9 @@ describe('AdminSummaryComponent', () => {
     const summary: AdminSummary = {
         Cuentas: {
             PorEstado: [{ Id: 1, Nombre: 'Activa', Total: 3 }],
-            PorRol: [{ Id: 1, Nombre: 'Administrador', Total: 1 }, { Id: 2, Nombre: 'Usuario', Total: 2 }],
-            EmailPendienteVerificacion: 1
+            PorRol: [{ Id: 1, Nombre: 'Administrador', Total: 1 }, { Id: 2, Nombre: 'Usuario', Total: 2 }]
         },
-        Colas: { PeticionesCatalogo: 2, ReportesResenas: 1, DenunciasComunidad: 1, Alegaciones: 0 },
-        Moderacion: { SancionesActivas: 1 },
-        Operacion: { RealtimeDeadLetters: 0, FirestoreDeadLetters: 0 }
+        Colas: { PeticionesCatalogo: 2, ReportesResenas: 1, DenunciasComunidad: 1 }
     };
 
     beforeEach(async () => {
@@ -25,11 +22,11 @@ describe('AdminSummaryComponent', () => {
         users.getAdminSummary.and.returnValue(of(summary));
         health = jasmine.createSpyObj<ApiHealthService>('ApiHealthService', ['check']);
         health.check.and.returnValue(of({
-            state: 'online', label: 'API operativa', detail: 'Todo correcto', apiAvailable: true, realtimeAvailable: true,
+            state: 'online', label: 'API operativa', detail: 'Todo correcto', apiAvailable: true,
             components: {
                 api: { state: 'healthy', source: 'http', latencyMs: 4, heartbeatAgeSeconds: null },
                 sqlServer: { state: 'healthy', source: 'sql', latencyMs: 7, heartbeatAgeSeconds: null },
-                realtimeGateway: { state: 'healthy', source: 'heartbeat', latencyMs: null, heartbeatAgeSeconds: 2 }
+                plataformaFeedWorker: { state: 'healthy', source: 'heartbeat', latencyMs: null, heartbeatAgeSeconds: 2 }
             }
         }));
         await TestBed.configureTestingModule({ imports: [AdminSummaryComponent], providers: [{ provide: UserService, useValue: users }, { provide: ApiHealthService, useValue: health }] }).compileComponents();
@@ -66,7 +63,7 @@ describe('AdminSummaryComponent', () => {
         expect(healthPanel.getAttribute('data-state')).toBe('online');
         expect(healthPanel.textContent).toContain('API operativa');
         expect(healthPanel.textContent).toContain('SQL Server');
-        expect(healthPanel.textContent).toContain('Realtime');
+        expect(healthPanel.textContent).toContain('Feed de la plataforma');
         expect(healthPanel.textContent).toContain('4 ms');
         expect(healthPanel.textContent).toContain('Heartbeat hace 2 s');
     });

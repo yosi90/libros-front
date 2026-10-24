@@ -116,15 +116,6 @@
           }
         </form>
       }
-      <section class="admin-user-detail__incidents"><h3>Expediente</h3>@for (incident of incidents; track incident) {
-      <article><header><strong>{{incident.Caso.Nombre}}</strong><span>{{incident.FechaConfirmacion | date:'dd/MM/yyyy HH:mm'}}</span></header><p>{{incident.MensajeVisible || 'Sin mensaje visible.'}}</p><small>{{incident.Fuente}} · {{incident.Modo}} · sanción {{incident.Sancion.Estado}}</small>@if (isAdmin && incident.DescripcionInterna) {
-      <p><b>Nota interna:</b> {{incident.DescripcionInterna}}</p>
-    }</article>
-    }@if (!incidents.length) {
-    <p>No hay incidentes visibles.</p>
-    }@if (nextIncidentCursor) {
-    <button type="button" (click)="loadMoreIncidents()" [disabled]="isLoadingMoreIncidents">{{isLoadingMoreIncidents ? 'Cargando...' : 'Cargar incidentes anteriores'}}</button>
-  }</section>
 }
 </section>
 }

@@ -16,8 +16,7 @@
     backdrop-filter: blur(18px)
 
     a,
-    button,
-    &__notification
+    button
         min-width: 0
         min-height: 56px
         display: grid
@@ -42,15 +41,6 @@
 
         &.is-disabled
             opacity: .46
-
-    &__notification
-        cursor: default
-
-        > span
-            color: var(--mobile-color-ink-muted)
-
-        app-notification-bell
-            height: 48px
 
     &__icon
         width: 56px
@@ -118,8 +108,7 @@
         backdrop-filter: none
 
         a,
-        button,
-        .m-navigation__notification
+        button
             min-height: 68px
 
         .m-navigation__rail-only

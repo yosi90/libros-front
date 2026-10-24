@@ -1,4 +1,4 @@
-// Lo que pinta el SDK de Yosiftware en la página (`<yosi-acceso>` y su panel de cuentas), con los tokens Mobile
+// Lo que pinta el SDK de Yosiftware en la página (`<yosi-acceso>` y su panel de cuentas, `<yosi-webs>`, `<yosi-notificaciones>` y el chat), con los tokens Mobile
 // (ecosistema-kit/ESTILOS.md, «Las variables»). Se declaran junto a los tokens, así siguen el claro/oscuro solos.
 @mixin yosiftware-variables
     --yosi-color-principal: var(--mobile-color-primary)
@@ -19,3 +19,6 @@
     --yosi-fuente: var(--mobile-font-body)
     --yosi-radio: var(--mobile-radius-sm)
     --yosi-radio-ventana: var(--mobile-radius-md)
+    // La campana (`<yosi-notificaciones>`) con la tinta de la app bar, y los avisos emergentes bajo ella (es fija).
+    --yosi-color-campana: var(--mobile-color-ink)
+    --yosi-avisos-arriba: calc(72px + var(--app-safe-top, 0px))

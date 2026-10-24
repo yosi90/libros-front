@@ -2,8 +2,13 @@
   @if (isWoodPresentation) {
     <aside class="library-sidebar" aria-label="Navegación principal">
       <div class="library-sidebar__identity">
-        <!-- La cuenta de Yosiftware: el avatar abre el panel de cuentas (cambiar, añadir y salir). -->
+        <!-- La cuenta de Yosiftware: el avatar abre el panel de cuentas (cambiar, añadir y salir). Junto a ella, las webs
+             del ecosistema y la campana de la plataforma. -->
         <app-yosiftware-account class="library-sidebar__account"></app-yosiftware-account>
+        <div class="library-sidebar__platform">
+          <app-yosiftware-webs></app-yosiftware-webs>
+          <app-yosiftware-notifications></app-yosiftware-notifications>
+        </div>
       </div>
       <nav class="library-sidebar__nav">
         <span class="library-sidebar__divider" aria-hidden="true"></span>
@@ -12,15 +17,8 @@
         <a routerLink="catalog" routerLinkActive="is-active" matTooltip="Catálogo global" matTooltipClass="tt-accent" aria-label="Catálogo"><mat-icon>travel_explore</mat-icon><span class="library-sidebar__label">Catálogo</span></a>
         <span class="library-sidebar__divider" aria-hidden="true"></span>
         <a routerLink="statistics" routerLinkActive="is-active" matTooltip="Estadísticas" matTooltipClass="tt-accent" aria-label="Estadísticas"><mat-icon>bar_chart</mat-icon><span class="library-sidebar__label">Estadísticas</span></a>
-        @if (isCapabilityActive('feed')) {
-          <a routerLink="community" routerLinkActive="is-active" matTooltip="Comunidad" matTooltipClass="tt-accent" aria-label="Comunidad"><mat-icon>diversity_3</mat-icon><span class="library-sidebar__label">Comunidad</span></a>
-        }
-        @if (isCapabilityActive('chat')) {
-          <button type="button" (click)="openChat()" matTooltip="Chat" matTooltipClass="tt-accent" aria-label="Abrir chat"><mat-icon>forum</mat-icon><span class="library-sidebar__label">Mensajes</span></button>
-        }
-        @if (isCapabilityActive('notificaciones')) {
-          <app-notification-bell placement="sidebar"></app-notification-bell>
-        }
+        <a routerLink="community" routerLinkActive="is-active" matTooltip="Comunidad" matTooltipClass="tt-accent" aria-label="Comunidad"><mat-icon>diversity_3</mat-icon><span class="library-sidebar__label">Comunidad</span></a>
+        <button type="button" (click)="openChat()" matTooltip="Chat" matTooltipClass="tt-accent" aria-label="Abrir chat"><mat-icon>forum</mat-icon><span class="library-sidebar__label">Mensajes</span></button>
       </nav>
       <div class="library-sidebar__bottom">
         @if (canModerateCatalog && canUseDesktopAdministration) {
@@ -35,31 +33,21 @@
     <!-- Diferido: la navegación Web no pesa en la carga inicial mientras la presentación no esté activa. -->
     @defer {
     <app-web-navigation [userName]="displayName" [imageUrl]="profileImageUrl"
-      [communityEnabled]="isCapabilityActive('feed')" [chatEnabled]="isCapabilityActive('chat')"
+      [communityEnabled]="communityEnabled" [chatEnabled]="chatEnabled"
       [unreadChatCount]="(unreadChatCount$ | async) ?? 0" [canAdministrate]="canModerateCatalog && canUseDesktopAdministration"
-      [notificationsEnabled]="isCapabilityActive('notificaciones')"
       (imageError)="handleProfileImageError($event)"></app-web-navigation>
     <app-web-reading-window></app-web-reading-window>
     }
   } @else {
     <app-mobile-dashboard-chrome [title]="pageTitle" [user]="userData" [imageUrl]="profileImageUrl"
-      [notificationsEnabled]="isCapabilityActive('notificaciones')" [communityEnabled]="isCapabilityActive('feed')"
-      [chatEnabled]="isCapabilityActive('chat')" [unreadChatCount]="(unreadChatCount$ | async) ?? 0"
+      [communityEnabled]="communityEnabled"
+      [chatEnabled]="chatEnabled" [unreadChatCount]="(unreadChatCount$ | async) ?? 0"
       (imageError)="handleProfileImageError($event)"
       (chatRequested)="openChat()"></app-mobile-dashboard-chrome>
   }
 
   <main class="library-main">
     <section class="library-content">
-      @if (realtimeStatus$ | async; as realtimeStates) {
-        @if (hasRealtimeNotice(realtimeStates)) {
-          <aside class="library-connection" [class.library-connection--offline]="isOffline(realtimeStates)" role="status" aria-live="polite">
-            <mat-icon>{{isOffline(realtimeStates) ? 'wifi_off' : 'sync'}}</mat-icon>
-            <span>{{realtimeMessage(realtimeStates)}}</span>
-            <button type="button" (click)="retryRealtime()">Reintentar ahora</button>
-          </aside>
-        }
-      }
       @if (moderationAccess$ | async) {
         @if (accountRestrictionMessage(); as restriction) {
           <aside class="library-connection library-connection--offline" role="alert">

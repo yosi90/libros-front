@@ -6,7 +6,6 @@
       @for (section of sections; track section.id) {
         <button type="button" [class.is-active]="activeSection === section.id" [attr.aria-current]="activeSection === section.id ? 'page' : null" (click)="select(section.id)">
           <mat-icon aria-hidden="true">{{section.icon}}</mat-icon>{{section.label}}
-          @if (badge(section.id); as count) {<span class="web-settings__badge">{{count}}</span>}
         </button>
       }
     </nav>
@@ -14,11 +13,6 @@
     <section class="web-settings__panel">
       <header class="web-settings__panel-head">
         <div><h2>{{activeInfo.label}}</h2><p>{{activeInfo.description}}</p></div>
-        @switch (activeSection) {
-          @case ('policies') {<button class="icon-button" type="button" aria-label="Actualizar normas" (click)="controller.loadPolicies()"><mat-icon>refresh</mat-icon></button>}
-          @case ('moderation') {<button class="icon-button" type="button" aria-label="Actualizar historial" (click)="controller.loadModeration()"><mat-icon>refresh</mat-icon></button>}
-          @case ('blocks') {<button class="icon-button" type="button" aria-label="Actualizar perfiles" (click)="controller.loadBlockedProfiles()"><mat-icon>refresh</mat-icon></button>}
-        }
       </header>
 
       @switch (activeSection) {
@@ -34,6 +28,11 @@
               <div class="entry__body"><strong>Cambiar de cuenta</strong><span>Sin salir de Memoria bibliográfica</span></div>
               <button class="web-button web-button--small" type="button" (click)="controller.switchAccount()">Cambiar</button>
             </article>
+            <article class="entry">
+              <mat-icon class="entry__icon" aria-hidden="true">bug_report</mat-icon>
+              <div class="entry__body"><strong>Errores y propuestas</strong><span>Cuéntanos qué falla o qué mejorarías</span></div>
+              <yosi-reportar></yosi-reportar>
+            </article>
           </div>
           <div class="danger">
             <a class="web-button" [href]="controller.socialAccountUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Gestionar tu cuenta de Yosiftware</a>
@@ -41,80 +40,34 @@
           </div>
         }
 
-        @case ('policies') {
-          @if (controller.isPoliciesLoading) {
-            <p class="empty">Cargando normas…</p>
-          } @else {
-            <div class="documents">
-              @for (policy of controller.policies; track policy.Tipo) {
-                <details class="document" [open]="!policy.Aceptada">
-                  <summary>
-                    <span><strong>{{controller.policyLabel(policy.Tipo)}}</strong><small>{{policy.Titulo}}</small></span>
-                    <em class="pill" [class.pill--pending]="!policy.Aceptada">{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</em>
-                    <mat-icon class="document__chevron" aria-hidden="true">expand_more</mat-icon>
-                  </summary>
-                  <div class="document__markdown" [innerHTML]="controller.renderPolicyMarkdown(policy.Markdown)"></div>
-                  @if (!policy.Aceptada) {
-                    <button class="web-button web-button--primary" type="button" [disabled]="controller.acceptingPolicy !== null" (click)="controller.acceptPolicy(policy.Tipo)">{{controller.acceptingPolicy === policy.Tipo ? 'Guardando…' : 'Aceptar norma'}}</button>
-                  }
-                </details>
-              } @empty {
-                <p class="empty">{{controller.policiesLoadError ? 'No se pudieron cargar las normas.' : 'No hay normas publicadas.'}}</p>
-              }
-            </div>
-          }
+        @case ('privacy') {
+          <div class="rows">
+            <article class="entry">
+              <mat-icon class="entry__icon" aria-hidden="true">visibility_off</mat-icon>
+              <div class="entry__body"><strong>Tu privacidad en Libros</strong><span>Si ocultas que usas Libros y qué te llega al móvil</span></div>
+              <yosi-privacidad></yosi-privacidad>
+            </article>
+          </div>
+          <div class="danger">
+            <a class="web-button" [href]="controller.socialRulesUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Normas y política de privacidad</a>
+            <a class="web-button" [href]="controller.socialModerationUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Tu moderación (avisos y alegaciones)</a>
+            <a class="web-button" [href]="controller.socialBlocksUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Personas bloqueadas</a>
+          </div>
         }
 
-        @case ('moderation') {
-          @if (controller.isModerationLoading) {
-            <p class="empty">Cargando historial…</p>
-          } @else {
-            <div class="documents">
-              @for (incident of controller.moderationIncidents; track incident.Sancion.Id) {
-                <article class="document">
-                  <header><strong>{{incident.Caso.Nombre}}</strong><em class="pill">{{controller.moderationStatusLabel(incident.Sancion.Estado)}}</em></header>
-                  @if (incident.MensajeVisible) {<p>{{incident.MensajeVisible}}</p>}
-                  @if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !controller.hasAppeal(incident.Sancion.Id)) {
-                    <form class="appeal" (submit)="$event.preventDefault(); controller.submitAppeal(incident)">
-                      <textarea [(ngModel)]="controller.appealDrafts[incident.Sancion.Id]" [name]="'web-appeal-' + incident.Sancion.Id" maxlength="4000" rows="4" placeholder="Explica tu alegación" aria-label="Alegación"></textarea>
-                      <button class="web-button web-button--primary" type="submit" [disabled]="controller.isSubmittingAppeal">Enviar alegación</button>
-                    </form>
-                  }
-                </article>
-              }
-              @for (appeal of controller.moderationAppeals; track appeal) {
-                <article class="document">
-                  <header><strong>Alegación · {{appeal.Caso}}</strong><em class="pill">{{controller.moderationStatusLabel(appeal.Estado)}}</em></header>
-                  <p>{{appeal.Texto}}</p>
-                </article>
-              }
-              @if (!controller.moderationItemsCount) {<p class="empty">No tienes incidencias registradas.</p>}
-            </div>
-          }
-        }
-
-        @case ('blocks') {
-          @if (controller.areBlockedProfilesLoading) {
-            <p class="empty">Cargando perfiles bloqueados…</p>
-          } @else if (controller.blockedProfilesError) {
-            <p class="notice notice--error" role="alert"><mat-icon aria-hidden="true">error</mat-icon>{{controller.blockedProfilesError}}</p>
-            <button class="web-button" type="button" (click)="controller.loadBlockedProfiles()">Reintentar</button>
-          } @else {
-            <div class="rows">
-              @for (relationship of controller.blockedProfiles; track relationship.Usuario.Id) {
-                <article class="entry">
-                  <mat-icon class="entry__icon" aria-hidden="true">person_off</mat-icon>
-                  <div class="entry__body"><strong>{{relationship.Usuario.Nombre}}</strong><span>Bloqueado desde {{relationship.FechaCreacion | date:'d MMM y'}}</span></div>
-                  <button class="web-button web-button--small" type="button" [disabled]="controller.blockedProfileActionId !== null" (click)="controller.unblockProfile(relationship)">Desbloquear</button>
-                </article>
-              } @empty {
-                <p class="empty">No has bloqueado a ninguna persona.</p>
-              }
-            </div>
-            @if (controller.blockedProfilesNextAfterId) {
-              <button class="web-button add" type="button" [disabled]="controller.isLoadingMoreBlockedProfiles" (click)="controller.loadBlockedProfiles(controller.blockedProfilesNextAfterId)">{{controller.isLoadingMoreBlockedProfiles ? 'Cargando…' : 'Cargar más'}}</button>
-            }
-          }
+        @case ('data') {
+          <div class="rows">
+            <article class="entry">
+              <mat-icon class="entry__icon" aria-hidden="true">account_circle</mat-icon>
+              <div class="entry__body"><strong>Tu cuenta de Yosiftware</strong><span>Descarga o borra lo que guarda la plataforma, en «Más… › Cuenta»</span></div>
+              <a class="web-button web-button--small" [href]="controller.socialDataUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Abrir</a>
+            </article>
+            <article class="entry">
+              <mat-icon class="entry__icon" aria-hidden="true">menu_book</mat-icon>
+              <div class="entry__body"><strong>Lo que guarda Libros</strong><span>Tu biblioteca, tus notas y tus reseñas no van en esa descarga. Libros aún no tiene descarga propia: pídela y te la preparamos.</span></div>
+              <button class="web-button web-button--small" type="button" (click)="controller.requestLibrosData()">Pedirla</button>
+            </article>
+          </div>
         }
       }
     </section>

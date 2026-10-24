@@ -3,8 +3,7 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { AdminIncidentCursor, AdminRole, AdminUser, AdminUsersCursor, ModerationUser } from '../../../../interfaces/admin';
-import { ModerationIncident } from '../../../../interfaces/moderation';
+import { AdminRole, AdminUser, AdminUsersCursor } from '../../../../interfaces/admin';
 import { UserService } from '../../../../services/entities/user.service';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { getApiErrorCode, getProductStateMessage } from '../../../../shared/api-error-message';
@@ -36,11 +35,8 @@ export class AllUsersComponent implements OnInit {
     nextCursor: AdminUsersCursor | null = null;
     isLoading = true;
     loadError = '';
-    selectedUser: AdminUser | ModerationUser | null = null;
-    incidents: ModerationIncident[] = [];
-    nextIncidentCursor: AdminIncidentCursor | null = null;
+    selectedUser: AdminUser | null = null;
     isDetailLoading = false;
-    isLoadingMoreIncidents = false;
     detailError = '';
     roles: AdminRole[] = [];
     selectedRoleId: number | null = null;
@@ -83,9 +79,16 @@ export class AllUsersComponent implements OnInit {
             limit: this.pageSize,
             ...this.currentCursor
         };
-        const request = this.isAdmin ? this.userSrv.getAdminUsers(query) : this.userSrv.getModerationUsers(query);
-        request.subscribe({
+        // La gestión de cuentas es de la plataforma: aquí solo quedan los roles de Libros, que cambia la administración.
+        if (!this.isAdmin) {
+            this.users = [];
+            this.isLoading = false;
+            this.loadError = 'La gestión de cuentas es de la plataforma Yosiftware.';
+            return;
+        }
+        this.userSrv.getAdminUsers(query).subscribe({
             next: response => {
+                this.rows = new Map(response.Usuarios.map(user => [user.Id, user]));
                 this.users = response.Usuarios.map(user => this.toManagedUser(user));
                 this.nextCursor = response.SiguienteCursor;
                 this.isLoading = false;
@@ -98,60 +101,22 @@ export class AllUsersComponent implements OnInit {
         });
     }
 
+    /** La ficha es la fila del listado: la ficha completa (`/admin/usuarios/{id}`) se retiró con la adhesión. */
     openDetail(user: ManagedUser, statusMessage = ''): void {
-        if (this.isDetailLoading) return;
-        this.isDetailLoading = true;
-        this.detailError = '';
-        this.roleMessage = '';
-        const request = this.isAdmin ? this.userSrv.getAdminUser(user.id, { incidentLimit: 20 }) : this.userSrv.getModerationUser(user.id, { incidentLimit: 20 });
-        request.subscribe({
-            next: response => {
-                this.selectedUser = response.Usuario;
-                this.incidents = response.Incidentes;
-                this.nextIncidentCursor = response.SiguienteCursorIncidentes;
-                this.selectedRoleId = response.Usuario.Rol.Id;
-                this.roleReason = '';
-                this.roleMessage = statusMessage;
-                this.isDetailLoading = false;
-            },
-            error: error => {
-                this.isDetailLoading = false;
-                if (getApiErrorCode(error) === 'admin_user_not_found') {
-                    this.closeDetail();
-                    this.loadUsers();
-                }
-                this.detailError = getProductStateMessage(error, 'No se ha podido cargar la ficha de la cuenta.');
-            }
-        });
+        const row = this.rows.get(user.id);
+        this.detailError = row ? '' : 'Esta cuenta ya no está en el listado.';
+        this.selectedUser = row ?? null;
+        this.selectedRoleId = row?.Rol.Id ?? null;
+        this.roleReason = '';
+        this.roleMessage = statusMessage;
     }
 
     closeDetail(): void {
         this.selectedUser = null;
-        this.incidents = [];
-        this.nextIncidentCursor = null;
         this.selectedRoleId = null;
         this.roleReason = '';
         this.roleMessage = '';
         this.detailError = '';
-    }
-
-    loadMoreIncidents(): void {
-        if (!this.selectedUser || !this.nextIncidentCursor || this.isLoadingMoreIncidents) return;
-        this.isLoadingMoreIncidents = true;
-        const query = { incidentLimit: 20, ...this.nextIncidentCursor };
-        const request = this.isAdmin ? this.userSrv.getAdminUser(this.selectedUser.Id, query) : this.userSrv.getModerationUser(this.selectedUser.Id, query);
-        request.subscribe({
-            next: response => {
-                const ids = new Set(this.incidents.map(incident => incident.Id));
-                this.incidents = [...this.incidents, ...response.Incidentes.filter(incident => !ids.has(incident.Id))];
-                this.nextIncidentCursor = response.SiguienteCursorIncidentes;
-                this.isLoadingMoreIncidents = false;
-            },
-            error: error => {
-                this.detailError = getProductStateMessage(error, 'No se han podido cargar más incidentes.');
-                this.isLoadingMoreIncidents = false;
-            }
-        });
     }
 
     changeRole(): void {
@@ -161,9 +126,9 @@ export class AllUsersComponent implements OnInit {
         this.userSrv.changeAdminUserRole(this.selectedUser.Id, this.selectedRoleId, this.roleReason.trim()).subscribe({
             next: () => {
                 this.isChangingRole = false;
-                const userId = this.selectedUser?.Id;
+                this.closeDetail();
+                this.roleMessage = 'Rol actualizado correctamente.';
                 this.loadUsers();
-                if (userId) this.openDetail({ id: userId } as ManagedUser, 'Rol actualizado correctamente.');
             },
             error: error => {
                 this.isChangingRole = false;
@@ -174,17 +139,15 @@ export class AllUsersComponent implements OnInit {
                     this.closeDetail();
                     this.loadUsers();
                 } else if (code === 'admin_role_self_change_forbidden' || code === 'last_active_admin_required' || code === 'admin_role_not_found') {
-                    const userId = this.selectedUser?.Id;
                     if (code === 'admin_role_not_found') this.loadRoles();
                     this.loadUsers();
-                    if (userId) this.openDetail({ id: userId } as ManagedUser, message);
                 }
             }
         });
     }
 
     get isOwnDetail(): boolean { return this.selectedUser?.Id === this.session.userId; }
-    emailOf(user: AdminUser | ModerationUser): string { return 'Email' in user ? user.Email : ''; }
+    emailOf(user: AdminUser): string { return user.Email ?? ''; }
 
     private loadRoles(): void {
         this.userSrv.getAdminRoles().subscribe({
@@ -225,19 +188,20 @@ export class AllUsersComponent implements OnInit {
     }
 
     private cursorHistory: AdminUsersCursor[] = [];
+    private rows = new Map<number, AdminUser>();
 
     private get currentCursor(): AdminUsersCursor | undefined {
         return this.cursorHistory[this.cursorHistory.length - 1];
     }
 
-    private toManagedUser(user: AdminUser | ModerationUser): ManagedUser {
+    private toManagedUser(user: AdminUser): ManagedUser {
         const roleName = user.Rol?.Nombre ?? 'usuario';
         const accountState = user.EstadoCuenta?.Nombre ?? 'Activa';
 
         return {
             id: user.Id,
             name: user.DisplayName || user.Nombre,
-            email: 'Email' in user ? user.Email : '',
+            email: user.Email ?? '',
             username: user.Username ?? null,
             role: roleName,
             accountState,

@@ -1,28 +1,24 @@
-import { of } from 'rxjs';
 import { AccountSecurityComponent } from './account-security.component';
 
 describe('AccountSecurityComponent', () => {
-    function createComponent(mobile = false) {
+    function createComponent(mobile = false, section: string | null = null) {
         const session = {
             cuenta: { id: 'cuenta-a', alias: 'lectora', correo: 'lectora@example.test' },
             userName: 'Lectora',
             socialUrl: jasmine.createSpy('socialUrl').and.callFake((vista?: string) => `https://qa-social.yosiftware.es/?vista=${vista}`),
             editarPerfil: jasmine.createSpy('editarPerfil').and.resolveTo(true),
             cambiarCuenta: jasmine.createSpy('cambiarCuenta').and.resolveTo(true),
-            salir: jasmine.createSpy('salir').and.resolveTo()
+            salir: jasmine.createSpy('salir').and.resolveTo(),
+            privacidad: jasmine.createSpy('privacidad').and.resolveTo(),
+            reportar: jasmine.createSpy('reportar').and.resolveTo(true)
         };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const presentation = { snapshot: { isMobilePresentationActive: mobile } };
-        const community = jasmine.createSpyObj('CommunityService', ['relationships', 'unblockUser']);
-        community.relationships.and.returnValue(of({ Relaciones: [], SiguienteAfterId: null }));
         const component = new AccountSecurityComponent(
             session as never,
             snackBar,
             presentation as never,
-            {} as never,
-            {} as never,
-            { snapshot: { queryParamMap: { get: () => null } } } as never,
-            community
+            { snapshot: { queryParamMap: { get: (key: string) => key === 'section' ? section : null } } } as never
         );
         return { component, session, snackBar };
     }
@@ -63,31 +59,27 @@ describe('AccountSecurityComponent', () => {
         expect(snackBar.openApiError).toHaveBeenCalledWith(failure, 'No se pudo cerrar la sesión');
     });
 
-    it('exposes mobile moderation and block lists as independent back-aware surfaces', () => {
-        const { component } = createComponent(true);
+    it('lleva las normas, la moderación, los bloqueos y «Tus datos» a la web social, y la privacidad al SDK', () => {
+        const { component, session } = createComponent();
 
-        component.openModerationSurface();
-        component.openBlockedProfilesSurface();
-        expect(component.moderationSurfaceOpen).toBeTrue();
-        expect(component.blockedProfilesSurfaceOpen).toBeTrue();
+        expect(component.socialRulesUrl).toBe('https://qa-social.yosiftware.es/?vista=normas');
+        expect(component.socialModerationUrl).toBe('https://qa-social.yosiftware.es/?vista=moderacion');
+        expect(component.socialBlocksUrl).toBe('https://qa-social.yosiftware.es/?vista=bloqueos');
+        expect(component.socialDataUrl).toBe('https://qa-social.yosiftware.es/?vista=cuenta');
 
-        component.closeModerationSurface();
-        component.closeBlockedProfilesSurface();
-        expect(component.moderationSurfaceOpen).toBeFalse();
-        expect(component.blockedProfilesSurfaceOpen).toBeFalse();
+        component.openPrivacy();
+        component.requestLibrosData();
+        expect(session.privacidad).toHaveBeenCalled();
+        expect(session.reportar).toHaveBeenCalledWith('propuesta');
+        expect('policies' in component).toBeFalse();
+        expect('blockedProfiles' in component).toBeFalse();
     });
 
-    it('opens one community policy at a time as a mobile reading surface', () => {
-        const { component } = createComponent(true);
-        const policy = {
-            Tipo: 'uso', Version: 3, Titulo: 'Normas de uso', Markdown: '# Respeto',
-            FechaPublicacion: '2026-09-07T08:00:00Z', Aceptada: true
-        } as const;
-
-        component.openPolicySurface(policy);
-        expect(component.selectedPolicy).toBe(policy);
-
-        component.closeSurfaceWithEscape();
-        expect(component.selectedPolicy).toBeNull();
+    it('los enlaces antiguos a normas, moderación o bloqueos abren la privacidad', () => {
+        for (const section of ['policies', 'moderation', 'blocks']) {
+            const { component } = createComponent(false, section);
+            component.ngOnInit();
+            expect(component.woodSection).withContext(section).toBe('privacy');
+        }
     });
 });

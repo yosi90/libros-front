@@ -21,7 +21,7 @@
   <header class="club-detail__hero"><div><span>Club de lectura · {{currentClub.Visibilidad}}</span><h1>{{currentClub.Nombre}}</h1><p>{{currentClub.DescripcionMarkdown || 'Este club aún no ha añadido una descripción.'}}</p></div><span class="club-detail__hero-actions">@if (!isMember) {
   <button type="button" (click)="joinOrRequest()" [disabled]="isJoining"><mat-icon>{{currentClub.Visibilidad === 'abierto' ? 'group_add' : 'mark_email_unread'}}</mat-icon>{{isJoining ? 'Enviando…' : currentClub.Visibilidad === 'abierto' ? 'Unirme' : 'Solicitar acceso'}}</button>
   }@if (isMember) {
-  <button type="button" (click)="openClubChat()" [disabled]="isOpeningChat"><mat-icon>forum</mat-icon>{{isOpeningChat ? 'Abriendo…' : 'Abrir chat'}}</button>
+  <button type="button" (click)="openClubChat()" [disabled]="!clubChatAvailable" [title]="clubChatUnavailableReason"><mat-icon>forum</mat-icon>Abrir chat</button>
   }@if (!isOwner) {
   <button type="button" (click)="reportClub()" [disabled]="isReportingClub"><mat-icon>flag</mat-icon>{{isReportingClub ? 'Enviando…' : 'Denunciar'}}</button>
 }</span></header>

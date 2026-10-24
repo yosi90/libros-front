@@ -1,82 +1,76 @@
-import { BehaviorSubject, of, Subject } from 'rxjs';
-import { TestBed } from '@angular/core/testing';
-import { ChatService } from '../entities/chat.service';
-import { CommunityService } from '../entities/community.service';
-import { RealtimeConnectionEvent, RealtimeEvent, RealtimeSocketService } from '../realtime/realtime-socket.service';
+import { fakeAsync, tick } from '@angular/core/testing';
+import { Subject, of } from 'rxjs';
+import { ChatConversation } from '../../interfaces/chat';
+import { EventoTiempoReal } from '../auth/yosiftware-sdk';
 import { ChatStoreService } from './chat-store.service';
 
 describe('ChatStoreService', () => {
-    let service: ChatStoreService;
+    const conversation = (Id: number, FechaUltimoMensaje: string, NoLeidos: number): ChatConversation => ({
+        Id, Tipo: 'directa', Titulo: null, Web: null, FechaUltimoMensaje, NoLeidos, PuedeEnviar: true, RolParticipante: 'miembro', Cerrada: false,
+        Miembros: 2, Contraparte: null, UltimoMensaje: null, Permisos: { Escribir: true, Invitar: false, Administrar: false, Salir: true }
+    });
     let conversations: jasmine.Spy;
-    let events: Subject<RealtimeEvent>;
+    let events: Subject<EventoTiempoReal>;
+    let reconnected: Subject<void>;
+    let realtime: { start: jasmine.Spy; events$: Subject<EventoTiempoReal>; reconnected$: Subject<void> };
+    let session: { cuenta: { id: string } | null; userIsLogged: boolean };
+    let service: ChatStoreService;
 
     beforeEach(() => {
-        events = new Subject<RealtimeEvent>();
-        const connections = new Subject<RealtimeConnectionEvent>();
-        conversations = jasmine.createSpy().and.returnValue(of([
-            { Id: 1, Tipo: 'directa', Titulo: null, ClubId: null, FechaUltimoMensaje: '2026-01-01T00:00:00Z', NoLeidos: 0 },
-            { Id: 2, Tipo: 'club', Titulo: 'Club', ClubId: 4, FechaUltimoMensaje: '2026-02-01T00:00:00Z', NoLeidos: 2 }
+        events = new Subject<EventoTiempoReal>();
+        reconnected = new Subject<void>();
+        conversations = jasmine.createSpy('conversations').and.returnValue(of([
+            conversation(1, '2026-01-01T00:00:00Z', 0),
+            conversation(2, '2026-02-01T00:00:00Z', 2)
         ]));
-        TestBed.configureTestingModule({ providers: [
-            ChatStoreService,
-            { provide: ChatService, useValue: { conversations } },
-            { provide: RealtimeSocketService, useValue: { events$: events.asObservable(), connections$: connections.asObservable(), open: jasmine.createSpy() } },
-            { provide: CommunityService, useValue: { blockedUserIds$: new BehaviorSubject<number | null>(null) } }
-        ] });
-        service = TestBed.inject(ChatStoreService);
+        realtime = { start: jasmine.createSpy('start'), events$: events, reconnected$: reconnected };
+        session = { cuenta: { id: 'cuenta-a' }, userIsLogged: true };
+        service = new ChatStoreService({ conversations } as never, realtime as never, session as never);
     });
 
-    it('inicializa una vez por actor y ordena por actividad reciente', () => {
-        service.initialize(7);
-        service.initialize(7);
+    afterEach(() => service.clear());
+
+    it('carga la bandeja de la plataforma una vez por cuenta y la ordena por actividad', () => {
+        service.initialize();
+        service.initialize();
 
         expect(conversations).toHaveBeenCalledTimes(1);
+        expect(realtime.start).toHaveBeenCalled();
+        expect(service.snapshot.accountId).toBe('cuenta-a');
         expect(service.snapshot.conversations.map(item => item.Id)).toEqual([2, 1]);
-        expect(service.snapshot.initialized).toBeTrue();
+        expect(service.unreadTotal).toBe(2);
     });
 
-    it('reconcilia por REST ante una invalidación realtime', () => {
-        service.initialize(7);
-        events.next({ eventId: '1', occurredAtUtc: new Date().toISOString(), channel: 'chat', type: 'message.created', payload: { ConversacionId: 2 } });
-
+    it('relee una sola vez ante una ráfaga de eventos del chat y al recuperar la conexión', fakeAsync(() => {
+        service.initialize();
+        events.next({ secuencia: 1, tipo: 'chat.mensaje', datos: { conversacion: 2 }, fecha: '' });
+        events.next({ secuencia: 2, tipo: 'chat.leido', datos: { conversacion: 2 }, fecha: '' });
+        events.next({ secuencia: 3, tipo: 'perfil.cambiado', datos: null, fecha: '' });
+        tick(250);
         expect(conversations).toHaveBeenCalledTimes(2);
-    });
 
-    it('actualiza inmediatamente los no leídos de una conversación', () => {
-        service.initialize(7);
+        reconnected.next();
+        expect(conversations).toHaveBeenCalledTimes(3);
+    }));
 
-        service.setUnreadCount(2, 0);
+    it('sin cuenta no carga nada y al vaciarse deja de escuchar', fakeAsync(() => {
+        session.cuenta = null;
+        service.initialize();
+        expect(conversations).not.toHaveBeenCalled();
 
-        expect(service.snapshot.conversations.find(item => item.Id === 2)?.NoLeidos).toBe(0);
-        expect(service.snapshot.conversations.find(item => item.Id === 1)?.NoLeidos).toBe(0);
-    });
-
-    it('aplica message.read propio sin recargar todas las conversaciones', () => {
-        service.initialize(7);
-
-        events.next({
-            eventId: '2',
-            occurredAtUtc: new Date().toISOString(),
-            channel: 'chat',
-            type: 'message.read',
-            payload: { ConversacionId: 2, UsuarioId: 7, NoLeidos: 0 }
-        });
-
-        expect(service.snapshot.conversations.find(item => item.Id === 2)?.NoLeidos).toBe(0);
+        session.cuenta = { id: 'cuenta-b' };
+        service.initialize();
+        service.clear();
+        events.next({ secuencia: 1, tipo: 'chat.mensaje', datos: null, fecha: '' });
+        tick(300);
         expect(conversations).toHaveBeenCalledTimes(1);
-    });
+        expect(service.snapshot.conversations).toEqual([]);
+    }));
 
-    it('reconcilia por REST si message.read pertenece a otro participante', () => {
-        service.initialize(7);
-
-        events.next({
-            eventId: '3',
-            occurredAtUtc: new Date().toISOString(),
-            channel: 'chat',
-            type: 'message.read',
-            payload: { ConversacionId: 2, UsuarioId: 8, NoLeidos: 0 }
-        });
-
-        expect(conversations).toHaveBeenCalledTimes(2);
+    it('pone a cero los no leídos de una conversación al leerla', () => {
+        service.initialize();
+        expect(service.setUnreadCount(2, 0)).toBeTrue();
+        expect(service.unreadTotal).toBe(0);
+        expect(service.setUnreadCount(99, 0)).toBeFalse();
     });
 });

@@ -4,14 +4,7 @@ import { BehaviorSubject, Observable, catchError, finalize, map, of, shareReplay
 import { environment } from '../../../environment/environment';
 import { CommunityCapabilitiesResponse, CommunityCapabilityId } from '../../interfaces/community-capabilities';
 
-const capabilityIds: CommunityCapabilityId[] = ['sanciones', 'realtime', 'notificaciones', 'feed', 'chat', 'clubes'];
-
-/**
- * Lo que pasa a la plataforma Yosiftware con la adhesión (hito 3 del roadmap del ecosistema): el chat, las
- * notificaciones, el tiempo real propio y las sanciones de cuentas. Sus tickets y su sesión propia ya no existen, así
- * que la web los deja apagados aunque la API los anuncie, sin borrar sus pantallas.
- */
-export const CAPABILITIES_RETIRED_BY_PLATFORM: readonly CommunityCapabilityId[] = ['sanciones', 'realtime', 'notificaciones', 'chat'];
+const capabilityIds: CommunityCapabilityId[] = ['clubes'];
 
 @Injectable({ providedIn: 'root' })
 export class CommunityCapabilitiesService {
@@ -95,7 +88,7 @@ export class CommunityCapabilitiesService {
     }
 
     private publish(): void {
-        const state = withoutRetiredCapabilities(this.rawState);
+        const state = onlyLibrosCapabilities(this.rawState);
         this.stateSubject.next(this.policyHold ? { ...state, Conservadora: true } : state);
     }
 
@@ -112,9 +105,8 @@ export class CommunityCapabilitiesService {
     }
 }
 
-function withoutRetiredCapabilities(state: CommunityCapabilitiesResponse): CommunityCapabilitiesResponse {
-    const Capacidades = { ...state.Capacidades };
-    for (const id of CAPABILITIES_RETIRED_BY_PLATFORM)
-        Capacidades[id] = { ...Capacidades[id], Activa: false };
+/** Solo lo que es de Libros: lo demás que la API anuncie (`feed`) ya no se usa en la web. */
+function onlyLibrosCapabilities(state: CommunityCapabilitiesResponse): CommunityCapabilitiesResponse {
+    const Capacidades = capabilityIds.reduce((all, id) => ({ ...all, [id]: state.Capacidades?.[id] ?? { Activa: false, VersionMinima: null } }), {} as CommunityCapabilitiesResponse['Capacidades']);
     return { ...state, Capacidades };
 }

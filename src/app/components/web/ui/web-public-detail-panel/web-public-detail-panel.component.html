@@ -95,6 +95,7 @@
               <strong>{{controller.publicReviewAuthorHandle(review)}}</strong>
               @if (review.Puntuacion) {<span class="detail__review-score"><mat-icon aria-hidden="true">star</mat-icon>{{review.Puntuacion}}</span>}
               @if (controller.publicReviewDate(review); as date) {<time>{{date | date:'d MMM y'}}</time>}
+              @if (controller.canReportReview(review)) {<button class="icon-button detail__review-report" type="button" aria-label="Denunciar reseña" title="Denunciar reseña" (click)="controller.reportReview(review)"><mat-icon>flag</mat-icon></button>}
             </header>
             <p>{{review.Resena}}</p>
           </article>

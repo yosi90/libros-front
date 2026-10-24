@@ -5,16 +5,14 @@ import { AllBooksComponent } from '../../shared/administration/all-books/all-boo
 import { AllUsersComponent } from '../../shared/administration/all-users/all-users.component';
 import { CatalogModerationComponent } from '../../shared/administration/catalog-moderation/catalog-moderation.component';
 import { ModerationAdminComponent } from '../../shared/administration/moderation-admin/moderation-admin.component';
-import { OperationalMetricsComponent } from '../../shared/administration/operational-metrics/operational-metrics.component';
 import { PlatformSessionService } from '../../../services/auth/platform-session.service';
 import { AdminSummaryComponent } from '../../shared/administration/admin-summary/admin-summary.component';
 import { AdminAuditComponent } from '../../shared/administration/admin-audit/admin-audit.component';
-import { CommunityPoliciesAdminComponent } from '../../shared/administration/community-policies-admin/community-policies-admin.component';
 import { ActivatedRoute } from '@angular/router';
 import { AdminBackupComponent } from '../../shared/administration/admin-backup/admin-backup.component';
 import { AdminCatalogEntitiesComponent } from '../../shared/administration/admin-catalog-entities/admin-catalog-entities.component';
 
-type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'communityReports' | 'moderation' | 'policies' | 'operations' | 'audit' | 'backup' | 'books' | 'anthologies' | 'authors' | 'universes' | 'sagas';
+type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'communityReports' | 'audit' | 'backup' | 'books' | 'anthologies' | 'authors' | 'universes' | 'sagas';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -32,10 +30,8 @@ interface AdminSection {
     AllUsersComponent,
     CatalogModerationComponent,
     ModerationAdminComponent,
-    OperationalMetricsComponent,
     AdminSummaryComponent,
     AdminAuditComponent,
-    CommunityPoliciesAdminComponent,
     AdminBackupComponent,
     AdminCatalogEntitiesComponent
 ],
@@ -103,25 +99,7 @@ export class AdminpanelComponent {
             id: 'communityReports',
             icon: 'outlined_flag',
             title: 'Denuncias comunitarias',
-            description: 'Contenido social señalado para revisión.'
-        },
-        {
-            id: 'moderation',
-            icon: 'gavel',
-            title: 'Moderación de cuentas',
-            description: 'Casos, sanciones, denuncias y alegaciones.'
-        },
-        {
-            id: 'policies',
-            icon: 'policy',
-            title: 'Normas de comunidad',
-            description: 'Borradores y versiones publicadas.'
-        },
-        {
-            id: 'operations',
-            icon: 'query_stats',
-            title: 'Operación de Comunidad',
-            description: 'Entregas, gates y estado agregado.'
+            description: 'Clubes y su contenido señalados para revisión.'
         },
         {
             id: 'audit',
@@ -138,21 +116,19 @@ export class AdminpanelComponent {
     ];
 
     activeSection: AdminSectionId;
-    moderationTab: 'reports' | 'appeals' = 'reports';
 
     constructor(private session: PlatformSessionService, private route: ActivatedRoute) {
         this.activeSection = session.isAdmin ? 'summary' : 'catalogRequests';
         this.route.queryParamMap.subscribe(params => {
             const section = params.get('section');
             if (this.isSectionAvailable(section)) this.activeSection = section;
-            this.moderationTab = params.get('tab') === 'appeals' ? 'appeals' : 'reports';
         });
     }
 
     get sections(): AdminSection[] {
         if (this.session.isAdmin)
             return this.allSections;
-        return this.allSections.filter(section => ['users', 'catalogRequests', 'books', 'anthologies', 'authors', 'universes', 'sagas', 'reviewReports', 'communityReports'].includes(section.id));
+        return this.allSections.filter(section => ['catalogRequests', 'books', 'anthologies', 'authors', 'universes', 'sagas', 'reviewReports', 'communityReports'].includes(section.id));
     }
 
     setActiveSection(sectionId: AdminSectionId): void {

@@ -1,66 +1,94 @@
-import { NotificationContextType } from './notification';
+// El chat que pinta Libros. Las conversaciones, los mensajes y el tiempo real son los de la plataforma Yosiftware
+// (ecosistema-kit/CHAT.md, «Tu propio frontend»); `shared/platform-chat.ts` traduce su contrato a este modelo, que
+// conserva la forma de las vistas de siempre (Web, Wood y Mobile).
 
-export type ChatConversationType = 'directa' | 'club' | 'grupo' | 'sistema';
+/** `web`: la conversación de una comunidad de una web (un club de Libros, una campaña de Rol). */
+export type ChatConversationType = 'directa' | 'grupo' | 'web';
 export type ChatParticipantRole = 'miembro' | 'admin';
-export type ChatParticipantState = 'activo' | 'salio' | 'expulsado';
+/** Las cinco reacciones de siempre de Libros, con su emoji en la plataforma (`CHAT_REACTION_EMOJIS`). */
 export type ChatReactionType = 'me_gusta' | 'risa' | 'sorpresa' | 'triste' | 'apoyo';
 
-export interface ChatCatalogRequest {
-    Id: number | null;
-    NombreUsuario: string | null;
-    TipoEntidad: 'libro' | 'antologia' | 'autor' | 'universo' | 'saga' | 'otro' | null;
-    Accion: 'alta' | 'edicion' | 'comentario' | null;
-    Estado: 'pendiente' | 'devuelta' | 'aprobada' | 'rechazada' | 'no_disponible';
-    Texto: string;
+/** Una persona del chat. `Id` es el de su cuenta de Yosiftware. */
+export interface ChatPerson {
+    Id: string;
+    Alias: string;
+    Nombre: string;
+    Imagen: string | null;
+    /** Cuenta borrada: «Cuenta borrada», sin perfil ni avatar (no se enlaza). */
+    Borrada: boolean;
 }
 
 export interface ChatConversationLastMessage {
     Id: number;
     VistaPrevia: string;
     FechaEnvio: string;
-    TipoRemitente: 'humano' | 'sistema';
-    PeticionCatalogo?: ChatCatalogRequest | null;
+    Susurro: boolean;
+}
+
+export interface ChatConversationPermissions {
+    Escribir: boolean;
+    Invitar: boolean;
+    Administrar: boolean;
+    Salir: boolean;
 }
 
 export interface ChatConversation {
     Id: number;
     Tipo: ChatConversationType;
     Titulo: string | null;
-    ClubId: number | null;
+    /** La web de una conversación de comunidad. */
+    Web: { Clave: string; Nombre: string } | null;
     FechaUltimoMensaje: string | null;
     NoLeidos: number;
-    PuedeEnviar?: boolean;
-    RolParticipante?: ChatParticipantRole;
-    EstadoParticipante?: ChatParticipantState;
-    EsSistema?: boolean;
-    Contraparte?: { Id: number; Nombre: string; Imagen: string | null } | null;
-    UltimoMensaje?: ChatConversationLastMessage | null;
+    PuedeEnviar: boolean;
+    RolParticipante: ChatParticipantRole;
+    Cerrada: boolean;
+    Miembros: number;
+    /** En las directas, la otra persona. */
+    Contraparte: ChatPerson | null;
+    UltimoMensaje: ChatConversationLastMessage | null;
+    Permisos: ChatConversationPermissions;
 }
 
 export interface ChatParticipant {
-    UsuarioId: number;
+    UsuarioId: string;
     Nombre: string;
     Imagen: string | null;
     Rol: ChatParticipantRole;
-    Estado: ChatParticipantState;
-    FechaUnion: string;
+    Borrada: boolean;
+}
+
+export interface ChatPendingInvitation {
+    Id: number;
+    Nombre: string;
 }
 
 export interface ChatConversationDetail {
     Id: number;
     Tipo: ChatConversationType;
-    Titulo: string | null;
-    ClubId: number | null;
-    CreadorId: number | null;
-    EsSistema: boolean;
+    /** El título que se enseña: el del grupo, el de la comunidad o el nombre de la otra persona. */
+    Titulo: string;
+    Web: { Clave: string; Nombre: string } | null;
+    Contraparte: ChatPerson | null;
     PuedeEnviar: boolean;
     PuedeGestionarParticipantes: boolean;
+    Cerrada: boolean;
     Participantes: ChatParticipant[];
+    Invitaciones: ChatPendingInvitation[];
+}
+
+export interface ChatOtherReaction {
+    Emoji: string;
+    Total: number;
 }
 
 export interface ChatMessageReactions {
     PorTipo: Record<ChatReactionType, number>;
     MiReaccion: ChatReactionType | null;
+    /** Las de otros emojis (las elegidas desde otra web): se enseñan tal cual. */
+    Otras: ChatOtherReaction[];
+    /** La reacción propia si no es una de las cinco de Libros. */
+    MiEmoji: string | null;
 }
 
 export interface ChatMessagePermissions {
@@ -71,71 +99,63 @@ export interface ChatMessagePermissions {
     PuedeDenunciar: boolean;
 }
 
-export interface SystemMessageAction {
-    ContextoTipo: NotificationContextType;
-    Contexto: Record<string, string | number | boolean | null>;
+export interface ChatReplySummary {
+    Id: number;
+    RemitenteId: string | null;
+    Texto: string;
+    Eliminado: boolean;
 }
 
 export interface ChatMessage {
     Id: number;
-    RemitenteId: number | null;
+    /** `sistema`: los avisos del propio chat («Ana ha entrado en el grupo»). */
     TipoRemitente: 'humano' | 'sistema';
-    Remitente?: { Id: number; Nombre: string; Imagen: string | null } | null;
-    CuerpoMarkdown: string;
+    RemitenteId: string | null;
+    Remitente: ChatPerson | null;
+    Propio: boolean;
+    /** Texto plano (la plataforma no admite Markdown). */
+    Texto: string;
     FechaEnvio: string;
     FechaEdicion: string | null;
     Eliminado: boolean;
-    CodigoSistema: string | null;
-    PeticionCatalogo?: ChatCatalogRequest | null;
-    SeveridadSistema: 'info' | 'aviso' | 'importante' | 'critico' | null;
-    Accion: SystemMessageAction | null;
-    NotificacionId: number | null;
+    /** De alguien con quien hay un bloqueo: «Mensaje no disponible». */
+    NoDisponible: boolean;
+    /** No avisó por push (CHAT.md, «Los susurros»). */
+    Susurro: boolean;
+    IdCliente: string | null;
     Reacciones: ChatMessageReactions;
     Permisos: ChatMessagePermissions;
     MensajeRespondido: ChatReplySummary | null;
 }
 
-export type ChatMessageCreateResult = Pick<ChatMessage, 'Id' | 'RemitenteId' | 'CuerpoMarkdown' | 'FechaEnvio' | 'MensajeRespondido'> & { ConversacionId: number };
-
-export interface ChatReplySummary {
-    Id: number;
-    RemitenteId: number;
-    CuerpoMarkdown: string;
-    Eliminado: boolean;
-    FechaEnvio: string | null;
-}
-
-export interface DirectEligibility {
-    UsuarioId: number;
-    PuedeIniciarDirecto: boolean;
-    Motivo: 'friendship' | 'following' | 'follow_required' | 'messages_disabled' | 'blocked_or_unavailable' | 'same_user';
-}
-
 export interface ChatMessagePage {
     Mensajes: ChatMessage[];
-    SiguienteBeforeId: number | null;
+    /** Para pedir los anteriores (`antes`); `null` si no hay más. */
+    SiguienteCursor: number | string | null;
+}
+
+/** Una amistad con la que abrir una directa o a la que invitar a un grupo. */
+export interface ChatFriendship {
+    Usuario: ChatPerson;
+}
+
+export interface ChatGroupCandidate {
+    UsuarioId: string;
+    Nombre: string;
+    Imagen: string | null;
+    EsAmistad: boolean;
 }
 
 export interface SocialSummary {
     Parcial: boolean;
     BloquesFallidos: string[];
     Resumen: {
-        Relaciones: { Amistades: number; SolicitudesRecibidasPendientes: number; Seguidores: number; Seguidos: number };
         Clubes: { Activos: number; InvitacionesPendientes: number };
-        Mensajes: { NoLeidos: number; NoLeidosHumanos: number; NoLeidosSistema: number };
     };
 }
 
-export interface ChatGroupCandidate {
-    UsuarioId: number;
-    Nombre: string;
-    Imagen: string | null;
-    EsAmistad: boolean;
-}
-
-export interface ChatGroupCandidateCursor { cursorNombre: string; cursorId: number; }
-export interface ChatGroupCandidatePage { Candidatos: ChatGroupCandidate[]; SiguienteCursor: ChatGroupCandidateCursor | null; }
-
+// Las ventanas flotantes del chat: cómo las deja cada persona, en el bloque de ajustes de Libros de su cuenta
+// (`yosiftware.ajustes`, clave `chatFlotante`; ACCESO.md, «Los ajustes de la web»).
 export interface ChatFloatPosition { x?: number; y?: number }
 export interface ChatFloatSize { ancho?: number; alto?: number }
 export type ChatFloatMode = 'normal' | 'minimizado';
@@ -149,6 +169,7 @@ export interface ChatFloatWindow {
 
 export interface ChatFloatingPreferences {
     VersionShape: 1;
+    /** La versión del bloque de ajustes en que se leyeron. */
     Version: number;
     FechaActualizacion: string | null;
     AutoabrirListado: boolean;
@@ -159,4 +180,4 @@ export interface ChatFloatingPreferences {
     ConversacionesFlotantes: ChatFloatWindow[];
 }
 
-export type ChatFloatingPreferencesPatch = Partial<Pick<ChatFloatingPreferences, 'AutoabrirListado' | 'PermitirBurbujas' | 'ModoListado' | 'PosicionListado' | 'TamanoListado' | 'ConversacionesFlotantes'>> & { Version: number };
+export type ChatFloatingPreferencesPatch = Partial<Pick<ChatFloatingPreferences, 'AutoabrirListado' | 'PermitirBurbujas' | 'ModoListado' | 'PosicionListado' | 'TamanoListado' | 'ConversacionesFlotantes'>>;

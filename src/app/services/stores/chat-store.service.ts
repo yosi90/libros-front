@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, skip, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { ChatConversation } from '../../interfaces/chat';
-import { ChatService } from '../entities/chat.service';
-import { CommunityService } from '../entities/community.service';
-import { RealtimeSocketService } from '../realtime/realtime-socket.service';
 import { getApiErrorMessage } from '../../shared/api-error-message';
+import { PlatformSessionService } from '../auth/platform-session.service';
+import { PlatformChatService } from '../platform/platform-chat.service';
+import { PlatformRealtimeService } from '../platform/platform-realtime.service';
 
 export interface ChatConversationState {
-    actorId: number | null;
+    /** La cuenta de Yosiftware dueña de la bandeja. */
+    accountId: string | null;
     conversations: ChatConversation[];
     loading: boolean;
     initialized: boolean;
@@ -15,59 +16,66 @@ export interface ChatConversationState {
 }
 
 const emptyState = (): ChatConversationState => ({
-    actorId: null,
+    accountId: null,
     conversations: [],
     loading: false,
     initialized: false,
     error: ''
 });
 
+/** Espera tras un evento antes de releer la bandeja: una ráfaga de mensajes se relee una sola vez. */
+const REFRESH_DEBOUNCE_MS = 250;
+
+/**
+ * La bandeja del chat de la plataforma (`GET /v1/chat/conversaciones`), compartida por la página de Mensajes, las
+ * ventanas flotantes y los contadores de la navegación. Se relee con los eventos `chat.*` del tiempo real y al
+ * recuperar la conexión. Se vacía con cada cambio de cuenta (`AccountScopeService`).
+ */
 @Injectable({ providedIn: 'root' })
 export class ChatStoreService {
     private readonly subject = new BehaviorSubject<ChatConversationState>(emptyState());
     private lifecycle = new Subscription();
     private requestVersion = 0;
+    private refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
     readonly state$: Observable<ChatConversationState> = this.subject.asObservable();
 
-    constructor(private chat: ChatService, private realtime: RealtimeSocketService, private community: CommunityService) { }
+    constructor(private chat: PlatformChatService, private realtime: PlatformRealtimeService, private session: PlatformSessionService) { }
 
     get snapshot(): ChatConversationState { return this.subject.value; }
 
-    initialize(actorId: number): void {
-        if (!Number.isInteger(actorId) || actorId < 1) return;
-        if (this.subject.value.actorId === actorId && this.subject.value.initialized) return;
+    /** Mensajes sin leer de todas las conversaciones, para los contadores. */
+    get unreadTotal(): number { return this.subject.value.conversations.reduce((total, item) => total + item.NoLeidos, 0); }
+
+    initialize(): void {
+        const accountId = this.session.cuenta?.id ?? null;
+        if (!accountId || !this.session.userIsLogged) return;
+        if (this.subject.value.accountId === accountId && (this.subject.value.initialized || this.subject.value.loading)) return;
 
         this.clear();
-        this.subject.next({ ...emptyState(), actorId, loading: true });
-        this.realtime.open('chat');
+        this.subject.next({ ...emptyState(), accountId, loading: true });
+        this.realtime.start();
         this.lifecycle.add(this.realtime.events$.subscribe(event => {
-            if (event.channel === 'chat' && event.type === 'message.read' && this.applyOwnReadEvent(event.payload))
-                return;
-            if (event.type === 'realtime.access_revoked' || (event.channel === 'chat' && (event.type.startsWith('chat.') || event.type.startsWith('message.'))))
-                this.refresh(true);
+            if (event.tipo.startsWith('chat.')) this.scheduleRefresh();
         }));
-        this.lifecycle.add(this.realtime.connections$.subscribe(event => {
-            if (event.channel === 'chat' && event.reconnected) this.refresh(true);
-        }));
-        this.lifecycle.add(this.community.blockedUserIds$.pipe(skip(1)).subscribe(() => this.refresh(true)));
+        this.lifecycle.add(this.realtime.reconnected$.subscribe(() => this.refresh(true)));
         this.refresh();
     }
 
     refresh(silent = false): void {
-        const actorId = this.subject.value.actorId;
-        if (!actorId) return;
+        const accountId = this.subject.value.accountId;
+        if (!accountId) return;
         const requestVersion = ++this.requestVersion;
         if (!silent)
             this.subject.next({ ...this.subject.value, loading: true, error: '' });
 
         this.chat.conversations().subscribe({
             next: conversations => {
-                if (requestVersion !== this.requestVersion || this.subject.value.actorId !== actorId) return;
-                this.subject.next({ actorId, conversations: this.sort(conversations), loading: false, initialized: true, error: '' });
+                if (requestVersion !== this.requestVersion || this.subject.value.accountId !== accountId) return;
+                this.subject.next({ accountId, conversations: this.sort(conversations), loading: false, initialized: true, error: '' });
             },
             error: error => {
-                if (requestVersion !== this.requestVersion || this.subject.value.actorId !== actorId) return;
+                if (requestVersion !== this.requestVersion || this.subject.value.accountId !== accountId) return;
                 this.subject.next({
                     ...this.subject.value,
                     loading: false,
@@ -101,18 +109,19 @@ export class ChatStoreService {
 
     clear(): void {
         this.requestVersion++;
+        if (this.refreshTimer) clearTimeout(this.refreshTimer);
+        this.refreshTimer = null;
         this.lifecycle.unsubscribe();
         this.lifecycle = new Subscription();
         this.subject.next(emptyState());
     }
 
-    private applyOwnReadEvent(payload: Record<string, unknown>): boolean {
-        const conversationId = payload['ConversacionId'] ?? payload['ConversationId'];
-        const userId = payload['UsuarioId'] ?? payload['UserId'];
-        const unreadCount = payload['NoLeidos'] ?? payload['UnreadCount'];
-        if (userId !== this.subject.value.actorId || typeof conversationId !== 'number' || typeof unreadCount !== 'number')
-            return false;
-        return this.setUnreadCount(conversationId, unreadCount);
+    private scheduleRefresh(): void {
+        if (this.refreshTimer) clearTimeout(this.refreshTimer);
+        this.refreshTimer = setTimeout(() => {
+            this.refreshTimer = null;
+            this.refresh(true);
+        }, REFRESH_DEBOUNCE_MS);
     }
 
     private sort(conversations: ChatConversation[]): ChatConversation[] {

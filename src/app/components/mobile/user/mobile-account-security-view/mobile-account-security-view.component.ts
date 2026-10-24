@@ -1,6 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, Input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import type { AccountSecurityComponent } from '../../../shared/user-pages/account-security/account-security.component';
 import { YosiftwareMarkComponent } from '../../../shared/common/yosiftware-mark/yosiftware-mark.component';
@@ -8,7 +6,8 @@ import { YosiftwareMarkComponent } from '../../../shared/common/yosiftware-mark/
 @Component({
     selector: 'app-mobile-account-security-view',
     standalone: true,
-    imports: [DatePipe, FormsModule, ReactiveFormsModule, MatIconModule, YosiftwareMarkComponent],
+    imports: [MatIconModule, YosiftwareMarkComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './mobile-account-security-view.component.html',
     styleUrl: './mobile-account-security-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
