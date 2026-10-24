@@ -218,7 +218,7 @@ Cada hito lleva sus casillas. Se marcan durante la sesión, no al cerrar.
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** perder texto con el autoguardado o al cambiar de configuración. El estado va en el `ViewModel` y el guardado pendiente se fuerza al salir.
 
-- [ ] Shell, índice, Elementos, y partes e interludios.
+- [ ] Shell, índice, Elementos, y partes e interludios. Al abrir un libro, la primera pantalla son sus estadísticas, como en la APK actual (confirmado por el propietario, 2026-10-24).
 - [ ] Notas, búsqueda avanzada y estadísticas del libro.
 - [ ] Capítulos y escenas, con autoguardado y cambios pendientes.
 - [ ] Lector persistente.
