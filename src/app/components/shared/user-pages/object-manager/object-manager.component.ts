@@ -47,7 +47,6 @@ import { ManagerConfig, ManagerKind, ManagerMetric, ManagerRow, ManagerSortDirec
 import { ManagerViewStateService } from '../../../../shared/manager-view-state.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
-import { MobileObjectManagerViewComponent } from '../../../mobile/user/mobile-object-manager-view/mobile-object-manager-view.component';
 
 interface GoogleAuthorSuggestion {
     name: string;
@@ -81,8 +80,7 @@ interface QuickAuthorRow {
         ManagerEntityCardComponent,
         CoverCachePipe,
         NgxDropzoneModule,
-        SnackbarModule,
-        MobileObjectManagerViewComponent
+        SnackbarModule
     ],
     templateUrl: './object-manager.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -279,8 +277,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         private librarySearchState: LibrarySearchStateService = new LibrarySearchStateService()
     ) { }
 
-    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
-    get mobileController(): this { return this; }
     /** En Web solo existe el gestor incrustado en el Perfil; las altas viven en Administración. */
     get isWebEmbedded(): boolean { return this.isEmbedded && this.presentation.snapshot.activeMode === 'web'; }
 
