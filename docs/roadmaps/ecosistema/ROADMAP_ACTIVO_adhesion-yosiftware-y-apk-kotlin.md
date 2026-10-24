@@ -140,11 +140,11 @@ Cada hito lleva sus casillas. Se marcan durante la sesión, no al cerrar.
   - Por ADB, sin emuladores.
 
   Huecos:
-  - [ ] Honor plegado: no se puede plegar por ADB. Los scripts lo admiten (`CAP_FOLDED=1`) cuando el propietario lo pliegue.
-  - [ ] Contenido real: el dataset de QA no da, para member-a, antologías con secciones en la colección, obras con varias ediciones ni capítulos, escenas o entidades con contenido. Pendiente de decidir si se completa con capturas de solo lectura de la APK de producción del propietario.
-  - Comportamientos de la APK actual vistos al capturar, a decidir si se clonan:
-    - «Cuenta y seguridad» no se puede desplazar (`overflow: hidden` en `app-user-router`); esa pantalla se retira con la adhesión;
-    - el modal «Pedir nuevo libro» sale oscuro también en tema claro.
+  - [x] Honor plegado: no hace falta. El propietario decidió (2026-10-24) que el Xiaomi cubre la vista de móvil normal.
+  - [ ] Contenido real: el dataset de QA no da, para member-a, antologías con secciones en la colección, obras con varias ediciones ni capítulos, escenas o entidades con contenido. Se completa con capturas de solo lectura de la APK de producción del propietario en el Honor, con su permiso (2026-10-24), marcadas `__real`.
+  - Comportamientos de la APK actual vistos al capturar:
+    - «Cuenta y seguridad» no se puede desplazar (`overflow: hidden` en `app-user-router`). No importa: esa pantalla se retira con la adhesión.
+    - El modal «Pedir nuevo libro» sale oscuro también en el tema claro. Es deuda técnica: tiene el estilo Wood y nunca se le hicieron las variantes clara y oscura (propietario, 2026-10-24). En la APK Kotlin se dibuja con el tema Mobile, en claro y en oscuro. En la web se corrige en `bugs.md` de `universes/`.
 - [x] Proyecto, flavors, firma, iconos (punto rojo en `qa`) y `assembleQaDebug` y `assembleProduccionDebug` en verde.
 - [x] Tema, tipografía e iconos; primitivas Compose equivalentes a `.m-button`, `.m-card`, `.m-chip`, `.m-sheet`, `.m-dialog`, `.m-field` y `.m-list-item`.
 - [x] Esqueleto de navegación con pantallas vacías, Atrás por pantalla y overlay, e `imePadding`.

@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- [ ] 2026-10-24: el modal «Pedir nuevo libro» del Catálogo (en `catalog.component.html`) sale con el estilo Wood oscuro también en las presentaciones Web y Mobile con tema claro. Se vio al sacar las capturas de referencia de la APK. Causa: deuda técnica; el modal nació en Wood y nunca se le hicieron las variantes clara y oscura (propietario). Corrección prevista: tokens claro y oscuro de la presentación activa, según `docs/GUIA_ESTILOS.md`.
 
 ## En curso
 
