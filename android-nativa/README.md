@@ -9,6 +9,18 @@ Mismo paquete que la APK de Capacitor (`es.yosiftware.libros`, y `.qa` en QA), c
 - `app/`: la app.
 - `yosiftware-sesion/`: la librería de la sesión de la plataforma, copiada sin cambios del kit (`yosiftware-sesion/ORIGEN.md`).
 
+## Datos y red (`app/src/main/java/es/yosiftware/libros/datos/`, hito 7)
+
+- `red/`: el único cliente de la API de Libros (`ClienteLibros`: token de la API de la librería, un solo reintento tras un 401, sin `Origin` y con `User-Agent` propio), el cliente HTTP compartido (`Red`, OkHttp con «fast fallback» y los tiempos de la APK de Capacitor), las llamadas a la plataforma con `sesion.conTokenDePlataforma` (`ClientePlataforma`) y el estado de la red para la barrera «sin conexión» (`EstadoDeRed`).
+- `ErrorDeLibros` y `MensajesDeError`: un solo tipo de error, leído según `docs/backend/api/ERRORES.md`, con las frases por `code` de la APK actual.
+- `cuenta/`: el ámbito de la cuenta (`AmbitoDeCuenta`: identidad, generación, trabajos y carpeta y claves por entorno y cuenta) y la base de los ViewModels de la cuenta (`ViewModelDeCuenta`), según `ecosistema-kit/CAMBIO_DE_CUENTA.md`.
+- `json/` y `modelos/`: la lectura tolerante del JSON (con `org.json`, como la librería) y los modelos de lo que se queda en Libros.
+- `repositorios/`: uno por área, con las mismas rutas que los servicios de la web.
+- `portadas/`: las portadas con Coil 3 y su caché en disco (`ui/componentes/Portada.kt` las pinta).
+- `Datos`: lo crea `LibrosApp` al arrancar (`LibrosApp.datos(contexto)`).
+
+Las pruebas JVM (`app/src/test/.../datos/`) no salen a la red: usan MockWebServer.
+
 ## Compilar
 
 Con el JDK 21 y el SDK de Android (en `local.properties`, `sdk.dir=…`, que no se versiona):

@@ -136,10 +136,18 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.coroutines.android)
+    // La red de los datos (datos/red/): la API de Libros, la plataforma con su token y las portadas.
+    implementation(libs.okhttp)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network)
 
     debugImplementation(libs.compose.ui.tooling)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockwebserver)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.org.json)
 }
 
 /**
