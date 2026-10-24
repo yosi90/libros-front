@@ -10,7 +10,7 @@ import {
 } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
@@ -56,7 +56,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
         protected catalogSrv: CatalogService,
         protected collectionSrv: CollectionService,
         protected universeStore: UniverseStoreService,
-        protected sessionSrv: SessionService,
+        protected sessionSrv: PlatformSessionService,
         protected snackBar: SnackbarModule
     ) { }
 
@@ -435,7 +435,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
     }
 
     publicOwnReviewAuthorHandle(): string {
-        return this.toUserHandle(this.sessionSrv.username ?? this.sessionSrv.displayName ?? (this.sessionSrv.userName || 'Usuario'));
+        return this.toUserHandle(this.sessionSrv.userName || 'Usuario');
     }
 
     publicReviewDate(review: CatalogPublicReview): string | null {

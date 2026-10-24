@@ -1,17 +1,24 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { YosiftwareAccountComponent } from '../../../../shared/common/yosiftware-account/yosiftware-account.component';
+import { YosiftwareMarkComponent } from '../../../../shared/common/yosiftware-mark/yosiftware-mark.component';
 import { ReadingQuote } from '../../../../../shared/reading-quotes';
 import { WebPublicShellComponent } from '../../../../web/public/web-public-shell/web-public-shell.component';
 
 @Component({
     standalone: true,
     selector: 'app-home-web-view',
-    imports: [RouterLink, MatIconModule, WebPublicShellComponent],
+    imports: [YosiftwareAccountComponent, YosiftwareMarkComponent, MatIconModule, WebPublicShellComponent],
     templateUrl: './home-web-view.component.html',
     styleUrl: './home-web-view.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeWebViewComponent {
     @Input({ required: true }) readingQuote!: ReadingQuote;
+    /** Por qué todavía no se puede entrar en la biblioteca (cargando, sin conexión, cuenta borrada…). */
+    @Input() notice: string | null = null;
+    @Input() canRetry = false;
+    /** Abre el acceso de Yosiftware: entrar o crear la cuenta. */
+    @Output() readonly entrar = new EventEmitter<'entrar' | 'registro'>();
+    @Output() readonly retry = new EventEmitter<void>();
 }

@@ -3,7 +3,7 @@ import { NavigationCancel, NavigationEnd, NavigationError, Router } from '@angul
 import { filter, firstValueFrom } from 'rxjs';
 import { NativeReaderBookSummary, NativeReaderSessionState, PersistedNativeReaderSession } from '../../interfaces/native-reader';
 import { AppToastService } from '../../shared/toast/app-toast.service';
-import { SessionService } from '../auth/session.service';
+import { PlatformSessionService } from '../auth/platform-session.service';
 import { BookService } from '../entities/book.service';
 import { BookStoreService } from '../stores/book-store.service';
 import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
@@ -26,7 +26,7 @@ export class NativeReaderSessionService {
 
     constructor(
         private router: Router,
-        private session: SessionService,
+        private session: PlatformSessionService,
         private books: BookStoreService,
         private bookApi: BookService,
         private reuse: NativeReaderRouteReuseStrategy,

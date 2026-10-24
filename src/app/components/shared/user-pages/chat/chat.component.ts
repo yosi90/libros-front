@@ -7,7 +7,7 @@ import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } fr
 import { Subscription } from 'rxjs';
 import { ChatConversation } from '../../../../interfaces/chat';
 import { ChatStoreService } from '../../../../services/stores/chat-store.service';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { chatConversationIcon, chatConversationTitle } from '../../../../shared/chat-display';
 import { ChatService } from '../../../../services/entities/chat.service';
 import { CommunityService } from '../../../../services/entities/community.service';
@@ -53,7 +53,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     private windowSubscription: Subscription | null = null;
     isFloatingListOpen = false;
 
-    constructor(private chatStore: ChatStoreService, private router: Router, private route: ActivatedRoute, private session: SessionService, private chat: ChatService, private community: CommunityService, private floating: ChatFloatingCoordinatorService, private windows: FloatingWindowManagerService, private presentation: PresentationModeService) { }
+    constructor(private chatStore: ChatStoreService, private router: Router, private route: ActivatedRoute, private session: PlatformSessionService, private chat: ChatService, private community: CommunityService, private floating: ChatFloatingCoordinatorService, private windows: FloatingWindowManagerService, private presentation: PresentationModeService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }

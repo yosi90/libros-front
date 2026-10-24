@@ -62,17 +62,6 @@ export interface ApiUserProfile {
     VerificationPending?: boolean;
     EstadoCuenta?: Role | null;
     Role: Role;
-    ExcluirMedicionAudiencia?: boolean;
-}
-
-export interface AuthResponse {
-    success: boolean;
-    token?: string;
-    refresh?: string;
-    VerificationPending?: boolean;
-    user?: Partial<ApiUserProfile>;
-    message?: string;
-    EmailChangePending?: boolean;
 }
 
 export interface UserProfileUpdate {

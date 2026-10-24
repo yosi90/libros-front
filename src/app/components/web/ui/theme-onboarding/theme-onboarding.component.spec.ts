@@ -2,21 +2,21 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { WebThemeService } from '../../../../services/ui/web-theme.service';
 import { AppToastService } from '../../../../shared/toast/app-toast.service';
 import { ThemeOnboardingComponent } from './theme-onboarding.component';
 
 describe('ThemeOnboardingComponent', () => {
-    const key = 'libros:theme-onboarded:37';
+    const key = 'libros:theme-onboarded:qa:cuenta-37';
 
     function create(options: { unset?: boolean | null; url?: string } = {}) {
         TestBed.resetTestingModule();
         const toasts = jasmine.createSpyObj<AppToastService>('AppToastService', ['showInfo']);
         const router = { url: options.url ?? '/dashboard/books', events: new Subject(), currentNavigation: signal(null), navigate: jasmine.createSpy('navigate') };
         TestBed.configureTestingModule({ providers: [
-            { provide: WebThemeService, useValue: { enabled: true, accountUnset: signal(options.unset === undefined ? true : options.unset), choice: signal('dark') } },
-            { provide: SessionService, useValue: { userId: 37, userIsLogged: true, userIsLogged$: new BehaviorSubject(true) } },
+            { provide: WebThemeService, useValue: { enabled: true, choiceUnset: signal(options.unset === undefined ? true : options.unset), choice: signal('dark') } },
+            { provide: PlatformSessionService, useValue: { userId: 37, userIsLogged: true, userIsLogged$: new BehaviorSubject(true), accountStorageKey: (prefix: string) => `${prefix}qa:cuenta-37` } },
             { provide: Router, useValue: router },
             { provide: AppToastService, useValue: toasts }
         ] });
@@ -27,7 +27,7 @@ describe('ThemeOnboardingComponent', () => {
     beforeEach(() => localStorage.removeItem(key));
     afterEach(() => localStorage.removeItem(key));
 
-    it('se muestra solo a cuentas nuevas en la Biblioteca', () => {
+    it('se muestra solo en la Biblioteca de un dispositivo sin estilo elegido', () => {
         expect(create().component.visible()).toBeTrue();
         expect(create({ unset: false }).component.visible()).toBeFalse();
         expect(create({ unset: null }).component.visible()).toBeFalse();

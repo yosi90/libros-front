@@ -13,9 +13,7 @@ import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { UserRouterComponent } from '../../user-router/user-router.component';
-import { NotificationStoreService } from '../../../services/stores/notification-store.service';
-import { SessionService } from '../../../services/auth/session.service';
-import { environment } from '../../../../environment/environment';
+import { PlatformSessionService } from '../../../services/auth/platform-session.service';
 import { RealtimeConnectionStates, RealtimeSocketService } from '../../../services/realtime/realtime-socket.service';
 import { ModerationAccessService } from '../../../services/stores/moderation-access.service';
 import { CommunityCapabilitiesService } from '../../../services/stores/community-capabilities.service';
@@ -24,11 +22,10 @@ import { ChatStoreService } from '../../../services/stores/chat-store.service';
 import { FloatingWindowHostComponent } from '../../shared/common/floating-window-host/floating-window-host.component';
 import { ChatFloatingCoordinatorService } from '../../../services/stores/chat-floating-coordinator.service';
 import { NotificationBellComponent } from '../../shared/common/notification-bell/notification-bell.component';
-import { SessionNotificationStoreService } from '../../../services/stores/session-notification-store.service';
-import { DecisionNoticeService } from '../../../services/navigation/decision-notice.service';
 import { PolicyPromptService } from '../../../services/navigation/policy-prompt.service';
 import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
 import { MobileDashboardChromeComponent } from '../../mobile/user/mobile-dashboard-chrome/mobile-dashboard-chrome.component';
+import { YosiftwareAccountComponent } from '../../shared/common/yosiftware-account/yosiftware-account.component';
 
 @Component({
     standalone: true,
@@ -36,16 +33,13 @@ import { MobileDashboardChromeComponent } from '../../mobile/user/mobile-dashboa
     imports: [
         ThemeOnboardingComponent,
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
-        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent, WebNavigationComponent, WebReadingWindowComponent
+        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent, WebNavigationComponent, WebReadingWindowComponent, YosiftwareAccountComponent
     ],
     templateUrl: './dahsboard.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './dahsboard.component.sass'
 })
 export class DahsboardComponent implements OnInit, OnDestroy {
-    imgUrl = environment.getImgUrl;
-    
-    imageCacheBuster: number = Date.now();
     readonly realtimeStatus$ = this.realtime.status$.pipe(
         switchMap(states => {
             if (!this.presentation.snapshot.isNativeMobile || !this.hasRealtimeNotice(states))
@@ -85,16 +79,12 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     get isWoodPresentation(): boolean { return this.presentation.snapshot.isWoodPresentationActive; }
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get isWebPresentation(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
-    get displayName(): string { return this.userData?.displayName || this.userData?.name || ''; }
-
-    logoutAndLeave(): void {
-        this.logout();
-        void this.router.navigate(['/home']);
-    }
+    get displayName(): string { return this.sessionSrv.userName; }
     get canUseDesktopAdministration(): boolean { return this.presentation.snapshot.canUseDesktopAdministration; }
 
+    /** Avatar de la cuenta de Yosiftware (miniatura del perfil común); vacío pinta la inicial. */
     get profileImageUrl(): string {
-        return this.imgUrl + 'photo/' + this.userData.image + '?v=' + this.imageCacheBuster;
+        return this.sessionSrv.avatarUrl ?? '';
     }
 
     get pageTitle(): string {
@@ -122,7 +112,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return '/dashboard/books/manage/new';
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private presentation: PresentationModeService, readonly pwa?: PwaLifecycleService) {
+    constructor(private sessionSrv: PlatformSessionService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private policyPrompt: PolicyPromptService, private router: Router, private presentation: PresentationModeService, readonly pwa?: PwaLifecycleService) {
         this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
             if (state && !state.Politicas.some(policy => policy.Pendiente)) this.policyPrompt.clear();
         });
@@ -195,14 +185,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         this.chatUserId = this.sessionSrv.userId;
     }
 
-    handleProfileImageError(event: any) {
-        event.target.src = 'assets/media/img/error.png';
-    }
-
-    logout(): void {
-        this.notificationStore.clear();
-        this.sessionNotifications.resetSession();
-        this.decisions.reset();
-        this.sessionSrv.logout();
+    handleProfileImageError(event: Event) {
+        (event.target as HTMLImageElement).hidden = true;
     }
 }

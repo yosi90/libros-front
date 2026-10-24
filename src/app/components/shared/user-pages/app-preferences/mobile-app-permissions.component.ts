@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { finalize } from 'rxjs';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { AppPermissionId, AppPermissionStates, NativePermissionsService } from '../../../../services/native/native-permissions.service';
 import { PushNotificationService } from '../../../../services/realtime/push-notification.service';
 import { AppToastService } from '../../../../shared/toast/app-toast.service';
@@ -36,7 +36,7 @@ export class MobileAppPermissionsComponent implements OnInit {
     constructor(
         readonly permissions: NativePermissionsService,
         private push: PushNotificationService,
-        private session: SessionService,
+        private session: PlatformSessionService,
         private toasts: AppToastService
     ) { }
 

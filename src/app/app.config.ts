@@ -3,12 +3,12 @@ import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import { HTTP_INTERCEPTORS, HttpBackend, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
-import { JwtInterceptorService } from './services/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from './services/auth/error-interceptor.service';
 import { routes } from './app.routes';
-import { RuntimeConfigService } from './services/realtime/runtime-config.service';
 import { provideServiceWorker } from '@angular/service-worker';
-import { SessionService } from './services/auth/session.service';
+import { PlatformSessionService } from './services/auth/platform-session.service';
+import { PlatformTokenInterceptor } from './services/auth/platform-token.interceptor';
+import { AccountScopeService } from './services/auth/account-scope.service';
 import { environment } from '../environment/environment';
 import { shouldEnableServiceWorker } from './services/ui/pwa-registration';
 import { NativeReaderRouteReuseStrategy } from './services/navigation/native-reader-route-reuse.strategy';
@@ -22,15 +22,13 @@ import { ReadingReturnService } from './services/navigation/reading-return.servi
 // Fechas y números se formatean en español en toda la interfaz.
 registerLocaleData(localeEs);
 
-export function startApplicationRestoration(
-    runtimeConfig: RuntimeConfigService,
-    session: SessionService
-): void {
-    // La configuración de Firebase/realtime no es un requisito para renovar la
-    // cookie HTTP. Esperarla duplicaba los timeouts y podía dejar el router sin
-    // destino visible antes siquiera de empezar a recuperar la sesión.
-    void runtimeConfig.load().catch(() => undefined);
-    void session.initialize();
+/**
+ * La sesión es la de la cuenta de Yosiftware: se arranca la limpieza por cuenta antes que el SDK, para que ningún
+ * cambio de identidad llegue sin quien vacíe los datos de la anterior (CAMBIO_DE_CUENTA.md).
+ */
+export function startApplicationSession(accountScope: Pick<AccountScopeService, 'start'>, session: Pick<PlatformSessionService, 'start'>): void {
+    accountScope.start();
+    session.start();
 }
 
 export const appConfig: ApplicationConfig = {
@@ -44,14 +42,12 @@ export const appConfig: ApplicationConfig = {
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         { provide: HttpBackend, useClass: NativeApiHttpBackend },
         provideAppInitializer(() => {
-            const runtimeConfig = inject(RuntimeConfigService);
-            const session = inject(SessionService);
             inject(NativeNetworkFeedbackService).initialize();
             // Aplica el tema del dispositivo antes de la primera vista (sin efecto en la APK o sin flag).
             inject(WebThemeService);
             // Recuerda el libro al salir al panel (ventana «Estabas leyendo» en la Web).
             inject(ReadingReturnService);
-            startApplicationRestoration(runtimeConfig, session);
+            startApplicationSession(inject(AccountScopeService), inject(PlatformSessionService));
         }),
         provideServiceWorker('ngsw-worker.js', {
             enabled: shouldEnableServiceWorker(
@@ -62,7 +58,8 @@ export const appConfig: ApplicationConfig = {
             ),
             registrationStrategy: detectNativeMobile() ? 'registerImmediately' : 'registerWhenStable:30000'
         }),
-        { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptorService, multi: true },
-        { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptorService, multi: true }
+        // El de errores va por fuera: solo ve lo que ya ha pasado el filtro de generación y el reintento tras 401.
+        { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptorService, multi: true },
+        { provide: HTTP_INTERCEPTORS, useClass: PlatformTokenInterceptor, multi: true }
     ]
 };

@@ -9,11 +9,12 @@ import { NotificationBellComponent } from '../../../shared/common/notification-b
 import { MobileThemeService } from '../../../../services/ui/mobile-theme.service';
 import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
+import { YosiftwareAccountComponent } from '../../../shared/common/yosiftware-account/yosiftware-account.component';
 
 @Component({
     selector: 'app-mobile-dashboard-chrome',
     standalone: true,
-    imports: [AsyncPipe, MatIconModule, RouterLink, RouterLinkActive, MobileAppBarComponent, MobileNavigationComponent, NotificationBellComponent],
+    imports: [AsyncPipe, MatIconModule, RouterLink, RouterLinkActive, MobileAppBarComponent, MobileNavigationComponent, NotificationBellComponent, YosiftwareAccountComponent],
     templateUrl: './mobile-dashboard-chrome.component.html',
     styleUrl: './mobile-dashboard-chrome.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -48,6 +49,10 @@ export class MobileDashboardChromeComponent implements OnDestroy {
 
     ngOnDestroy(): void {
         if (this.moreSheetCloseTimer) clearTimeout(this.moreSheetCloseTimer);
+    }
+
+    get initial(): string {
+        return (this.user?.name || '?').trim().charAt(0).toLocaleUpperCase();
     }
 
     get activeDestination(): MobileNavigationItem['id'] | null {

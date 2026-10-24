@@ -1,23 +1,17 @@
-import { CanActivateFn } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
-import { SessionService } from '../services/auth/session.service';
-import { Router } from '@angular/router';
 import { filter, map, take } from 'rxjs';
+import { PlatformSessionService } from '../services/auth/platform-session.service';
 
+/** La portada es la vista sin sesión: con la cuenta ya lista se va a la biblioteca. */
 export const notAuthGuard: CanActivateFn = () => {
-    const session = inject(SessionService);
+    const session = inject(PlatformSessionService);
     const router = inject(Router);
 
-    return session.sessionInitializedSubject.pipe(
-        filter(initialized => initialized),
+    // Espera a que se sepa si hay cuenta y, si la hay, a que Libros sepa quién es.
+    return session.access$.pipe(
+        filter(access => access !== 'comprobando' && access !== 'cargando'),
         take(1),
-        map(() => {
-            if (!session.userIsLogged)
-                return true;
-
-            return session.canAccessLibrary
-                ? router.createUrlTree(['/dashboard'])
-                : router.createUrlTree(['/verify-email-pending']);
-        })
+        map(() => session.userIsLogged ? router.createUrlTree(['/dashboard']) : true)
     );
 };

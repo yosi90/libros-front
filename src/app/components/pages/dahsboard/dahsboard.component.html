@@ -2,12 +2,12 @@
   @if (isWoodPresentation) {
     <aside class="library-sidebar" aria-label="Navegación principal">
       <div class="library-sidebar__identity">
-        <a class="library-sidebar__avatar" routerLink="profile" routerLinkActive="is-active" matTooltip="Perfil" matTooltipClass="tt-accent">
-          <img [src]="profileImageUrl" alt="Foto de perfil" (error)="handleProfileImageError($event)">
-        </a>
+        <!-- La cuenta de Yosiftware: el avatar abre el panel de cuentas (cambiar, añadir y salir). -->
+        <app-yosiftware-account class="library-sidebar__account"></app-yosiftware-account>
       </div>
       <nav class="library-sidebar__nav">
         <span class="library-sidebar__divider" aria-hidden="true"></span>
+        <a routerLink="profile" routerLinkActive="is-active" matTooltip="Perfil" matTooltipClass="tt-accent" aria-label="Perfil"><mat-icon>person</mat-icon><span class="library-sidebar__label">Perfil</span></a>
         <a routerLink="books" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" matTooltip="Mi colección" matTooltipClass="tt-accent" aria-label="Biblioteca"><mat-icon>view_module</mat-icon><span class="library-sidebar__label">Biblioteca</span></a>
         <a routerLink="catalog" routerLinkActive="is-active" matTooltip="Catálogo global" matTooltipClass="tt-accent" aria-label="Catálogo"><mat-icon>travel_explore</mat-icon><span class="library-sidebar__label">Catálogo</span></a>
         <span class="library-sidebar__divider" aria-hidden="true"></span>
@@ -29,7 +29,6 @@
         @if (pwa?.canInstall()) {
           <button type="button" (click)="installApp()" matTooltip="Instalar aplicación" matTooltipClass="tt-accent" aria-label="Instalar aplicación"><mat-icon>install_desktop</mat-icon><span class="library-sidebar__label">Instalar aplicación</span></button>
         }
-        <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent" aria-label="Cerrar sesión"><mat-icon>logout</mat-icon><span class="library-sidebar__label">Cerrar sesión</span></a>
       </div>
     </aside>
   } @else if (isWebPresentation) {
@@ -39,7 +38,7 @@
       [communityEnabled]="isCapabilityActive('feed')" [chatEnabled]="isCapabilityActive('chat')"
       [unreadChatCount]="(unreadChatCount$ | async) ?? 0" [canAdministrate]="canModerateCatalog && canUseDesktopAdministration"
       [notificationsEnabled]="isCapabilityActive('notificaciones')"
-      (imageError)="handleProfileImageError($event)" (logoutRequested)="logoutAndLeave()"></app-web-navigation>
+      (imageError)="handleProfileImageError($event)"></app-web-navigation>
     <app-web-reading-window></app-web-reading-window>
     }
   } @else {

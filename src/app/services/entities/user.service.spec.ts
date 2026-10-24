@@ -1,7 +1,7 @@
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { SessionService } from '../auth/session.service';
+import { PlatformSessionService } from '../auth/platform-session.service';
 import { UserService } from './user.service';
 import { environment } from '../../../environment/environment';
 
@@ -15,7 +15,7 @@ describe('UserService administration', () => {
                 UserService,
                 provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
-                { provide: SessionService, useValue: { isAdmin: true, canModerateCatalog: true, userRole: { Nombre: 'administrador' } } }
+                { provide: PlatformSessionService, useValue: { isAdmin: true, canModerateCatalog: true, userRole: { Nombre: 'administrador' } } }
             ]
         });
         service = TestBed.inject(UserService);
@@ -24,26 +24,16 @@ describe('UserService administration', () => {
 
     afterEach(() => http.verify());
 
-    it('consulta la ficha completa del usuario autenticado', () => {
+    it('consulta el usuario local de Libros de la cuenta de Yosiftware', () => {
         service.getOwnProfile().subscribe(profile => {
-            expect(profile.FechaRegistro).toBe('2026-03-27T10:00:00Z');
-            expect(profile.UltimaActividad).toBe('2026-07-13T18:30:00Z');
+            expect(profile.Id).toBe(7);
+            expect(profile.Nombre).toBe('lectora');
+            expect(profile.Role.Nombre).toBe('usuario');
         });
 
-        const request = http.expectOne(`${environment.apiUrl}auth/user`);
+        const request = http.expectOne(`${environment.apiUrl}usuarios/me`);
         expect(request.request.method).toBe('GET');
-        request.flush({
-            success: true,
-            user: {
-                Id: 7,
-                Nombre: 'Lectora',
-                Email: 'lectora@example.com',
-                Imagen: 'default.png',
-                Role: { Id: 1, Nombre: 'usuario' },
-                FechaRegistro: '2026-03-27T10:00:00Z',
-                UltimaActividad: '2026-07-13T18:30:00Z'
-            }
-        });
+        request.flush({ success: true, user: { Id: 7, Nombre: 'lectora', Role: { Id: 1, Nombre: 'usuario' } } });
     });
 
     it('pagina el expediente administrativo con los nombres de cursor publicados', () => {

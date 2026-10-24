@@ -16,7 +16,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { ReportService } from '../../../../services/entities/report.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { LibrarySyncService } from '../../../../services/stores/library-sync.service';
 import { normalizeIsbn } from '../../../../shared/isbn';
 
@@ -66,7 +66,7 @@ export class CatalogModerationComponent implements OnInit, OnDestroy {
         private reportSrv: ReportService,
         private snackBar: SnackbarModule,
         private catalog: CatalogService,
-        private session: SessionService,
+        private session: PlatformSessionService,
         private librarySync: LibrarySyncService
     ) { }
 

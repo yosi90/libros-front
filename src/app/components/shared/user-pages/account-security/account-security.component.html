@@ -6,7 +6,7 @@
 <section class="profile-panel security">
   <header>
     <h2><mat-icon>shield</mat-icon>Cuenta y seguridad</h2>
-    <button type="button" aria-label="Actualizar" (click)="load(); loadPolicies(); loadModeration(); loadBlockedProfiles()"><mat-icon>refresh</mat-icon></button>
+    <button type="button" aria-label="Actualizar" (click)="loadPolicies(); loadModeration(); loadBlockedProfiles()"><mat-icon>refresh</mat-icon></button>
   </header>
 
   <nav class="section-tabs" aria-label="Apartados de cuenta y seguridad">
@@ -19,112 +19,24 @@
   </nav>
 
   <p class="security__intro">{{woodSectionInfo.description}}</p>
-  @if (reauthenticationTicket) {
-    <p class="security__notice"><mat-icon aria-hidden="true">verified_user</mat-icon>Identidad confirmada durante cinco minutos.</p>
-  }
 
   @switch (woodSection) {
-    @case ('access') {
+    @case ('account') {
       <div class="settings-list settings-list--single">
-        @for (method of methods; track method.Metodo) {
-          <article class="settings-item">
-            <div class="settings-item__icon"><mat-icon>{{method.Metodo === 'google' ? 'account_circle' : method.Metodo === 'phone' ? 'phone' : 'password'}}</mat-icon></div>
-            <div><strong>{{ methodLabel(method.Metodo) | titlecase }}</strong><span>Vinculado el {{ method.FechaVinculacion | date:'d MMM y' }}</span></div>
-            <button type="button" [disabled]="busy" (click)="unlink(method.Metodo)">Desvincular</button>
-          </article>
-        } @empty {
-          <p class="security__empty">Cargando métodos de acceso…</p>
-        }
-        @if (providerAuth.providers.google && !hasMethod('google')) {
-          <article class="settings-item">
-            <div class="settings-item__icon"><mat-icon>add_link</mat-icon></div>
-            <div><strong>Google</strong><span>Entra con tu cuenta de Google</span></div>
-            <button type="button" [disabled]="busy" (click)="linkGoogle()">Vincular</button>
-          </article>
-        }
-        @if (providerAuth.providers.phone && !hasMethod('phone')) {
-          <article class="settings-item settings-item--editing">
-            <div class="settings-item__icon"><mat-icon>phone</mat-icon></div>
-            <div><strong>Teléfono</strong><span>Recibe un código por SMS para entrar</span></div>
-            <form class="settings-item__form" [formGroup]="phoneForm">
-              <label class="inline-field"><span>Teléfono internacional</span><input formControlName="phone" inputmode="tel" autocomplete="tel"></label>
-              @if (!reauthenticationSurfaceOpen) {<div id="security-recaptcha"></div>}
-              @if (phoneCodeRequested) {
-                <label class="inline-field"><span>Código de seis cifras</span><input formControlName="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></label>
-              }
-              <div class="settings-item__actions">
-                @if (!phoneCodeRequested) {
-                  <button type="button" [disabled]="busy || phoneForm.controls.phone.invalid" (click)="requestPhoneCode()">Enviar código</button>
-                } @else {
-                  <button class="settings-item__save" type="button" [disabled]="busy || phoneForm.controls.code.invalid" (click)="confirmPhone()">Vincular teléfono</button>
-                }
-              </div>
-            </form>
-          </article>
-        }
-      </div>
-    }
-
-    @case ('credentials') {
-      <div class="settings-list settings-list--single">
-        @if (hasMethod('password')) {
-          <article class="settings-item" [class.settings-item--editing]="credentialEditor === 'password'">
-            <div class="settings-item__icon"><mat-icon>password</mat-icon></div>
-            <div><strong>Contraseña</strong><span>Cámbiala cuando quieras</span></div>
-            @if (credentialEditor !== 'password') {
-              <button type="button" (click)="toggleCredentialEditor('password')">Cambiar</button>
-            } @else {
-              <form class="settings-item__form" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
-                <label class="inline-field"><span>Nueva contraseña</span><input type="password" formControlName="password" maxlength="20" autocomplete="new-password"></label>
-                <small class="inline-field__hint">Entre 8 y 20 caracteres, con mayúscula, minúscula, número y símbolo.</small>
-                <div class="settings-item__actions">
-                  <button type="button" [disabled]="busy" (click)="toggleCredentialEditor('password')">Cancelar</button>
-                  <button class="settings-item__save" type="submit" [disabled]="busy || passwordForm.invalid">Guardar</button>
-                </div>
-              </form>
-            }
-          </article>
-        }
-        <article class="settings-item" [class.settings-item--editing]="credentialEditor === 'email' || emailReservationTicket">
-          <div class="settings-item__icon"><mat-icon>mail</mat-icon></div>
-          <div><strong>Correo</strong><span>{{accountEmail || 'Sin correo'}}</span></div>
-          @if (credentialEditor !== 'email' && !emailReservationTicket) {
-            <button type="button" (click)="toggleCredentialEditor('email')">Cambiar</button>
-          } @else {
-            <form class="settings-item__form" [formGroup]="emailForm" (ngSubmit)="changeEmail()">
-              <label class="inline-field"><span>Nuevo correo</span><input type="email" formControlName="email" autocomplete="email"></label>
-              @if (emailReservationTicket) {
-                <small class="inline-field__hint">Te hemos enviado un enlace al nuevo correo. Cuando lo abras, confirma el cambio aquí.</small>
-              }
-              <div class="settings-item__actions">
-                <button type="button" [disabled]="busy" (click)="credentialEditor = null">Cancelar</button>
-                @if (emailReservationTicket) {
-                  <button class="settings-item__save" type="button" [disabled]="busy" (click)="confirmEmailChange()">Ya lo he verificado</button>
-                } @else {
-                  <button class="settings-item__save" type="submit" [disabled]="busy || emailForm.invalid">Enviar verificación</button>
-                }
-              </div>
-            </form>
-          }
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>account_circle</mat-icon></div>
+          <div><strong>{{accountAlias}}</strong><span>{{accountEmail || 'Sin correo'}}</span></div>
+          <button type="button" (click)="editProfile()">Editar perfil</button>
+        </article>
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>switch_account</mat-icon></div>
+          <div><strong>Cambiar de cuenta</strong><span>Sin salir de Memoria bibliográfica</span></div>
+          <button type="button" (click)="switchAccount()">Cambiar</button>
         </article>
       </div>
-    }
-
-    @case ('devices') {
-      <div class="settings-list settings-list--single">
-        @for (device of sessions; track device.Id) {
-          <article class="settings-item">
-            <div class="settings-item__icon"><mat-icon>{{device.EsActual ? 'computer' : 'devices_other'}}</mat-icon></div>
-            <div><strong>{{ device.NombreDispositivo || 'Navegador web' }} @if (device.EsActual) {<em class="security__pill">Este dispositivo</em>}</strong><span>Última actividad: {{ device.FechaUltimaActividad | date:'d MMM y, HH:mm' }}</span></div>
-            <button type="button" (click)="revoke(device)">Cerrar sesión</button>
-          </article>
-        } @empty {
-          <p class="security__empty">Cargando dispositivos…</p>
-        }
-      </div>
       <div class="security__actions">
-        <button class="security__secondary" type="button" (click)="logout()"><mat-icon>logout</mat-icon>Cerrar sesión aquí</button>
-        <button class="security__danger" type="button" (click)="revokeAll()"><mat-icon>power_settings_new</mat-icon>Cerrar todas las sesiones</button>
+        <a class="security__secondary" [href]="socialAccountUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Gestionar tu cuenta de Yosiftware</a>
+        <button class="security__danger" type="button" (click)="signOut()"><mat-icon>logout</mat-icon>Cerrar sesión</button>
       </div>
     }
 
@@ -205,55 +117,4 @@
     }
   }
 </section>
-}
-
-@if (!isMobilePresentation && !isWebView) {
-@if (reauthenticationSurfaceOpen) {
-  <div class="security-dialog-backdrop" (click)="cancelReauthentication()">
-    <section class="security-dialog" role="dialog" aria-modal="true" aria-labelledby="wood-reauth-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
-      <button class="security-dialog__close" type="button" aria-label="Cancelar" [disabled]="busy" (click)="cancelReauthentication()"><mat-icon>close</mat-icon></button>
-      <span class="security-dialog__icon" aria-hidden="true"><mat-icon>verified_user</mat-icon></span>
-      <h2 id="wood-reauth-title">Confirma que eres tú</h2>
-      <p>Protegemos los cambios de acceso. Tras confirmar, el cambio que has pedido continuará solo.</p>
-      <div class="security-dialog__methods">
-        @if (hasMethod('password')) {
-          <form class="settings-item__form" [formGroup]="reauthForm" (ngSubmit)="reauthenticatePassword()">
-            <label class="inline-field"><span>Contraseña actual</span><input type="password" formControlName="password" autocomplete="current-password"></label>
-            <button class="security__primary" type="submit" [disabled]="busy || reauthForm.invalid">Confirmar</button>
-          </form>
-        }
-        @if (hasMethod('google')) {
-          <button class="security__secondary" type="button" [disabled]="busy" (click)="reauthenticateGoogle()"><mat-icon>account_circle</mat-icon>Continuar con Google</button>
-        }
-        @if (hasMethod('phone')) {
-          <form class="settings-item__form" [formGroup]="phoneForm">
-            <label class="inline-field"><span>Tu teléfono</span><input formControlName="phone" inputmode="tel" autocomplete="tel"></label>
-            <div id="security-recaptcha"></div>
-            @if (!phoneCodeRequested) {
-              <button class="security__secondary" type="button" [disabled]="busy || phoneForm.controls.phone.invalid" (click)="requestPhoneCode()">Enviar código</button>
-            } @else {
-              <label class="inline-field"><span>Código de seis cifras</span><input formControlName="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></label>
-              <button class="security__primary" type="button" [disabled]="busy || phoneForm.controls.code.invalid" (click)="confirmPhone()">Confirmar</button>
-            }
-          </form>
-        }
-      </div>
-    </section>
-  </div>
-}
-@if (googleEmailMismatchDetails; as details) {
-  <div class="security-dialog-backdrop" (click)="cancelGoogleEmailMismatchConfirmation()">
-    <section class="security-dialog" role="dialog" aria-modal="true" aria-labelledby="google-email-mismatch-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
-      <button class="security-dialog__close" type="button" aria-label="Cerrar confirmación" (click)="cancelGoogleEmailMismatchConfirmation()"><mat-icon>close</mat-icon></button>
-      <span class="security-dialog__icon" aria-hidden="true"><mat-icon>link</mat-icon></span>
-      <h2 id="google-email-mismatch-title">Los correos son diferentes</h2>
-      <p>Tu cuenta de Memoria Bibliográfica usa <strong>{{ details.EmailPrincipalEnmascarado }}</strong>, pero la cuenta de Google elegida usa <strong>{{ details.EmailGoogleEnmascarado }}</strong>.</p>
-      <p>Si continúas, ambas formas de acceso abrirán esta misma cuenta. Tu correo principal no cambiará y no se fusionará ninguna otra cuenta.</p>
-      <footer>
-        <button mat-stroked-button type="button" (click)="cancelGoogleEmailMismatchConfirmation()">Cancelar</button>
-        <button mat-raised-button type="button" (click)="confirmGoogleEmailMismatch()">Vincular de todos modos</button>
-      </footer>
-    </section>
-  </div>
-}
 }

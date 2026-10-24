@@ -1,57 +1,37 @@
 import { Injector } from '@angular/core';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { StatusBarPlugin, Style } from '@capacitor/status-bar';
-import { AuthApiService } from '../auth/auth-api.service';
-import { SessionService } from '../auth/session.service';
 import { applyNativeStatusBar, MobileThemeService, nativeStatusBarStyle } from './mobile-theme.service';
 import { WebThemeService } from './web-theme.service';
 
 describe('MobileThemeService', () => {
     beforeEach(() => localStorage.clear());
 
-    it('loads the canonical dark preference and applies it to the document root', () => {
-        const api = jasmine.createSpyObj<AuthApiService>('api', ['getInterfacePreferences', 'patchInterfacePreferences']);
-        api.getInterfacePreferences.and.returnValue(of({
-            success: true,
-            Preferencias: { Tema: 'dark', Version: 4, FechaActualizacion: null }
-        }));
-        const service = new MobileThemeService(api, { userId: 12 } as SessionService, document, false, false, {} as Injector);
+    it('recuerda el tema en el dispositivo y lo aplica a la raíz del documento', () => {
+        localStorage.setItem('libros:mobile-theme:last', 'dark');
+        const service = new MobileThemeService(document, false, false, {} as Injector);
 
         service.initialize();
 
         expect(service.theme()).toBe('dark');
         expect(service.actionIcon).toBe('light_mode');
         expect(document.documentElement.dataset['mobileTheme']).toBe('dark');
-        expect(localStorage.getItem('libros:mobile-theme:12')).toBe('dark');
     });
 
-    it('toggles only between light and dark and persists the current API version', () => {
-        const api = jasmine.createSpyObj<AuthApiService>('api', ['getInterfacePreferences', 'patchInterfacePreferences']);
-        api.getInterfacePreferences.and.returnValue(of({
-            success: true,
-            Preferencias: { Tema: 'light', Version: 7, FechaActualizacion: null }
-        }));
-        api.patchInterfacePreferences.and.returnValue(of({
-            success: true,
-            Preferencias: { Tema: 'dark', Version: 8, FechaActualizacion: null }
-        }));
-        const service = new MobileThemeService(api, { userId: 15 } as SessionService, document, false, false, {} as Injector);
+    it('alterna solo entre claro y oscuro y lo guarda en el dispositivo', () => {
+        const service = new MobileThemeService(document, false, false, {} as Injector);
         service.initialize();
 
         service.toggle();
 
-        expect(api.patchInterfacePreferences).toHaveBeenCalledOnceWith(7, 'dark');
         expect(service.theme()).toBe('dark');
         expect(service.actionLabel).toBe('Usar tema claro');
+        expect(localStorage.getItem('libros:mobile-theme:last')).toBe('dark');
     });
 
-    it('maps a legacy wood value to light in Mobile', () => {
-        const api = jasmine.createSpyObj<AuthApiService>('api', ['getInterfacePreferences', 'patchInterfacePreferences']);
-        api.getInterfacePreferences.and.returnValue(of({
-            success: true,
-            Preferencias: { Tema: 'wood', Version: 2, FechaActualizacion: null }
-        }));
-        const service = new MobileThemeService(api, { userId: 3 } as SessionService, document, false, false, {} as Injector);
+    it('lleva un Wood guardado antes a claro en Mobile', () => {
+        localStorage.setItem('libros:mobile-theme:last', 'wood');
+        const service = new MobileThemeService(document, false, false, {} as Injector);
 
         service.initialize();
 
@@ -79,14 +59,12 @@ describe('MobileThemeService', () => {
     });
 
     it('mirrors the device web theme in the browser and routes the toggle to it', () => {
-        const api = jasmine.createSpyObj<AuthApiService>('api', ['getInterfacePreferences', 'patchInterfacePreferences']);
         const choice$ = new BehaviorSubject<'light' | 'dark' | 'wood'>('dark');
         const webTheme = jasmine.createSpyObj<WebThemeService>('webTheme', ['select'], { choice$: choice$.asObservable() });
         const injector = { get: () => webTheme } as unknown as Injector;
-        const service = new MobileThemeService(api, { userId: 9 } as SessionService, document, false, true, injector);
+        const service = new MobileThemeService(document, false, true, injector);
 
         service.initialize();
-        expect(api.getInterfacePreferences).not.toHaveBeenCalled();
         expect(service.theme()).toBe('dark');
 
         choice$.next('wood');
@@ -94,7 +72,5 @@ describe('MobileThemeService', () => {
 
         service.toggle();
         expect(webTheme.select).toHaveBeenCalledOnceWith('dark');
-        expect(api.patchInterfacePreferences).not.toHaveBeenCalled();
     });
 });
-

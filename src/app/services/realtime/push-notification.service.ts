@@ -3,19 +3,20 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { environment } from '../../../environment/environment';
 import { Observable, Subject, catchError, from, map, of, switchMap, tap, timeout } from 'rxjs';
-import { Messaging, deleteToken, getToken as getMessagingToken, onMessage } from 'firebase/messaging';
 import { NotificationService } from '../entities/notification.service';
-import { FirebaseSessionService } from './firebase-session.service';
-import { RuntimeConfigService } from './runtime-config.service';
 import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 import { getApiErrorCode } from '../../shared/api-error-message';
 
+/**
+ * El push propio de Libros solo queda en la APK de Capacitor. En el navegador se retira con Firebase (adhesión a
+ * Yosiftware): el push lo envía la plataforma, y su registro por cuenta llega con las notificaciones de la plataforma
+ * (hito 3 del roadmap del ecosistema).
+ */
 @Injectable({ providedIn: 'root' })
 export class PushNotificationService {
     private readonly storagePrefix = 'push-device:';
     private readonly foregroundNotificationSubject = new Subject<number>();
     private readonly openedNotificationSubject = new Subject<number>();
-    private foregroundMessaging: Messaging | null = null;
     private nativeListenersBound = false;
     private nativeListenersBinding: Promise<void> | null = null;
     private pendingOpenedNotificationId: number | null = null;
@@ -25,16 +26,11 @@ export class PushNotificationService {
 
     constructor(
         private notifications: NotificationService,
-        private firebase: FirebaseSessionService,
-        private runtimeConfig: RuntimeConfigService,
         @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
     ) { }
 
     get supported(): boolean {
-        const firebase = this.runtimeConfig.firebase;
-        if (this.nativeMobile)
-            return firebase.enabled;
-        return firebase.enabled && !!firebase.vapidKey && typeof Notification !== 'undefined' && typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
+        return this.nativeMobile;
     }
 
     enable(userId: number): Observable<void> {
@@ -66,7 +62,7 @@ export class PushNotificationService {
     }
 
     restore(userId: number): Observable<void> {
-        if (!this.supported || (!this.nativeMobile && Notification.permission !== 'granted') || !this.deviceId(userId))
+        if (!this.supported || !this.deviceId(userId))
             return of(void 0);
 
         return from(this.obtainToken(false)).pipe(
@@ -119,39 +115,7 @@ export class PushNotificationService {
         if (!this.supported)
             throw new Error('Push no está disponible en este navegador o entorno.');
 
-        if (this.nativeMobile)
-            return this.obtainNativeToken(requestPermission);
-
-        const permission = requestPermission ? await Notification.requestPermission() : Notification.permission;
-        if (permission !== 'granted')
-            throw new Error('No has concedido permiso para recibir notificaciones push.');
-
-        const messaging = this.firebase.messaging;
-        if (!messaging)
-            throw new Error('Las notificaciones push no están disponibles ahora mismo. Inténtalo de nuevo más tarde.');
-
-        this.bindForegroundMessages(messaging);
-        // Firebase Push usa un registro independiente. Mantenerlo fuera del scope
-        // raíz evita que sustituya al Angular Service Worker de la PWA.
-        const registration = await navigator.serviceWorker.register(this.workerUrl(), {
-            scope: '/firebase-cloud-messaging-push-scope/'
-        });
-        const token = await getMessagingToken(messaging, { vapidKey: this.runtimeConfig.firebase.vapidKey, serviceWorkerRegistration: registration });
-        if (!token)
-            throw new Error('No se ha podido obtener un token push para este dispositivo.');
-        return token;
-    }
-
-    private workerUrl(): string {
-        const firebase = this.runtimeConfig.firebase;
-        const config = btoa(encodeURIComponent(JSON.stringify({
-            apiKey: firebase.apiKey,
-            authDomain: firebase.authDomain,
-            projectId: firebase.projectId,
-            appId: firebase.appId,
-            messagingSenderId: firebase.messagingSenderId
-        })));
-        return `/firebase-messaging-sw.js?config=${encodeURIComponent(config)}`;
+        return this.obtainNativeToken(requestPermission);
     }
 
     private deviceId(userId: number): number | null {
@@ -171,19 +135,6 @@ export class PushNotificationService {
             .filter(key => key.startsWith(this.storagePrefix))
             .forEach(key => localStorage.removeItem(key));
         this.deleteLocalToken();
-    }
-
-    private bindForegroundMessages(messaging: Messaging): void {
-        if (this.foregroundMessaging === messaging)
-            return;
-
-        this.foregroundMessaging = messaging;
-        onMessage(messaging, payload => {
-            const value = payload.data?.['notificationId'];
-            const notificationId = typeof value === 'string' ? Number(value) : NaN;
-            if (Number.isInteger(notificationId) && notificationId > 0)
-                this.foregroundNotificationSubject.next(notificationId);
-        });
     }
 
     private async obtainNativeToken(requestPermission: boolean): Promise<string> {
@@ -257,14 +208,9 @@ export class PushNotificationService {
     }
 
     private deleteLocalToken(): void {
-        if (this.nativeMobile) {
-            void PushNotifications.removeAllDeliveredNotifications().catch(() => undefined);
-            void PushNotifications.unregister();
-            return;
-        }
-        const messaging = this.firebase.messaging;
-        if (messaging)
-            void deleteToken(messaging);
+        if (!this.nativeMobile) return;
+        void PushNotifications.removeAllDeliveredNotifications().catch(() => undefined);
+        void PushNotifications.unregister();
     }
 
     private observeQa(stage: 'registered' | 'backend-registering' | 'backend-registered' | 'registration-error' | 'received' | 'opened', errorCode?: string): void {

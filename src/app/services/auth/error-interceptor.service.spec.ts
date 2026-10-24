@@ -5,150 +5,73 @@ import { ErrorInterceptorService } from './error-interceptor.service';
 import { environment } from '../../../environment/environment';
 import { CollectionService } from '../entities/collection.service';
 import { getProductStateMessage } from '../../shared/api-error-message';
+import { AppToastService } from '../../shared/toast/app-toast.service';
 
 describe('ErrorInterceptorService', () => {
-    it('replaces stale collection state after a typed anthology rejection and preserves the error', fakeAsync(() => {
+    function create(generation = 4) {
         const collection = { getUniverses: jasmine.createSpy().and.returnValue(of([])) };
         const store = { setUniverses: jasmine.createSpy() };
-        const session = { userIsLogged: true, userObject: { userId: 7 }, getToken: () => 'token' };
-        const interceptor = new ErrorInterceptorService(session as never,
-            { get: (type: unknown) => type === CollectionService ? collection : store } as never);
+        const toasts = jasmine.createSpyObj<AppToastService>('AppToastService', ['showSystem']);
+        const session = {
+            userIsLogged: true,
+            generation,
+            isCurrentGeneration: (value: number) => value === session.generation,
+            forgetDeletedAccount: jasmine.createSpy('forgetDeletedAccount')
+        };
+        const injector = { get: (type: unknown) => type === CollectionService ? collection : type === AppToastService ? toasts : store };
+        const interceptor = new ErrorInterceptorService(session as never, injector as never);
+        return { interceptor, session, collection, store, toasts };
+    }
+
+    function fail(interceptor: ErrorInterceptorService, error: HttpErrorResponse, url = `${environment.apiUrl}coleccion/libros/9/estado`) {
+        const received = jasmine.createSpy('error');
+        interceptor.intercept(new HttpRequest('POST', url, {}), { handle: () => throwError(() => error) }).subscribe({ error: received });
+        return received;
+    }
+
+    it('replaces stale collection state after a typed anthology rejection and preserves the error', fakeAsync(() => {
+        const { interceptor, store } = create();
         const error = new HttpErrorResponse({ status: 409, error: { code: 'anthology_section_collection_forbidden' } });
-        const request = new HttpRequest('POST', `${environment.apiUrl}coleccion/libros/9/estado`, {});
-        const received = jasmine.createSpy();
-        interceptor.intercept(request, { handle: () => throwError(() => error) }).subscribe({ error: received });
+
+        const received = fail(interceptor, error);
         flushMicrotasks();
+
         expect(received).toHaveBeenCalledWith(error);
         // Sin frase del backend, el código de estado de producto conserva su texto propio.
         expect(getProductStateMessage(error)).toBe('Esta sección se gestiona dentro de su antología.');
         expect(store.setUniverses).toHaveBeenCalledOnceWith([]);
     }));
-    const accessError = new HttpErrorResponse({
-        status: 403,
-        error: { code: 'usage_policy_acceptance_required' }
-    });
 
-    function createInterceptor(logged = true) {
-        const moderationAccess = jasmine.createSpyObj('ModerationAccessService', ['refresh']);
-        moderationAccess.refresh.and.returnValue(of(null));
-        const session = {
-            userIsLogged: logged,
-            getToken: () => logged ? 'token' : null,
-            logout: jasmine.createSpy('logout'),
-            requestNewToken: jasmine.createSpy('requestNewToken')
-        };
-        const injector = { get: (_token: unknown, fallback?: unknown) => fallback !== undefined ? null : moderationAccess };
-        const interceptor = new ErrorInterceptorService(session as any, injector as any);
-        return { interceptor, moderationAccess, session };
-    }
-
-    it('names what the person was doing when a policy blocks opening a book or changing the library', fakeAsync(() => {
-        const prompt = jasmine.createSpyObj('PolicyPromptService', ['trigger']);
-        const moderationAccess = jasmine.createSpyObj('ModerationAccessService', ['refresh']);
-        moderationAccess.refresh.and.returnValue(of(null));
-        const session = { userIsLogged: true, getToken: () => 'token' };
-        const injector = { get: (_token: unknown, fallback?: unknown) => fallback !== undefined ? prompt : moderationAccess };
-        const interceptor = new ErrorInterceptorService(session as never, injector as never);
-        const blocked = (method: 'GET' | 'POST', url: string, code: string) => {
-            const error = new HttpErrorResponse({ status: 403, error: { code } });
-            interceptor.intercept(new HttpRequest(method, url, method === 'GET' ? null : {}), { handle: () => throwError(() => error) }).subscribe({ error: () => undefined });
-        };
-
-        blocked('GET', `${environment.apiUrl}libros/51`, 'usage_policy_acceptance_required');
-        blocked('POST', `${environment.apiUrl}coleccion/libros/51/estado`, 'creation_policy_acceptance_required');
-        blocked('GET', `${environment.apiUrl}comunidad/capacidades`, 'usage_policy_acceptance_required');
+    it('no aplica la colección reconciliada si la cuenta ha cambiado entre medias', fakeAsync(() => {
+        const { interceptor, session, store } = create();
+        fail(interceptor, new HttpErrorResponse({ status: 409, error: { code: 'anthology_section_collection_forbidden' } }));
+        session.generation = 5;
         flushMicrotasks();
 
-        expect(prompt.trigger.calls.allArgs()).toEqual([
-            ['usage_policy_acceptance_required', 'abrir tus libros'],
-            ['creation_policy_acceptance_required', 'añadir libros a tu biblioteca o cambiar su estado'],
-            ['usage_policy_acceptance_required', undefined]
-        ]);
+        expect(store.setUniverses).not.toHaveBeenCalled();
     }));
 
-    it('does not refresh access status when that request itself receives a 403', fakeAsync(() => {
-        const { interceptor, moderationAccess } = createInterceptor();
-        const request = new HttpRequest('GET', '/moderacion/mi-estado-acceso');
-        const next = { handle: () => throwError(() => accessError) };
+    it('olvida la cuenta cuando la API dice que se ha borrado', () => {
+        const { interceptor, session } = create();
+        const error = new HttpErrorResponse({ status: 403, error: { code: 'account_deleted' } });
 
-        interceptor.intercept(request, next).subscribe({ error: () => undefined });
-        flushMicrotasks();
-
-        expect(moderationAccess.refresh).not.toHaveBeenCalled();
-    }));
-
-    it('refreshes access status once after a related 403 from another endpoint', fakeAsync(() => {
-        const { interceptor, moderationAccess } = createInterceptor();
-        const request = new HttpRequest('GET', '/coleccion/universos');
-        const next = { handle: () => throwError(() => accessError) };
-
-        interceptor.intercept(request, next).subscribe({ error: () => undefined });
-        flushMicrotasks();
-
-        expect(moderationAccess.refresh).toHaveBeenCalledTimes(1);
-    }));
-
-    it('does not refresh access status after the session has been closed', fakeAsync(() => {
-        const { interceptor, moderationAccess } = createInterceptor(false);
-        const request = new HttpRequest('GET', '/coleccion/universos');
-        const next = { handle: () => throwError(() => accessError) };
-
-        interceptor.intercept(request, next).subscribe({ error: () => undefined });
-        flushMicrotasks();
-
-        expect(moderationAccess.refresh).not.toHaveBeenCalled();
-    }));
-
-    it('closes a persisted session when the API rejects its token as invalid', () => {
-        const { interceptor, session } = createInterceptor();
-        const request = new HttpRequest('GET', '/coleccion/universos');
-        const invalidToken = new HttpErrorResponse({ status: 422, error: { code: 'invalid_token' } });
-        const next = { handle: () => throwError(() => invalidToken) };
-
-        interceptor.intercept(request, next).subscribe({ error: () => undefined });
-
-        expect(session.logout).toHaveBeenCalledOnceWith(true, 'terminal:invalid_token');
+        expect(fail(interceptor, error)).toHaveBeenCalledWith(error);
+        expect(session.forgetDeletedAccount).toHaveBeenCalled();
     });
 
-    it('closes a persisted session when its user no longer exists in the API', () => {
-        const { interceptor, session } = createInterceptor();
-        const request = new HttpRequest('GET', '/coleccion/universos');
-        const missingUser = new HttpErrorResponse({ status: 403, error: { code: 'user_not_found' } });
-        const next = { handle: () => throwError(() => missingUser) };
+    it('avisa una vez de las normas de Libros pendientes: las enseña el SDK', () => {
+        const { interceptor, toasts } = create();
+        fail(interceptor, new HttpErrorResponse({ status: 403, error: { code: 'platform_rules_acceptance_required' } }));
 
-        interceptor.intercept(request, next).subscribe({ error: () => undefined });
-
-        expect(session.logout).toHaveBeenCalledOnceWith(true, 'terminal:user_not_found');
+        expect(toasts.showSystem).toHaveBeenCalledOnceWith(jasmine.stringMatching(/normas de Libros/),
+            jasmine.objectContaining({ dedupeKey: 'platform:rules-pending' }));
     });
 
-    it('does not close the administrator session when a different user is missing', () => {
-        const { interceptor, session } = createInterceptor();
-        const request = new HttpRequest('GET', `${environment.apiUrl}administracion/usuarios/404`);
-        const missingTarget = new HttpErrorResponse({ status: 404, error: { code: 'user_not_found' } });
+    it('deja pasar sin efectos los errores de otras direcciones', () => {
+        const { interceptor, session } = create();
+        const error = new HttpErrorResponse({ status: 403, error: { code: 'account_deleted' } });
 
-        interceptor.intercept(request, { handle: () => throwError(() => missingTarget) }).subscribe({ error: () => undefined });
-
-        expect(session.logout).not.toHaveBeenCalled();
-    });
-
-    it('keeps the interface recoverable when refresh is temporarily unavailable', () => {
-        const { interceptor, session } = createInterceptor();
-        const unauthorized = new HttpErrorResponse({ status: 401 });
-        const unavailable = new HttpErrorResponse({ status: 503, error: { code: 'session_refresh_unavailable' } });
-        session.requestNewToken.and.returnValue(throwError(() => unavailable));
-        const request = new HttpRequest('GET', `${environment.apiUrl}coleccion/universos`);
-
-        interceptor.intercept(request, { handle: () => throwError(() => unauthorized) }).subscribe({ error: () => undefined });
-
-        expect(session.logout).not.toHaveBeenCalled();
-    });
-
-    it('closes the device session when refresh replay is detected', () => {
-        const { interceptor, session } = createInterceptor();
-        const replay = new HttpErrorResponse({ status: 401, error: { code: 'refresh_replay_detected' } });
-
-        interceptor.intercept(new HttpRequest('POST', `${environment.apiUrl}auth/session/refresh`, {}), { handle: () => throwError(() => replay) }).subscribe({ error: () => undefined });
-
-        expect(session.logout).toHaveBeenCalledOnceWith(true, 'terminal:refresh_replay_detected');
+        expect(fail(interceptor, error, 'https://otra.example/v1')).toHaveBeenCalledWith(error);
+        expect(session.forgetDeletedAccount).not.toHaveBeenCalled();
     });
 });

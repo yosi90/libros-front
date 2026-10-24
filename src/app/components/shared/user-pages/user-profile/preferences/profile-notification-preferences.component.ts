@@ -3,7 +3,7 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NotificationCategory, NotificationPreference } from '../../../../../interfaces/notification';
-import { SessionService } from '../../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../../services/auth/platform-session.service';
 import { NotificationService } from '../../../../../services/entities/notification.service';
 import { PushNotificationService } from '../../../../../services/realtime/push-notification.service';
 import { AppToastService } from '../../../../../shared/toast/app-toast.service';
@@ -22,7 +22,7 @@ export class ProfileNotificationPreferencesComponent implements OnInit {
     activatingPush = false;
     pushActive = false;
 
-    constructor(private notifications: NotificationService, public push: PushNotificationService, private session: SessionService, private toasts: AppToastService) { }
+    constructor(private notifications: NotificationService, public push: PushNotificationService, private session: PlatformSessionService, private toasts: AppToastService) { }
     ngOnInit(): void { this.pushActive = this.push.isEnabled(this.session.userId); this.load(); }
     load(): void { this.loading = true; this.notifications.preferences().subscribe({ next: value => { this.preferences = this.normalize(value); this.loading = false; }, error: () => { this.loading = false; this.toasts.showError('No se han podido cargar las preferencias de notificaciones.', { title: 'No se pudieron cargar las notificaciones', dedupeKey: 'preferences:notifications:load:error' }); } }); }
     enabled(category: NotificationCategory, channel: NotificationPreference['Canal']): boolean { return this.preferences.some(item => item.Categoria === category && item.Canal === channel && item.Habilitado); }

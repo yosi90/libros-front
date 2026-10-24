@@ -6,6 +6,13 @@ import { CommunityCapabilitiesResponse, CommunityCapabilityId } from '../../inte
 
 const capabilityIds: CommunityCapabilityId[] = ['sanciones', 'realtime', 'notificaciones', 'feed', 'chat', 'clubes'];
 
+/**
+ * Lo que pasa a la plataforma Yosiftware con la adhesión (hito 3 del roadmap del ecosistema): el chat, las
+ * notificaciones, el tiempo real propio y las sanciones de cuentas. Sus tickets y su sesión propia ya no existen, así
+ * que la web los deja apagados aunque la API los anuncie, sin borrar sus pantallas.
+ */
+export const CAPABILITIES_RETIRED_BY_PLATFORM: readonly CommunityCapabilityId[] = ['sanciones', 'realtime', 'notificaciones', 'chat'];
+
 @Injectable({ providedIn: 'root' })
 export class CommunityCapabilitiesService {
     private readonly stateSubject = new BehaviorSubject<CommunityCapabilitiesResponse>(this.conservativeState());
@@ -88,7 +95,8 @@ export class CommunityCapabilitiesService {
     }
 
     private publish(): void {
-        this.stateSubject.next(this.policyHold ? { ...this.rawState, Conservadora: true } : this.rawState);
+        const state = withoutRetiredCapabilities(this.rawState);
+        this.stateSubject.next(this.policyHold ? { ...state, Conservadora: true } : state);
     }
 
     private conservativeState(userId = -1): CommunityCapabilitiesResponse {
@@ -102,4 +110,11 @@ export class CommunityCapabilitiesService {
             Capacidades: capabilityIds.reduce((all, id) => ({ ...all, [id]: { Activa: false, VersionMinima: null } }), {} as Record<CommunityCapabilityId, { Activa: boolean; VersionMinima: string | null }>)
         };
     }
+}
+
+function withoutRetiredCapabilities(state: CommunityCapabilitiesResponse): CommunityCapabilitiesResponse {
+    const Capacidades = { ...state.Capacidades };
+    for (const id of CAPABILITIES_RETIRED_BY_PLATFORM)
+        Capacidades[id] = { ...Capacidades[id], Activa: false };
+    return { ...state, Capacidades };
 }

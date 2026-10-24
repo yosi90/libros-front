@@ -4,6 +4,7 @@
             <mat-icon>auto_stories</mat-icon>
             <span>Memoria Bibliográfica</span>
         </a>
+        <app-yosiftware-account class="home-landing__account"></app-yosiftware-account>
     </header>
 
     <main class="home-landing__content">
@@ -11,18 +12,26 @@
             <h1 id="home-title"><span>Tu biblioteca,</span><span>tu memoria.</span></h1>
             <p class="home-copy__lead">Guarda, organiza y redescubre los libros que han dejado huella en tu vida.</p>
             <div class="home-copy__rule" aria-hidden="true"></div>
-            <div class="home-actions">
-                <a class="home-action home-action--primary" routerLink="/register">
-                    <mat-icon>person_add</mat-icon>
-                    <span>Date de alta</span>
-                    <small>Crea tu cuenta y empieza ahora</small>
-                </a>
-                <a class="home-action" routerLink="/login">
-                    <mat-icon>login</mat-icon>
-                    <span>Inicia sesión</span>
-                    <small>Accede a tu cuenta y continúa</small>
-                </a>
-            </div>
+            @if (notice) {
+                <p class="home-notice" role="status">
+                    <span>{{notice}}</span>
+                    @if (canRetry) { <button type="button" (click)="retry.emit()">Reintentar</button> }
+                </p>
+            } @else {
+                <div class="home-actions">
+                    <button class="home-action home-action--primary" type="button" (click)="entrar.emit('registro')">
+                        <mat-icon>person_add</mat-icon>
+                        <span>Date de alta</span>
+                        <small>Crea tu cuenta y empieza ahora</small>
+                    </button>
+                    <button class="home-action" type="button" (click)="entrar.emit('entrar')">
+                        <mat-icon>login</mat-icon>
+                        <span>Inicia sesión</span>
+                        <small>Accede a tu cuenta y continúa</small>
+                    </button>
+                </div>
+            }
+            <p class="home-account"><app-yosiftware-mark></app-yosiftware-mark> Entra con tu cuenta de Yosiftware: la misma para todas sus webs.</p>
         </section>
 
         <aside class="home-quote" aria-label="Cita literaria">

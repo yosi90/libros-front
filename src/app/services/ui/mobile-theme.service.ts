@@ -1,9 +1,5 @@
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable, Injector, signal } from '@angular/core';
-import { finalize } from 'rxjs';
-import { InterfaceTheme } from '../../interfaces/auth';
-import { AuthApiService } from '../auth/auth-api.service';
-import { SessionService } from '../auth/session.service';
 import { StatusBar, StatusBarPlugin, Style } from '@capacitor/status-bar';
 import { NATIVE_MOBILE_PLATFORM, WEB_PRESENTATION_ENABLED } from './presentation-mode.service';
 import { WebThemeService } from './web-theme.service';
@@ -19,13 +15,21 @@ export async function applyNativeStatusBar(theme: MobileTheme, statusBar: Status
     await statusBar.setStyle({ style: nativeStatusBarStyle(theme) });
 }
 
+/** Tema guardado de una versión anterior: Wood histórico pasa a claro en Mobile. */
+export function toMobileTheme(theme: string | null | undefined): MobileTheme {
+    return theme === 'dark' ? 'dark' : 'light';
+}
+
+/**
+ * Tema claro u oscuro de Mobile, recordado en el dispositivo. Con la cuenta de Yosiftware el tema no se guarda en la
+ * cuenta (ecosistema-kit/ACCESO.md, «Los ajustes de la web») y no cambia al cambiar de cuenta.
+ */
 @Injectable({ providedIn: 'root' })
 export class MobileThemeService {
-    private readonly storagePrefix = 'libros:mobile-theme:';
+    private readonly storageKey = 'libros:mobile-theme:last';
     private readonly themeSignal = signal<MobileTheme>('light');
     private readonly savingSignal = signal(false);
-    private initializedUserId: number | null = null;
-    private version = 1;
+    private initialized = false;
     private nativeChromeSync: Promise<void> = Promise.resolve();
     private readonly webTheme: WebThemeService | null;
 
@@ -33,8 +37,6 @@ export class MobileThemeService {
     readonly saving = this.savingSignal.asReadonly();
 
     constructor(
-        private api: AuthApiService,
-        private session: SessionService,
         @Inject(DOCUMENT) private document: Document,
         @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean,
         @Inject(WEB_PRESENTATION_ENABLED) webPresentationEnabled: boolean,
@@ -45,25 +47,13 @@ export class MobileThemeService {
         // En el navegador con la presentación Web activa, las vistas Mobile de transición
         // reflejan el tema del dispositivo en lugar de mantener uno propio.
         this.webTheme = webPresentationEnabled && !this.nativeMobile ? injector.get(WebThemeService) : null;
-        this.webTheme?.choice$.subscribe(choice => this.apply(choice === 'dark' ? 'dark' : 'light'));
+        this.webTheme?.choice$.subscribe(choice => this.apply(toMobileTheme(choice)));
     }
 
     initialize(): void {
-        if (this.webTheme) return;
-        const userId = this.session.userId;
-        if (userId < 1 || this.initializedUserId === userId) return;
-        this.initializedUserId = userId;
-        this.apply(this.readLocal(userId) ?? 'light');
-        this.api.getInterfacePreferences().subscribe({
-            next: response => {
-                if (this.initializedUserId !== userId) return;
-                this.version = response.Preferencias.Version;
-                const theme = this.toMobileTheme(response.Preferencias.Tema);
-                this.apply(theme);
-                this.writeLocal(userId, theme);
-            },
-            error: () => { /* Se conserva la preferencia local si no hay conexión. */ }
-        });
+        if (this.webTheme || this.initialized) return;
+        this.initialized = true;
+        this.apply(this.readLocal() ?? 'light');
     }
 
     toggle(): void {
@@ -71,23 +61,9 @@ export class MobileThemeService {
             this.webTheme.select(this.themeSignal() === 'light' ? 'dark' : 'light');
             return;
         }
-        if (this.savingSignal()) return;
-        const userId = this.session.userId;
         const theme: MobileTheme = this.themeSignal() === 'light' ? 'dark' : 'light';
         this.apply(theme);
-        if (userId >= 1) this.writeLocal(userId, theme);
-        this.savingSignal.set(true);
-        this.api.patchInterfacePreferences(this.version, theme).pipe(
-            finalize(() => this.savingSignal.set(false))
-        ).subscribe({
-            next: response => {
-                this.version = response.Preferencias.Version;
-                const canonicalTheme = this.toMobileTheme(response.Preferencias.Tema);
-                this.apply(canonicalTheme);
-                if (userId >= 1) this.writeLocal(userId, canonicalTheme);
-            },
-            error: () => { /* Se conserva la elección local si falla la sincronización. */ }
-        });
+        this.writeLocal(theme);
     }
 
     get actionIcon(): 'light_mode' | 'dark_mode' {
@@ -117,19 +93,15 @@ export class MobileThemeService {
         void this.synchronizeNativeChrome();
     }
 
-    private toMobileTheme(theme: InterfaceTheme): MobileTheme {
-        return theme === 'dark' ? 'dark' : 'light';
-    }
-
-    private readLocal(userId: number): MobileTheme | null {
+    private readLocal(): MobileTheme | null {
         try {
-            const value = localStorage.getItem(`${this.storagePrefix}${userId}`);
-            return value === 'light' || value === 'dark' ? value : null;
+            const value = localStorage.getItem(this.storageKey);
+            return value === null ? null : toMobileTheme(value);
         } catch { return null; }
     }
 
-    private writeLocal(userId: number, theme: MobileTheme): void {
-        try { localStorage.setItem(`${this.storagePrefix}${userId}`, theme); }
-        catch { /* La API sigue siendo la fuente canónica. */ }
+    private writeLocal(theme: MobileTheme): void {
+        try { localStorage.setItem(this.storageKey, theme); }
+        catch { /* Sin almacenamiento, el tema dura lo que la pestaña. */ }
     }
 }

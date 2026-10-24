@@ -14,10 +14,11 @@ import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indi
 import { SwipeToCloseDirective } from '../../ui/swipe-to-close.directive';
 
 /** Marco Web del libro: cabecera con secciones, índice lateral y contenido de la subruta. */
+import { YosiftwareAccountComponent } from '../../../shared/common/yosiftware-account/yosiftware-account.component';
 @Component({
     selector: 'app-web-book-shell-view',
     standalone: true,
-    imports: [SwipeToCloseDirective, CommonModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule,
+    imports: [YosiftwareAccountComponent, SwipeToCloseDirective, CommonModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule,
         MatTooltipModule, BookRouterComponent, CoverCachePipe],
     templateUrl: './web-book-shell-view.component.html',
     styleUrl: './web-book-shell-view.component.sass',

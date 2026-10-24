@@ -45,7 +45,7 @@ import {
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { NativeReaderSessionService } from '../../../../services/navigation/native-reader-session.service';
@@ -218,7 +218,7 @@ export class BooksComponent implements OnInit {
         private librarySearchState: LibrarySearchStateService,
         private catalogViewState: CatalogViewStateService,
         private collectionSrv: CollectionService,
-        private session: SessionService,
+        private session: PlatformSessionService,
         private host: ElementRef<HTMLElement>,
         private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService,
@@ -980,15 +980,18 @@ export class BooksComponent implements OnInit {
     }
 
     private readStoredCollectionView(): CollectionView {
-        if (typeof localStorage === 'undefined') return 'universes';
-        return localStorage.getItem(this.collectionViewStorageKey()) === 'statuses' ? 'statuses' : 'universes';
+        const key = this.collectionViewStorageKey();
+        if (!key || typeof localStorage === 'undefined') return 'universes';
+        return localStorage.getItem(key) === 'statuses' ? 'statuses' : 'universes';
     }
 
     private storeCollectionView(view: CollectionView): void {
-        if (typeof localStorage !== 'undefined') localStorage.setItem(this.collectionViewStorageKey(), view);
+        const key = this.collectionViewStorageKey();
+        if (key && typeof localStorage !== 'undefined') localStorage.setItem(key, view);
     }
 
-    private collectionViewStorageKey(): string { return `library-collection-view:${this.session.userId}`; }
+    /** Por entorno y cuenta de Yosiftware (CAMBIO_DE_CUENTA.md, obligación 4). */
+    private collectionViewStorageKey(): string | null { return this.session.accountStorageKey('library-collection-view:'); }
 
     private getBaseUniversesToShow(): Universe[] {
         const universes = this.universes.filter(u =>

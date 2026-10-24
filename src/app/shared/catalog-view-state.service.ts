@@ -25,15 +25,14 @@ export class CatalogViewStateService {
     readonly detailRequested$ = this.detailRequestedSubject.asObservable();
     private readonly libraryRevealRequestedSubject = new Subject<LibraryRevealTarget>();
     readonly libraryRevealRequested$ = this.libraryRevealRequestedSubject.asObservable();
-    private current: CatalogViewState = {
-        filterType: 'todos',
-        searchTerms: [],
-        selectedStatusFilter: '',
-        selectedRatingFilter: '',
-        selectedLanguageFilter: '',
-        selectedStyleFilter: '',
-        scrollTop: 0
-    };
+    private current: CatalogViewState = initialCatalogViewState();
+
+    /** Al cambiar de cuenta: búsqueda, filtros, ficha y desplazamiento vuelven al principio. */
+    reset(): void {
+        this.current = initialCatalogViewState();
+        this.pendingDetail = null;
+        this.pendingLibraryReveal = null;
+    }
 
     get snapshot(): CatalogViewState {
         return { ...this.current, searchTerms: [...this.current.searchTerms] };
@@ -78,4 +77,16 @@ export class CatalogViewStateService {
         this.pendingLibraryReveal = null;
         return target;
     }
+}
+
+function initialCatalogViewState(): CatalogViewState {
+    return {
+        filterType: 'todos',
+        searchTerms: [],
+        selectedStatusFilter: '',
+        selectedRatingFilter: '',
+        selectedLanguageFilter: '',
+        selectedStyleFilter: '',
+        scrollTop: 0
+    };
 }

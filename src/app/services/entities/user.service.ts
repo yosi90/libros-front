@@ -4,7 +4,7 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 import { ApiUserProfile, RecentLibraryActivity, User, UserProfileUpdate } from '../../interfaces/user';
 import { ErrorHandlerService } from '../error-handler.service';
 import { environment } from '../../../environment/environment';
-import { SessionService } from '../auth/session.service';
+import { PlatformSessionService } from '../auth/platform-session.service';
 import { UpdateResponse } from '../../interfaces/user-update-response';
 import { AdminAuditQuery, AdminAuditResponse, AdminRole, AdminSummary, AdminUser, AdminUserDetailQuery, AdminUserDetailResponse, AdminUserListResponse, AdminUsersQuery, ModerationUser, ModerationUserListResponse } from '../../interfaces/admin';
 
@@ -14,7 +14,7 @@ import { AdminAuditQuery, AdminAuditResponse, AdminRole, AdminSummary, AdminUser
 export class UserService extends ErrorHandlerService {
     private apiUrl = environment.apiUrl + 'auth/';
 
-    constructor(private http: HttpClient, private sessionSrv: SessionService) {
+    constructor(private http: HttpClient, private sessionSrv: PlatformSessionService) {
         super();
     }
 
@@ -82,8 +82,9 @@ export class UserService extends ErrorHandlerService {
         return this.http.put<UpdateResponse>(this.apiUrl + 'update', profile);
     }
 
+    /** El usuario local de Libros (`Id`, `Nombre` y `Role`); el perfil es de la plataforma (ADHESION_YOSIFTWARE.md). */
     getOwnProfile(): Observable<ApiUserProfile> {
-        return this.http.get<{ success: boolean; user: ApiUserProfile }>(this.apiUrl + 'user')
+        return this.http.get<{ success: boolean; user: ApiUserProfile }>(`${environment.apiUrl}usuarios/me`)
             .pipe(map(response => response.user));
     }
 

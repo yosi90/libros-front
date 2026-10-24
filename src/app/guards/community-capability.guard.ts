@@ -2,12 +2,12 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { filter, map, of, switchMap, take } from 'rxjs';
 import { CommunityCapabilityId } from '../interfaces/community-capabilities';
-import { SessionService } from '../services/auth/session.service';
+import { PlatformSessionService } from '../services/auth/platform-session.service';
 import { CommunityCapabilitiesService } from '../services/stores/community-capabilities.service';
 
 export const communityCapabilityGuard: CanActivateFn = (route, state) => {
     const capability = route.data?.['communityCapability'] as CommunityCapabilityId | undefined;
-    const session = inject(SessionService);
+    const session = inject(PlatformSessionService);
     const capabilities = inject(CommunityCapabilitiesService);
     const router = inject(Router);
     if (!capability) return true;

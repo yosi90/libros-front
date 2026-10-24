@@ -8,7 +8,7 @@ import { CommunityService } from '../../../../services/entities/community.servic
 import { ChatService } from '../../../../services/entities/chat.service';
 import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
 import { DirectEligibility } from '../../../../interfaces/chat';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { Subscription } from 'rxjs';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -34,7 +34,7 @@ export class CommunityProfileComponent implements OnInit, OnDestroy {
     private userId = 0;
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private route: ActivatedRoute, private router: Router, private community: CommunityService, private chat: ChatService, private session: SessionService, private realtime: RealtimeSocketService, private presentation: PresentationModeService) { }
+    constructor(private route: ActivatedRoute, private router: Router, private community: CommunityService, private chat: ChatService, private session: PlatformSessionService, private realtime: RealtimeSocketService, private presentation: PresentationModeService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }

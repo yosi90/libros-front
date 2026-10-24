@@ -70,23 +70,14 @@
             background: linear-gradient(145deg, rgba(44, 70, 50, .95), rgba(24, 43, 30, .98))
             border-color: rgba(240, 200, 117, .28)
 
-        &.is-active:not(.library-sidebar__avatar)
+        &.is-active
             box-shadow: 0 10px 18px rgba(0, 0, 0, .38), inset 0 1px rgba(255, 255, 255, .12), inset 0 -7px 12px rgba(0, 0, 0, .22)
             transform: translateY(-1px)
 
-    .library-sidebar__avatar
-        width: 62px
-        height: 62px
-        overflow: hidden
-        border-radius: 50%
+    // El botón de la cuenta de Yosiftware ocupa el sitio del antiguo avatar de perfil.
+    .library-sidebar__account
         margin: 0 0 18px
         flex: 0 0 auto
-
-        img
-            width: 60px
-            height: 60px
-            border-radius: 50%
-            object-fit: cover
 
     &__nav,
     &__bottom
@@ -274,14 +265,8 @@
             border-bottom: 1px solid var(--app-color-border)
             padding: 0 4px 16px
 
-        .library-sidebar__avatar
-            width: 46px
-            height: 46px
+        .library-sidebar__account
             margin: 0
-
-            img
-                width: 44px
-                height: 44px
 
         .library-sidebar__identity-copy
             display: grid
@@ -334,7 +319,7 @@
             border-radius: 12px
             padding: 0 12px
 
-            &.is-active:not(.library-sidebar__avatar)
+            &.is-active
                 box-shadow: none
                 transform: none
 

@@ -11,7 +11,7 @@ import { ApiUserProfile, RecentLibraryActivity, User } from '../../../../interfa
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, finalize, forkJoin, map, merge, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { UserService } from '../../../../services/entities/user.service';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
@@ -179,7 +179,7 @@ export class UserProfileComponent implements OnInit {
         name: this.name,
     });
 
-    constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
+    constructor(private sessionSrv: PlatformSessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
         private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute, private presentation: PresentationModeService, private nativeProfileImage: NativeProfileImageService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -727,15 +727,12 @@ export class UserProfileComponent implements OnInit {
         this.loader.activateLoader();
         this.userSrv.updateImg(photo).pipe(finalize(() => this.loader.deactivateLoader())).subscribe({
             next: () => {
-                this.sessionSrv.requestNewToken().subscribe(() => {
-                    this.userData = this.sessionSrv.userObject!;
-
-                    this.imageCacheBuster = Date.now();
-                    this.modImg = false;
-                    if (this.inlineProfileEditMode === 'image') this.inlineProfileEditMode = null;
-                    this.files = [];
-                    this._snackBar.openSnackBar('Imagen de perfil actualizada', 'successBar');
-                });
+                this.userData = this.sessionSrv.userObject;
+                this.imageCacheBuster = Date.now();
+                this.modImg = false;
+                if (this.inlineProfileEditMode === 'image') this.inlineProfileEditMode = null;
+                this.files = [];
+                this._snackBar.openSnackBar('Imagen de perfil actualizada', 'successBar');
             },
             error: (err) => {
                 this._snackBar.openApiError(err, 'No se pudo completar la acción');
@@ -764,11 +761,9 @@ export class UserProfileComponent implements OnInit {
 
         this.userSrv.updateName(nameNew).subscribe({
             next: () => {
-                this.sessionSrv.requestNewToken().subscribe(() => {
-                    this.userData = this.sessionSrv.userObject!;
-                    this.modName = false;
-                    this._snackBar.openSnackBar('Nombre actualizado', 'successBar');
-                });
+                this.userData = { ...this.userData, name: nameNew };
+                this.modName = false;
+                this._snackBar.openSnackBar('Nombre actualizado', 'successBar');
             },
             error: (err) => {
                 this._snackBar.openApiError(err, 'No se pudo completar la acción');
@@ -822,8 +817,7 @@ export class UserProfileComponent implements OnInit {
             this.loader.deactivateLoader();
         })).subscribe({
             next: () => {
-                this.sessionSrv.applyLocalProfileUpdate(profile);
-                this.userData = this.sessionSrv.userObject;
+                this.userData = { ...this.userData, ...profile };
                 this.modProfile = false;
                 this.inlineProfileEditMode = null;
                 this.profileEditMode = 'identity';

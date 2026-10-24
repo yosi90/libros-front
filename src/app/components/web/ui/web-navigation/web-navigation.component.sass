@@ -111,7 +111,7 @@
         font-size: 12px
         font-weight: 400
 
-.web-nav__avatar, .web-topbar__avatar
+.web-nav__avatar
     display: grid
     flex: none
     place-items: center
@@ -160,8 +160,14 @@
 
 .web-nav__actions
     display: flex
+    align-items: center
     justify-content: space-between
+    gap: var(--web-space-2)
     margin-top: var(--web-space-2)
+
+// El botón de la cuenta de Yosiftware (`<yosi-acceso>`), con las variables `--yosi-*` de la presentación Web.
+.web-nav__account, .web-topbar__account
+    flex: none
 
 .web-nav__icon, .web-topbar__button
     display: grid

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { environment } from '../../../environment/environment';
-import { SessionService } from '../auth/session.service';
+import { PlatformSessionService } from '../auth/platform-session.service';
 import { BookService } from './book.service';
 import { NewBook } from '../../interfaces/creation/newBook';
 
@@ -16,7 +16,7 @@ describe('BookService', () => {
         TestBed.configureTestingModule({
             providers: [
                 BookService,
-                { provide: SessionService, useValue: { userId: 1 } },
+                { provide: PlatformSessionService, useValue: { userId: 1 } },
                 provideHttpClient(withXhr()),
                 provideHttpClientTesting()
             ]

@@ -5,6 +5,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { NotificationBellComponent } from '../../../shared/common/notification-bell/notification-bell.component';
+import { YosiftwareAccountComponent } from '../../../shared/common/yosiftware-account/yosiftware-account.component';
 
 export interface WebNavigationItem {
     route: string;
@@ -23,7 +24,7 @@ const COLLAPSED_KEY = 'libros:web-nav-collapsed';
 @Component({
     selector: 'app-web-navigation',
     standalone: true,
-    imports: [MatIconModule, MatTooltipModule, RouterLink, RouterLinkActive, NotificationBellComponent],
+    imports: [MatIconModule, MatTooltipModule, RouterLink, RouterLinkActive, NotificationBellComponent, YosiftwareAccountComponent],
     templateUrl: './web-navigation.component.html',
     styleUrl: './web-navigation.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -36,7 +37,6 @@ export class WebNavigationComponent {
     @Input() unreadChatCount = 0;
     @Input() canAdministrate = false;
     @Input() notificationsEnabled = false;
-    @Output() readonly logoutRequested = new EventEmitter<void>();
     @Output() readonly imageError = new EventEmitter<Event>();
 
     readonly collapsed = signal(this.readCollapsed());

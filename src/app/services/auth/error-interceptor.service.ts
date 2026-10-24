@@ -1,132 +1,60 @@
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable, Injector } from '@angular/core';
-import { Observable, catchError, switchMap, throwError } from 'rxjs';
-import { environment } from '../../../environment/environment';
+import { Observable, catchError, throwError } from 'rxjs';
 import { getApiErrorCode } from '../../shared/api-error-message';
-import { PolicyPromptService } from '../navigation/policy-prompt.service';
-import { ModerationAccessService } from '../stores/moderation-access.service';
-import { SessionService } from './session.service';
+import { AppToastService } from '../../shared/toast/app-toast.service';
 import { CollectionService } from '../entities/collection.service';
 import { UniverseStoreService } from '../stores/universe-store.service';
+import { PlatformSessionService } from './platform-session.service';
+import { isLibrosApiRequest } from './platform-token.interceptor';
 
+/**
+ * Respuestas de la API de Libros que afectan a toda la web (ADHESION_YOSIFTWARE.md, «Errores de autenticación y de
+ * acceso»). Los 401 ya los ha reintentado `PlatformTokenInterceptor`; aquí llegan el resto.
+ */
 @Injectable({ providedIn: 'root' })
 export class ErrorInterceptorService implements HttpInterceptor {
     private refreshingCollection = false;
+
     constructor(
-        private session: SessionService,
+        private session: PlatformSessionService,
         private injector: Injector
     ) { }
 
     intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-        return next.handle(req).pipe(catchError((error: HttpErrorResponse) => {
-            if (this.isImageRequest(req))
+        return next.handle(req).pipe(catchError((error: unknown) => {
+            if (!(error instanceof HttpErrorResponse) || !isLibrosApiRequest(req) || isImageRequest(req))
                 return throwError(() => error);
 
-            const errorCode = getApiErrorCode(error);
-            if (error.status === 409 && errorCode === 'anthology_section_collection_forbidden' && req.url.startsWith(environment.apiUrl))
+            const code = getApiErrorCode(error);
+            if (error.status === 409 && code === 'anthology_section_collection_forbidden')
                 this.reconcileCollection();
-            if (this.session.getToken() && errorCode && this.isTerminalSessionError(error, errorCode)) {
-                this.session.logout(true, `terminal:${errorCode}`);
-                return throwError(() => error);
-            }
-
-            if (error.status === 403 && errorCode) {
-                this.refreshModerationAccess(req, errorCode);
-                return throwError(() => error);
-            }
-
-            if (error.status === 401 && this.shouldRefresh(req))
-                return this.retryAfterRefresh(req, next);
-
+            if (error.status === 403 && code === 'account_deleted')
+                this.session.forgetDeletedAccount();
+            if (error.status === 403 && code === 'platform_rules_acceptance_required')
+                this.injector.get(AppToastService).showSystem(
+                    'Acepta las normas de Libros para seguir. Te las enseñamos en la ventana de Yosiftware.',
+                    { title: 'Normas de Libros pendientes', dedupeKey: 'platform:rules-pending', durationMs: 8000 }
+                );
             return throwError(() => error);
         }));
-    }
-
-    private retryAfterRefresh(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-        return this.session.requestNewToken().pipe(
-            catchError((refreshError: HttpErrorResponse) => {
-                if (refreshError.status !== 0 && refreshError.status !== 503)
-                    this.session.logout(true, `refresh:${getApiErrorCode(refreshError) ?? refreshError.status}`);
-                return throwError(() => refreshError);
-            }),
-            switchMap(() => {
-                const token = this.session.getToken();
-                if (!token)
-                    return throwError(() => new Error('No se pudo restaurar la sesión.'));
-                return next.handle(req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }));
-            })
-        );
-    }
-
-    private shouldRefresh(req: HttpRequest<unknown>): boolean {
-        return !!this.session.getToken()
-            && req.url.startsWith(environment.apiUrl)
-            && !this.isSessionRequest(req);
     }
 
     private reconcileCollection(): void {
         if (this.refreshingCollection || !this.session.userIsLogged) return;
         this.refreshingCollection = true;
-        const userId = this.session.userObject?.userId;
+        const generation = this.session.generation;
         queueMicrotask(() => this.injector.get(CollectionService).getUniverses().subscribe({
             next: universes => {
-                if (this.session.userIsLogged && this.session.userObject?.userId === userId)
+                if (this.session.isCurrentGeneration(generation))
                     this.injector.get(UniverseStoreService).setUniverses(universes);
             },
             error: () => { this.refreshingCollection = false; },
             complete: () => { this.refreshingCollection = false; }
         }));
     }
-
-    private isTerminalSessionError(error: HttpErrorResponse, errorCode: string): boolean {
-        if (errorCode === 'invalid_token')
-            return error.status === 422;
-        if (errorCode === 'user_not_found')
-            return error.status === 403;
-
-        return error.status === 401 && new Set([
-            'session_refresh_invalid',
-            'session_revoked',
-            'refresh_replay_detected',
-            'firebase_identity_revoked'
-        ]).has(errorCode);
-    }
-
-    private isSessionRequest(req: HttpRequest<unknown>): boolean {
-        return req.url.startsWith(`${environment.apiUrl}auth/session`);
-    }
-
-    private isImageRequest(req: HttpRequest<unknown>): boolean {
-        return /\.(?:jpe?g|png|gif|webp|svg)(?:\?|$)/i.test(req.url);
-    }
-
-    private refreshModerationAccess(req: HttpRequest<unknown>, errorCode: string): void {
-        const accessErrors = new Set([
-            'account_sanctioned',
-            'capability_sanctioned',
-            'usage_policy_acceptance_required',
-            'creation_policy_acceptance_required'
-        ]);
-        if (!accessErrors.has(errorCode) || req.url.includes('/moderacion/mi-estado-acceso'))
-            return;
-
-        if (errorCode === 'usage_policy_acceptance_required' || errorCode === 'creation_policy_acceptance_required') {
-            const prompt = this.injector.get(PolicyPromptService, null);
-            prompt?.trigger(errorCode, blockedAction(req));
-        }
-
-        queueMicrotask(() => {
-            if (this.session.userIsLogged && this.session.getToken())
-                this.injector.get(ModerationAccessService).refresh().subscribe();
-        });
-    }
 }
 
-/** Qué intentaba hacer la persona, cuando la petición bloqueada lo deja claro. */
-function blockedAction(req: HttpRequest<unknown>): string | undefined {
-    const path = req.url.split('?')[0];
-    if (req.method === 'GET')
-        return /\/(?:libros|antologias\/secciones)\/\d+$/.test(path) ? 'abrir tus libros' : undefined;
-    if (/\/coleccion\//.test(path)) return 'añadir libros a tu biblioteca o cambiar su estado';
-    return undefined;
+function isImageRequest(req: HttpRequest<unknown>): boolean {
+    return /\.(?:jpe?g|png|gif|webp|svg)(?:\?|$)/i.test(req.url);
 }

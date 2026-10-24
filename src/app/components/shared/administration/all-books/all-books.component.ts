@@ -23,7 +23,7 @@ import { AntologyService } from '../../../../services/entities/antology.service'
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CatalogEditionAdminService } from '../../../../services/entities/catalog-edition-admin.service';
 import { LibrarySyncService } from '../../../../services/stores/library-sync.service';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { optionalIsbnValidator } from '../../../../shared/isbn';
 import { foldText } from '../../../../shared/text';
@@ -53,7 +53,7 @@ import { publicationDateInput, publicationDatePayload, publicationDateValidator 
 export class AllBooksComponent implements OnInit, OnDestroy {
     private readonly librarySync = inject(LibrarySyncService);
     private readonly editionAdmin = inject(CatalogEditionAdminService);
-    private readonly session = inject(SessionService);
+    private readonly session = inject(PlatformSessionService);
     /** Libros y antologías comparten ficha y formulario; cambian listado, detalle y servicio de escritura. */
     @Input() kind: 'libro' | 'antologia' = 'libro';
 

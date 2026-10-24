@@ -7,12 +7,20 @@ import {
     HttpResponse,
     HttpXhrBackend
 } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, InjectionToken, inject } from '@angular/core';
+import { CapacitorHttp } from '@capacitor/core';
 import type { CapacitorHttpPlugin, HttpResponse as NativeHttpResponse } from '@capacitor/core/types/core-plugins';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
-import { NATIVE_HTTP } from './native-session-transport.adapter';
+
+/** Cliente HTTP nativo de Capacitor; en el navegador no se usa. */
+export const NATIVE_HTTP = new InjectionToken<CapacitorHttpPlugin>('NATIVE_HTTP', {
+    providedIn: 'root',
+    factory: () => inject(NATIVE_MOBILE_PLATFORM)
+        ? CapacitorHttp
+        : {} as CapacitorHttpPlugin
+});
 
 /**
  * Capacitor's patched XHR sends GET requests through a WebView proxy instead of

@@ -1,8 +1,6 @@
 import { NEVER, of, throwError } from 'rxjs';
 import { NotificationService } from '../entities/notification.service';
-import { FirebaseSessionService } from './firebase-session.service';
 import { PushNotificationService } from './push-notification.service';
-import { RuntimeConfigService } from './runtime-config.service';
 
 describe('PushNotificationService logout', () => {
     let notifications: jasmine.SpyObj<NotificationService>;
@@ -11,9 +9,7 @@ describe('PushNotificationService logout', () => {
     beforeEach(() => {
         localStorage.clear();
         notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['logoutDevice']);
-        const firebase = { messaging: null } as unknown as FirebaseSessionService;
-        const runtime = { firebase: { enabled: false } } as unknown as RuntimeConfigService;
-        service = new PushNotificationService(notifications, firebase, runtime, false);
+        service = new PushNotificationService(notifications, false);
     });
 
     it('no envia un logout invalido cuando no existe DispositivoId', () => {
@@ -52,5 +48,9 @@ describe('PushNotificationService logout', () => {
         service.logout(7).subscribe();
 
         expect(localStorage.getItem('push-device:7')).toBeNull();
+    });
+
+    it('no ofrece push en el navegador: lo envía la plataforma', () => {
+        expect(service.supported).toBeFalse();
     });
 });

@@ -1,23 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
 const productStateMessages: Record<string, string> = {
+    account_deleted: 'Tu cuenta de Yosiftware se ha borrado.',
+    platform_rules_acceptance_required: 'Acepta las normas de Libros para seguir.',
     anthology_section_collection_forbidden: 'Esta sección se gestiona dentro de su antología.',
     anthology_not_in_collection: 'Esta antología ya no está en tu biblioteca.',
     anthology_section_relation_not_found: 'Esta sección ya no pertenece a la antología.',
-    invalid_token: 'Tu sesión ya no es válida. Inicia sesión de nuevo.',
-    user_not_found: 'Tu sesión ya no está disponible. Inicia sesión de nuevo.',
-    session_refresh_invalid: 'La sesión ha caducado. Inicia sesión de nuevo.',
-    session_revoked: 'Esta sesión se ha cerrado desde la seguridad de la cuenta.',
-    refresh_replay_detected: 'La sesión de este dispositivo se cerró por seguridad.',
-    firebase_identity_revoked: 'Tu identidad de acceso ya no está disponible. Inicia sesión de nuevo.',
-    access_method_not_enabled: 'Este método de acceso no está habilitado.',
-    access_method_already_linked: 'Ese método ya está vinculado a la cuenta.',
-    access_method_conflict: 'Ese método pertenece a otra cuenta y no puede vincularse automáticamente.',
-    link_ticket_invalid: 'La vinculación ha caducado. Inicia el proceso de nuevo.',
-    last_recoverable_access_method: 'No puedes retirar el último método con el que puedes recuperar la cuenta.',
-    phone_not_linked: 'Ese teléfono no está vinculado a ninguna cuenta.',
-    phone_preflight_required: 'Valida primero el teléfono antes de solicitar el código.',
-    interface_preferences_conflict: 'El tema cambió en otro dispositivo.',
     notification_preferences_internal_error: 'No se han podido guardar las preferencias de notificaciones. Inténtalo de nuevo más tarde.',
     account_sanctioned: 'Las funciones sociales de esta cuenta están restringidas temporalmente.',
     capability_sanctioned: 'Esta acción no está disponible por una restricción de cuenta.',
@@ -80,17 +68,6 @@ const productStateMessages: Record<string, string> = {
     chat_float_windows_limit: 'Puedes conservar un máximo de cinco conversaciones flotantes.'
 };
 
-const firebaseAuthMessages: Record<string, string> = {
-    'auth/network-request-failed': 'No se ha podido completar el acceso. Comprueba tu conexión o prueba otra red.',
-    'auth/too-many-requests': 'Se han hecho demasiados intentos desde esta conexión. Espera unos minutos o prueba otra red.',
-    'auth/internal-error': 'No se ha podido completar el acceso. Inténtalo de nuevo en unos minutos.',
-    'auth/user-disabled': 'Esta identidad de acceso está deshabilitada.',
-    'auth/invalid-credential': 'Las credenciales no son válidas o han caducado.',
-    'auth/email-already-in-use': 'Ya existe una identidad con ese correo.',
-    'auth/invalid-phone-number': 'El número de teléfono no es válido.',
-    'auth/quota-exceeded': 'Ahora mismo no se pueden enviar más códigos de verificación. Inténtalo más tarde.'
-};
-
 export function getApiErrorCode(error: unknown): string | null {
     if (!error)
         return null;
@@ -126,7 +103,52 @@ export const connectionErrorMessage = 'No se ha podido conectar con el servidor.
 /** Bloqueo por normas pendientes: lo explica el aviso de normas, no un error. */
 export function isPolicyAcceptanceBlock(error: unknown): boolean {
     const code = getApiErrorCode(error);
-    return code === 'usage_policy_acceptance_required' || code === 'creation_policy_acceptance_required';
+    return code === 'usage_policy_acceptance_required' || code === 'creation_policy_acceptance_required'
+        || code === 'platform_rules_acceptance_required';
+}
+
+const restrictionScopeLabels: Record<string, string> = {
+    creacion: 'la creación de contenido',
+    comunidad: 'la comunidad',
+    chat: 'el chat',
+    publicacion: 'publicar en la comunidad'
+};
+
+/**
+ * «Tu cuenta de Yosiftware tiene limitada la comunidad hasta el 2 de noviembre de 2026 a las 18:30.» Lo limitado por
+ * la moderación de la plataforma (`restricciones` de la sesión o `details` del 403), en la hora de la persona.
+ */
+export function describePlatformRestriction(scopes: readonly string[], until: string | null | undefined): string | null {
+    // `comunidad` ya incluye el chat y publicar: no se repiten.
+    const known = scopes.filter(scope => scope in restrictionScopeLabels);
+    const visible = known.includes('comunidad') ? known.filter(scope => scope !== 'chat' && scope !== 'publicacion') : known;
+    if (!scopes.length) return null;
+    const labels = visible.length ? visible.map(scope => restrictionScopeLabels[scope]) : ['esta acción'];
+    const what = labels.length > 1 ? `${labels.slice(0, -1).join(', ')} y ${labels[labels.length - 1]}` : labels[0];
+    const date = until ? new Date(until) : null;
+    if (!date || Number.isNaN(date.getTime()))
+        return `Tu cuenta de Yosiftware tiene limitada ${what} sin fecha de fin.`;
+    const day = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    return `Tu cuenta de Yosiftware tiene limitada ${what} hasta el ${day} a las ${time}.`;
+}
+
+/** `403 platform_restriction_active` (ADHESION_YOSIFTWARE.md): qué y hasta cuándo. `null` si el error es otro. */
+export function getPlatformRestrictionMessage(error: unknown): string | null {
+    if (getApiErrorCode(error) !== 'platform_restriction_active') return null;
+    const details = getErrorDetails(error);
+    const scope = typeof details?.['Alcance'] === 'string' ? details['Alcance'] : '';
+    const until = typeof details?.['Hasta'] === 'string' ? details['Hasta'] : null;
+    return describePlatformRestriction([scope], until);
+}
+
+function getErrorDetails(error: unknown): Record<string, unknown> | null {
+    if (error instanceof HttpErrorResponse)
+        return getErrorDetails(error.error);
+    if (!error || typeof error !== 'object')
+        return null;
+    const details = (error as Record<string, unknown>)['details'];
+    return details && typeof details === 'object' ? details as Record<string, unknown> : null;
 }
 
 export function getBackendErrorText(error: unknown): string | null {
@@ -146,6 +168,10 @@ export function getApiErrorMessage(error: unknown, fallback: string = 'Error des
     if (!error)
         return fallback;
 
+    const restriction = getPlatformRestrictionMessage(error);
+    if (restriction)
+        return restriction;
+
     const backendText = getBackendErrorText(error);
     if (backendText)
         return backendText;
@@ -154,11 +180,6 @@ export function getApiErrorMessage(error: unknown, fallback: string = 'Error des
     // sin cuerpo válido se usa el texto de la pantalla o un aviso de conexión.
     if (error instanceof HttpErrorResponse)
         return error.status === 0 ? connectionErrorMessage : fallback;
-
-    // Errores de Firebase: texto propio o el de la pantalla, nunca el código ni su mensaje en inglés.
-    const code = getApiErrorCode(error);
-    if (code?.startsWith('auth/'))
-        return firebaseAuthMessages[code] ?? fallback;
 
     if (typeof error === 'string')
         return error || fallback;

@@ -6,7 +6,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AdminIncidentCursor, AdminRole, AdminUser, AdminUsersCursor, ModerationUser } from '../../../../interfaces/admin';
 import { ModerationIncident } from '../../../../interfaces/moderation';
 import { UserService } from '../../../../services/entities/user.service';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { getApiErrorCode, getProductStateMessage } from '../../../../shared/api-error-message';
 
 interface ManagedUser {
@@ -48,7 +48,7 @@ export class AllUsersComponent implements OnInit {
     isChangingRole = false;
     roleMessage = '';
 
-    constructor(private userSrv: UserService, private session: SessionService) { }
+    constructor(private userSrv: UserService, private session: PlatformSessionService) { }
 
     get isAdmin(): boolean { return this.session.isAdmin; }
 

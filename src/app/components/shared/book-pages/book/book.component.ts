@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { Book, DisplayGroup, DisplayItem } from '../../../../interfaces/book';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -117,7 +117,7 @@ export class BookComponent implements OnInit, OnDestroy {
     constructor(
         private route: ActivatedRoute,
         private router: Router,
-        public sessionSrv: SessionService,
+        public sessionSrv: PlatformSessionService,
         private bookSrv: BookService,
         private bookStore: BookStoreService,
         private loader: LoaderEmmitterService,

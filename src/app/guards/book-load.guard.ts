@@ -6,7 +6,7 @@ import { BookStoreService } from '../services/stores/book-store.service';
 import { LoaderEmmitterService } from '../services/emmitters/loader.service';
 import { AppToastService } from '../shared/toast/app-toast.service';
 import { getProductStateMessage, isPolicyAcceptanceBlock } from '../shared/api-error-message';
-import { SessionService } from '../services/auth/session.service';
+import { PlatformSessionService } from '../services/auth/platform-session.service';
 import { NativeReaderRouteReuseStrategy } from '../services/navigation/native-reader-route-reuse.strategy';
 
 export const bookLoadGuard: CanActivateFn = (route) => {
@@ -15,7 +15,7 @@ export const bookLoadGuard: CanActivateFn = (route) => {
     const bookService = inject(BookService);
     const loader = inject(LoaderEmmitterService);
     const toasts = inject(AppToastService);
-    const session = inject(SessionService);
+    const session = inject(PlatformSessionService);
     const nativeReaderRoutes = inject(NativeReaderRouteReuseStrategy);
     const bookId = Number(route.paramMap.get('id'));
     const anthologyId = Number(route.queryParamMap?.get('anthologyId'));

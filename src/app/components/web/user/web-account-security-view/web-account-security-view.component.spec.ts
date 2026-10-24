@@ -10,8 +10,6 @@ describe('WebAccountSecurityViewComponent', () => {
         component.controller = {
             policies: [],
             moderationItemsCount: 0,
-            reauthenticationSurfaceOpen: false,
-            cancelReauthentication: jasmine.createSpy('cancelReauthentication'),
             ...controller
         } as unknown as AccountSecurityComponent;
         component.ngOnInit();
@@ -20,8 +18,10 @@ describe('WebAccountSecurityViewComponent', () => {
 
     it('abre el apartado pedido por la ruta y descarta los desconocidos', () => {
         expect(create('blocks').activeSection).toBe('blocks');
-        expect(create('otra').activeSection).toBe('access');
-        expect(create(null).activeSection).toBe('access');
+        expect(create('otra').activeSection).toBe('account');
+        expect(create(null).activeSection).toBe('account');
+        // Los apartados de entrar ya no existen: son de la cuenta de Yosiftware.
+        expect(create('devices').activeSection).toBe('account');
     });
 
     it('marca las normas pendientes y los avisos de moderación', () => {
@@ -30,7 +30,7 @@ describe('WebAccountSecurityViewComponent', () => {
 
         expect(badge.call(state as unknown as AccountSecurityComponent, 'policies')).toBe('1');
         expect(badge.call(state as unknown as AccountSecurityComponent, 'moderation')).toBe('2');
-        expect(badge.call(state as unknown as AccountSecurityComponent, 'devices')).toBe('');
+        expect(badge.call(state as unknown as AccountSecurityComponent, 'account')).toBe('');
     });
 
     it('delega el contador de cada apartado en el contenedor', () => {
@@ -39,13 +39,5 @@ describe('WebAccountSecurityViewComponent', () => {
 
         expect(component.badge('policies')).toBe('3');
         expect(sectionBadge).toHaveBeenCalledWith('policies');
-    });
-
-    it('cancela la confirmación de identidad con Escape', () => {
-        const component = create(null, { reauthenticationSurfaceOpen: true } as Partial<AccountSecurityComponent>);
-
-        component.closeReauthenticationOnEscape();
-
-        expect(component.controller.cancelReauthentication).toHaveBeenCalled();
     });
 });

@@ -11,7 +11,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ClubCalendarEvent, ClubDebate, ClubDebateDetail, ClubDetail, ClubInvitationCandidate, ClubInvitationCandidateCursor, ClubJoinRequest, ClubMember, ClubMilestone, ClubPoll, ClubProgress, ClubReading } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { Subscription } from 'rxjs';
@@ -107,7 +107,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     private realtimeSubscription: Subscription | null = null;
     private clubId = 0;
 
-    constructor(private route: ActivatedRoute, private community: CommunityService, private session: SessionService, private router: Router, private realtime: RealtimeSocketService, private universeStore: UniverseStoreService, private presentation: PresentationModeService, private statisticsSrv: StatisticsService) { }
+    constructor(private route: ActivatedRoute, private community: CommunityService, private session: PlatformSessionService, private router: Router, private realtime: RealtimeSocketService, private universeStore: UniverseStoreService, private presentation: PresentationModeService, private statisticsSrv: StatisticsService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }

@@ -16,6 +16,12 @@ export class ManagerViewStateService {
         this.persist();
     }
 
+    /** Al cambiar de cuenta: los filtros y la página de la anterior no se presentan a la nueva. */
+    reset(): void {
+        for (const kind of Object.keys(this.states) as ManagerKind[]) delete this.states[kind];
+        try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* sin almacenamiento */ }
+    }
+
     private readStates(): Partial<Record<ManagerKind, Partial<ManagerViewState>>> {
         if (typeof sessionStorage === 'undefined')
             return {};

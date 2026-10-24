@@ -11,7 +11,7 @@ import { CommunityService } from '../../../../services/entities/community.servic
 import { renderSafeMarkdown } from '../../../../shared/markdown';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { ChatService } from '../../../../services/entities/chat.service';
 import { DirectEligibility } from '../../../../interfaces/chat';
 import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
@@ -104,7 +104,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
     openingDirectUserIds = new Set<number>();
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private community: CommunityService, private realtime: RealtimeSocketService, private session: SessionService, private router: Router, private route: ActivatedRoute, private chat: ChatService, private universeStore: UniverseStoreService, public readonly access: ModerationAccessService, private presentation: PresentationModeService) { }
+    constructor(private community: CommunityService, private realtime: RealtimeSocketService, private session: PlatformSessionService, private router: Router, private route: ActivatedRoute, private chat: ChatService, private universeStore: UniverseStoreService, public readonly access: ModerationAccessService, private presentation: PresentationModeService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }

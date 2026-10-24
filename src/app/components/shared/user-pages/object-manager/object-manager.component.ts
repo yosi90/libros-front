@@ -20,7 +20,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CatalogItem, CatalogOption } from '../../../../interfaces/catalog';
@@ -146,7 +146,7 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
         universeStore: UniverseStoreService,
         snackBar: SnackbarModule,
         private loader: LoaderEmmitterService,
-        sessionSrv: SessionService,
+        sessionSrv: PlatformSessionService,
         catalogSrv: CatalogService,
         collectionSrv: CollectionService,
         private managerViewState: ManagerViewStateService = new ManagerViewStateService(),

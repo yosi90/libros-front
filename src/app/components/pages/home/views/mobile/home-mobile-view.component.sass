@@ -25,6 +25,23 @@
         gap: var(--mobile-space-3)
         margin-top: var(--mobile-space-3)
 
+    &__notice
+        display: grid
+        gap: var(--mobile-space-3)
+        margin: var(--mobile-space-3) 0 0
+        padding: var(--mobile-space-4)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-info-container)
+
+    // Dónde dice Libros que usa la cuenta de Yosiftware: con el símbolo del ecosistema (MARCA.md).
+    &__account
+        display: flex
+        align-items: center
+        gap: var(--mobile-space-2)
+        margin: 0
+        color: var(--mobile-color-ink-muted)
+        font-size: .82rem
+
     &__quote
         display: grid
         grid-template-columns: auto minmax(0, 1fr)
@@ -100,3 +117,8 @@
 
         &__features
             align-self: start
+
+// La línea de la cuenta de Yosiftware no debe obligar a desplazar la portada en pantallas bajas (Honor plegado).
+@media (max-height: 820px)
+    .mobile-home
+        gap: var(--mobile-space-4)

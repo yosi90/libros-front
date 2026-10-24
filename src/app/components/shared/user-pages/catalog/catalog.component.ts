@@ -30,7 +30,7 @@ import { ownedEditionIds } from '../../../../shared/edition-selection';
 import { Universe } from '../../../../interfaces/universe';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { isValidIsbn } from '../../../../shared/isbn';
 import { isIsoPublicationDate } from '../../../../shared/publication-date';
@@ -146,7 +146,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         collectionSrv: CollectionService,
         private catalogRequestSrv: CatalogRequestService,
         universeStore: UniverseStoreService,
-        sessionSrv: SessionService,
+        sessionSrv: PlatformSessionService,
         snackBar: SnackbarModule,
         private router: Router,
         private viewState: CatalogViewStateService,

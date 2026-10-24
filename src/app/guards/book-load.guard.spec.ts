@@ -6,7 +6,7 @@ import { BookService } from '../services/entities/book.service';
 import { BookStoreService } from '../services/stores/book-store.service';
 import { LoaderEmmitterService } from '../services/emmitters/loader.service';
 import { AppToastService } from '../shared/toast/app-toast.service';
-import { SessionService } from '../services/auth/session.service';
+import { PlatformSessionService } from '../services/auth/platform-session.service';
 import { NativeReaderRouteReuseStrategy } from '../services/navigation/native-reader-route-reuse.strategy';
 
 describe('bookLoadGuard', () => {
@@ -32,7 +32,7 @@ describe('bookLoadGuard', () => {
                 { provide: BookStoreService, useValue: bookStore },
                 { provide: LoaderEmmitterService, useValue: loader },
                 { provide: AppToastService, useValue: toasts },
-                { provide: SessionService, useValue: session },
+                { provide: PlatformSessionService, useValue: session },
                 { provide: NativeReaderRouteReuseStrategy, useValue: nativeReaderRoutes }
             ]
         });
@@ -67,7 +67,7 @@ describe('bookLoadGuard', () => {
                 { provide: BookStoreService, useValue: bookStore },
                 { provide: LoaderEmmitterService, useValue: jasmine.createSpyObj<LoaderEmmitterService>('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']) },
                 { provide: AppToastService, useValue: jasmine.createSpyObj<AppToastService>('AppToastService', ['showError']) },
-                { provide: SessionService, useValue: { sessionInitializedSubject: new BehaviorSubject(true), canAccessLibrary: true } },
+                { provide: PlatformSessionService, useValue: { sessionInitializedSubject: new BehaviorSubject(true), canAccessLibrary: true } },
                 { provide: NativeReaderRouteReuseStrategy, useValue: nativeReaderRoutes }
             ]
         });
@@ -94,7 +94,7 @@ describe('bookLoadGuard', () => {
                 { provide: BookStoreService, useValue: bookStore },
                 { provide: LoaderEmmitterService, useValue: jasmine.createSpyObj<LoaderEmmitterService>('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']) },
                 { provide: AppToastService, useValue: jasmine.createSpyObj<AppToastService>('AppToastService', ['showError']) },
-                { provide: SessionService, useValue: { sessionInitializedSubject: new BehaviorSubject(true), canAccessLibrary: true } },
+                { provide: PlatformSessionService, useValue: { sessionInitializedSubject: new BehaviorSubject(true), canAccessLibrary: true } },
                 { provide: NativeReaderRouteReuseStrategy, useValue: nativeReaderRoutes }
             ]
         });

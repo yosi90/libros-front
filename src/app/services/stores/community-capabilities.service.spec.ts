@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environment/environment';
 import { CommunityCapabilitiesResponse, CommunityCapabilityId } from '../../interfaces/community-capabilities';
-import { CommunityCapabilitiesService } from './community-capabilities.service';
+import { CAPABILITIES_RETIRED_BY_PLATFORM, CommunityCapabilitiesService } from './community-capabilities.service';
 
 describe('CommunityCapabilitiesService', () => {
     let service: CommunityCapabilitiesService;
@@ -34,15 +34,15 @@ describe('CommunityCapabilitiesService', () => {
     it('con normas de uso pendientes presenta todo como conservador y lo restaura al aceptarlas', () => {
         service.initialize(7).subscribe();
         http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
-        expect(service.isActive('chat')).toBeTrue();
+        expect(service.isActive('clubes')).toBeTrue();
 
         service.setPolicyHold(true);
-        expect(service.isActive('chat')).toBeFalse();
+        expect(service.isActive('clubes')).toBeFalse();
         expect(service.isActive('realtime')).toBeFalse();
         expect(service.state.Conservadora).toBeTrue();
 
         service.setPolicyHold(false);
-        expect(service.isActive('chat')).toBeTrue();
+        expect(service.isActive('clubes')).toBeTrue();
         expect(service.state.Conservadora).toBeFalse();
     });
 
@@ -50,12 +50,22 @@ describe('CommunityCapabilitiesService', () => {
         service.setPolicyHold(true);
         service.initialize(7).subscribe();
         http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
-        expect(service.isActive('chat')).toBeFalse();
+        expect(service.isActive('clubes')).toBeFalse();
 
         service.clear();
         service.initialize(7).subscribe();
         http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
-        expect(service.isActive('chat')).toBeTrue();
+        expect(service.isActive('clubes')).toBeTrue();
+    });
+
+    it('deja apagado lo que pasa a la plataforma aunque la API lo anuncie', () => {
+        service.initialize(7).subscribe();
+        http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
+
+        for (const retired of CAPABILITIES_RETIRED_BY_PLATFORM)
+            expect(service.isActive(retired)).withContext(retired).toBeFalse();
+        expect(service.isActive('feed')).toBeTrue();
+        expect(service.isActive('clubes')).toBeTrue();
     });
 
     it('ignora una respuesta antigua después de limpiar la sesión', () => {

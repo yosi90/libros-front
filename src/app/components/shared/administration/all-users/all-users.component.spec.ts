@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { AllUsersComponent } from './all-users.component';
 import { UserService } from '../../../../services/entities/user.service';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 
 describe('AllUsersComponent', () => {
     let component: AllUsersComponent;
@@ -31,7 +31,7 @@ describe('AllUsersComponent', () => {
                         })
                     }
                 },
-                { provide: SessionService, useValue: { isAdmin: true, userId: 2 } }
+                { provide: PlatformSessionService, useValue: { isAdmin: true, userId: 2 } }
             ]
         }).compileComponents();
 

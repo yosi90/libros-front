@@ -6,11 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ChatConversationDetail, ChatGroupCandidate, ChatMessage, ChatParticipant, ChatReactionType } from '../../../../interfaces/chat';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { ChatService } from '../../../../services/entities/chat.service';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
-import { FirebasePresenceService } from '../../../../services/realtime/firebase-presence.service';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { renderSafeMarkdown } from '../../../../shared/markdown';
 import { ChatStoreService } from '../../../../services/stores/chat-store.service';
@@ -83,7 +82,7 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
         void this.router.navigate(['/dashboard/community/messages']);
     }
 
-    constructor(private route: ActivatedRoute, private chat: ChatService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private chatAttention: ChatAttentionService, private notificationNavigation: NotificationNavigationService, private session: SessionService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private router: Router, private community: CommunityService, private presentation: PresentationModeService) { }
+    constructor(private route: ActivatedRoute, private chat: ChatService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private chatAttention: ChatAttentionService, private notificationNavigation: NotificationNavigationService, private session: PlatformSessionService, private realtime: RealtimeSocketService, private router: Router, private community: CommunityService, private presentation: PresentationModeService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
@@ -136,7 +135,6 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
         this.typingSubscription.unsubscribe();
         this.chatAttention.clear(this);
         if (this.typingTimer) clearTimeout(this.typingTimer);
-        void this.presence.setTyping(this.conversationId, false);
     }
 
     @HostListener('window:focus')
@@ -322,7 +320,6 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
             this.clearTyping();
             return;
         }
-        void this.presence.setTyping(this.conversationId, true).catch(() => void 0);
         if (this.typingTimer) clearTimeout(this.typingTimer);
         this.typingTimer = setTimeout(() => this.clearTyping(), 3000);
     }
@@ -421,21 +418,16 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
             clearTimeout(this.typingTimer);
             this.typingTimer = null;
         }
-        void this.presence.setTyping(this.conversationId, false).catch(() => void 0);
     }
 
+    /**
+     * «Escribiendo…» venía de la RTDB propia, que se retira con la adhesión. Vuelve con el chat de la plataforma
+     * (hito 3 del roadmap del ecosistema, `yosiftware.tiempoReal.alAviso`).
+     */
     private listenToOtherTyping(): void {
         this.typingSubscription.unsubscribe();
         this.typingSubscription = new Subscription();
         this.typingUserIds.clear();
-        const participantIds = [...new Set(this.messages.map(message => message.RemitenteId).filter((userId): userId is number => typeof userId === 'number' && userId !== this.session.userId && userId > 0))];
-        participantIds.forEach(userId => this.typingSubscription.add(this.presence.listenToTyping(this.conversationId, userId).subscribe({
-            next: isTyping => {
-                if (isTyping) this.typingUserIds.add(userId);
-                else this.typingUserIds.delete(userId);
-            },
-            error: () => this.typingUserIds.delete(userId)
-        })));
     }
 
     private closeRevokedAccess(message: string): void {
@@ -455,8 +447,7 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
         }
         if (this.conversationId) {
             this.saveScrollPosition();
-            void this.presence.setTyping(this.conversationId, false).catch(() => void 0);
-        }
+            }
         this.typingSubscription.unsubscribe();
         this.typingSubscription = new Subscription();
         this.conversationId = id;

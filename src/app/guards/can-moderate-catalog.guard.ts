@@ -1,10 +1,10 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { filter, map, take } from 'rxjs';
-import { SessionService } from '../services/auth/session.service';
+import { PlatformSessionService } from '../services/auth/platform-session.service';
 
 export const canModerateCatalogGuard: CanActivateFn = () => {
-    const session = inject(SessionService);
+    const session = inject(PlatformSessionService);
     const router = inject(Router);
 
     return session.sessionInitializedSubject.pipe(

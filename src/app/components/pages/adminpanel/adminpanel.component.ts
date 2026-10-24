@@ -6,7 +6,7 @@ import { AllUsersComponent } from '../../shared/administration/all-users/all-use
 import { CatalogModerationComponent } from '../../shared/administration/catalog-moderation/catalog-moderation.component';
 import { ModerationAdminComponent } from '../../shared/administration/moderation-admin/moderation-admin.component';
 import { OperationalMetricsComponent } from '../../shared/administration/operational-metrics/operational-metrics.component';
-import { SessionService } from '../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../services/auth/platform-session.service';
 import { AdminSummaryComponent } from '../../shared/administration/admin-summary/admin-summary.component';
 import { AdminAuditComponent } from '../../shared/administration/admin-audit/admin-audit.component';
 import { CommunityPoliciesAdminComponent } from '../../shared/administration/community-policies-admin/community-policies-admin.component';
@@ -140,7 +140,7 @@ export class AdminpanelComponent {
     activeSection: AdminSectionId;
     moderationTab: 'reports' | 'appeals' = 'reports';
 
-    constructor(private session: SessionService, private route: ActivatedRoute) {
+    constructor(private session: PlatformSessionService, private route: ActivatedRoute) {
         this.activeSection = session.isAdmin ? 'summary' : 'catalogRequests';
         this.route.queryParamMap.subscribe(params => {
             const section = params.get('section');

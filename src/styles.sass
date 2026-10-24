@@ -1,13 +1,15 @@
 @use 'bootstrap/scss/bootstrap'
 @use './assets/css/theme-tokens' as themes
 @use './assets/css/material-themes' as material-themes
-@use './assets/css/public-auth'
 @use './assets/css/mobile/tokens' as mobile-tokens
 @use './assets/css/mobile/primitives' as mobile-primitives
 @use './assets/css/mobile/public-auth' as mobile-public-auth
 @use './assets/css/web/tokens' as web-tokens
 @use './assets/css/web/classes'
 @use './assets/css/wood/global'
+@use './assets/css/web/yosiftware' as web-yosiftware
+@use './assets/css/mobile/yosiftware' as mobile-yosiftware
+@use './assets/css/wood/yosiftware' as wood-yosiftware
 
 @include themes.theme-tokens
 @include material-themes.app-material-themes
@@ -181,3 +183,14 @@ mat-icon.mat-icon:not(.mat-icon-inline)
     position: relative
     
     z-index: 2001 !important
+
+// El SDK de Yosiftware (`<yosi-acceso>` y su panel) con el aspecto de cada presentación (ecosistema-kit/ESTILOS.md).
+html[data-presentation-active='web']
+    @include web-yosiftware.yosiftware-variables
+
+html[data-presentation-active='mobile'],
+html[data-presentation-active='native-mobile']
+    @include mobile-yosiftware.yosiftware-variables
+
+html[data-presentation-active='wood']
+    @include wood-yosiftware.yosiftware-variables

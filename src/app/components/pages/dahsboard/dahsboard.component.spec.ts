@@ -10,14 +10,11 @@ describe('DahsboardComponent', () => {
         const chatStore = { state$: new BehaviorSubject({ conversations: [{ NoLeidos: 3 }, { NoLeidos: 2 }] }), initialize: jasmine.createSpy(), clear: jasmine.createSpy() };
         const component = new DahsboardComponent(
             { userId: 7 } as never,
-            {} as never,
             { status$: new BehaviorSubject({ chat: 'idle', community: 'idle' }), retry: jasmine.createSpy() } as never,
             { state$: new BehaviorSubject(null), accountRestrictionMessage: jasmine.createSpy() } as never,
             { state$: capabilityState.asObservable(), isActive: jasmine.createSpy().and.returnValue(true) } as never,
             chatStore as never,
             { initialize: jasmine.createSpy(), closeAll: jasmine.createSpy(), clear: jasmine.createSpy(), handleViewportChange: jasmine.createSpy() } as never,
-            {} as never,
-            {} as never,
             {} as never,
             { events: new Subject() } as never,
             {
@@ -41,14 +38,11 @@ describe('DahsboardComponent', () => {
         const capabilityState = new BehaviorSubject<CommunityCapabilitiesResponse>(capabilities(false));
         const component = new DahsboardComponent(
             { userId: 7 } as never,
-            {} as never,
             { status$: realtimeStates.asObservable(), retry: jasmine.createSpy() } as never,
             { state$: new BehaviorSubject(null), accountRestrictionMessage: jasmine.createSpy() } as never,
             { state$: capabilityState.asObservable(), isActive: jasmine.createSpy().and.returnValue(false) } as never,
             { state$: new BehaviorSubject({ conversations: [] }), initialize: jasmine.createSpy(), clear: jasmine.createSpy() } as never,
             { initialize: jasmine.createSpy(), closeAll: jasmine.createSpy(), clear: jasmine.createSpy(), handleViewportChange: jasmine.createSpy() } as never,
-            {} as never,
-            {} as never,
             {} as never,
             { events: new Subject() } as never,
             {
@@ -92,14 +86,11 @@ describe('DahsboardComponent', () => {
         };
         const component = new DahsboardComponent(
             { userId: 7 } as never,
-            {} as never,
             { status$: new BehaviorSubject({ chat: 'idle', community: 'idle' }), retry: jasmine.createSpy() } as never,
             moderationAccess as never,
             capabilitiesService as never,
             chatStore as never,
             chatFloating as never,
-            {} as never,
-            {} as never,
             {} as never,
             { events: new Subject() } as never,
             presentation as never

@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { ChatConversation, ChatConversationType } from '../../../../interfaces/chat';
 import { CommunityUser } from '../../../../interfaces/community';
 import { ChatGroupCandidate } from '../../../../interfaces/chat';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { ChatService } from '../../../../services/entities/chat.service';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { ChatFloatingCoordinatorService } from '../../../../services/stores/chat-floating-coordinator.service';
@@ -53,7 +53,7 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
     private searchTimer: ReturnType<typeof setTimeout> | null = null;
     private searchVersion = 0;
 
-    constructor(private store: ChatStoreService, private session: SessionService, private floating: ChatFloatingCoordinatorService, private community: CommunityService, private chat: ChatService) { }
+    constructor(private store: ChatStoreService, private session: PlatformSessionService, private floating: ChatFloatingCoordinatorService, private community: CommunityService, private chat: ChatService) { }
 
     ngOnInit(): void {
         this.store.initialize(this.session.userId);

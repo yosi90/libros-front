@@ -3,7 +3,7 @@ import { NavbarComponent } from './components/shared/common/navbar/navbar.compon
 import { RouterComponent } from './components/shared/common/main-router/router.component';
 import { FooterComponent } from './components/shared/common/footer/footer.component';
 import { LoaderEmmitterService } from './services/emmitters/loader.service';
-import { SessionService } from './services/auth/session.service';
+import { PlatformSessionService } from './services/auth/platform-session.service';
 import { AuthorStoreService } from './services/stores/author-store.service';
 import { UniverseStoreService } from './services/stores/universe-store.service';
 import { combineLatest, finalize, timeout } from 'rxjs';
@@ -135,7 +135,7 @@ export class AppComponent implements OnInit {
 
     constructor(
         private loader: LoaderEmmitterService,
-        private sessionSrv: SessionService,
+        private sessionSrv: PlatformSessionService,
         private collectionSrv: CollectionService,
         private universeStore: UniverseStoreService,
         private catalogSrv: CatalogService,
@@ -218,6 +218,9 @@ export class AppComponent implements OnInit {
 
         this.libraryRestorationInFlight = true;
         this.loader.activateLoader('library');
+        // Lo que llegue de otra cuenta (CAMBIO_DE_CUENTA.md) no se guarda: el interceptor ya lo descarta, y aquí
+        // tampoco se aplica el catálogo de autores que se pide después.
+        const generation = this.sessionSrv.generation;
 
         // La biblioteca es la superficie necesaria para entrar. El catálogo de
         // autores es auxiliar y no debe mantener toda la app bloqueada.
@@ -229,10 +232,11 @@ export class AppComponent implements OnInit {
             })
         ).subscribe({
             next: universes => {
+                if (!this.sessionSrv.isCurrentGeneration(generation)) return;
                 this.universeStore.setUniverses(universes);
                 this.libraryRestored = true;
                 this.catalogSrv.getAuthors().pipe(timeout({ first: 30000 })).subscribe({
-                    next: authors => this.authorStore.setAuthors(authors),
+                    next: authors => { if (this.sessionSrv.isCurrentGeneration(generation)) this.authorStore.setAuthors(authors); },
                     error: () => this.toasts.showSystem('El catálogo de autores tardó demasiado. Se volverá a cargar cuando lo necesites.', {
                         title: 'Catálogo pendiente', dedupeKey: 'library:authors:timeout', durationMs: 6000
                     })
@@ -243,7 +247,7 @@ export class AppComponent implements OnInit {
                 // La autenticación ya terminó correctamente. Un fallo de datos
                 // no invalida la sesión; los errores terminales de auth los
                 // procesa ErrorInterceptorService antes de llegar aquí.
-                if (!this.sessionSrv.userIsLogged)
+                if (!this.sessionSrv.userIsLogged || !this.sessionSrv.isCurrentGeneration(generation))
                     return;
                 const cause = getProductStateMessage(error, 'La API no ha permitido cargar tu biblioteca.');
                 this.toasts.showSystem(`${cause} Tu sesión se conserva.`, {

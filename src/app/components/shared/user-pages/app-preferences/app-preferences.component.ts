@@ -3,7 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserProfileUpdate } from '../../../../interfaces/user';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { ProfileActivityPreferencesComponent } from '../user-profile/preferences/profile-activity-preferences.component';
 import { ProfileChatPreferencesComponent } from '../user-profile/preferences/profile-chat-preferences.component';
@@ -36,7 +36,7 @@ export class AppPreferencesComponent {
     ];
 
     constructor(
-        private session: SessionService,
+        private session: PlatformSessionService,
         private presentation: PresentationModeService,
         route: ActivatedRoute
     ) {
@@ -60,9 +60,15 @@ export class AppPreferencesComponent {
     select(section: PreferenceSection): void { this.activeSection = section; }
     openPrivacy(): void { this.activeSection = 'privacy'; this.privacyActivationToken++; }
     consumePrivacyActivation(): void { this.privacyActivationToken = 0; }
+    // Pendiente del hito 3: la privacidad pasa a `<yosi-privacidad>` de la plataforma.
     applyPrivacy(update: UserProfileUpdate): void {
-        this.session.applyLocalProfileUpdate(update);
-        this.privacySettings = this.currentPrivacySettings();
+        const current = this.privacySettings;
+        this.privacySettings = {
+            perfilPublico: update.perfilPublico ?? current.perfilPublico,
+            mostrarEstadisticas: update.mostrarEstadisticas ?? current.mostrarEstadisticas,
+            mostrarBiblioteca: update.mostrarBiblioteca ?? current.mostrarBiblioteca,
+            permitirMensajes: update.permitirMensajes ?? current.permitirMensajes
+        };
     }
 
     private currentPrivacySettings() {
