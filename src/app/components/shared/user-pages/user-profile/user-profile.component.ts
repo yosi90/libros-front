@@ -46,6 +46,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-view/mobile-profile-view.component';
 import { NativeProfileImageService } from '../../../../services/native/native-profile-image.service';
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
+import { getStatusIcon } from '../../../../shared/reading-status';
 
 type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports' | 'security' | 'preferences' | ManagerKind;
 type InlineProfileEditMode = 'username' | 'displayName' | 'bio' | 'privacy' | 'image';
@@ -557,13 +558,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     getStatusIcon(statusName: string): string {
-        if (statusName === 'Por comprar')
-            return 'add_shopping_cart';
-        if (statusName === 'En espera')
-            return 'schedule';
-        if (statusName === 'En marcha')
-            return 'auto_stories';
-        return 'done_all';
+        return getStatusIcon({ Nombre: statusName });
     }
 
     getProfileDisplayName(): string {
