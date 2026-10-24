@@ -32,16 +32,11 @@ object Iconos {
     @DrawableRes val personAdd = R.drawable.mi_person_add
     @DrawableRes val login = R.drawable.mi_login
     @DrawableRes val logout = R.drawable.mi_logout
-    @DrawableRes val add = R.drawable.mi_add
     @DrawableRes val wifiOff = R.drawable.mi_wifi_off
-    @DrawableRes val refresh = R.drawable.mi_refresh
     @DrawableRes val openInNew = R.drawable.mi_open_in_new
     @DrawableRes val warning = R.drawable.mi_warning
     @DrawableRes val info = R.drawable.mi_info
-    @DrawableRes val checkCircle = R.drawable.mi_check_circle
     @DrawableRes val password = R.drawable.mi_password
-    @DrawableRes val devices = R.drawable.mi_devices
-    @DrawableRes val privacyTip = R.drawable.mi_privacy_tip
     @DrawableRes val bugReport = R.drawable.mi_bug_report
     @DrawableRes val chevronRight = R.drawable.mi_chevron_right
     @DrawableRes val article = R.drawable.mi_article

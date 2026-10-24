@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Solo en las compilaciones de depuración: las muestras de las pantallas de la cuenta (MuestrasDeCuenta.kt), para
+  capturarlas por ADB sin entrar. Exportada para `adb shell am start`; no existe en las de publicación.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <activity
+            android:name=".MuestrasDeCuenta"
+            android:exported="true"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="ExportedActivity" />
+    </application>
+
+</manifest>

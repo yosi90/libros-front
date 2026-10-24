@@ -57,13 +57,15 @@ fun Armazon(
     avatar: String? = null,
     alAbrirCuentas: () -> Unit = {},
     aviso: (@Composable () -> Unit)? = null,
+    /** Con la hoja «Más» ya abierta (las muestras de depuración). */
+    masAbiertaAlPrincipio: Boolean = false,
     contenido: @Composable (Destino) -> Unit = { PantallaVacia(it) },
 ) {
     val colores = LocalColores.current
     val ventana = LocalVentana.current
     val zona = WindowInsets.zonaSegura.asPaddingValues()
     val direccion = LocalLayoutDirection.current
-    var masAbierta by rememberSaveable { mutableStateOf(false) }
+    var masAbierta by rememberSaveable { mutableStateOf(masAbiertaAlPrincipio) }
     val porDestino = rememberSaveableStateHolder()
 
     // La hoja «Más» registra el suyo después, así que Atrás la cierra antes que volver.

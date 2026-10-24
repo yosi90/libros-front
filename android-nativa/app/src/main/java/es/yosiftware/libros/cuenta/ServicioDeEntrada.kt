@@ -33,10 +33,11 @@ class ServicioDeEntrada : Service() {
             .setOngoing(true)
             .setSilent(true)
             .build()
-        val tipo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE
-        } else {
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        // Antes de Android 10 el servicio no lleva tipo.
+        val tipo = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            else -> 0
         }
         try {
             ServiceCompat.startForeground(this, ID, aviso, tipo)

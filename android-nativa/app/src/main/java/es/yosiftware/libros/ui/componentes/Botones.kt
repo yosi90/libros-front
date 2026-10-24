@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.ui.tema.Alturas
@@ -81,10 +82,11 @@ fun Boton(
 
 /**
  * El botón de texto de la APK: `.m-auth-link` (src/assets/css/mobile/_public-auth.sass), sin fondo ni borde, 44 dp de
- * alto como mínimo y texto `.8rem` de 800 en el color primario. `.m-button` no tiene variante de texto.
+ * alto como mínimo y texto `.8rem` de 800 en el color primario. `.m-button` no tiene variante de texto. Con [subrayado],
+ * como el `<a>` de «He olvidado mi contraseña».
  */
 @Composable
-fun BotonDeTexto(texto: String, alPulsar: () -> Unit, modifier: Modifier = Modifier, habilitado: Boolean = true) {
+fun BotonDeTexto(texto: String, alPulsar: () -> Unit, modifier: Modifier = Modifier, habilitado: Boolean = true, subrayado: Boolean = false) {
     val colores = LocalColores.current
     Box(
         modifier
@@ -92,7 +94,7 @@ fun BotonDeTexto(texto: String, alPulsar: () -> Unit, modifier: Modifier = Modif
             .clickable(enabled = habilitado, role = Role.Button, onClick = alPulsar),
         contentAlignment = Alignment.CenterEnd,
     ) {
-        Text(texto, color = colores.primario, style = Textos.enlace)
+        Text(texto, color = colores.primario, style = if (subrayado) Textos.enlace.copy(textDecoration = TextDecoration.Underline) else Textos.enlace)
     }
 }
 

@@ -29,6 +29,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.ui.tema.Espacios
@@ -57,6 +58,8 @@ fun Campo(
     teclado: KeyboardOptions = KeyboardOptions.Default,
     acciones: KeyboardActions = KeyboardActions.Default,
     transformacion: VisualTransformation = VisualTransformation.None,
+    /** El `font: inherit` del `input`: el del cuerpo, o el de quien lo contiene (`.m-auth-field`, .78rem). */
+    estilo: TextStyle = Textos.cuerpo,
     alFinal: @Composable RowScope.() -> Unit = {},
 ) {
     val colores = LocalColores.current
@@ -91,7 +94,7 @@ fun Campo(
                 },
             enabled = habilitado,
             singleLine = unaLinea,
-            textStyle = Textos.cuerpo.copy(color = colores.tinta),
+            textStyle = estilo.copy(color = colores.tinta),
             cursorBrush = SolidColor(colores.primario),
             keyboardOptions = teclado,
             keyboardActions = acciones,
@@ -99,7 +102,7 @@ fun Campo(
             interactionSource = interaccion,
             decorationBox = { texto ->
                 Box {
-                    if (valor.isEmpty() && ejemplo != null) Text(ejemplo, color = colores.tintaSuave, style = Textos.cuerpo)
+                    if (valor.isEmpty() && ejemplo != null) Text(ejemplo, color = colores.tintaSuave, style = estilo)
                     texto()
                 }
             },

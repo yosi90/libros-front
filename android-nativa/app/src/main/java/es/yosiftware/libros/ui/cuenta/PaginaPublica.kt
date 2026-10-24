@@ -2,6 +2,7 @@ package es.yosiftware.libros.ui.cuenta
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -90,7 +91,10 @@ private fun rem(valor: Double) = (valor * 16).sp
 /** `.mobile-public-shell__brand`: display, 1rem y 700, en el primario y centrado. */
 private val textoMarca = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.0), fontWeight = FontWeight.Bold)
 
-/** `.m-auth-field`: la etiqueta, .78rem. El Sass pide 700, pero en las capturas se ve con el peso medio. */
+/**
+ * `.m-auth-field`: la etiqueta, .78rem, que el `input` hereda (`font: inherit`). El Sass pide 700, pero en las capturas
+ * se ve con el peso medio.
+ */
 private val textoEtiqueta = Textos.cuerpo.copy(fontSize = rem(0.78), fontWeight = FontWeight.Medium)
 
 /** `.m-auth-notice`: .8rem e interlineado 1.4. */
@@ -181,6 +185,11 @@ fun BarraPublica(alVolver: (() -> Unit)?, etiquetaVolver: String = "Volver") {
  * con [citaEnCompacta] (la de entrar la lleva). Desde 600 dp, en dos columnas: la presentación (el titular, hasta 10ch y
  * `clamp(2.35rem, 5.5vw, 3rem)`, con la cita debajo) y el panel, de [panelMinimo] a [panelMaximo] (`minmax`), separados
  * por `clamp(48px, 8vw, 96px)` (o la [separacion] de la pantalla).
+ *
+ * TODO(clon): la de dos columnas (desde 600 dp) no se ha podido comparar en el móvil: el Xiaomi es compacto y el Honor
+ * desplegado lo usa otro agente. Compararla con las capturas `__desplegado` de `arranque/`. En la de entrar, el panel
+ * va de 320 a 380 dp (el del formulario de correo de la APK), no de 240 a 260 como el selector de métodos, porque aquí
+ * el formulario está en el mismo panel.
  */
 @Composable
 fun PaginaDeAcceso(
@@ -194,6 +203,7 @@ fun PaginaDeAcceso(
     panelMinimo: Dp = 360.dp,
     panelMaximo: Dp = 440.dp,
     separacion: ((Float) -> Dp)? = null,
+    desplazamiento: ScrollState = rememberScrollState(),
     panel: @Composable ColumnScope.() -> Unit,
 ) {
     val colores = LocalColores.current
@@ -213,7 +223,7 @@ fun PaginaDeAcceso(
                 end = max(lados, zona.calculateRightPadding(direccion)),
             )
             val altoMinimo = maxHeight - arriba - max(abajo, zona.calculateBottomPadding())
-            Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).then(relleno), contentAlignment = Alignment.TopCenter) {
+            Box(Modifier.fillMaxSize().verticalScroll(desplazamiento).then(relleno), contentAlignment = Alignment.TopCenter) {
                 if (ancha) {
                     val hueco = separacion?.invoke(ventana.anchoDp) ?: (ventana.anchoDp * 0.08f).coerceIn(48f, 96f).dp
                     Row(
@@ -328,6 +338,7 @@ fun CampoDeAcceso(
             teclado = teclado,
             acciones = acciones,
             transformacion = if (secreto && !visible) PasswordVisualTransformation() else VisualTransformation.None,
+            estilo = textoEtiqueta,
         ) {
             if (secreto) {
                 BotonDeIcono(

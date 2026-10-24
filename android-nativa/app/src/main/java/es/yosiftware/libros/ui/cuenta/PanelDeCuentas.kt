@@ -168,7 +168,7 @@ private fun Separador() {
 }
 
 /**
- * Una cuenta guardada: su avatar de 40 dp, su nombre (o su alias) con `@alias` debajo, y lo que se pueda hacer con
+ * Una cuenta guardada: su avatar de 40 dp, su nombre (o su alias) con `@alias` debajo si es otro, y lo que se pueda hacer con
  * ella. [alPulsar] cambia a ella; una caducada lleva [detalle] en el color de atención, y «Volver a entrar» y «Olvidar».
  * Fuera de la lista ([enLista] falso), con la superficie y el radio de `.m-list-item`.
  */
@@ -198,7 +198,9 @@ fun FilaDeCuenta(
             Avatar(tamanoFoto = 40.dp, url = perfiles.avatar(cuenta.id), nombre = nombre, conBorde = false)
             Column(Modifier.weight(1f)) {
                 Text(nombre, color = colores.tinta, style = Textos.filaPrincipal, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("@${cuenta.alias}", color = colores.tintaSuave, style = Textos.filaSecundaria, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (nombre != cuenta.alias) {
+                    Text("@${cuenta.alias}", color = colores.tintaSuave, style = Textos.filaSecundaria, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
                 if (detalle != null) {
                     Text(detalle, color = if (cuenta.caducada) colores.atencion else colores.tintaSuave, style = Textos.filaSecundaria)
                 }

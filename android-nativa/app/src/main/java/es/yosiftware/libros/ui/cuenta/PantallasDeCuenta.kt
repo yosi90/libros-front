@@ -3,6 +3,8 @@ package es.yosiftware.libros.ui.cuenta
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +37,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -113,7 +118,12 @@ fun PantallaDeArranque() {
             Modifier.size(160.dp).clip(CircleShape).background(colorResource(R.color.ic_launcher_background)),
             contentAlignment = Alignment.Center,
         ) {
-            Image(painterResource(R.mipmap.ic_launcher_foreground), contentDescription = null, modifier = Modifier.requiredSize(240.dp))
+            Image(
+                ImageBitmap.imageResource(R.mipmap.ic_launcher_foreground),
+                contentDescription = null,
+                modifier = Modifier.requiredSize(240.dp),
+                filterQuality = FilterQuality.High,
+            )
         }
         if (largo) {
             CircularProgressIndicator(
@@ -172,7 +182,13 @@ private fun AvisoDelMotivo(motivo: Motivo) {
  * No hay teléfono: la plataforma no lo tiene. Mientras se añade otra cuenta, Atrás vuelve a la de antes.
  */
 @Composable
-fun PantallaDeEntrar(vm: CuentaViewModel, perfiles: PerfilesViewModel, motivo: Motivo?, cuentas: List<CuentaGuardada>) {
+fun PantallaDeEntrar(
+    vm: CuentaViewModel,
+    perfiles: PerfilesViewModel,
+    motivo: Motivo?,
+    cuentas: List<CuentaGuardada>,
+    desplazamiento: ScrollState = rememberScrollState(),
+) {
     val contexto = LocalContext.current
     val actividad = LocalActivity.current
     val sesion = vm.sesion ?: return
@@ -202,6 +218,7 @@ fun PantallaDeEntrar(vm: CuentaViewModel, perfiles: PerfilesViewModel, motivo: M
         panelMinimo = 320.dp,
         panelMaximo = 380.dp,
         separacion = { ancho -> (ancho * 0.07f).coerceIn(48f, 72f).dp },
+        desplazamiento = desplazamiento,
     ) {
         ConTuCuentaDeYosiftware()
         if (vm.ocupado) Trabajando("Entrando con tu cuenta…")
@@ -253,7 +270,7 @@ fun PantallaDeEntrar(vm: CuentaViewModel, perfiles: PerfilesViewModel, motivo: M
             habilitado = !vm.ocupado,
         )
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            BotonDeTexto("He olvidado mi contraseña", { Enlaces.abrir(contexto, sesion.direccionPaginaDeAcceso()) })
+            BotonDeTexto("He olvidado mi contraseña", { Enlaces.abrir(contexto, sesion.direccionPaginaDeAcceso()) }, subrayado = true)
         }
         Boton("Iniciar sesión", { entrar() }, Modifier.fillMaxWidth(), habilitado = puedeEntrar)
         ErrorDeLaAccion(vm)

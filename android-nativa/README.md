@@ -21,6 +21,14 @@ Mismo paquete que la APK de Capacitor (`es.yosiftware.libros`, y `.qa` en QA), c
 
 Las pruebas JVM (`app/src/test/.../datos/`) no salen a la red: usan MockWebServer.
 
+## La cuenta (`cuenta/` y `ui/cuenta/`, hito 6)
+
+- `LibrosApp` crea la `SesionYosiftware` al arrancar el proceso y la inicia; `MainActivity` llama a `comprobar()` en cada `onStart`. `cuenta/AccesoALaSesion` es lo que la interfaz usa de la librería (sin cambiarla), para poder probarla en la JVM con una sesión falsa.
+- `ui/AppLibros.kt` pinta una pantalla por estado (`ui/cuenta/PantallasDeCuenta.kt`), con el aspecto de las públicas de la APK de Capacitor (`ui/cuenta/PaginaPublica.kt`). Con sesión, el shell; el panel de cuentas (`ui/cuenta/PanelDeCuentas.kt`) se abre desde el avatar del rail y desde «Cuenta» en la hoja «Más».
+- `CuentaViewModel` hace las acciones (una a la vez, con su error) y `PerfilesViewModel` lee los perfiles públicos (nombre y avatar) con el ámbito de la cuenta, que los vacía al cambiar de identidad.
+- Entrar con Google enciende `cuenta/ServicioDeEntrada` (servicio en primer plano corto), como 3.5 Companion, para que MagicOS no congele la app.
+- Solo en depuración, `MuestrasDeCuenta` (`app/src/debug/`) pinta cada pantalla con una sesión de muestra para capturarla por ADB sin entrar: `adb shell am start -n es.yosiftware.libros.qa/es.yosiftware.libros.MuestrasDeCuenta --es vista entrar --es tema oscuro` (las vistas, en su cabecera). Con `--es vista google` lanza «Entrar con Google» de verdad, para ver que sale el selector de cuentas.
+
 ## Compilar
 
 Con el JDK 21 y el SDK de Android (en `local.properties`, `sdk.dir=…`, que no se versiona):
