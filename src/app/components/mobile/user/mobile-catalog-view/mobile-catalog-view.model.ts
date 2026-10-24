@@ -32,6 +32,8 @@ export interface MobileCatalogController extends CatalogSagaController, PublicDe
     toggleFilters(): void;
     setTypeFilter(type: 'todos' | 'libro' | 'antologia'): void;
     applySelectFilters(): void;
+    applySelectFilter(field: 'status' | 'rating' | 'language' | 'style', event: Event): void;
+    openDetailCorrection(event: Event): void;
     openItem(item: CatalogItem): void;
     openNewRequest(type: 'libro' | 'antologia'): void;
     openCorrectionRequest(item: CatalogItem, event: MouseEvent): void;

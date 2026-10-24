@@ -20,7 +20,7 @@ export class WoodPublicDetailModalComponent {
     @Input({ required: true }) controller!: PublicDetailHost;
     /** Catálogo ofrece proponer una corrección de la ficha. */
     @Input() showCorrection = false;
-    @Output() readonly correctionRequested = new EventEmitter<{ item: CatalogItem; event: MouseEvent }>();
+    @Output() readonly correctionRequested = new EventEmitter<Event>();
 
     /** «Añadir a mi biblioteca» con un estado directo, si el container lo ofrece (Catálogo). */
     get canAddWithStatus(): boolean {

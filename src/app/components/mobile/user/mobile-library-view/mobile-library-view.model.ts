@@ -63,6 +63,7 @@ export interface MobileLibraryController {
     markSagaExpanded(sagaId: number, manual?: boolean): void;
     markSagaCollapsed(sagaId: number, manual?: boolean): void;
     isRunningBook(book: BookSimple): boolean;
+    runningBooks(limit: number): BookSimple[];
     handleCoverImageError(event: Event): void;
     latestStatusName(item: BookSimple | Antology): string;
     latestStatusClass(item: BookSimple | Antology): string;

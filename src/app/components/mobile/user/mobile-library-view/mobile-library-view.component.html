@@ -34,11 +34,11 @@
         </section>
     }
 
-    @if (!controller.isLoadingUniverses && !controller.hasActiveLibraryFilters && runningBooks.length) {
+    @if (!controller.isLoadingUniverses && !controller.hasActiveLibraryFilters && controller.runningBooks(6).length) {
         <section class="m-library__continue" aria-label="Continúa leyendo">
             <h2>Continúa leyendo</h2>
             <div class="m-library__continue-rail">
-                @for (book of runningBooks; track book.Id) {
+                @for (book of controller.runningBooks(6); track book.Id) {
                     <button class="m-library__continue-card" type="button" (click)="controller.openBook(book)" [attr.aria-label]="'Abrir ' + book.Nombre">
                         <img [src]="book.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
                         <span class="m-library__continue-copy">

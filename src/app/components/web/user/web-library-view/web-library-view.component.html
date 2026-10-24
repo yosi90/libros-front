@@ -13,9 +13,9 @@
       (committed)="commit($event)" (removed)="controller.removeTextFilter($event)" (cleared)="controller.clearLibraryFilters()"></app-web-scoped-search>
   </header>
 
-  @if (!controller.isLoadingUniverses && !controller.hasActiveLibraryFilters && runningBooks.length) {
+  @if (!controller.isLoadingUniverses && !controller.hasActiveLibraryFilters && controller.runningBooks(3).length) {
     <section class="continue" aria-label="Continúa leyendo">
-      @for (book of runningBooks; track book.Id; let first = $first) {
+      @for (book of controller.runningBooks(3); track book.Id; let first = $first) {
         <article class="continue__item" [class.is-primary]="first" (click)="controller.openBook(book)">
           <img [src]="book.Portada | coverCache | async" [alt]="'Portada de ' + book.Nombre" (error)="controller.handleCoverImageError($event)">
           <div class="continue__body">

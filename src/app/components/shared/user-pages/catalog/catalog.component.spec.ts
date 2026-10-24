@@ -76,6 +76,20 @@ describe('CatalogComponent', () => {
         Estados: []
     };
 
+    it('aplica los filtros de los selectores de Mobile y Web con valores numéricos o vacíos', () => {
+        const { component, catalogSrv } = createComponent();
+        catalogSrv.getBooks.and.returnValue(of([]));
+        catalogSrv.getAnthologies.and.returnValue(of([]));
+        catalogSrv.getSagas.and.returnValue(of([]));
+
+        component.applySelectFilter('rating', { target: { value: '3' } } as unknown as Event);
+        component.applySelectFilter('language', { target: { value: '' } } as unknown as Event);
+
+        expect(component.selectedRatingFilter).toBe(3);
+        expect(component.selectedLanguageFilter).toBe('');
+        expect(catalogSrv.getBooks).toHaveBeenCalledTimes(2);
+    });
+
     it('acepta el año de publicación y la sinopsis en una petición de libro', () => {
         const { component, catalogRequestSrv, snackBar } = createComponent();
         catalogRequestSrv.create.and.returnValue(of({ success: true, Id: 3, Estado: 'pendiente' }));

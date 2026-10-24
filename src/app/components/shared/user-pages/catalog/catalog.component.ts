@@ -372,6 +372,23 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         this.loadCatalog();
     }
 
+    /** Filtro elegido en un <select> de Mobile o Web: vacío es «todos». */
+    applySelectFilter(field: 'status' | 'rating' | 'language' | 'style', event: Event): void {
+        const raw = (event.target as HTMLSelectElement).value;
+        const value = raw === '' ? '' : Number(raw);
+        if (field === 'status') this.selectedStatusFilter = value as ReadingStatusId | '';
+        if (field === 'rating') this.selectedRatingFilter = value;
+        if (field === 'language') this.selectedLanguageFilter = value;
+        if (field === 'style') this.selectedStyleFilter = value;
+        this.applySelectFilters();
+    }
+
+    /** «Proponer corrección» desde la ficha abierta, en cualquier presentación. */
+    openDetailCorrection(event: Event): void {
+        if (this.selectedDetailItem)
+            this.openCorrectionRequest(this.selectedDetailItem, event as MouseEvent);
+    }
+
     get hasActiveFilters(): boolean {
         return this.searchTerms.length > 0 ||
             this.draftQuery.trim().length > 0 ||

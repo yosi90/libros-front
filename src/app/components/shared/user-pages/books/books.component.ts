@@ -946,6 +946,17 @@ export class BooksComponent implements OnInit {
         return (universe.Libros?.length ?? 0) + (universe.Antologias?.length ?? 0);
     }
 
+    /** Lecturas en marcha para «Continúa leyendo», en el orden de la biblioteca. */
+    runningBooks(limit: number): BookSimple[] {
+        const books: BookSimple[] = [];
+        for (const universe of this.universesToShow) {
+            for (const saga of universe.Sagas ?? [])
+                books.push(...(saga.Libros ?? []));
+            books.push(...(universe.Libros ?? []));
+        }
+        return books.filter(book => this.isRunningBook(book)).slice(0, limit);
+    }
+
     isRunningBook(book: BookSimple): boolean {
         return book.Estados?.[book.Estados.length - 1]?.Nombre === "En marcha";
     }

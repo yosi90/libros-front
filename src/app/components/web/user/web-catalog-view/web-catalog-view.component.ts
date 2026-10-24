@@ -32,20 +32,6 @@ export class WebCatalogViewComponent {
             .filter(value => value !== '').length;
     }
 
-    applySelect(event: Event, field: 'status' | 'rating' | 'language' | 'style'): void {
-        const raw = (event.target as HTMLSelectElement).value;
-        const value = raw === '' ? '' : Number(raw);
-        if (field === 'status') this.controller.selectedStatusFilter = value as WebCatalogController['selectedStatusFilter'];
-        if (field === 'rating') this.controller.selectedRatingFilter = value;
-        if (field === 'language') this.controller.selectedLanguageFilter = value;
-        if (field === 'style') this.controller.selectedStyleFilter = value;
-        this.controller.applySelectFilters();
-    }
-
-    correction(event: Event): void {
-        if (this.controller.selectedDetailItem)
-            this.controller.openCorrectionRequest(this.controller.selectedDetailItem, event as MouseEvent);
-    }
 
     kindLabel(item: CatalogItem): string {
         return item.Tipo === 'libro' ? 'Libro' : 'Antología';

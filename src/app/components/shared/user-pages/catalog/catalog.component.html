@@ -217,7 +217,7 @@
 }
 
 @if (selectedDetailItem && !isMobilePresentation && !isWebPresentation) {
-  <app-wood-public-detail-modal [controller]="this" [showCorrection]="true" (correctionRequested)="openCorrectionRequest($event.item, $event.event)"></app-wood-public-detail-modal>
+  <app-wood-public-detail-modal [controller]="this" [showCorrection]="true" (correctionRequested)="openDetailCorrection($event)"></app-wood-public-detail-modal>
 }
 
 @if (selectedCollectionItem) {

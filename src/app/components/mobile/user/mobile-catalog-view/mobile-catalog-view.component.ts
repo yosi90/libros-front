@@ -24,18 +24,4 @@ export class MobileCatalogViewComponent {
         this.contentScrolled = ((event.currentTarget as HTMLElement | null)?.scrollTop ?? 0) > 1;
     }
 
-    applySelect(event: Event, field: 'status' | 'rating' | 'language' | 'style'): void {
-        const raw = (event.target as HTMLSelectElement).value;
-        const value = raw === '' ? '' : Number(raw);
-        if (field === 'status') this.controller.selectedStatusFilter = value as MobileCatalogController['selectedStatusFilter'];
-        if (field === 'rating') this.controller.selectedRatingFilter = value;
-        if (field === 'language') this.controller.selectedLanguageFilter = value;
-        if (field === 'style') this.controller.selectedStyleFilter = value;
-        this.controller.applySelectFilters();
-    }
-
-    correction(event: Event): void {
-        if (this.controller.selectedDetailItem)
-            this.controller.openCorrectionRequest(this.controller.selectedDetailItem, event as MouseEvent);
-    }
 }

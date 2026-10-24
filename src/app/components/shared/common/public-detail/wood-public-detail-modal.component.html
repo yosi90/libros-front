@@ -31,7 +31,7 @@
                 </button>
               }
               @if (showCorrection) {
-                <button type="button" (click)="correctionRequested.emit({ item, event: $event })">
+                <button type="button" (click)="correctionRequested.emit($event)">
                   <mat-icon>rate_review</mat-icon>
                   Proponer corrección
                 </button>
