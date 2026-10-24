@@ -34,8 +34,8 @@ import es.yosiftware.libros.ui.tema.TemaMobile
  * contenido entre las dos (64 dp más la zona segura de arriba; 72 más la de abajo). Desde 600 dp, el rail a la
  * izquierda y el contenido a su lado, desde la zona segura de arriba hasta el borde de abajo, sin app bar.
  *
- * El avatar (la miniatura del perfil de la plataforma) va en la app bar, el rail y la hoja «Más». El del rail y la entrada
- * «Cuenta» de la hoja abren el panel de cuentas ([alAbrirCuentas]); el de la app bar, Perfil, como en la APK actual.
+ * El avatar (la miniatura del perfil de la plataforma) va en la app bar, el rail y la hoja «Más». Los de la app bar y el
+ * rail llevan a Perfil, como en la APK actual; la entrada «Cuenta» de la hoja abre el panel de cuentas ([alAbrirCuentas]).
  * [aviso] va encima del contenido (sin conexión).
  *
  * Atrás cierra antes la hoja «Más» y después vuelve por el historial; sin historial, sale de la app. Cada destino
@@ -103,7 +103,8 @@ fun Armazon(
         if (ventana.clase.conRail) {
             Rail(
                 estado, elegir, alternarMas, alPulsarAvisos = { elegir(Destino.Avisos) }, Modifier.align(Alignment.TopStart),
-                avatar = avatar, nombre = nombre, alPulsarAvatar = { masAbierta = false; alAbrirCuentas() },
+                // Como en la APK de Capacitor, el avatar del rail lleva a Perfil; el panel de cuentas se abre desde «Más › Cuenta».
+                avatar = avatar, nombre = nombre,
             )
         } else {
             // La app bar va encima del contenido, como la `fixed` de la web (con z-index 20).
