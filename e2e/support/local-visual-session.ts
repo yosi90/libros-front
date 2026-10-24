@@ -87,43 +87,13 @@ export async function installLocalVisualSession(page: Page, options: { webPresen
                 FechaExpiracion: null,
                 CacheTtlSegundos: 300,
                 Conservadora: true,
-                Capacidades: Object.fromEntries(['sanciones', 'realtime', 'notificaciones', 'feed', 'chat', 'clubes']
-                    .map(id => [id, { Activa: false, VersionMinima: null }]))
+                Capacidades: { clubes: { Activa: false, VersionMinima: null } }
             })
         }));
-        await page.route('**/moderacion/mi-estado-acceso', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-                success: true,
-                AlcancesActivos: [],
-                Restricciones: [],
-                Sanciones: [],
-                Politicas: [],
-                RequiereLimpiarRealtime: false,
-                AlcancesQueRevocanRealtime: []
-            })
-        }));
-        await page.route('**/moderacion/politicas/*/activa', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true, Politica: null })
-        }));
-        await page.route('**/moderacion/mis-incidentes?**', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true, Incidentes: [], limit: 50, offset: 0 })
-        }));
-        await page.route('**/moderacion/alegaciones', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true, Alegaciones: [] })
-        }));
-        await page.route('**/comunidad/relaciones/bloqueos?**', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true, Relaciones: [], SiguienteAfterId: null })
-        }));
+        // Lo social es de la plataforma (hito 3): el chat y las relaciones vacíos, sin red.
+        await page.route('**/v1/chat/conversaciones', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ conversaciones: [] }) }));
+        await page.route('**/v1/social/resumen', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ solicitudesRecibidas: 0, solicitudesEnviadas: 0, amistades: 0, seguidos: 0, seguidores: 0, bloqueos: 0 }) }));
+        await page.route('**/v1/social/amistades?**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ vinculos: [], cursor: null }) }));
         // Perfil: datos personales vacíos para que sus apartados carguen sin red.
         const emptyState = { Total: 0, Comprados: 0, Leidos: 0, Pendientes: 0, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0 };
         await page.route('**/peticiones/catalogo/mias**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
@@ -143,29 +113,6 @@ export async function installLocalVisualSession(page: Page, options: { webPresen
             status: 200,
             contentType: 'application/json',
             body: '[]'
-        }));
-        await page.route('**/notificaciones?**', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true, Notificaciones: [], NoLeidas: 0, SiguienteCursor: null })
-        }));
-        await page.route('**/chat/preferencias-flotantes', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-                success: true,
-                Preferencias: {
-                    VersionShape: 1,
-                    Version: 1,
-                    FechaActualizacion: null,
-                    AutoabrirListado: false,
-                    PermitirBurbujas: true,
-                    ModoListado: 'normal',
-                    PosicionListado: null,
-                    TamanoListado: null,
-                    ConversacionesFlotantes: []
-                }
-            })
         }));
         await page.route('**/image/get/**', route => route.fulfill({
             status: 200,

@@ -1,48 +1,6 @@
 import { expect, test } from './fixtures/test';
 import { installLocalVisualSession } from './support/local-visual-session';
 
-for (const theme of ['light', 'dark'] as const) {
-    test(`Web ${theme}: Notificaciones forma parte de la navegación plegable`, async ({ page }) => {
-        // La campana propia se apaga con la adhesión: llega `<yosi-notificaciones>` de la plataforma.
-        test.fixme(true, 'Pendiente del hito 3: las notificaciones pasan a la plataforma.');
-        await installLocalVisualSession(page, { webPresentation: true });
-        await page.addInitScript(value => {
-            localStorage.setItem('libros:web-theme:last', value);
-        }, theme);
-        if (theme === 'dark') await page.setViewportSize({ width: 3440, height: 1440 });
-        await page.route('**/comunidad/capacidades', route => route.fulfill({
-            status: 200, contentType: 'application/json', body: JSON.stringify({
-                success: true, UsuarioId: 37, Conservadora: false,
-                Capacidades: Object.fromEntries(['sanciones', 'realtime', 'notificaciones', 'feed', 'chat', 'clubes']
-                    .map(id => [id, { Activa: id === 'notificaciones', VersionMinima: null }]))
-            })
-        }));
-        await page.goto('/dashboard/books');
-        const nav = page.locator('.web-nav');
-        const bell = nav.locator('.web-nav__bell');
-        await expect(bell.getByRole('button', { name: 'Abrir notificaciones' })).toBeVisible();
-        await expect(bell.locator('.notification-bell__label')).toBeVisible();
-        await expect(page.locator('.web-corner-bell')).toHaveCount(0);
-        if (theme === 'dark') {
-            await expect(page.locator('html')).toHaveAttribute('data-ultrawide', 'true');
-            const navBox = await nav.boundingBox();
-            const bellBox = await bell.boundingBox();
-            expect(navBox).not.toBeNull();
-            expect(bellBox).not.toBeNull();
-            expect(bellBox!.x).toBeGreaterThanOrEqual(navBox!.x);
-            expect(bellBox!.x + bellBox!.width).toBeLessThanOrEqual(navBox!.x + navBox!.width);
-        }
-
-        await nav.getByRole('button', { name: 'Contraer navegación' }).click();
-        await expect(nav).toHaveClass(/is-collapsed/);
-        await expect(bell.locator('.notification-bell__label')).toBeHidden();
-        await expect(bell.getByRole('button', { name: 'Abrir notificaciones' })).toBeVisible();
-
-        await page.setViewportSize({ width: 390, height: 844 });
-        await expect(page.locator('.web-topbar__bell').getByRole('button', { name: 'Abrir notificaciones' })).toBeVisible();
-    });
-}
-
 test('Administración muestra una petición pendiente con detalles y sigue respondiendo', async ({ page }) => {
     await installLocalVisualSession(page, { webPresentation: true, admin: true });
     await page.route('**/peticiones/catalogo?**', route => route.fulfill({
