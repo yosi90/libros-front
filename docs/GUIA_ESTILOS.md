@@ -17,7 +17,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 ## Modos de presentación
 
 - **Selección.** Capacitor → `native-mobile`. Navegador → `wood` si el tema elegido en ese dispositivo es Wood y el ancho supera 1050 px; en cualquier otro caso `web` con el tema claro u oscuro del dispositivo.
-- **Tema por dispositivo.** Cada navegador recuerda su elección (Claro, Oscuro o Wood). La preferencia de cuenta solo aporta el valor inicial de un dispositivo sin elección propia; un cambio en otro dispositivo no la sobrescribe.
+- **Tema por dispositivo.** Cada navegador recuerda su elección (Claro, Oscuro o Wood) y la conserva al cambiar de cuenta. Con la cuenta de Yosiftware el tema no se guarda en la cuenta (`ACCESO.md`, «Los ajustes de la web»); la bienvenida «Elige tu estilo» sale en un dispositivo que aún no ha elegido.
 - **Wood por debajo de 1051 px** se sustituye por Claro sin olvidar la elección: al volver a escritorio se recupera Wood.
 - **El selector de tema** vive en Preferencias, con las tres opciones y una muestra visual. Wood aparece deshabilitado, con su motivo, por debajo de 1051 px. La APK conserva su interruptor sol/luna.
 - Rangos de ancho Web: `compact` `320-599px`, `medium` `600-1050px`, `desktop` desde `1051px`, `wide` desde `1600px`, `ultrawide` desde `2560px`. Wood solo existe en `desktop` y superiores, con los mismos modificadores `wide`/`ultrawide`.
@@ -215,13 +215,11 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 ## Zona pública y autenticación
 
-- Wood restaura sus fondos y composición histórica; Mobile usa un shell público propio sin imágenes decorativas.
-- Web usa `WebPublicShellComponent` (marca, acciones y claro/oscuro del dispositivo, que antes de iniciar sesión solo se guarda en el dispositivo) y `WebAuthPageComponent`: presentación con la cita lectora a la izquierda y el formulario en tarjeta a la derecha; bajo 900 px, una columna sin cita. Los estilos de formulario `.web-auth-*` se emiten una vez en `WebAuthPageComponent`. El login Web muestra Google, un selector Correo/Teléfono y el formulario en la misma tarjeta, sin superficies aparte.
-- Login, registro, recuperación, reset, verificación y onboarding conservan el mismo contrato funcional en ambas vistas.
-- Formularios Mobile permiten scroll con teclado, autofill legible y campos dentro del viewport desde 320px.
+- **La cuenta es la de Yosiftware** (adhesión, 24/10/2026): entrar, crear la cuenta, recuperar la contraseña, verificar el correo y cambiar de cuenta los pinta el SDK de la plataforma (`<yosi-acceso>` y sus ventanas). Libros no tiene formularios de acceso propios ni rutas `/login`, `/register`…, que llevan a la portada.
+- La zona pública es la portada: Web usa `WebPublicShellComponent` (marca, `<yosi-acceso>` en las acciones y claro/oscuro del dispositivo), Wood su composición histórica con el botón en la barra superior, y Mobile `MobilePublicShellComponent` con el botón a la derecha de la marca. «Crear mi biblioteca» y «Ya tengo cuenta» abren el acceso de Yosiftware (registro o entrar), y la línea «Entra con tu cuenta de Yosiftware» lleva el símbolo del ecosistema (`YosiftwareMarkComponent`, `MARCA.md`).
+- **`<yosi-acceso>` en cada cabecera** (`YosiftwareAccountComponent`): barra lateral de Wood y su barra superior del libro, navegación Web (barra compacta y pie de la lateral), cabecera del libro Web y app bar de Mobile. Su aspecto sale de las variables `--yosi-*` de cada presentación (`assets/css/<presentación>/_yosiftware.sass`, declaradas junto a sus tokens); nunca se restila su HTML. Las ventanas de la plataforma reciben `assets/yosiftware.css` (paleta Web en claro y oscuro) y siguen el tema de `<html>` (`dataset.theme`; Wood es oscuro).
+- Todo enlace a la web social («Gestionar tu cuenta de Yosiftware») lleva el símbolo del ecosistema delante.
 - Links secundarios son `<a>` semánticos; no usar `span` con `routerLink`.
-- Cancelar Google, teléfono o un flujo nativo siempre libera loaders y deja una salida recuperable.
-- Los handlers de correo resuelven tanto navegación web como Android App Links.
 
 ## PWA, Android y conectividad
 
@@ -235,7 +233,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - El push Android de chat admite una versión privada con remitente/vista previa y una versión pública genérica para bloqueo seguro. Android y los ajustes del usuario deciden cuál mostrar. En primer plano se usa la notificación interna deduplicada; tocar el aviso consulta la notificación canónica y abre su conversación, sin interpretar URLs del payload.
 - Preferencias ofrece en Android una lectura canónica de permisos de notificaciones, fotos, cámara y micrófono, incluida la selección limitada de fotos. Pedir notificaciones registra además el dispositivo FCM; los demás permisos se solicitan al sistema y siempre existe salida a los ajustes de la aplicación. Web no simula permisos nativos.
 - Android puede colorear el área del sistema con el tema activo, pero ningún control ni texto de la app invade sus insets. En tema claro usa iconos de sistema oscuros y en tema oscuro iconos claros.
-- No persistir refresh, ID token, custom token o access JWT en Web Storage. No debilitar cookies web para hacer funcionar la APK.
+- No persistir tokens en Web Storage ni en cookies propias: los de la plataforma los guarda el SDK en memoria.
 - La descarga de APK abre un destino externo; Android controla la instalación y valida la firma.
 
 ## Angular Material, iconos y modales

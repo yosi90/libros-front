@@ -11,13 +11,13 @@
 
 ## Acceso (web)
 
-- [ ] Carga el SDK del entorno desde la página de acceso, sin copiarlo.
-- [ ] Sin formularios propios de entrar, registrarse ni recuperar la contraseña, y sin Firebase Authentication.
+- [x] Carga el SDK del entorno desde la página de acceso, sin copiarlo. *(Rama `adhesion/web`, sin unir: `environment.plataforma.sdkUrl`; Playwright en `libros.dev.yosiftware.es` con SDK 1.22.0 de QA, 2026-10-24.)*
+- [x] Sin formularios propios de entrar, registrarse ni recuperar la contraseña, y sin Firebase Authentication. *(Rama sin unir: páginas y Firebase retirados; `e2e/public-smoke.spec.ts` comprueba que las rutas antiguas llevan a la portada sin formularios.)*
 - [ ] Entra y sale con `<yosi-acceso>`; cambia de cuenta con su panel, sin salir a la web social.
 - [ ] `<yosi-webs>` en la cabecera, junto a la cuenta.
-- [ ] Con `sin_sesion`, olvida los datos de la persona y vuelve a la vista sin sesión.
-- [ ] Identifica por `cuenta.id`; no guarda tokens en `localStorage`, `sessionStorage` ni cookies propias.
-- [ ] Retirada la marca propia de Yosiftadísticas (la pone el SDK).
+- [x] Con `sin_sesion`, olvida los datos de la persona y vuelve a la vista sin sesión. *(Rama sin unir: `platform-session.service.spec.ts`, `account-scope.service.spec.ts` y `e2e/session-contract.spec.ts` con el doble del SDK. A → B → A con la plataforma real, en el hito 4.)*
+- [x] Identifica por `cuenta.id`; no guarda tokens en `localStorage`, `sessionStorage` ni cookies propias. *(Rama sin unir: generación y `storageScope` por `cuenta.id`; `e2e/session-contract.spec.ts` y `final-contracts.test.mjs`.)*
+- [x] Retirada la marca propia de Yosiftadísticas (la pone el SDK). *(Rama sin unir; `yosiftadisticas:excluir` se conserva al limpiar versiones.)*
 
 ## Errores y propuestas, perfil y ajustes (web)
 
@@ -46,16 +46,16 @@
 - [ ] Normas propias (si las hay) publicadas por el propietario; la API rechaza mientras haya `normasPendientes`.
 - [ ] «Denunciar» a la vista en clubes, reseñas y actividad.
 - [ ] `<yosi-privacidad>` donde la persona espera su cuenta.
-- [ ] CSP del kit (SDK, API, `wss://cuentas-ws…`, acceso en `frame-src`, avatares en `img-src`); sin COOP `same-origin` ni COEP `require-corp`.
+- [x] CSP del kit (SDK, API, `wss://cuentas-ws…`, acceso en `frame-src`, avatares en `img-src`); sin COOP `same-origin` ni COEP `require-corp`. *(Rama sin unir: `firebase.json`, la de QA por `prepare-hosting-config.mjs` y la del servidor de desarrollo; pruebas en `scripts/qa`.)*
 
 ## En QA (web)
 
-- [ ] Probada en `https://libros.dev.yosiftware.es` contra la plataforma de QA.
+- [ ] Probada en `https://libros.dev.yosiftware.es` contra la plataforma de QA. *(Sin sesión, correcto el 2026-10-24 en la rama `adhesion/web`; falta entrar, que lo prueba el propietario.)*
 - [ ] Entrar y salir; sesión de otra web reconocida y cierre compartido.
 - [ ] Perfil cambiado y guardado.
 - [ ] Chat: mensaje a una amistad visto al momento en la web social; conversaciones de clubes marcadas con la web.
 - [ ] El propietario entra y ve sus datos de antes; una cuenta nueva empieza vacía.
-- [ ] Ninguna violación de la CSP.
+- [ ] Ninguna violación de la CSP. *(Sin sesión, ninguna en Web claro, Web compacta oscura y Wood, también con la ventana de entrar abierta, 2026-10-24; falta con sesión.)*
 
 ## App Android (APK Kotlin)
 
