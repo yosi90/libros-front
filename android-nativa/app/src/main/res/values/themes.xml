@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Solo para la ventana antes de que pinte Compose: el resto está en ui/tema. -->
+    <style name="Tema.Libros" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/lienzo</item>
+    </style>
+</resources>

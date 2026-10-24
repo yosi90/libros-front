@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- El fondo adaptable del icono, el mismo que la APK de Capacitor. -->
+    <color name="ic_launcher_background">#F4E7CF</color>
+    <!-- Solo para la ventana antes de que pinte Compose: el lienzo claro y oscuro de los tokens (ui/tema). -->
+    <color name="lienzo">#F5F2EA</color>
+</resources>

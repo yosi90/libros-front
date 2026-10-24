@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Para ver las demás apps del ecosistema que pueden dar su sesión («Continuar como…»). -->
+    <queries>
+        <intent>
+            <action android:name="es.yosiftware.sesion.COMPARTIR" />
+        </intent>
+    </queries>
+
+    <application>
+        <!--
+        Da la sesión de esta app a otra app del ecosistema del mismo móvil. Lo puede llamar cualquier app, pero la
+        plataforma solo da el ticket si el paquete y la firma de quien llama son de una app de su registro.
+        -->
+        <service
+            android:name="es.yosiftware.sesion.ServicioSesionCompartida"
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="es.yosiftware.sesion.COMPARTIR" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>
