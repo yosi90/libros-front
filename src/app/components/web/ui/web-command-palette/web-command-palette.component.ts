@@ -9,7 +9,7 @@ import { BookStoreService } from '../../../../services/stores/book-store.service
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { CommandPaletteService } from '../../../../services/ui/command-palette.service';
 import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
-import { normalizeLibraryText } from '../../../../shared/library-search';
+import { foldText } from '../../../../shared/text';
 
 export interface CommandPaletteItem {
     id: string;
@@ -47,8 +47,8 @@ export class WebCommandPaletteComponent {
 
     readonly items = computed<CommandPaletteItem[]>(() => {
         if (!this.palette.open()) return [];
-        const terms = normalizeLibraryText(this.query().trim()).split(/\s+/).filter(Boolean);
-        const matches = (text: string) => terms.every(term => normalizeLibraryText(text).includes(term));
+        const terms = foldText(this.query().trim()).split(/\s+/).filter(Boolean);
+        const matches = (text: string) => terms.every(term => foldText(text).includes(term));
         const pick = (list: CommandPaletteItem[], limit = GROUP_LIMIT) =>
             (terms.length ? list.filter(item => matches(`${item.label} ${item.detail ?? ''}`)) : list).slice(0, limit);
 

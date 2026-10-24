@@ -33,6 +33,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
 import { PublicDetailHost } from '../../common/public-detail/public-detail-host';
 import { WoodPublicDetailModalComponent } from '../../common/public-detail/wood-public-detail-modal.component';
+import { foldText } from '../../../../shared/text';
 
 @Component({
     standalone: true,
@@ -196,7 +197,7 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
     }
 
     get filteredRows(): ManagerRow[] {
-        const term = this.normalize(this.search);
+        const term = foldText(this.search);
         let rows = term
             ? this.rows.filter(row => [
                 row.name,
@@ -206,7 +207,7 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
                 row.saga?.Nombre ?? '',
                 this.locationSummary(row),
                 row.status ?? ''
-            ].some(value => this.normalize(value).includes(term)))
+            ].some(value => foldText(value).includes(term)))
             : [...this.rows];
 
         if (this.showStatusFilter() && this.selectedStatusFilter !== 'all')
@@ -219,16 +220,16 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
     }
 
     get filteredAuthorOptions(): Author[] {
-        const term = this.normalize(this.authorFilterText);
+        const term = foldText(this.authorFilterText);
         return term
-            ? this.authors.filter(author => this.normalize(author.Nombre).includes(term))
+            ? this.authors.filter(author => foldText(author.Nombre).includes(term))
             : this.authors;
     }
 
     get filteredStatusOptions(): ReadStatus[] {
-        const term = this.normalize(this.statusFilterText);
+        const term = foldText(this.statusFilterText);
         return term
-            ? this.statuses.filter(status => this.normalize(status.Nombre ?? '').includes(term))
+            ? this.statuses.filter(status => foldText(status.Nombre ?? '').includes(term))
             : this.statuses;
     }
 
@@ -480,7 +481,7 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
 
     onAuthorFilterInput(value: string): void {
         this.authorFilterText = value;
-        const exactAuthor = this.authors.find(author => this.normalize(author.Nombre) === this.normalize(value));
+        const exactAuthor = this.authors.find(author => foldText(author.Nombre) === foldText(value));
         this.selectedAuthorFilter = exactAuthor?.Id ?? 0;
         this.resetPage();
         this.persistViewState();
@@ -496,7 +497,7 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
 
     onStatusFilterInput(value: string): void {
         this.statusFilterText = value;
-        const exactStatus = this.statuses.find(status => this.normalize(status.Nombre ?? '') === this.normalize(value));
+        const exactStatus = this.statuses.find(status => foldText(status.Nombre ?? '') === foldText(value));
         this.selectedStatusFilter = exactStatus?.Nombre ?? 'all';
         this.resetPage();
         this.persistViewState();
@@ -556,7 +557,7 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
             return status.EstadoId;
         if (status.Id >= 0 && status.Id <= 5)
             return status.Id as ReadingStatusId;
-        return readingStatusOptions.find(option => this.normalize(option.Nombre) === this.normalize(status.Nombre ?? ''))?.Id ?? 0;
+        return readingStatusOptions.find(option => foldText(option.Nombre) === foldText(status.Nombre ?? ''))?.Id ?? 0;
     }
 
     private toCatalogOptions(options: CatalogOption[] | string[] | null | undefined): CatalogOption[] | null {
@@ -649,7 +650,7 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
                     return;
                 }
 
-                authorsWithoutId.set(this.normalize(mergedAuthor.Nombre), mergedAuthor);
+                authorsWithoutId.set(foldText(mergedAuthor.Nombre), mergedAuthor);
             });
 
         return [
@@ -802,7 +803,7 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
     private languageFlag(author: Author): string {
         const language = author.Idioma;
         const code = typeof language === 'object' ? language?.Codigo : null;
-        const name = this.normalize(this.authorLanguageLabel(author));
+        const name = foldText(this.authorLanguageLabel(author));
         const countryCode = code === 'es' || name === 'espanol'
             ? 'ES'
             : code === 'en' || name === 'ingles'
@@ -866,14 +867,7 @@ export class ObjectManagerComponent extends PublicDetailHost implements OnInit, 
     private isSameAuthor(left: Author, right: Author): boolean {
         if (left.Id && right.Id && left.Id === right.Id)
             return true;
-        return this.normalize(left.Nombre) === this.normalize(right.Nombre);
-    }
-
-    private normalize(value: string): string {
-        return value
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '');
+        return foldText(left.Nombre) === foldText(right.Nombre);
     }
 
 }

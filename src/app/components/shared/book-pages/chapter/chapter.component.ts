@@ -31,6 +31,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileChapterViewComponent } from '../../../mobile/book/mobile-chapter-view/mobile-chapter-view.component';
 import { WebChapterViewComponent } from '../../../web/book/web-chapter-view/web-chapter-view.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
+import { foldText } from '../../../../shared/text';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -372,15 +373,15 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     private getCanonicalNeutralLocation(): Book['Localizaciones'][number] | undefined {
         return this.book.Localizaciones.find(location =>
-            this.normalizeSearchText(location.Nombre) === 'sin localizacion'
+            foldText(location.Nombre).trim() === 'sin localizacion'
         );
     }
 
     getFilteredSceneLocations(sceneGroup: AbstractControl): Book['Localizaciones'] {
         const value = sceneGroup.get('localizacion')?.value;
-        const query = typeof value === 'string' ? this.normalizeSearchText(value) : '';
+        const query = typeof value === 'string' ? foldText(value).trim() : '';
         return this.book.Localizaciones.filter(location =>
-            !query || this.normalizeSearchText(location.Nombre).includes(query)
+            !query || foldText(location.Nombre).trim().includes(query)
         );
     }
 
@@ -524,9 +525,9 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     getCharacterGroups(): ChapterCharacterGroup[] {
         const groups = new Map<string, Character[]>();
-        const filter = this.normalizeSearch(this.characterFilter.value ?? '');
+        const filter = foldText(this.characterFilter.value ?? '').trim();
         this.getSortedCharacters()
-            .filter(character => !filter || this.normalizeSearch(character.Nombre).includes(filter))
+            .filter(character => !filter || foldText(character.Nombre).trim().includes(filter))
             .forEach(character => {
             const label = character.Grupo || 'Sin grupo';
             groups.set(label, [...(groups.get(label) || []), character]);
@@ -598,9 +599,9 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     getFilteredAvailableSceneCharacters(sceneGroup: AbstractControl, query: string): Character[] {
-        const normalizedQuery = this.normalizeSearchText(query);
+        const normalizedQuery = foldText(query).trim();
         return this.getAvailableSceneCharacters(sceneGroup)
-            .filter(character => !normalizedQuery || this.normalizeSearchText(character.Nombre).includes(normalizedQuery));
+            .filter(character => !normalizedQuery || foldText(character.Nombre).trim().includes(normalizedQuery));
     }
 
     assignCharacterById(sceneGroup: AbstractControl, rawCharacterId: string | number, named: boolean): void {
@@ -609,10 +610,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         if (!character)
             return;
         this.assignCharacterToScene(sceneGroup as FormGroup, this.getCharacterDragData(character), named);
-    }
-
-    private normalizeSearchText(value: string): string {
-        return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
     }
 
     moveSceneCharacter(sceneGroup: AbstractControl, characterGroup: AbstractControl, named: boolean): void {
@@ -731,14 +728,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             Nombre: characterGroup.get('Nombre')?.value || this.getCharacterName(Number(characterGroup.get('Id')?.value)),
             Nombrado: !!characterGroup.get('Nombrado')?.value
         };
-    }
-
-    private normalizeSearch(value: string): string {
-        return value
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLocaleLowerCase()
-            .trim();
     }
 
     private sceneDescriptionValidator(control: AbstractControl): ValidationErrors | null {

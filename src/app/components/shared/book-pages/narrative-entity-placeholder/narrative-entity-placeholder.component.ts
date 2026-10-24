@@ -34,6 +34,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileNarrativeEntityViewComponent } from '../../../mobile/book/mobile-narrative-entity-view/mobile-narrative-entity-view.component';
 import { WebNarrativeEntityViewComponent } from '../../../web/book/web-narrative-entity-view/web-narrative-entity-view.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
+import { foldText } from '../../../../shared/text';
 
 interface NarrativeCharacterGroup {
     label: string;
@@ -411,9 +412,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     getCharacterGroups(): NarrativeCharacterGroup[] {
         const groups = new Map<string, Character[]>();
-        const filter = this.normalizeText(this.characterFilter.value ?? '');
+        const filter = foldText(this.characterFilter.value ?? '').trim();
         this.getCharacters()
-            .filter(character => !filter || this.normalizeText(character.Nombre).includes(filter))
+            .filter(character => !filter || foldText(character.Nombre).trim().includes(filter))
             .forEach(character => {
                 const label = character.Grupo || 'Sin grupo';
                 groups.set(label, [...(groups.get(label) ?? []), character]);
@@ -459,8 +460,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     getFilteredEventLocations(): any[] {
         const value = this.eventLocationSearch.value;
-        const filter = this.normalizeText(typeof value === 'string' ? value : value?.Nombre ?? '');
-        return this.book.Localizaciones.filter(location => !filter || this.normalizeText(location.Nombre).includes(filter));
+        const filter = foldText(typeof value === 'string' ? value : value?.Nombre ?? '').trim();
+        return this.book.Localizaciones.filter(location => !filter || foldText(location.Nombre).trim().includes(filter));
     }
 
     displayEventLocation(location: any | string | null): string {
@@ -481,16 +482,16 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     getFilteredCreateOrganizationCharacters(): Character[] {
-        const filter = this.normalizeText(this.createOrganizationRelationFilter.value ?? '');
+        const filter = foldText(this.createOrganizationRelationFilter.value ?? '').trim();
         return this.getCharactersByBookStateOrder()
-            .filter(character => !filter || this.normalizeText(character.Nombre).includes(filter));
+            .filter(character => !filter || foldText(character.Nombre).trim().includes(filter));
     }
 
     getFilteredCreateOrganizationLocations(): any[] {
-        const filter = this.normalizeText(this.createOrganizationRelationFilter.value ?? '');
+        const filter = foldText(this.createOrganizationRelationFilter.value ?? '').trim();
         return this.book.Localizaciones
-            .filter(location => this.normalizeText(location.Nombre) !== 'sin localizacion')
-            .filter(location => !filter || this.normalizeText(location.Nombre).includes(filter))
+            .filter(location => foldText(location.Nombre).trim() !== 'sin localizacion')
+            .filter(location => !filter || foldText(location.Nombre).trim().includes(filter))
             .sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es'));
     }
 
@@ -527,9 +528,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     getFilteredCreateCharacterRelations(): Character[] {
-        const filter = this.normalizeText(this.createCharacterRelationFilter.value ?? '');
+        const filter = foldText(this.createCharacterRelationFilter.value ?? '').trim();
         return this.getCharactersByBookStateOrder()
-            .filter(character => !filter || this.normalizeText(character.Nombre).includes(filter));
+            .filter(character => !filter || foldText(character.Nombre).trim().includes(filter));
     }
 
     addCreateCharacterRelation(character: Character): void {
@@ -592,8 +593,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     getFilteredQuoteCharacters(): Character[] {
         const value = this.quoteCharacterSearch.value;
-        const filter = this.normalizeText(typeof value === 'string' ? value : value?.Nombre ?? '');
-        return this.getCharacters().filter(character => !filter || this.normalizeText(character.Nombre).includes(filter));
+        const filter = foldText(typeof value === 'string' ? value : value?.Nombre ?? '').trim();
+        return this.getCharacters().filter(character => !filter || foldText(character.Nombre).trim().includes(filter));
     }
 
     displayQuoteCharacter(character: Character | string | null): string {
@@ -644,7 +645,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         if (customIcon)
             return customIcon;
 
-        const status = this.normalizeText(this.getCharacterStatusLabel(character));
+        const status = foldText(this.getCharacterStatusLabel(character)).trim();
         if (status.includes('desaparecid'))
             return 'wrong_location';
 
@@ -668,12 +669,12 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     getCharacterClasses(character: Character): string[] {
         const classes = ['narrative-chip', 'character-chip'];
-        const group = this.normalizeText(character.Grupo ?? 'sin grupo').replace(/\s+/g, '-');
+        const group = foldText(character.Grupo ?? 'sin grupo').trim().replace(/\s+/g, '-');
         classes.push(`character-chip--${group}`);
         if (!this.isCurrentBookCharacter(character))
             classes.push('narrative-chip--historical');
 
-        const status = this.normalizeText(this.getCharacterStatusLabel(character));
+        const status = foldText(this.getCharacterStatusLabel(character)).trim();
         if (status.includes('asesinad'))
             classes.push('character-chip--asesinado');
         else if (status.includes('muert'))
@@ -733,7 +734,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     private getCharacterCustomIcon(character: Character): string {
-        const status = this.normalizeText(this.getCharacterStatusLabel(character));
+        const status = foldText(this.getCharacterStatusLabel(character)).trim();
         if (status.includes('asesinad'))
             return '✕';
         if (status.includes('muert'))
@@ -1580,7 +1581,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         if (this.getListPath() !== 'locations' || this.locationStatusId.value)
             return;
 
-        const defaultStatus = this.locationStates.find(state => this.normalizeText(state.Nombre) === 'buen estado');
+        const defaultStatus = this.locationStates.find(state => foldText(state.Nombre).trim() === 'buen estado');
         if (defaultStatus)
             this.locationStatusId.setValue(defaultStatus.Id);
     }
@@ -1589,7 +1590,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         if (this.getListPath() !== 'events' || this.locationId.value)
             return;
 
-        const defaultLocation = this.book.Localizaciones.find(location => this.normalizeText(location.Nombre) === 'sin localizacion');
+        const defaultLocation = this.book.Localizaciones.find(location => foldText(location.Nombre).trim() === 'sin localizacion');
         if (defaultLocation)
             this.selectEventLocation(defaultLocation);
     }
@@ -1598,7 +1599,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         if (this.getListPath() !== 'characters' || this.characterStatusId.value)
             return;
 
-        const defaultStatus = this.characterStates.find(state => this.normalizeText(state.Nombre) === 'vivo');
+        const defaultStatus = this.characterStates.find(state => foldText(state.Nombre).trim() === 'vivo');
         if (defaultStatus)
             this.characterStatusId.setValue(defaultStatus.Id);
     }
@@ -1877,7 +1878,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         const currentRelationIds = this.createCharacterRelations
             .map(relation => relation.relationId)
             .filter((id): id is number => !!id);
-        const normalizedAliases = this.characterAliases.map(alias => this.normalizeText(alias));
+        const normalizedAliases = this.characterAliases.map(alias => foldText(alias).trim());
         const relationDeleteRequests = originalRelations
             .filter(relation => relation.Id && !currentRelationIds.includes(relation.Id))
             .map(relation => this.characterSrv.deleteRelation(entityId, relation.Id));
@@ -1893,10 +1894,10 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 : this.characterSrv.createRelation(entityId, payload);
         });
         const aliasDeleteRequests = originalAliases
-            .filter(alias => alias.ApodoId && !normalizedAliases.includes(this.normalizeText(alias.Apodo)))
+            .filter(alias => alias.ApodoId && !normalizedAliases.includes(foldText(alias.Apodo).trim()))
             .map(alias => this.characterSrv.deleteAlias(entityId, alias.ApodoId));
         const aliasCreateRequests = this.characterAliases
-            .filter(alias => !originalAliases.some(original => this.normalizeText(original.Apodo) === this.normalizeText(alias)))
+            .filter(alias => !originalAliases.some(original => foldText(original.Apodo).trim() === foldText(alias).trim()))
             .map(alias => this.characterSrv.createAlias(entityId, {
                 LibroId: this.book.Id,
                 Apodo: alias
@@ -2043,7 +2044,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             return item.Id_Estado ?? item.EstadoId;
         const statusName = item.Estado;
         if (statusName) {
-            const status = this.locationStates.find(state => this.normalizeText(state.Nombre) === this.normalizeText(statusName));
+            const status = this.locationStates.find(state => foldText(state.Nombre).trim() === foldText(statusName).trim());
             if (status)
                 return status.Id;
         }
@@ -2062,7 +2063,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
         const statusName = item.Estado ?? currentState?.Estado?.Nombre ?? currentState?.Nombre;
         if (statusName) {
-            const status = this.characterStates.find(state => this.normalizeText(state.Nombre) === this.normalizeText(statusName));
+            const status = this.characterStates.find(state => foldText(state.Nombre).trim() === foldText(statusName).trim());
             if (status)
                 return status.Id;
         }
@@ -2077,7 +2078,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         if (typeof item.Sexo === 'number')
             return item.Sexo;
 
-        const sex = this.normalizeText(`${item.Sexo}`);
+        const sex = foldText(`${item.Sexo}`).trim();
         if (['0', 'chico', 'hombre', 'masculino', 'varon'].includes(sex))
             return 0;
         if (['1', 'chica', 'mujer', 'femenino'].includes(sex))
@@ -2146,14 +2147,6 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         return items
             .map(item => typeof item === 'number' ? item : item.Id)
             .filter(id => Number.isFinite(id));
-    }
-
-    private normalizeText(value: string): string {
-        return value
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLocaleLowerCase()
-            .trim();
     }
 
     private isCurrentBookCharacter(character: Character): boolean {

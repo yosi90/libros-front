@@ -26,6 +26,7 @@ import { LibrarySyncService } from '../../../../services/stores/library-sync.ser
 import { SessionService } from '../../../../services/auth/session.service';
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { optionalIsbnValidator } from '../../../../shared/isbn';
+import { foldText } from '../../../../shared/text';
 
 @Component({
     standalone: true,
@@ -189,7 +190,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
             this.loadAnthologies();
             return;
         }
-        const normalizedSearch = this.normalize(this.search);
+        const normalizedSearch = foldText(this.search);
         if (normalizedSearch) {
             this.loadFilteredBooks(normalizedSearch);
             return;
@@ -608,7 +609,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     }
 
     private loadAnthologies(): void {
-        const normalizedSearch = this.normalize(this.search);
+        const normalizedSearch = foldText(this.search);
         this.catalogService.getAnthologies()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
@@ -685,7 +686,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
             book.Nombre,
             book.ISBN ?? '',
             this.authorNames(book.Autores)
-        ].some(value => this.normalize(value).includes(normalizedSearch));
+        ].some(value => foldText(value).includes(normalizedSearch));
     }
 
     private selectedAuthors(): Author[] {
@@ -750,7 +751,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     }
 
     private defaultUniverseId(): number | null {
-        return this.universes.find(universe => this.normalize(universe.Nombre) === 'sin universo')?.Id
+        return this.universes.find(universe => foldText(universe.Nombre) === 'sin universo')?.Id
             ?? this.universes[0]?.Id
             ?? null;
     }
@@ -780,12 +781,6 @@ export class AllBooksComponent implements OnInit, OnDestroy {
         return false;
     }
 
-    private normalize(value: string): string {
-        return value
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '');
-    }
 }
 
 /**

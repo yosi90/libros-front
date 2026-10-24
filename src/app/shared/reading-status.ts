@@ -1,4 +1,5 @@
 import { ReadStatus, ReadingState, ReadingStatusId } from '../interfaces/read-status';
+import { foldText } from './text';
 
 type StatusLike = Partial<ReadStatus & ReadingState> & {
     Id?: number;
@@ -21,18 +22,10 @@ export const readingStatusOptions: ReadingStatusOption[] = [
 ];
 
 const statusIdByNormalizedName = new Map<string, ReadingStatusId>(
-    readingStatusOptions.map(option => [normalizeStatusText(option.Nombre), option.Id])
+    readingStatusOptions.map(option => [foldText(option.Nombre).trim(), option.Id])
 );
 
 statusIdByNormalizedName.set('leido', 2);
-
-export function normalizeStatusText(value: string): string {
-    return value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .trim();
-}
 
 export function getStatusName(status: StatusLike | undefined): string {
     if (!status)
@@ -56,7 +49,7 @@ export function getStatusId(status: StatusLike | undefined): ReadingStatusId | n
         return status.EstadoId as ReadingStatusId;
 
     const name = getStatusName(status);
-    return statusIdByNormalizedName.get(normalizeStatusText(name)) ?? null;
+    return statusIdByNormalizedName.get(foldText(name).trim()) ?? null;
 }
 
 export function getLatestStatus<TStatus extends StatusLike>(statuses: TStatus[] | undefined): TStatus | undefined {
@@ -85,12 +78,12 @@ export function getStatusIcon(status: StatusLike | undefined): string {
 
 export function getStatusClass(status: StatusLike | string | undefined): string {
     const name = typeof status === 'string' ? status : getStatusName(status);
-    return normalizeStatusText(name).replace(/\s+/g, '_');
+    return foldText(name).trim().replace(/\s+/g, '_');
 }
 
 export function isPurchasedStatus(status: StatusLike | string | undefined): boolean {
     const statusId = typeof status === 'string'
-        ? statusIdByNormalizedName.get(normalizeStatusText(status)) ?? null
+        ? statusIdByNormalizedName.get(foldText(status).trim()) ?? null
         : getStatusId(status);
 
     return statusId !== 3 && statusId !== 5;

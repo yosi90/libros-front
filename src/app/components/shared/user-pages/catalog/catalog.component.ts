@@ -51,12 +51,12 @@ import { MobileFullscreenReturnService } from '../../../../services/navigation/m
 import { MobileCatalogViewComponent } from '../../../mobile/user/mobile-catalog-view/mobile-catalog-view.component';
 import { PublicDetailHost } from '../../common/public-detail/public-detail-host';
 import { WoodPublicDetailModalComponent } from '../../common/public-detail/wood-public-detail-modal.component';
+import { foldText } from '../../../../shared/text';
 import {
     applyLibrarySearch,
     libraryTextScopeOptions,
     LibraryTextFilterChip,
     LibraryTextFilterScope,
-    normalizeLibraryText,
     parseLibraryTextFilters,
     serializeLibraryTextFilter
 } from '../../../../shared/library-search';
@@ -330,7 +330,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
             return;
 
         const serialized = serializeLibraryTextFilter({ scope, value });
-        if (!this.searchTerms.some(term => normalizeLibraryText(term) === normalizeLibraryText(serialized)))
+        if (!this.searchTerms.some(term => foldText(term) === foldText(serialized)))
             this.searchTerms = [...this.searchTerms, serialized];
         this.query = this.searchTerms.join('\n');
         this.draftQuery = '';
