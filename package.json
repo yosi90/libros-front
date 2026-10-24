@@ -7,6 +7,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:dev-plataforma": "node scripts/dev/serve-dev-plataforma.mjs",
     "build": "ng build",
     "build:qa": "ng build --configuration=qa",
     "build:native:qa": "ng build --configuration=qa && cap sync android && node scripts/android/stamp-native-build.mjs qa",

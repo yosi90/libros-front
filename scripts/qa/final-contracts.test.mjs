@@ -167,14 +167,20 @@ test('Android separa flavors, Firebase y capacidades nativas sin debilitar el ar
     assert.deepEqual(productionAppLinks[0].target.sha256_cert_fingerprints, ['9F:B3:C6:FA:07:EB:B0:60:AF:71:E0:D0:77:96:DC:B4:FA:E9:9B:64:62:6C:8C:AD:0F:5F:56:3E:03:96:E5:41']);
 });
 
-test('Hosting publica CSP y cabeceras defensivas sin bloquear popup OAuth', async () => {
+test('Hosting publica la CSP del kit de Yosiftware y cabeceras defensivas sin bloquear la ventana de Google', async () => {
     const firebase = JSON.parse(await readFile(path.join(root, 'firebase.json'), 'utf8'));
     const globalHeaders = firebase.hosting.headers.find(rule => rule.source === '**')?.headers ?? [];
     const headers = Object.fromEntries(globalHeaders.map(header => [header.key.toLowerCase(), header.value]));
+    const csp = headers['content-security-policy'];
 
-    assert.match(headers['content-security-policy'], /object-src 'none'/);
-    assert.match(headers['content-security-policy'], /frame-ancestors 'self'/);
-    assert.match(headers['content-security-policy'], /frame-src 'self' https:/);
+    assert.match(csp, /object-src 'none'/);
+    assert.match(csp, /frame-ancestors 'self'/);
+    // ecosistema-kit/ACCESO.md, «Cabeceras de la web»: SDK, API y tiempo real de la plataforma, el acceso y los avatares.
+    assert.match(csp, /script-src [^;]*https:\/\/cuentas\.yosiftware\.es/);
+    assert.match(csp, /connect-src [^;]*https:\/\/cuentas-api\.yosiftware\.es [^;]*wss:\/\/cuentas-ws\.yosiftware\.es/);
+    assert.match(csp, /frame-src https:\/\/cuentas\.yosiftware\.es;/);
+    assert.match(csp, /img-src [^;]*https:\/\/cuentas-api\.yosiftware\.es/);
+    assert.equal(headers['cross-origin-embedder-policy'], undefined);
     assert.equal(headers['x-content-type-options'], 'nosniff');
     assert.equal(headers['referrer-policy'], 'strict-origin-when-cross-origin');
     assert.equal(headers['cross-origin-opener-policy'], 'same-origin-allow-popups');
