@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
-import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin, map, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,6 +27,7 @@ import { SessionService } from '../../../../services/auth/session.service';
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { optionalIsbnValidator } from '../../../../shared/isbn';
 import { foldText } from '../../../../shared/text';
+import { publicationDateInput, publicationDatePayload, publicationDateValidator } from '../../../../shared/publication-date';
 
 @Component({
     standalone: true,
@@ -780,51 +781,4 @@ export class AllBooksComponent implements OnInit, OnDestroy {
         this.snackBar.openSnackBar('La portada debe ser PNG, JPEG o WebP y ocupar como máximo 10 MB', 'errorBar');
         return false;
     }
-
-}
-
-/**
- * Convierte lo escrito en el campo («2016», «11/2016», «22/11/2016» o su forma ISO)
- * al formato que acepta el backend: «2016», «2016-11» o «2016-11-22».
- * Devuelve null si está vacío y undefined si no es una fecha válida.
- */
-export function publicationDatePayload(value: string | null | undefined): string | null | undefined {
-    const text = value?.trim() ?? '';
-    if (!text)
-        return null;
-    const local = text.match(/^(?:(\d{1,2})\/)?(?:(\d{1,2})\/)?(\d{4})$/);
-    const iso = text.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
-    let year: string, month: string | undefined, day: string | undefined;
-    if (iso) {
-        [, year, month, day] = iso;
-    } else if (local) {
-        const [, first, second, localYear] = local;
-        year = localYear;
-        // «11/2016» es mes y año; «22/11/2016», día, mes y año.
-        [day, month] = second ? [first, second] : [undefined, first];
-    } else {
-        return undefined;
-    }
-    const monthNumber = month ? Number(month) : 1;
-    const dayNumber = day ? Number(day) : 1;
-    if (monthNumber < 1 || monthNumber > 12)
-        return undefined;
-    const date = new Date(Date.UTC(Number(year), monthNumber - 1, dayNumber));
-    if (date.getUTCDate() !== dayNumber)
-        return undefined;
-    const pad = (part: string) => part.padStart(2, '0');
-    return [year, month && pad(month), day && pad(day)].filter(Boolean).join('-');
-}
-
-/** Muestra una fecha del backend como la escribiría una persona: «22/11/2016», «11/2016» o «2016». */
-export function publicationDateInput(value: string | null | undefined): string {
-    const match = value?.trim().match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?/);
-    if (!match)
-        return '';
-    const [, year, month, day] = match;
-    return [day, month, year].filter(Boolean).join('/');
-}
-
-export function publicationDateValidator(control: AbstractControl<string | null>): ValidationErrors | null {
-    return publicationDatePayload(control.value) === undefined ? { publicationDate: true } : null;
 }

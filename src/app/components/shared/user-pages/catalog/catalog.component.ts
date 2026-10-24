@@ -33,6 +33,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { SessionService } from '../../../../services/auth/session.service';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { isValidIsbn } from '../../../../shared/isbn';
+import { isIsoPublicationDate } from '../../../../shared/publication-date';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
@@ -789,7 +790,8 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
             }
         }
         this.requestIsbnError = '';
-        if (this.isBookLikeRequest() && !this.validPublicationDate(this.requestSuggestedPublicationDate.trim())) {
+        const suggestedDate = this.requestSuggestedPublicationDate.trim();
+        if (this.isBookLikeRequest() && suggestedDate && !isIsoPublicationDate(suggestedDate)) {
             this.snackBar.openSnackBar('Escribe un año, un año y mes o una fecha completa válidos', 'errorBar');
             return;
         }
@@ -951,19 +953,6 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
 
     private isBookLikeRequest(): boolean {
         return this.requestEntityType === 'libro' || this.requestEntityType === 'antologia';
-    }
-
-    private validPublicationDate(value: string): boolean {
-        if (!value) return true;
-        const match = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/.exec(value);
-        if (!match) return false;
-        const year = Number(match[1]);
-        const month = match[2] ? Number(match[2]) : 1;
-        const day = match[3] ? Number(match[3]) : 1;
-        if (month < 1 || month > 12 || day < 1) return false;
-        const lastDay = new Date(0);
-        lastDay.setUTCFullYear(year, month, 0);
-        return day <= lastDay.getUTCDate();
     }
 
     private applyStatusToCatalogItem(item: CatalogItem, statusId: ReadingStatusId, collectionItem?: CatalogItem): void {

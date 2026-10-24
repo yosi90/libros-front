@@ -1,7 +1,7 @@
 import { FormControl } from '@angular/forms';
-import { publicationDateInput, publicationDatePayload, publicationDateValidator } from './all-books.component';
+import { isIsoPublicationDate, publicationDateInput, publicationDatePayload, publicationDateValidator } from './publication-date';
 
-describe('fecha de publicación del editor de libros', () => {
+describe('fecha de publicación', () => {
     it('acepta año, mes y año o fecha completa y los envía como pide el backend', () => {
         expect(publicationDatePayload('2016')).toBe('2016');
         expect(publicationDatePayload('11/2016')).toBe('2016-11');
@@ -24,5 +24,15 @@ describe('fecha de publicación del editor de libros', () => {
         expect(publicationDateInput('2016-11-22T00:00:00Z')).toBe('22/11/2016');
         expect(publicationDateInput('2016')).toBe('2016');
         expect(publicationDateInput(null)).toBe('');
+    });
+
+    it('en forma ISO solo admite fechas que existen', () => {
+        expect(isIsoPublicationDate('2008')).toBeTrue();
+        expect(isIsoPublicationDate('2008-02')).toBeTrue();
+        expect(isIsoPublicationDate('2008-02-29')).toBeTrue();
+        expect(isIsoPublicationDate('2008-02-30')).toBeFalse();
+        expect(isIsoPublicationDate('2008-00')).toBeFalse();
+        expect(isIsoPublicationDate('22/11/2016')).toBeFalse();
+        expect(isIsoPublicationDate('0004-02-29')).toBeTrue();
     });
 });
