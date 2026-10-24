@@ -135,9 +135,10 @@ Cada hito lleva sus casillas. Se marcan durante la sesión, no al cerrar.
 - **Peligros del cambio:** `minSdk` sube de 24 a 26 (lo exige la librería), así que los móviles con Android 7 se quedan fuera. Las capturas tienen que tomarse antes del corte, con la APK de producción y la cuenta del propietario (después, la APK de Capacitor ya no entra).
 
 - [ ] Capturas de referencia (CDP con `scripts/qa/native-webview-smoke.mjs` o ADB) archivadas fuera de Git o en `docs/referencias/apk-capacitor/`.
-- [ ] Proyecto, flavors, firma, iconos (punto rojo en `qa`) y `assembleQaDebug` y `assembleProduccionDebug` en verde.
-- [ ] Tema, tipografía e iconos; primitivas Compose equivalentes a `.m-button`, `.m-card`, `.m-chip`, `.m-sheet`, `.m-dialog`, `.m-field` y `.m-list-item`.
-- [ ] Esqueleto de navegación con pantallas vacías, Atrás por pantalla y overlay, e `imePadding`.
+- [x] Proyecto, flavors, firma, iconos (punto rojo en `qa`) y `assembleQaDebug` y `assembleProduccionDebug` en verde.
+- [x] Tema, tipografía e iconos; primitivas Compose equivalentes a `.m-button`, `.m-card`, `.m-chip`, `.m-sheet`, `.m-dialog`, `.m-field` y `.m-list-item`.
+- [x] Esqueleto de navegación con pantallas vacías, Atrás por pantalla y overlay, e `imePadding`.
+- [x] Base unida en `main` (`1a57d3b`, 2026-10-24): 26 pruebas JVM, `assembleQaDebug`, `assembleProduccionDebug` y lint sin errores. El tema arranca en claro, como `MobileThemeService`. Por la tilde de la ruta del repositorio, `gradle.properties` lleva `android.overridePathCheck=true` y las pruebas JVM reciben un jar de clase de ruta (`app/build.gradle.kts`). Quedan diez `TODO(clon)` para comparar con las capturas (barra con teclado, respuesta al toque, foco de los campos, diálogo, bisagra…).
 
 ### Hito 6. APK Kotlin: la cuenta
 
