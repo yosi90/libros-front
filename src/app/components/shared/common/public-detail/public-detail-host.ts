@@ -1,4 +1,4 @@
-import { forkJoin, Observable, Subscription, switchMap } from 'rxjs';
+import { forkJoin, Subscription, switchMap } from 'rxjs';
 import {
     CatalogItem,
     CatalogOption,
@@ -18,6 +18,7 @@ import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-erro
 import { getApiErrorField } from '../../../../shared/backend-field-error';
 import { ownedEditionIds, preferredEdition } from '../../../../shared/edition-selection';
 import { getLatestStatus, getLatestStatusName, readingStatusOptions } from '../../../../shared/reading-status';
+import { collectionStateRequests, CollectionStateValues } from '../../../../shared/collection-state';
 import { PublicDetailController } from './public-detail.model';
 
 /**
@@ -46,6 +47,8 @@ export abstract class PublicDetailHost implements PublicDetailController {
     selectedCollectionReview = '';
     excludeCollectionActivity = false;
     isSavingCollection = false;
+    /** Lo que había al abrir el editor: solo se envía lo que cambia. */
+    private collectionOriginal: CollectionStateValues = { status: null, rating: null, review: '' };
 
     private publicDetailRequest?: Subscription;
 
@@ -121,6 +124,11 @@ export abstract class PublicDetailHost implements PublicDetailController {
         this.selectedCollectionRating = item.Puntuacion ?? null;
         this.selectedCollectionReview = item.Resena ?? '';
         this.excludeCollectionActivity = false;
+        this.collectionOriginal = {
+            status: this.selectedCollectionStatus,
+            rating: this.selectedCollectionRating,
+            review: this.selectedCollectionReview
+        };
     }
 
     openReviewFromDetail(event: MouseEvent): void {
@@ -137,6 +145,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
         this.selectedCollectionRating = null;
         this.selectedCollectionReview = '';
         this.excludeCollectionActivity = false;
+        this.collectionOriginal = { status: null, rating: null, review: '' };
     }
 
     setCollectionRating(rating: number | null): void {
@@ -151,29 +160,23 @@ export abstract class PublicDetailHost implements PublicDetailController {
             return;
         }
 
-        this.isSavingCollection = true;
         const item = this.selectedCollectionItem;
         const wasInCollection = this.isInCollection(item);
-        const statusRequest = item.Tipo === 'libro'
-            ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) })
-            : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) });
-
-        const requests: Observable<unknown>[] = [statusRequest];
-        if (this.selectedCollectionRating !== null) {
-            const ratingRequest = item.Tipo === 'libro'
-                ? this.collectionSrv.updateBookRating(item.Id, {
-                    Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue(),
-                    ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
-                })
-                : this.collectionSrv.updateAnthologyRating(item.Id, {
-                    Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue(),
-                    ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
-                });
-            requests.push(ratingRequest);
+        const requests = collectionStateRequests(this.collectionSrv, item, {
+            status: this.selectedCollectionStatus,
+            rating: this.selectedCollectionRating,
+            review: this.selectedCollectionReview
+        }, this.collectionOriginal, this.excludeCollectionActivity);
+        if (!Array.isArray(requests)) {
+            this.snackBar.openSnackBar(requests.error, 'errorBar');
+            return;
+        }
+        if (requests.length === 0) {
+            this.closeCollectionModal();
+            return;
         }
 
+        this.isSavingCollection = true;
         forkJoin(requests).pipe(
             switchMap(() => this.collectionSrv.getUniverses())
         ).subscribe({

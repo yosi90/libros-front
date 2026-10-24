@@ -1,6 +1,6 @@
 import { WebLibraryViewComponent } from '../../../web/user/web-library-view/web-library-view.component';
 import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { distinctUntilChanged, finalize, forkJoin, Observable, switchMap } from 'rxjs';
+import { distinctUntilChanged, finalize, forkJoin, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { CommonModule } from '@angular/common';
@@ -55,6 +55,7 @@ import { getProductStateMessage } from '../../../../shared/api-error-message';
 import { MobileFullscreenReturnService } from '../../../../services/navigation/mobile-fullscreen-return.service';
 import { anthologySectionPageLabel, anthologySectionProgress } from '../../../../shared/library-view-helpers';
 import { sagaChainCaption } from '../../../../shared/saga-chain';
+import { collectionStateRequests } from '../../../../shared/collection-state';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -656,44 +657,26 @@ export class BooksComponent implements OnInit {
             return;
         }
 
-        this.isSavingCollection = true;
         const { kind, item } = this.selectedCollectionItem;
-        const requests: Observable<unknown>[] = [];
-
-        if (this.selectedCollectionStatus !== this.selectedCollectionOriginalStatus) {
-            const statusRequest = kind === 'book'
-                ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) })
-                : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) });
-            requests.push(statusRequest);
-        }
-
-        if (this.selectedCollectionRating !== null) {
-            if (this.selectedCollectionRating !== this.selectedCollectionOriginalRating || this.hasReviewChanged()) {
-                const ratingRequest = kind === 'book'
-                    ? this.collectionSrv.updateBookRating(item.Id, {
-                        Puntuacion: this.selectedCollectionRating,
-                        Resena: this.reviewPayloadValue(),
-                        ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
-                    })
-                    : this.collectionSrv.updateAnthologyRating(item.Id, {
-                        Puntuacion: this.selectedCollectionRating,
-                        Resena: this.reviewPayloadValue(),
-                        ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
-                    });
-                requests.push(ratingRequest);
-            }
-        } else if (this.selectedCollectionOriginalRating !== null) {
-            this.snackBar.openSnackBar('La reseña necesita una puntuación', 'errorBar');
-            this.isSavingCollection = false;
+        const requests = collectionStateRequests(this.collectionSrv, { Tipo: kind === 'book' ? 'libro' : 'antologia', Id: item.Id }, {
+            status: this.selectedCollectionStatus,
+            rating: this.selectedCollectionRating,
+            review: this.selectedCollectionReview
+        }, {
+            status: this.selectedCollectionOriginalStatus,
+            rating: this.selectedCollectionOriginalRating,
+            review: this.selectedCollectionOriginalReview
+        }, this.excludeCollectionActivity);
+        if (!Array.isArray(requests)) {
+            this.snackBar.openSnackBar(requests.error, 'errorBar');
             return;
         }
-
         if (requests.length === 0) {
             this.closeCollectionModal();
-            this.isSavingCollection = false;
             return;
         }
 
+        this.isSavingCollection = true;
         forkJoin(requests).pipe(
             switchMap(() => this.collectionSrv.getUniverses())
         ).subscribe({
@@ -1310,12 +1293,4 @@ export class BooksComponent implements OnInit {
         });
     }
 
-    private reviewPayloadValue(): string | null {
-        const review = this.selectedCollectionReview.trim();
-        return review ? review : null;
-    }
-
-    private hasReviewChanged(): boolean {
-        return this.selectedCollectionReview.trim() !== this.selectedCollectionOriginalReview.trim();
-    }
 }
