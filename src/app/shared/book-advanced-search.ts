@@ -2,6 +2,7 @@ import { Book } from '../interfaces/book';
 import { Character } from '../interfaces/character';
 import { SceneCharacterDetail } from '../interfaces/scene';
 import { rtfToPlainText } from './rtf/rtf-text';
+import { foldText } from './text';
 
 export type AdvancedSearchCategory = 'chapters' | 'characters' | 'organizations' | 'events' | 'locations' | 'concepts' | 'quotes';
 
@@ -119,10 +120,7 @@ export function searchBook(book: Book, query: string, filters: AdvancedSearchFil
 }
 
 export function normalizeSearchText(value: string): string {
-    return value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLocaleLowerCase()
+    return foldText(value)
         .replace(/[^\p{L}\p{N}]+/gu, ' ')
         .replace(/\s+/g, ' ')
         .trim();

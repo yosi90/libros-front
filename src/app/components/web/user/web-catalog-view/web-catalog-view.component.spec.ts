@@ -26,15 +26,9 @@ describe('WebCatalogViewComponent', () => {
         return { component, controller };
     }
 
-    it('aplica los filtros de los selectores con valores numéricos o vacíos', () => {
-        const { component, controller } = create();
+    it('cuenta los filtros de selector activos', () => {
+        const { component } = create({ selectedRatingFilter: 3, selectedLanguageFilter: '' });
 
-        component.applySelect({ target: { value: '3' } } as unknown as Event, 'rating');
-        component.applySelect({ target: { value: '' } } as unknown as Event, 'language');
-
-        expect(controller.selectedRatingFilter).toBe(3);
-        expect(controller.selectedLanguageFilter).toBe('');
-        expect(controller.applySelectFilters).toHaveBeenCalledTimes(2);
         expect(component.activeSelectCount).toBe(1);
     });
 });

@@ -35,10 +35,10 @@
 
   @if (controller.filtersOpen) {
     <section id="web-catalog-filters" class="web-catalog__filters" aria-label="Filtros del catálogo">
-      <label><span>Estado</span><select [value]="controller.selectedStatusFilter" (change)="applySelect($event, 'status')"><option value="">Todos</option>@for (status of controller.statusOptions; track status.Id) {<option [value]="status.Id">{{status.Nombre}}</option>}</select></label>
-      <label><span>Puntuación</span><select [value]="controller.selectedRatingFilter" (change)="applySelect($event, 'rating')"><option value="">Todas</option>@for (rating of ratingOptions; track rating) {<option [value]="rating">{{rating}} o más</option>}</select></label>
-      <label><span>Idioma</span><select [value]="controller.selectedLanguageFilter" (change)="applySelect($event, 'language')"><option value="">Todos</option>@for (option of controller.languages; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>
-      <label><span>Estilo</span><select [value]="controller.selectedStyleFilter" (change)="applySelect($event, 'style')"><option value="">Todos</option>@for (option of controller.styles; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>
+      <label><span>Estado</span><select [value]="controller.selectedStatusFilter" (change)="controller.applySelectFilter('status', $event)"><option value="">Todos</option>@for (status of controller.statusOptions; track status.Id) {<option [value]="status.Id">{{status.Nombre}}</option>}</select></label>
+      <label><span>Puntuación</span><select [value]="controller.selectedRatingFilter" (change)="controller.applySelectFilter('rating', $event)"><option value="">Todas</option>@for (rating of ratingOptions; track rating) {<option [value]="rating">{{rating}} o más</option>}</select></label>
+      <label><span>Idioma</span><select [value]="controller.selectedLanguageFilter" (change)="controller.applySelectFilter('language', $event)"><option value="">Todos</option>@for (option of controller.languages; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>
+      <label><span>Estilo</span><select [value]="controller.selectedStyleFilter" (change)="controller.applySelectFilter('style', $event)"><option value="">Todos</option>@for (option of controller.styles; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>
       <button class="web-button" type="button" [disabled]="!controller.hasActiveFilters" (click)="controller.clearFilters()">Limpiar</button>
     </section>
   }
@@ -94,4 +94,4 @@
   }
 </main>
 
-<app-web-public-detail-panel [controller]="controller" [showCorrection]="true" (correctionRequested)="correction($event)"></app-web-public-detail-panel>
+<app-web-public-detail-panel [controller]="controller" [showCorrection]="true" (correctionRequested)="controller.openDetailCorrection($event)"></app-web-public-detail-panel>

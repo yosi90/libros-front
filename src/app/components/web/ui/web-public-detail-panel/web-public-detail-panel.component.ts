@@ -6,7 +6,7 @@ import { CatalogItem, Edition } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
-import { WebPublicDetailController } from './web-public-detail-panel.model';
+import { PublicDetailController } from '../../../shared/common/public-detail/public-detail.model';
 import { SwipeToCloseDirective } from '../swipe-to-close.directive';
 
 /** Ficha pública Web en panel lateral: sinopsis, datos, mi lectura, comunidad y reseñas. */
@@ -19,7 +19,7 @@ import { SwipeToCloseDirective } from '../swipe-to-close.directive';
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class WebPublicDetailPanelComponent {
-    @Input({ required: true }) controller!: WebPublicDetailController;
+    @Input({ required: true }) controller!: PublicDetailController;
     @Input() showCorrection = false;
     @Output() readonly correctionRequested = new EventEmitter<Event>();
 
@@ -39,11 +39,11 @@ export class WebPublicDetailPanelComponent {
     }
 
     editions(): Edition[] {
-        return this.controller.publicDetailEditions?.() ?? [];
+        return this.controller.publicDetailEditions();
     }
 
     selectedEdition(): Edition | null {
-        return this.controller.selectedEdition?.() ?? null;
+        return this.controller.selectedEdition();
     }
 
     /** Datos de ficha disponibles; los vacíos no se muestran. */
@@ -53,11 +53,11 @@ export class WebPublicDetailPanelComponent {
         return [
             { label: 'Páginas', value: pages ? String(pages) : '' },
             { label: 'Publicación', value: publicationLabel(this.editions().length
-                ? this.controller.publicDetailPublicationDate?.()
+                ? this.controller.publicDetailPublicationDate()
                 : detail?.FechaPublicacion ?? item.FechaPublicacion) },
             { label: 'Idiomas', value: this.controller.publicDetailLanguagesLabel() },
             { label: 'Estilos', value: this.controller.publicDetailStylesLabel() },
-            { label: 'ISBN', value: this.controller.publicDetailIsbn?.() ?? (this.editions().length ? '' : detail?.ISBN ?? item.ISBN ?? '') },
+            { label: 'ISBN', value: this.controller.publicDetailIsbn() ?? (this.editions().length ? '' : detail?.ISBN ?? item.ISBN ?? '') },
         ].filter(row => !!row.value);
     }
 

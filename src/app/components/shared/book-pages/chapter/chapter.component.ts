@@ -11,7 +11,6 @@ import { Chapter } from '../../../../interfaces/chapter';
 import { Scene, SceneCharacterDetail } from '../../../../interfaces/scene';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { catchError, debounceTime, finalize, forkJoin, map, merge, Observable, of, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
-import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSelectModule } from '@angular/material/select';
@@ -31,16 +30,13 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileChapterViewComponent } from '../../../mobile/book/mobile-chapter-view/mobile-chapter-view.component';
 import { WebChapterViewComponent } from '../../../web/book/web-chapter-view/web-chapter-view.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
+import { foldText } from '../../../../shared/text';
+import { CharacterGroup, groupCharactersByGroup } from '../../../../shared/character-groups';
 
 interface ChapterCharacterAssignment {
     Id: number;
     Nombre: string;
     Nombrado: boolean;
-}
-
-interface ChapterCharacterGroup {
-    label: string;
-    characters: Character[];
 }
 
 interface ScenePersistOperation {
@@ -179,7 +175,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private router: Router,
         private fBuild: FormBuilder,
         private _snackBar: SnackbarModule,
-        private bookEmmitterSrv: BookEmmitterService,
         private sceneSrv: SceneService,
         private chapterSrv: ChapterService,
         private characterOrderRefreshSrv: CharacterOrderRefreshService,
@@ -372,15 +367,15 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     private getCanonicalNeutralLocation(): Book['Localizaciones'][number] | undefined {
         return this.book.Localizaciones.find(location =>
-            this.normalizeSearchText(location.Nombre) === 'sin localizacion'
+            foldText(location.Nombre).trim() === 'sin localizacion'
         );
     }
 
     getFilteredSceneLocations(sceneGroup: AbstractControl): Book['Localizaciones'] {
         const value = sceneGroup.get('localizacion')?.value;
-        const query = typeof value === 'string' ? this.normalizeSearchText(value) : '';
+        const query = typeof value === 'string' ? foldText(value).trim() : '';
         return this.book.Localizaciones.filter(location =>
-            !query || this.normalizeSearchText(location.Nombre).includes(query)
+            !query || foldText(location.Nombre).trim().includes(query)
         );
     }
 
@@ -522,25 +517,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         });
     }
 
-    getCharacterGroups(): ChapterCharacterGroup[] {
-        const groups = new Map<string, Character[]>();
-        const filter = this.normalizeSearch(this.characterFilter.value ?? '');
-        this.getSortedCharacters()
-            .filter(character => !filter || this.normalizeSearch(character.Nombre).includes(filter))
-            .forEach(character => {
-            const label = character.Grupo || 'Sin grupo';
-            groups.set(label, [...(groups.get(label) || []), character]);
-        });
-
-        return [...groups.entries()]
-            .map(([label, characters]) => ({ label, characters }))
-            .sort((a, b) => {
-                const orderA = Math.min(...a.characters.map(character => character.OrdenGrupo ?? Number.MAX_SAFE_INTEGER));
-                const orderB = Math.min(...b.characters.map(character => character.OrdenGrupo ?? Number.MAX_SAFE_INTEGER));
-                if (orderA !== orderB)
-                    return orderA - orderB;
-                return a.label.localeCompare(b.label);
-        });
+    getCharacterGroups(): CharacterGroup[] {
+        return groupCharactersByGroup(this.getSortedCharacters(), this.characterFilter.value ?? '');
     }
 
     getCharacterDragData(character: Character): ChapterCharacterAssignment {
@@ -598,9 +576,9 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     getFilteredAvailableSceneCharacters(sceneGroup: AbstractControl, query: string): Character[] {
-        const normalizedQuery = this.normalizeSearchText(query);
+        const normalizedQuery = foldText(query).trim();
         return this.getAvailableSceneCharacters(sceneGroup)
-            .filter(character => !normalizedQuery || this.normalizeSearchText(character.Nombre).includes(normalizedQuery));
+            .filter(character => !normalizedQuery || foldText(character.Nombre).trim().includes(normalizedQuery));
     }
 
     assignCharacterById(sceneGroup: AbstractControl, rawCharacterId: string | number, named: boolean): void {
@@ -609,10 +587,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         if (!character)
             return;
         this.assignCharacterToScene(sceneGroup as FormGroup, this.getCharacterDragData(character), named);
-    }
-
-    private normalizeSearchText(value: string): string {
-        return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
     }
 
     moveSceneCharacter(sceneGroup: AbstractControl, characterGroup: AbstractControl, named: boolean): void {
@@ -731,14 +705,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             Nombre: characterGroup.get('Nombre')?.value || this.getCharacterName(Number(characterGroup.get('Id')?.value)),
             Nombrado: !!characterGroup.get('Nombrado')?.value
         };
-    }
-
-    private normalizeSearch(value: string): string {
-        return value
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLocaleLowerCase()
-            .trim();
     }
 
     private sceneDescriptionValidator(control: AbstractControl): ValidationErrors | null {
@@ -910,7 +876,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             tap(() => {
                 this.skipNextBookStoreSync = true;
                 this.bookStore.setBook(this.book);
-                this.bookEmmitterSrv.updateBook(this.book);
                 this.deletedSceneIds = this.deletedSceneIds.filter(sceneId => !batch.deletedSceneIds.includes(sceneId));
                 if (this.formRevision === batch.revision)
                     this.refreshSavedSnapshots();

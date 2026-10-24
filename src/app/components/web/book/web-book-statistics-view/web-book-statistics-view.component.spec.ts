@@ -73,7 +73,7 @@ describe('WebBookStatisticsViewComponent', () => {
             mostFrequentCharacter: { Nombre: 'Iria', Apariciones: 4 },
             mostMentionedCharacter: null,
             purchaseDate: new FormControl<Date | null>(null),
-            savePurchaseDate: jasmine.createSpy('savePurchaseDate')
+            savePurchaseDateFromInput: jasmine.createSpy('savePurchaseDateFromInput')
         };
 
         fixture = TestBed.createComponent(WebBookStatisticsViewComponent);
@@ -97,7 +97,6 @@ describe('WebBookStatisticsViewComponent', () => {
         input.value = '2026-07-01';
         input.dispatchEvent(new Event('change'));
 
-        expect((controller['purchaseDate'] as FormControl<Date | null>).value?.getDate()).toBe(1);
-        expect(controller['savePurchaseDate']).toHaveBeenCalled();
+        expect(controller['savePurchaseDateFromInput']).toHaveBeenCalledWith('2026-07-01');
     });
 });

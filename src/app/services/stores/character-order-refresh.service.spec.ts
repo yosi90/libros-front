@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { Book } from '../../interfaces/book';
 import { BookService } from '../entities/book.service';
-import { BookEmmitterService } from '../emmitters/bookEmmitter.service';
 import { BookStoreService } from './book-store.service';
 import { CharacterOrderRefreshService } from './character-order-refresh.service';
 
@@ -10,7 +9,6 @@ describe('CharacterOrderRefreshService', () => {
     let service: CharacterOrderRefreshService;
     let bookSrv: jasmine.SpyObj<BookService>;
     let bookStore: BookStoreService;
-    let bookEmitter: jasmine.SpyObj<BookEmmitterService>;
 
     const baseBook: Book = {
         Id: 1,
@@ -37,14 +35,12 @@ describe('CharacterOrderRefreshService', () => {
 
     beforeEach(() => {
         bookSrv = jasmine.createSpyObj<BookService>('BookService', ['getCharacterOrder']);
-        bookEmitter = jasmine.createSpyObj<BookEmmitterService>('BookEmmitterService', ['updateBook']);
 
         TestBed.configureTestingModule({
             providers: [
                 CharacterOrderRefreshService,
                 BookStoreService,
-                { provide: BookService, useValue: bookSrv },
-                { provide: BookEmmitterService, useValue: bookEmitter }
+                { provide: BookService, useValue: bookSrv }
             ]
         });
 
@@ -78,7 +74,6 @@ describe('CharacterOrderRefreshService', () => {
         expect(characters.map(character => character.Id)).toEqual([2, 1]);
         expect(characters[0].Nombre).toBe('Shallan Davar');
         expect(characters[0].Sexo).toBe(true);
-        expect(bookEmitter.updateBook).toHaveBeenCalled();
     });
 
     it('clears refreshing state after errors', done => {

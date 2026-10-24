@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { getApiErrorMessage } from '../shared/api-error-message';
+import { connectionErrorMessage, getApiErrorMessage } from '../shared/api-error-message';
 
 export abstract class ErrorHandlerService {
 
@@ -9,7 +9,7 @@ export abstract class ErrorHandlerService {
         let errorMessage: string;
         switch (errorCode.status) {
             case 0:
-                errorMessage = backendMessage || `No se pudo conectar con el servidor`;
+                errorMessage = backendMessage || connectionErrorMessage;
                 break;
             case 401:
                 errorMessage = backendMessage || `No tienes permiso`;

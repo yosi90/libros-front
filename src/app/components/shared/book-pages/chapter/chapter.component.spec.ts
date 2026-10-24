@@ -5,7 +5,6 @@ import { of } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
 import { ChapterService } from '../../../../services/entities/chapter.service';
 import { SceneService } from '../../../../services/entities/scene.service';
-import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { CharacterOrderRefreshService } from '../../../../services/stores/character-order-refresh.service';
@@ -42,7 +41,6 @@ describe('ChapterComponent', () => {
                     provide: SceneService,
                     useValue: jasmine.createSpyObj<SceneService>('SceneService', ['createForChapter', 'createForInterludeChapter', 'update', 'delete'])
                 },
-                { provide: BookEmmitterService, useValue: { updateBook: jasmine.createSpy('updateBook') } },
                 { provide: SnackbarModule, useValue: { openSnackBar: jasmine.createSpy('openSnackBar'), openApiError: jasmine.createSpy('openApiError') } },
                 {
                     provide: CharacterOrderRefreshService,

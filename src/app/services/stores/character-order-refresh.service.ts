@@ -3,7 +3,6 @@ import { BehaviorSubject, EMPTY, Observable, catchError, finalize, shareReplay, 
 import { Book } from '../../interfaces/book';
 import { Character, CharacterOrderSummary } from '../../interfaces/character';
 import { BookService } from '../entities/book.service';
-import { BookEmmitterService } from '../emmitters/bookEmmitter.service';
 import { BookStoreService } from './book-store.service';
 
 @Injectable({
@@ -15,8 +14,7 @@ export class CharacterOrderRefreshService {
 
     constructor(
         private bookSrv: BookService,
-        private bookStore: BookStoreService,
-        private bookEmitterSrv: BookEmmitterService
+        private bookStore: BookStoreService
     ) { }
 
     isRefreshing$(bookId: number): Observable<boolean> {
@@ -65,7 +63,6 @@ export class CharacterOrderRefreshService {
             Personajes: this.mergeOrderedCharacters(currentBook.Personajes, order)
         };
         this.bookStore.setBook(nextBook);
-        this.bookEmitterSrv.updateBook(nextBook);
     }
 
     private mergeOrderedCharacters(currentCharacters: Character[], order: CharacterOrderSummary[]): Character[] {

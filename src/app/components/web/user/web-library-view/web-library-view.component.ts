@@ -44,17 +44,6 @@ export class WebLibraryViewComponent {
     readonly sectionPageLabel = anthologySectionPageLabel;
     readonly sectionProgress = anthologySectionProgress;
 
-    /** Lecturas en marcha para «Continúa leyendo», en el orden de la biblioteca. */
-    get runningBooks(): BookSimple[] {
-        const books: BookSimple[] = [];
-        for (const universe of this.controller.universesToShow) {
-            for (const saga of universe.Sagas ?? [])
-                books.push(...(saga.Libros ?? []));
-            books.push(...(universe.Libros ?? []));
-        }
-        return books.filter(book => this.controller.isRunningBook(book)).slice(0, 3);
-    }
-
     universeAuthors(universe: Universe): string {
         return isNeutralUniverse(universe) ? '' : this.controller.getAuthors(universe.Autores).join(', ');
     }

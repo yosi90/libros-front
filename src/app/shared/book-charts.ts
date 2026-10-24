@@ -1,5 +1,6 @@
 import { Book } from '../interfaces/book';
 import { BookStatisticsSnapshot, ChapterStatistic } from '../interfaces/statistics';
+import { characterGroupRank } from './character-groups';
 
 /** Colores del tema Web leídos de los tokens (ApexCharts necesita valores, no variables). */
 export interface BookChartPalette {
@@ -200,8 +201,7 @@ export function castGroupsChart(book: Book, palette: BookChartPalette): Record<s
         counts.set(character.Grupo ?? 'Sin grupo', (counts.get(character.Grupo ?? 'Sin grupo') ?? 0) + 1);
     if (!counts.size)
         return null;
-    const order = ['Principales', 'Recurrentes', 'Secundarios', 'Desaparecidos', 'Muertos', 'Antiguos', 'Sin grupo'];
-    const labels = [...counts.keys()].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    const labels = [...counts.keys()].sort((a, b) => characterGroupRank(a) - characterGroupRank(b));
     return {
         series: labels.map(label => counts.get(label) ?? 0),
         labels,

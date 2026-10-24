@@ -32,6 +32,7 @@ import { getStatusId, getStatusName } from '../../../../shared/reading-status';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileBookStatisticsViewComponent } from '../../../mobile/book/mobile-book-statistics-view/mobile-book-statistics-view.component';
 import { WebBookStatisticsViewComponent } from '../../../web/book/web-book-statistics-view/web-book-statistics-view.component';
+import { foldText } from '../../../../shared/text';
 
 interface BookChartOptions {
     series: ApexAxisChartSeries;
@@ -187,6 +188,14 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
 
     get canAddPurchaseDate(): boolean {
         return !!this.book.Id && !this.boughtDate;
+    }
+
+    /** Mobile y Web usan un <input type="date">: su valor (AAAA-MM-DD) se toma como fecha local. */
+    savePurchaseDateFromInput(value: string): void {
+        if (!value)
+            return;
+        this.purchaseDate.setValue(new Date(`${value}T00:00:00`));
+        this.savePurchaseDate();
     }
 
     savePurchaseDate(): void {
@@ -361,16 +370,9 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         }
 
         return statuses.find(status => {
-            const name = this.normalizeStatusName(getStatusName(status));
-            return nameFragments.some(fragment => name.includes(this.normalizeStatusName(fragment)));
+            const name = foldText(getStatusName(status));
+            return nameFragments.some(fragment => name.includes(foldText(fragment)));
         });
-    }
-
-    private normalizeStatusName(value: string): string {
-        return value
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLocaleLowerCase();
     }
 
     private getStatusDateValue(status: Book['Estados'][number] | undefined): string | null {

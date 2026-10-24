@@ -57,13 +57,6 @@ export class MobileBookStatisticsViewComponent implements OnInit, DoCheck, OnDes
         this.themeObserver?.disconnect();
     }
 
-    savePurchaseDate(event: Event): void {
-        const value = (event.target as HTMLInputElement).value;
-        if (!value) return;
-        this.c.purchaseDate.setValue(new Date(`${value}T00:00:00`));
-        this.c.savePurchaseDate();
-    }
-
     private rebuild(): void {
         if (!this.controller) return;
         const snapshot = this.c.snapshot;

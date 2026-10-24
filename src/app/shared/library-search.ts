@@ -1,4 +1,5 @@
 import { getLatestStatusName, isPurchasedStatus } from './reading-status';
+import { foldText } from './text';
 
 export type LibraryItemKind = 'book' | 'antology';
 export type LibraryAvailabilityFilter = 'all' | 'purchased' | 'unpurchased';
@@ -117,13 +118,6 @@ export function removeLibraryTextFilter(query: string, rawFilter: string): strin
     );
 }
 
-export function normalizeLibraryText(value: string): string {
-    return value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase();
-}
-
 export function getLatestLibraryStatus(statuses: { Nombre: string }[] | undefined): string {
     return getLatestStatusName(statuses);
 }
@@ -163,11 +157,11 @@ function getLibrarySearchHaystack(item: SearchableLibraryItem, scope: LibraryTex
         saga: [item.sagaName ?? '']
     };
 
-    return normalizeLibraryText(valuesByScope[scope].join(' '));
+    return foldText(valuesByScope[scope].join(' '));
 }
 
 function splitSearchTerm(term: string): string[] {
-    return normalizeLibraryText(term)
+    return foldText(term)
         .replace(/["']/g, ' ')
         .split(/\s+/)
         .map(token => token.trim())
@@ -175,5 +169,5 @@ function splitSearchTerm(term: string): string[] {
 }
 
 function normalizeToken(value: string): string {
-    return normalizeLibraryText(value).trim();
+    return foldText(value).trim();
 }

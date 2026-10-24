@@ -1,22 +1,17 @@
 import { CatalogSagaController } from '../../../shared/common/catalog-saga/catalog-saga.model';
-import { CatalogItem, CatalogOption, CatalogPublicReview, CatalogPublicStats, Edition } from '../../../../interfaces/catalog';
+import { CatalogItem, CatalogOption } from '../../../../interfaces/catalog';
+import { PublicDetailController } from '../../../shared/common/public-detail/public-detail.model';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { LibraryTextFilterChip, LibraryTextFilterScope, LibraryTextScopeOption } from '../../../../shared/library-search';
 
-export interface MobileCatalogController extends CatalogSagaController {
+export interface MobileCatalogController extends CatalogSagaController, PublicDetailController {
     items: CatalogItem[];
     languages: CatalogOption[];
     styles: CatalogOption[];
-    statusOptions: Array<{ Id: ReadingStatusId; Nombre: string; icon: string }>;
     isLoading: boolean;
     /** Error de la última carga del catálogo; vacío si fue bien. */
     loadError: string;
     loadCatalog(): void;
-    isSavingCollection: boolean;
-    isSavingEditions: boolean;
-    editionSelectionError: string;
-    isLoadingPublicDetail: boolean;
-    publicDetailLoadFailed: boolean;
     filterType: 'todos' | 'libro' | 'antologia';
     draftQuery: string;
     searchTerms: string[];
@@ -28,8 +23,6 @@ export interface MobileCatalogController extends CatalogSagaController {
     selectedRatingFilter: number | '';
     selectedLanguageFilter: number | '';
     selectedStyleFilter: number | '';
-    selectedDetailItem: CatalogItem | null;
-    publicReviewPage: number;
     onDraftQueryInput(event: Event): void;
     commitDraftQuery(scope?: LibraryTextFilterScope): void;
     addTextFilter(scope: LibraryTextFilterScope, value: string): void;
@@ -39,44 +32,17 @@ export interface MobileCatalogController extends CatalogSagaController {
     toggleFilters(): void;
     setTypeFilter(type: 'todos' | 'libro' | 'antologia'): void;
     applySelectFilters(): void;
+    applySelectFilter(field: 'status' | 'rating' | 'language' | 'style', event: Event): void;
+    openDetailCorrection(event: Event): void;
     openItem(item: CatalogItem): void;
-    closePublicDetailModal(): void;
     openNewRequest(type: 'libro' | 'antologia'): void;
     openCorrectionRequest(item: CatalogItem, event: MouseEvent): void;
-    openCollectionModal(item: CatalogItem, event?: MouseEvent): void;
     addToCollectionWithStatus(item: CatalogItem, statusId: ReadingStatusId, event?: MouseEvent): void;
-    openReadingFromDetail(): void;
     isInCollection(item: CatalogItem): boolean;
-    isDetailInCollection(): boolean;
     authorsLabel(item: CatalogItem): string;
     languagesLabel(item: CatalogItem): string;
     stylesLabel(item: CatalogItem): string;
     latestStatusName(item: CatalogItem): string;
     statusClass(item: CatalogItem): string;
     statusIcon(item: CatalogItem): string;
-    handleCoverImageError(event: Event): void;
-    publicDetailTitle(): string;
-    publicDetailCoverName(): string | null;
-    publicDetailEditions(): Edition[];
-    selectedEdition(): Edition | null;
-    selectEdition(editionId: number): void;
-    toggleSelectedEditionOwnership(): void;
-    publicDetailIsbn(): string | null;
-    publicDetailPublicationDate(): string | null;
-    publicDetailAuthorsLabel(): string;
-    publicDetailLanguagesLabel(): string;
-    publicDetailStylesLabel(): string;
-    publicDetailAverageRatingLabel(): string;
-    publicDetailPersonalStatusName(): string;
-    publicDetailPersonalRating(): number | null;
-    publicDetailPersonalReview(): string;
-    publicDetailStats(): CatalogPublicStats | null;
-    pagedPublicReviewRows(): CatalogPublicReview[];
-    publicReviewRows(): CatalogPublicReview[];
-    publicReviewAuthorHandle(review: CatalogPublicReview): string;
-    publicReviewDate(review: CatalogPublicReview): string | null;
-    hasPublicReviewPages(): boolean;
-    publicReviewTotalPages(): number;
-    previousPublicReviewPage(): void;
-    nextPublicReviewPage(): void;
 }

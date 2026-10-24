@@ -10,6 +10,7 @@
 
 ## Finalizado
 
+- [x] (24/10/2026, auditoría de duplicados) El editor de estado, puntuación y reseña que se abre desde la ficha del Catálogo y de los gestores del Perfil reenviaba siempre el estado, aunque no cambiara: cada `POST /coleccion/{libros|antologias}/{id}/estado` crea un histórico, así que añadir o cambiar solo la reseña duplicaba el estado actual en el historial (y su actividad). Al vaciar la puntuación de una reseña guardada, además, la ficha la daba por borrada sin decírselo al servidor. Ahora comparte con la Biblioteca `shared/collection-state.ts`: solo envía lo que cambia y avisa de que la reseña necesita puntuación.
 - [x] Mostrar `/universos/metricas` en el resumen del perfil propio con totales, hitos y compras de la colección privada, manteniendo carga, vacío, error y reintento independientes.
 - [x] Mejorar el formulario del gestor de libros y antologias: layout canonico, preview de portada, ISBN, sinopsis, estilos, busqueda Google Books con portada como imagen, alta rapida de autores, envio multipart y retirada del estado inicial.
 - [x] Reservar cabecera fija en catalogo y coleccion para mantener titulo, filtros y controles visibles durante el scroll.

@@ -1,0 +1,129 @@
+// Modales Wood del catálogo: velo, superficie, cierre y menú «Añadir a mi biblioteca».
+// Mixins sin emisión; los consumen la petición de catálogo y la ficha pública de una obra.
+
+@mixin backdrop
+    position: fixed
+    z-index: 1000
+    inset: 0
+    display: grid
+    place-items: center
+    background: rgba(0, 0, 0, .58)
+    padding: clamp(12px, 2vh, 24px)
+    overflow: hidden
+
+@mixin surface
+    display: grid
+    gap: 12px
+    width: min(460px, 100%)
+    max-height: calc(100vh - 24px)
+    overflow: auto
+    color: #f6e6c9
+    background: #18130f
+    border: 1px solid rgba(218, 166, 91, .32)
+    border-radius: 8px
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .48)
+    padding: 20px
+
+    header,
+    footer
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 10px
+
+    h2
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+
+    p
+        margin: 0
+        color: #d8c3a2
+
+    button
+        min-height: 36px
+        color: #f6e6c9
+        background: rgba(20, 17, 13, .72)
+        border: 1px solid rgba(218, 166, 91, .26)
+        border-radius: 7px
+        padding: 0 12px
+
+    button[type="submit"]
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+
+@mixin close-button
+    display: inline-grid
+    place-items: center
+    width: 34px
+    min-width: 34px
+    height: 34px
+    min-height: 34px
+    line-height: 1
+    color: #f2c77c
+    background: rgba(20, 17, 13, .72)
+    border: 1px solid rgba(218, 166, 91, .3)
+    border-radius: 50%
+    padding: 0
+    cursor: pointer
+
+    mat-icon
+        display: block
+        width: 19px
+        height: 19px
+        font-size: 19px
+        line-height: 19px
+
+// Panel de mat-menu sin superficie propia: la pone add-menu-content.
+@mixin add-menu-panel
+    max-width: none
+    background: transparent
+    box-shadow: none
+
+    .mat-mdc-menu-content
+        padding: 0
+
+@mixin add-menu-content
+    display: grid
+    gap: 7px
+    width: 260px
+    color: #f6e6c9
+    background: #18130f
+    border: 1px solid rgba(218, 166, 91, .3)
+    border-radius: 8px
+    box-shadow: 0 18px 38px rgba(0, 0, 0, .38)
+    padding: 12px
+
+    p
+        margin: 0 0 2px
+        color: #f5d69a
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: .98rem
+
+    button
+        display: flex
+        align-items: center
+        gap: 9px
+        min-height: 36px
+        color: #ead8bc
+        text-align: left
+        background: rgba(20, 17, 13, .72)
+        border: 1px solid rgba(218, 166, 91, .2)
+        border-radius: 7px
+        cursor: pointer
+        padding: 0 10px
+
+        mat-icon
+            width: 18px
+            height: 18px
+            color: #e9b66b
+            font-size: 18px
+
+        &:hover,
+        &:focus-visible
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            outline: none
+
+            mat-icon
+                color: #24170b
