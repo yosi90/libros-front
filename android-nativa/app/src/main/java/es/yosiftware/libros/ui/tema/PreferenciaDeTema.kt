@@ -2,7 +2,6 @@ package es.yosiftware.libros.ui.tema
 
 import android.app.Application
 import android.content.Context
-import android.content.res.Configuration
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -29,12 +28,12 @@ interface AlmacenDeTema {
 }
 
 /**
- * El tema elegido, guardado en el móvil. Sin elección guardada, el del sistema. Por ahora es del dispositivo; la
- * sincronización con la API (y guardarlo por cuenta, como `MobileThemeService`) llega con la cuenta.
+ * El tema elegido, guardado en el móvil. Sin elección guardada, claro, como `MobileThemeService` (`readLocal ?? 'light'`):
+ * el clon no sigue al tema del sistema porque la APK de Capacitor tampoco lo hacía. Por ahora es del dispositivo; la
+ * sincronización con la API (y guardarlo por cuenta) llega con la cuenta.
  */
 class PreferenciaDeTema(private val almacen: AlmacenDeTema) {
-    fun inicial(sistemaOscuro: Boolean): TemaMobile =
-        TemaMobile.de(almacen.leer()) ?: if (sistemaOscuro) TemaMobile.Oscuro else TemaMobile.Claro
+    fun inicial(): TemaMobile = TemaMobile.de(almacen.leer()) ?: TemaMobile.Claro
 
     fun guardar(tema: TemaMobile) = almacen.guardar(tema.valor)
 }
@@ -53,11 +52,7 @@ private class AlmacenEnPreferencias(contexto: Context) : AlmacenDeTema {
 class TemaViewModel(aplicacion: Application) : AndroidViewModel(aplicacion) {
     private val preferencia = PreferenciaDeTema(AlmacenEnPreferencias(aplicacion))
 
-    var tema by mutableStateOf(
-        preferencia.inicial(
-            sistemaOscuro = aplicacion.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES,
-        ),
-    )
+    var tema by mutableStateOf(preferencia.inicial())
         private set
 
     /** El interruptor sol/luna de la hoja «Más». */

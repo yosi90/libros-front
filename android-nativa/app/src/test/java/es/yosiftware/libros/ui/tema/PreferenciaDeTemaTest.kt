@@ -12,15 +12,14 @@ class PreferenciaDeTemaTest {
     }
 
     @Test
-    fun sinEleccionGuardadaEsElDelSistema() {
-        assertEquals(TemaMobile.Claro, PreferenciaDeTema(EnMemoria()).inicial(sistemaOscuro = false))
-        assertEquals(TemaMobile.Oscuro, PreferenciaDeTema(EnMemoria()).inicial(sistemaOscuro = true))
+    fun sinEleccionGuardadaEsClaroComoLaApkDeCapacitor() {
+        assertEquals(TemaMobile.Claro, PreferenciaDeTema(EnMemoria()).inicial())
     }
 
     @Test
-    fun laEleccionGuardadaGanaAlSistema() {
-        assertEquals(TemaMobile.Claro, PreferenciaDeTema(EnMemoria("light")).inicial(sistemaOscuro = true))
-        assertEquals(TemaMobile.Oscuro, PreferenciaDeTema(EnMemoria("dark")).inicial(sistemaOscuro = false))
+    fun seRespetaLaEleccionGuardada() {
+        assertEquals(TemaMobile.Claro, PreferenciaDeTema(EnMemoria("light")).inicial())
+        assertEquals(TemaMobile.Oscuro, PreferenciaDeTema(EnMemoria("dark")).inicial())
     }
 
     @Test
@@ -37,12 +36,12 @@ class PreferenciaDeTemaTest {
     fun loGuardadoSeLeeAlVolver() {
         val almacen = EnMemoria()
         PreferenciaDeTema(almacen).guardar(TemaMobile.Oscuro)
-        assertEquals(TemaMobile.Oscuro, PreferenciaDeTema(almacen).inicial(sistemaOscuro = false))
+        assertEquals(TemaMobile.Oscuro, PreferenciaDeTema(almacen).inicial())
     }
 
     @Test
     fun unValorDesconocidoSeIgnora() {
-        assertEquals(TemaMobile.Oscuro, PreferenciaDeTema(EnMemoria("sepia")).inicial(sistemaOscuro = true))
+        assertEquals(TemaMobile.Claro, PreferenciaDeTema(EnMemoria("sepia")).inicial())
     }
 
     @Test
