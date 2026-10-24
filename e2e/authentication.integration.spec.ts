@@ -1,7 +1,8 @@
 import { expect, integrationTest as test } from './fixtures/integration';
-import { authStatePath, QaRole } from './support/auth';
+import { authStatePath, PENDIENTE_HITO_4, QaRole } from './support/auth';
 
 test.describe('estados autenticados reutilizables por rol @integration', () => {
+    test.skip(true, PENDIENTE_HITO_4);
     for (const role of ['admin', 'moderator', 'userA', 'userB'] as QaRole[]) {
         test(`restaura la sesión de ${role}`, async ({ browser, baseURL }, testInfo) => {
             test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La cookie Strict solo puede restaurarse desde el Hosting QA del mismo sitio.');
@@ -25,6 +26,7 @@ test.describe('estados autenticados reutilizables por rol @integration', () => {
 });
 
 test.describe('acceso telefónico aislado @integration', () => {
+    test.skip(true, PENDIENTE_HITO_4);
     test.use({ storageState: { cookies: [], origins: [] } });
 
     test('accede con el teléfono ficticio sin enviar un SMS real', async ({ page, baseURL }) => {

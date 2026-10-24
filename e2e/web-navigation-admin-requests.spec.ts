@@ -3,10 +3,11 @@ import { installLocalVisualSession } from './support/local-visual-session';
 
 for (const theme of ['light', 'dark'] as const) {
     test(`Web ${theme}: Notificaciones forma parte de la navegación plegable`, async ({ page }) => {
+        // La campana propia se apaga con la adhesión: llega `<yosi-notificaciones>` de la plataforma.
+        test.fixme(true, 'Pendiente del hito 3: las notificaciones pasan a la plataforma.');
         await installLocalVisualSession(page, { webPresentation: true });
         await page.addInitScript(value => {
             localStorage.setItem('libros:web-theme:last', value);
-            localStorage.setItem('libros:web-theme:37', value);
         }, theme);
         if (theme === 'dark') await page.setViewportSize({ width: 3440, height: 1440 });
         await page.route('**/comunidad/capacidades', route => route.fulfill({

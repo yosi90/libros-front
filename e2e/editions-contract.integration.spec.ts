@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 import type { APIRequestContext, APIResponse } from '@playwright/test';
 import { expect, integrationTest as test } from './fixtures/integration';
-import { credentialsFor, loginThroughApi, loginThroughUi, type QaRole } from './support/auth';
+import { credentialsFor, loginThroughApi, loginThroughUi, PENDIENTE_HITO_4, type QaRole } from './support/auth';
 import { fixture, type QaFixturesResponse } from './support/qa-reset';
 import type { QaEnvironment } from './support/qa-environment';
 import type { Book } from '../src/app/interfaces/book';
@@ -11,6 +11,7 @@ import type { CatalogItem, CatalogOwnCollection, CatalogPublicDetail, CatalogReq
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('contrato real de ediciones @integration @editions-contract', () => {
+    test.skip(true, PENDIENTE_HITO_4);
     test.describe.configure({ timeout: 120_000 });
 
     for (const theme of ['light', 'dark', 'wood'] as const) {

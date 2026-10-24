@@ -20,6 +20,8 @@ const message = (id: number, request: typeof resolved) => ({
 
 test('Yosiftware muestra el estado vigente de las peticiones en la bandeja y el historial', async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium');
+    // El chat propio (y su conversación «Yosiftware» de sistema) se apaga con la adhesión: llega el de la plataforma.
+    test.fixme(true, 'Pendiente del hito 3: el chat pasa a la plataforma con la interfaz de Libros.');
     await installLocalVisualSession(page, { webPresentation: true, admin: true });
     await page.route('**/comunidad/capacidades', route => route.fulfill(json({
         success: true, UsuarioId: 37, VersionConfiguracion: 1, VersionCliente: '1.0.0', FechaExpiracion: null,

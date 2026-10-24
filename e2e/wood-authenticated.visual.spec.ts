@@ -2,12 +2,17 @@ import { expect, test } from './fixtures/test';
 
 import { installLocalVisualSession, visualBook } from './support/local-visual-session';
 
+// La cabecera Wood lleva ahora la cuenta de Yosiftware (`<yosi-acceso>`) y «Cuenta y seguridad» enlaza la cuenta común:
+// las referencias se regeneran en Linux en el hito 4, antes del corte (docs/codex/PROJECT_WORKING_NOTES.md).
+const REFERENCIA_PENDIENTE = 'Referencia pendiente de regenerar con la cuenta de Yosiftware en la cabecera (hito 4).';
+
 test.describe('regresion visual Wood autenticada @visual', () => {
     test.skip(({ browserName }) => browserName !== 'chromium', 'Los baselines visuales se mantienen en Chromium.');
 
     test.beforeEach(async ({ page }) => installLocalVisualSession(page));
 
     test('Cuenta y seguridad se integra en el escritorio Wood', async ({ page }) => {
+        test.fixme(true, REFERENCIA_PENDIENTE);
         // En Wood es un apartado del Perfil: la ruta propia redirige a él.
         await page.goto('/dashboard/account-security');
         await expect(page).toHaveURL(/\/dashboard\/profile\?section=security/);
@@ -30,6 +35,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
     });
 
     test('El shell, indice y busqueda del libro conservan Wood', async ({ page }) => {
+        test.fixme(true, REFERENCIA_PENDIENTE);
         await page.goto('/book/73/search');
         await expect(page.getByRole('heading', { name: 'Búsqueda avanzada' })).toBeVisible();
         await expect(page.locator('.dragon-loader')).toBeHidden();
@@ -39,6 +45,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
     });
 
     test('El editor de capítulo conserva la composición Wood', async ({ page }) => {
+        test.fixme(true, REFERENCIA_PENDIENTE);
         await page.goto('/book/73/chapter/11');
         await expect(page.getByRole('heading', { name: 'Escenas' })).toBeVisible();
         await expect(page.locator('.dragon-loader')).toBeHidden();
@@ -238,6 +245,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
     });
 
     test('Las entidades narrativas conservan la superficie Wood', async ({ page }) => {
+        test.fixme(true, REFERENCIA_PENDIENTE);
         await page.goto('/book/73/characters');
         await expect(page.getByRole('heading', { name: 'Personajes' })).toBeVisible();
         await expect(page.getByText('Iria Valverde', { exact: true })).toBeVisible();

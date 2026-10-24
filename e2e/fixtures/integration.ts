@@ -2,9 +2,7 @@ import { test as base } from './test';
 import type { BrowserContext } from '@playwright/test';
 import { qaEnvironmentFromProcess, QaEnvironment, verifyQaEnvironment } from '../support/qa-environment';
 import { QaFixturesResponse, QaScenario, getQaFixtures, resetQaDataset } from '../support/qa-reset';
-import { credentialsFor, loginThroughUi } from '../support/auth';
-import { readQaFixtureCache } from '../support/qa-cache';
-import { fixture } from '../support/qa-reset';
+import { PENDIENTE_HITO_4 } from '../support/auth';
 
 interface QaScenarioControl {
     apply(scenario: QaScenario): Promise<QaFixturesResponse>;
@@ -50,7 +48,6 @@ export const integrationTest = base.extend<IntegrationFixtures>({
 export const authenticatedIntegrationTest = integrationTest.extend<{}, AuthenticatedWorkerFixtures>({
     authenticatedContext: [async ({ browser }, use) => {
         const baseURL = process.env['PLAYWRIGHT_BASE_URL']?.trim() || 'http://127.0.0.1:4200';
-        const requiresSameSiteSession = baseURL.startsWith('https://qa-libros.yosiftware.es');
         const context = await browser.newContext({
             baseURL,
             serviceWorkers: 'block',
@@ -58,24 +55,14 @@ export const authenticatedIntegrationTest = integrationTest.extend<{}, Authentic
             storageState: { cookies: [], origins: [] }
         });
         try {
-            if (requiresSameSiteSession) {
-                const qaFixtures = await readQaFixtureCache();
-                const credentials = credentialsFor('userA', qaFixtures);
-                if (!credentials) throw new Error('Faltan las credenciales QA de member-a.');
-                // La bienvenida «Elige tu estilo» taparía las superficies que se auditan.
-                await context.addInitScript(userId => {
-                    try { localStorage.setItem(`libros:theme-onboarded:${userId}`, '1'); } catch { /* sin almacenamiento */ }
-                }, fixture(qaFixtures, 'user.member-a').Id);
-                const loginPage = await context.newPage();
-                await loginThroughUi(loginPage, credentials);
-                await loginPage.close();
-            }
+            // Pendiente del hito 4: aquí se entraba con el login propio de Libros, que se retira. Las pruebas se omiten en `page`.
             await use(context);
         } finally {
             await context.close();
         }
     }, { scope: 'worker', timeout: 120_000 }],
-    page: async ({ authenticatedContext }, use) => {
+    page: async ({ authenticatedContext }, use, testInfo) => {
+        testInfo.skip(true, PENDIENTE_HITO_4);
         const page = await authenticatedContext.newPage();
         try { await use(page); }
         finally { await page.close(); }

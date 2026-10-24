@@ -21,7 +21,6 @@ for (const mode of [
         if ('light' in mode && mode.light) {
             await page.addInitScript(() => {
                 localStorage.setItem('libros:web-theme:last', 'light');
-                localStorage.setItem('libros:web-theme:37', 'light');
             });
         }
         await page.setViewportSize({ width: mode.width, height: mode.height });

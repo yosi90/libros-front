@@ -2,6 +2,9 @@ import { Page } from '@playwright/test';
 import { expect, test } from './fixtures/test';
 import { installLocalVisualSession } from './support/local-visual-session';
 
+// Las normas de comunidad propias (`/moderacion/mi-estado-acceso`) se retiran con la adhesión a Yosiftware.
+test.fixme(true, 'Pendiente del hito 3: las normas propias se retiran; las de Libros las enseña el SDK de la plataforma (normasPendientes).');
+
 // Las normas de uso bloquean casi toda la app: el aviso debe salir al entrar, sin esperar a un 403.
 async function pendingUsagePolicy(page: Page): Promise<void> {
     await installLocalVisualSession(page, { webPresentation: true });

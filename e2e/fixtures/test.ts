@@ -1,4 +1,5 @@
 import { expect, test as base } from '@playwright/test';
+import { installYosiftwareSdkDouble } from '../support/yosiftware-sdk-double';
 
 interface DiagnosticsFixture {
     diagnostics: void;
@@ -45,32 +46,8 @@ export const test = base.extend<DiagnosticsFixture>({
         if (baseURL
             && /https?:\/\/(?:127\.0\.0\.1|localhost)/.test(baseURL)
             && process.env['PLAYWRIGHT_REAL_QA'] !== 'true') {
-            await page.route('**/runtime-config', route => route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
-                    success: true,
-                    Environment: 'qa',
-                    QaDatasetVersion: 'local-deterministic',
-                    RealtimeWsUrl: 'wss://example.test/ws',
-                    Firebase: {
-                        ApiKey: 'test-key',
-                        AuthDomain: 'qa-libros.yosiftware.es',
-                        ProjectId: 'libros-qa',
-                        StorageBucket: 'libros-qa.firebasestorage.app',
-                        MessagingSenderId: '1',
-                        AppId: '1:test:web:test',
-                        DatabaseURL: 'https://libros-qa-default-rtdb.europe-west1.firebasedatabase.app',
-                        Providers: { Password: true, Google: true, Phone: true },
-                        PhoneTestingMode: true
-                    }
-                })
-            }));
-            await page.route('**/auth/session/csrf', route => route.fulfill({
-                status: 401,
-                contentType: 'application/json',
-                body: JSON.stringify({ success: false, code: 'session_refresh_invalid' })
-            }));
+            // La cuenta es la de la plataforma Yosiftware: un doble de su SDK, sin sesión salvo que la prueba diga otra cosa.
+            await installYosiftwareSdkDouble(page);
         }
         await page.addInitScript(() => {
             const originalError = console.error.bind(console);
@@ -106,11 +83,6 @@ export const test = base.extend<DiagnosticsFixture>({
                 const detail = message.text().includes('JSHandle@object') && values.length ? values.join(' ') : message.text();
                 const location = message.location();
                 if (detail.includes('downloadable font: download failed') || location.url.includes('fonts.gstatic.com')) return;
-                if ((detail.includes('/auth/session/csrf') || location.url.includes('/auth/session/csrf')) && /status (?:of )?401|status of 401/i.test(detail)) return;
-                if (baseURL
-                    && /https?:\/\/(?:127\.0\.0\.1|localhost)/.test(baseURL)
-                    && detail.includes('Cookie “libros_refresh” has been rejected because it is in a cross-site context')
-                    && detail.includes('“SameSite” is “Lax” or “Strict”')) return;
                 const rendered = `console: ${detail}${location.url ? ` (${location.url}:${location.lineNumber})` : ''}`;
                 // WebKit todavía no implementa la extensión de viewport que Chromium
                 // usa para coordinar el teclado virtual. La ignora de forma segura y

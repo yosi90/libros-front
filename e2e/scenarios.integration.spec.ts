@@ -1,13 +1,14 @@
 import { expect, integrationTest as test } from './fixtures/integration';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { credentialsFor, loginThroughApi, loginThroughUi } from './support/auth';
+import { credentialsFor, loginThroughApi, loginThroughUi, PENDIENTE_HITO_4 } from './support/auth';
 import { fixture } from './support/qa-reset';
 import { forceRealtimeDisconnect, installRealtimeProbe, realtimeObservations, realtimeProbeSnapshot, resumeRealtimeConnection, waitForCurrentRealtimeConnectionSnapshot, waitForRealtimeObservation } from './support/realtime-probe';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('perfiles deterministas del backend QA @integration', () => {
+    test.skip(true, PENDIENTE_HITO_4);
     test.describe.configure({ mode: 'serial', timeout: 120_000 });
 
     test('baseline publica exactamente la matriz estable de aliases', async ({ qaFixtures }, testInfo) => {

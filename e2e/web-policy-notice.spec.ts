@@ -2,13 +2,15 @@ import { expect, test } from './fixtures/test';
 import AxeBuilder from '@axe-core/playwright';
 import { installLocalVisualSession } from './support/local-visual-session';
 
+// Las normas de comunidad propias (`/moderacion/mi-estado-acceso`) se retiran con la adhesión a Yosiftware.
+test.fixme(true, 'Pendiente del hito 3: las normas propias se retiran; las de Libros las enseña el SDK de la plataforma (normasPendientes).');
+
 // El aviso de normas pendientes sigue el tema Web (no conserva el aspecto Wood).
 for (const theme of ['light', 'dark'] as const) {
     test(`el aviso de normas usa la presentación Web en ${theme === 'light' ? 'claro' : 'oscuro'}`, async ({ page, expectedConsoleErrors }) => {
         expectedConsoleErrors.push(/status (?:of )?403/i);
         await page.addInitScript(choice => {
             localStorage.setItem('libros:web-theme:last', choice);
-            localStorage.setItem('libros:web-theme:37', choice);
         }, theme);
         await installLocalVisualSession(page, { webPresentation: true });
         await page.route('**/moderacion/mi-estado-acceso', route => route.fulfill({

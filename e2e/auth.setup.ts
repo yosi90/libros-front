@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { authStatePath, credentialsFor, loginThroughUi, QaRole } from './support/auth';
+import { authStatePath, credentialsFor, loginThroughUi, PENDIENTE_HITO_4, QaRole } from './support/auth';
 import { readQaFixtureCache } from './support/qa-cache';
 
 test('crea estados autenticados por rol sin conservar evidencia sensible', async ({ browser, browserName, baseURL }) => {
+    test.skip(true, PENDIENTE_HITO_4);
     const requiresSameSiteSession = baseURL?.startsWith('https://qa-libros.yosiftware.es') ?? false;
     const fixtures = requiresSameSiteSession ? await readQaFixtureCache() : null;
     for (const role of ['admin', 'moderator', 'userA', 'userB'] as QaRole[]) {

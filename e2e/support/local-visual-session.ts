@@ -1,27 +1,9 @@
 import type { Page } from '@playwright/test';
+import { installYosiftwareSdkDouble } from './yosiftware-sdk-double';
 
-const authenticatedSession = {
-    success: true,
-    Estado: 'authenticated',
-    AccessToken: 'local-visual-access-token',
-    ExpiresIn: 900,
-    CsrfToken: 'local-visual-csrf-token',
-    Usuario: {
-        Id: 37,
-        Nombre: 'Lector de prueba',
-        Email: 'lector@example.test',
-        Imagen: 'missing-local-avatar.png',
-        Username: 'lector_prueba',
-        DisplayName: 'Lector de prueba',
-        PerfilPublico: false,
-        MostrarEstadisticas: true,
-        MostrarBiblioteca: true,
-        PermitirMensajes: false,
-        EmailVerificado: true,
-        VerificationPending: false,
-        Role: { Id: 1, Nombre: 'usuario' }
-    }
-} as const;
+/** La persona de las regresiones: su cuenta de Yosiftware (doble del SDK) y su usuario local de Libros. */
+const localUser = { Id: 37, Nombre: 'Lector de prueba', Role: { Id: 1, Nombre: 'usuario' } };
+const localAccount = { id: '0d0c37aa-0000-4000-8000-000000000037', alias: 'lector_prueba' };
 
 export const visualBook = {
     Id: 73,
@@ -84,74 +66,22 @@ export const visualBook = {
  * pruebas de vistas Web pasan `{ webPresentation: true }`.
  */
 export async function installLocalVisualSession(page: Page, options: { webPresentation?: boolean; admin?: boolean } = {}): Promise<void> {
-        const session = options.admin
-            ? { ...authenticatedSession, Usuario: { ...authenticatedSession.Usuario, Role: { Id: 2, Nombre: 'administrador' } } }
-            : authenticatedSession;
+        const user = options.admin ? { ...localUser, Role: { Id: 2, Nombre: 'administrador' } } : localUser;
         if (!options.webPresentation)
             await page.addInitScript(() => { try { localStorage.setItem('book-front:web-presentation', 'off'); } catch { /* sin almacenamiento */ } });
-        await page.route('**/runtime-config', route => route.fulfill({
+        // Entra con la cuenta de Yosiftware (doble del SDK) y Libros reconoce a su usuario local.
+        await installYosiftwareSdkDouble(page, { cuenta: localAccount });
+        await page.route('**/usuarios/me', route => route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify({
-                success: true,
-                Environment: 'local',
-                QaDatasetVersion: null,
-                RealtimeWsUrl: '',
-                Firebase: { Providers: { Password: true, Google: true, Phone: true } }
-            })
-        }));
-        await page.route('**/auth/session/csrf', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true, CsrfToken: authenticatedSession.CsrfToken })
-        }));
-        await page.route('**/auth/session/refresh', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(session)
-        }));
-        await page.route('**/auth/access-methods', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-                success: true,
-                Metodos: [
-                    { Metodo: 'password', ProveedorFirebase: 'password', Recuperable: true, FechaVinculacion: '2026-08-01T10:00:00Z' },
-                    { Metodo: 'google', ProveedorFirebase: 'google.com', Recuperable: true, FechaVinculacion: '2026-08-02T10:00:00Z' }
-                ]
-            })
-        }));
-        await page.route('**/auth/sessions', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-                success: true,
-                Sesiones: [{
-                    Id: 'current-session',
-                    NombreDispositivo: 'Chromium en escritorio',
-                    FechaCreacion: '2026-08-01T10:00:00Z',
-                    FechaUltimaActividad: '2026-08-26T10:00:00Z',
-                    FechaExpiracionInactividad: '2026-09-25T10:00:00Z',
-                    FechaExpiracionAbsoluta: '2026-11-24T10:00:00Z',
-                    Revocada: false,
-                    EsActual: true
-                }]
-            })
-        }));
-        await page.route('**/usuarios/me/preferencias-interfaz', route => route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-                success: true,
-                Preferencias: { Tema: 'dark', Version: 3, FechaActualizacion: '2026-08-20T10:00:00Z' }
-            })
+            body: JSON.stringify({ success: true, user })
         }));
         await page.route('**/comunidad/capacidades', route => route.fulfill({
             status: 200,
             contentType: 'application/json',
             body: JSON.stringify({
                 success: true,
-                UsuarioId: authenticatedSession.Usuario.Id,
+                UsuarioId: localUser.Id,
                 VersionConfiguracion: 1,
                 VersionCliente: '1.0.0',
                 FechaExpiracion: null,
@@ -196,7 +126,6 @@ export async function installLocalVisualSession(page: Page, options: { webPresen
         }));
         // Perfil: datos personales vacíos para que sus apartados carguen sin red.
         const emptyState = { Total: 0, Comprados: 0, Leidos: 0, Pendientes: 0, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0 };
-        await page.route('**/auth/user', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, user: session.Usuario }) }));
         await page.route('**/peticiones/catalogo/mias**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
         await page.route('**/reportes/mios**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
         await page.route('**/biblioteca/actividad_reciente**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));

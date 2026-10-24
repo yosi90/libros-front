@@ -1,6 +1,9 @@
 import { expect, test } from './fixtures/test';
 import { installLocalVisualSession } from './support/local-visual-session';
 
+// Las normas de comunidad propias (`/moderacion/mi-estado-acceso`) se retiran con la adhesión a Yosiftware.
+test.fixme(true, 'Pendiente del hito 3: las normas propias se retiran; las de Libros las enseña el SDK de la plataforma (normasPendientes).');
+
 // Primera visita de una cuenta nueva: la bienvenida de estilo va antes que el aviso de normas.
 test('la bienvenida de estilo retiene el aviso de normas hasta elegir el estilo', async ({ page, expectedConsoleErrors }) => {
     expectedConsoleErrors.push(/status (?:of )?403/i);

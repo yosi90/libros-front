@@ -3,10 +3,11 @@ import { installLocalVisualSession } from './support/local-visual-session';
 
 for (const theme of ['light', 'dark'] as const) {
     test(`Perfil Web ${theme}: el avatar señala la imagen y Cambiar permite subirla`, async ({ page }) => {
+        // `POST /image/set/photo` se retira con la adhesión: el avatar es el de la cuenta de Yosiftware (`<yosi-perfil>`).
+        test.fixme(true, 'Pendiente del hito 3: el perfil y el avatar pasan a la plataforma.');
         await installLocalVisualSession(page, { webPresentation: true });
         await page.addInitScript(value => {
             localStorage.setItem('libros:web-theme:last', value);
-            localStorage.setItem('libros:web-theme:37', value);
         }, theme);
         await page.setViewportSize({ width: 1440, height: 900 });
         let uploadedImage = false;
