@@ -21,6 +21,8 @@ describe('carga del SDK de la plataforma', () => {
         expect(script.type).toBe('module');
         expect(script.src).toBe('https://qa-cuentas.yosiftware.es/sdk/v1/yosiftware.js');
         expect(script.dataset['estilos']).toBe(HOJA_ESTILOS_SDK);
+        // Las invitaciones a los clubes las pinta Libros (ESPACIOS.md): el SDK no abre su ventana.
+        expect(script.dataset['invitaciones']).toBe('propias');
 
         view.yosiftware = sdk;
         script.onload!(new Event('load'));

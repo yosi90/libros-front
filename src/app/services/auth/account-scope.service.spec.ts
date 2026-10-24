@@ -28,20 +28,23 @@ describe('AccountScopeService', () => {
             chatFloating: spy('ChatFloatingCoordinatorService', ['clear']),
             floatingWindows: spy('FloatingWindowManagerService', ['clear']),
             mobileFullscreenReturn: spy('MobileFullscreenReturnService', ['clear']),
-            loader: spy('LoaderEmmitterService', ['deactivateLoader'])
+            loader: spy('LoaderEmmitterService', ['deactivateLoader']),
+            spaces: spy('PlatformSpacesService', ['clear']),
+            clubAccess: spy('ClubAccessService', ['clear'])
         };
         stores.moderationAccess.refresh.and.returnValue(of(null));
         stores.capabilities.initialize.and.returnValue(of({}));
         const service = new AccountScopeService(
             session as never, stores.universes, stores.authors, stores.books, stores.librarySearch, stores.catalogView,
             stores.managerView, stores.readingReturn, stores.decisions, stores.moderationAccess, stores.capabilities,
-            stores.realtime, stores.chatStore, stores.chatFloating, stores.floatingWindows, stores.mobileFullscreenReturn, stores.loader
+            stores.realtime, stores.chatStore, stores.chatFloating, stores.floatingWindows, stores.mobileFullscreenReturn, stores.loader,
+            stores.spaces, stores.clubAccess
         );
         service.start();
         return { service, session, stores };
     }
 
-    it('con cada cambio de identidad vacía todo lo que Libros guarda en memoria de la persona, también el chat', () => {
+    it('con cada cambio de identidad vacía todo lo que Libros guarda en memoria de la persona, también el chat y los clubes', () => {
         const { session, stores } = create();
 
         session.identityChange$.next({ generation: 2, accountId: 'cuenta-b' });
@@ -54,7 +57,8 @@ describe('AccountScopeService', () => {
             ['capacidades', stores.capabilities.clear], ['tiempo real de la plataforma', stores.realtime.stop],
             ['bandeja del chat', stores.chatStore.clear], ['ventanas del chat', stores.chatFloating.clear],
             ['ventanas flotantes', stores.floatingWindows.clear], ['vuelta de pantallas completas', stores.mobileFullscreenReturn.clear],
-            ['cargando', stores.loader.deactivateLoader]
+            ['cargando', stores.loader.deactivateLoader],
+            ['canales de los espacios de los clubes', stores.spaces.clear], ['invitaciones y solicitudes de clubes', stores.clubAccess.clear]
         ];
         for (const [name, clear] of clearers)
             expect(clear).withContext(name).toHaveBeenCalledTimes(1);

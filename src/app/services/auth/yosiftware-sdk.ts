@@ -1,5 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { environment } from '../../../environment/environment';
+import { CanalDeEspacio, MensajeDelCanal } from '../../interfaces/platform-spaces';
 
 // Lo que Libros usa del SDK de la plataforma Yosiftware (ecosistema-kit/ACCESO.md). Los tipos completos están junto
 // al SDK: <SDK>/sdk/v1/yosiftware.d.ts. El SDK se carga siempre de la página de acceso del entorno, nunca se copia.
@@ -113,6 +114,13 @@ export interface YosiftwareSdk {
         alCambiarNoLeidos(oyente: (noLeidos: number) => void): () => void;
         escribiendo(idConversacion: number): void;
     };
+    /**
+     * Los espacios (ESPACIOS.md). Libros pinta su propia interfaz de invitaciones (`data-invitaciones="propias"`) y
+     * hace las llamadas con `/v1/espacios` (`PlatformSpacesService`); del SDK solo usa el canal de tiempo real.
+     */
+    readonly espacios: {
+        canal(id: number, oyente: (mensaje: MensajeDelCanal) => void, opciones?: { desde?: number }): CanalDeEspacio;
+    };
     fetch(entrada: string, opciones?: RequestInit): Promise<Response>;
 }
 
@@ -131,6 +139,9 @@ export function cargarSdkDesdeLaPlataforma(sdkUrl: string = environment.platafor
         script.type = 'module';
         script.src = sdkUrl;
         script.dataset['estilos'] = HOJA_ESTILOS_SDK;
+        // Las invitaciones a los clubes las enseña Libros con su interfaz (ESPACIOS.md, «Con tu propia interfaz»):
+        // el SDK no abre su ventana con `#yosi-invitacion=` ni `#yosi-invitaciones` (`ClubInvitationLinkService`).
+        script.dataset['invitaciones'] = 'propias';
         script.onload = () => {
             const sdk = ventana?.yosiftware;
             if (sdk) resolve(sdk);

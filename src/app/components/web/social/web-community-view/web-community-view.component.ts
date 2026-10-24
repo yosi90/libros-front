@@ -6,10 +6,10 @@ import { RouterLink } from '@angular/router';
 import { ClubAccessCenterComponent } from '../../../shared/user-pages/community/club-access-center/club-access-center.component';
 import type { CommunityComponent } from '../../../shared/user-pages/community/community.component';
 
+// Las solicitudes pendientes son de la plataforma: `EstadoMembresia` ya no vale `solicitud_pendiente` (fase 4).
 const membershipLabels: Record<string, string> = {
     disponible: 'puedes unirte',
-    miembro: 'ya eres miembro',
-    solicitud_pendiente: 'solicitud pendiente'
+    miembro: 'ya eres miembro'
 };
 
 export const clubRoleLabels: Record<string, string> = {

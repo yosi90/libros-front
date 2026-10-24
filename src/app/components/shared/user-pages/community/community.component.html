@@ -73,7 +73,7 @@
 }</section>
 }
 @if (clubTab === 'access') {
-  <app-club-access-center [counters]="clubAccessCounters" [refreshToken]="clubAccessRefreshToken" (accessChanged)="refreshClubContext()"></app-club-access-center>
+  <app-club-access-center [refreshToken]="clubAccessRefreshToken" (accessChanged)="refreshClubContext()"></app-club-access-center>
 }
 </section>
 }

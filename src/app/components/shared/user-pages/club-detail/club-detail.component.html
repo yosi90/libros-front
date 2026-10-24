@@ -17,8 +17,18 @@
   }</section>
 }
 
+@if (membershipSync !== 'idle') {
+  <p class="club-detail__message club-detail__sync" role="status">@if (membershipSync === 'waiting') {
+    <mat-icon>hourglass_top</mat-icon>Ya estás dentro en Yosiftware. Libros tarda unos segundos (a veces unos minutos) en abrirte el club: lo seguimos comprobando.
+  } @else {
+    <mat-icon>schedule</mat-icon>Libros todavía no ha recibido tu entrada en el club. Puede tardar unos minutos más.<button type="button" (click)="startMembershipSync()">Comprobar de nuevo</button>
+  }</p>
+}
+
 @if (!isLoading && club; as currentClub) {
-  <header class="club-detail__hero"><div><span>Club de lectura · {{currentClub.Visibilidad}}</span><h1>{{currentClub.Nombre}}</h1><p>{{currentClub.DescripcionMarkdown || 'Este club aún no ha añadido una descripción.'}}</p></div><span class="club-detail__hero-actions">@if (!isMember) {
+  <header class="club-detail__hero"><div><span>Club de lectura · {{currentClub.Visibilidad}}</span><h1>{{currentClub.Nombre}}</h1><p>{{currentClub.DescripcionMarkdown || 'Este club aún no ha añadido una descripción.'}}</p></div><span class="club-detail__hero-actions">@if (canJoin && ownRequestPending) {
+  <span class="club-detail__pending"><mat-icon>schedule_send</mat-icon>Solicitud enviada</span><button type="button" (click)="withdrawJoinRequest()" [disabled]="isWithdrawingRequest">{{isWithdrawingRequest ? 'Retirando…' : 'Retirar solicitud'}}</button>
+  } @else if (canJoin) {
   <button type="button" (click)="joinOrRequest()" [disabled]="isJoining"><mat-icon>{{currentClub.Visibilidad === 'abierto' ? 'group_add' : 'mark_email_unread'}}</mat-icon>{{isJoining ? 'Enviando…' : currentClub.Visibilidad === 'abierto' ? 'Unirme' : 'Solicitar acceso'}}</button>
   }@if (isMember) {
   <button type="button" (click)="openClubChat()" [disabled]="!clubChatAvailable" [title]="clubChatUnavailableReason"><mat-icon>forum</mat-icon>Abrir chat</button>
@@ -26,12 +36,22 @@
   <button type="button" (click)="reportClub()" [disabled]="isReportingClub"><mat-icon>flag</mat-icon>{{isReportingClub ? 'Enviando…' : 'Denunciar'}}</button>
 }</span></header>
 @if (actionMessage) {
-  <p class="club-detail__message">{{actionMessage}}</p>
+  <p class="club-detail__message">{{actionMessage}}@if (actionHelp === 'dos_pasos') { <a [href]="securityUrl" target="_blank" rel="noopener">Activar la verificación en dos pasos</a> }</p>
+}
+@if (needsTwoSteps) {
+  <p class="club-detail__message club-detail__message--error" role="alert">El club exige la verificación en dos pasos: hasta que la actives, tu acceso está en pausa. <a [href]="securityUrl" target="_blank" rel="noopener">Activarla</a></p>
 }
 @if (sectionError) {
   <p class="club-detail__message club-detail__message--error" role="alert">{{sectionError}} <button type="button" (click)="load()">Reintentar</button></p>
 }
-<section class="club-detail__metrics"><article><mat-icon>groups</mat-icon><strong>{{currentClub.Metricas.MiembrosActivos}}</strong><span>miembros activos</span></article><article><mat-icon>article</mat-icon><strong>{{currentClub.Metricas.Publicaciones}}</strong><span>publicaciones</span></article><article><mat-icon>forum</mat-icon><strong>{{currentClub.Metricas.Mensajes}}</strong><span>mensajes</span></article></section>
+<section class="club-detail__metrics"><article><mat-icon>groups</mat-icon><strong>{{currentClub.Metricas.MiembrosActivos}}</strong><span>miembros activos</span></article><article><mat-icon>article</mat-icon><strong>{{currentClub.Metricas.Publicaciones}}</strong><span>publicaciones</span></article></section>
+@if (isMember) {
+  <section class="club-detail__chat"><header><div><span>Chat</span><h2>Conversación del club</h2></div>@if (clubChatAvailable) {<button type="button" (click)="openClubChat()"><mat-icon>open_in_full</mat-icon>Abrir chat</button>}</header>@if (clubConversationId; as conversationId) {
+  <div class="club-detail__chat-frame">@for (id of [conversationId]; track id) {<app-chat-conversation [conversationIdInput]="id" [floating]="true"></app-chat-conversation>}</div>
+  } @else {
+  <p>{{clubChatUnavailableReason}}</p>
+  }</section>
+}
 @if (currentClub.Visibilidad === 'abierto') {<section class="club-detail__authors"><header><div><span>Comunidad</span><h2>Autores más leídos</h2></div><mat-icon>person_search</mat-icon></header><app-stat-rows [rows]="clubReadingAuthors" [ranked]="true" empty="Aún no hay datos suficientes: hacen falta tres lectores del club que compartan sus estadísticas."></app-stat-rows></section>}
 <section class="club-detail__readings"><header><div><span>Lecturas</span><h2>Actual e histórico</h2></div><mat-icon>collections_bookmark</mat-icon></header>@if (isReadingsLoading) {
 <p role="status" aria-live="polite">Cargando lecturas…</p>
@@ -89,6 +109,19 @@
 <p role="alert">{{calendarError}}</p>
 }</form>
 }</section>
+@if (isMember) {
+<section class="club-detail__publications"><header><div><span>Publicaciones</span><h2>Lo que comparten los miembros</h2></div><mat-icon>article</mat-icon></header>@for (publication of publications; track publication.Id) {
+<article class="club-detail__publication"><div><strong>{{publication.Titulo || 'Publicación'}}</strong><small>{{publication.Autor.Nombre}} · {{publication.FechaCreacion | date:'dd/MM/yyyy HH:mm'}}</small><p>{{publication.ContenidoMarkdown || 'Contenido oculto por spoiler.'}}</p></div>@if (canReportPublication(publication)) {
+<button type="button" class="secondary" (click)="reportPublication(publication)" [disabled]="reportingPublicationIds.has(publication.Id)" aria-label="Denunciar publicación"><mat-icon>flag</mat-icon>Denunciar</button>
+}</article>
+}@if (!isLoadingPublications && !publications.length) {
+<p>No hay publicaciones todavía.</p>
+}@if (nextPublicationCursor) {
+<button type="button" class="secondary" (click)="loadPublications(false)" [disabled]="isLoadingPublications">Cargar más</button>
+}@if (publicationError) {
+<p role="alert">{{publicationError}}</p>
+}</section>
+}
 <section class="club-detail__debates"><header><div><span>Debates</span><h2>Conversaciones persistentes</h2></div>@if (!revealDebateSpoilers) {
 <button type="button" (click)="revealSpoilersInDebates()">Revelar spoilers</button>
 }</header>@for (debate of debates; track debate) {
@@ -125,23 +158,27 @@
 <button type="button" class="club-detail__delete" (click)="deleteClub()" [disabled]="isDeletingClub">{{isDeletingClub ? 'Eliminando…' : 'Eliminar club'}}</button>
 }@if (!isMember) {
 <mat-icon>menu_book</mat-icon>
-}</header>@if (canManageClub) {
-<section class="club-detail__invite-search"><form (submit)="$event.preventDefault(); loadInvitationCandidates()"><label><mat-icon>person_search</mat-icon><input type="search" [(ngModel)]="invitationQuery" name="invitationQuery" maxlength="100" placeholder="Buscar una persona para invitar" aria-label="Buscar una persona para invitar"></label><button type="submit" [disabled]="isSearchingInvitationCandidates">{{isSearchingInvitationCandidates ? 'Buscando…' : 'Buscar'}}</button></form>@for (candidate of invitationCandidates; track candidate) {
-<article><span class="club-detail__avatar">@if (candidate.Imagen) {
-  <img [src]="candidate.Imagen" alt="">
+}</header>@if (canInvite) {
+<section class="club-detail__invite-search"><form (submit)="$event.preventDefault(); searchPeople()"><label><mat-icon>person_search</mat-icon><input type="search" [(ngModel)]="peopleQuery" name="peopleQuery" maxlength="60" placeholder="Buscar una persona de Yosiftware para invitar" aria-label="Buscar una persona para invitar"></label><button type="submit" [disabled]="isSearchingPeople">{{isSearchingPeople ? 'Buscando…' : 'Buscar'}}</button></form>@if (canChooseInvitationRole) {
+<label class="club-detail__invite-role">Invitar como<select [(ngModel)]="invitationRole" name="invitationRole" aria-label="Rol de la invitación"><option value="miembro">Miembro</option><option value="moderacion">Moderación</option></select></label>
+}@for (person of people; track person.id) {
+<article><span class="club-detail__avatar">@if (person.avatar) {
+  <img [src]="person.avatar.miniatura" alt="">
 } @else {
   <mat-icon>person</mat-icon>
-  }</span><span><strong>{{candidate.Nombre}}</strong><small>{{invitationRelationLabel(candidate)}}</small></span><button type="button" (click)="inviteCandidate(candidate)" [disabled]="invitingCandidateIds.has(candidate.UsuarioId) || isSearchingInvitationCandidates">{{invitingCandidateIds.has(candidate.UsuarioId) ? 'Enviando…' : 'Invitar'}}</button></article>
-  }@if (!isSearchingInvitationCandidates && !invitationCandidates.length) {
-  <p>No hay personas disponibles con este criterio.</p>
-  }@if (nextInvitationCandidateCursor) {
-  <button type="button" class="secondary" (click)="loadInvitationCandidates(false)" [disabled]="isSearchingInvitationCandidates">Cargar más</button>
+  }</span><span><strong>{{personName(person)}}</strong><small>&#64;{{person.alias}}</small></span><button type="button" (click)="invitePerson(person)" [disabled]="invitingKeys.has('cuenta:' + person.id)">{{invitingKeys.has('cuenta:' + person.id) ? 'Enviando…' : 'Invitar'}}</button></article>
+  }@if (peopleSearched && !isSearchingPeople && !people.length) {
+  <p>No hay personas con ese nombre o alias.</p>
+}<form class="club-detail__invite-email" (submit)="$event.preventDefault(); inviteEmail()"><label><mat-icon>alternate_email</mat-icon><input type="email" [(ngModel)]="invitationEmail" name="invitationEmail" maxlength="254" placeholder="O invita a un correo" aria-label="Correo al que invitar"></label><button type="submit" [disabled]="invitingKeys.size > 0">Invitar por correo</button></form>@if (sentInvitations.length) {
+<div class="club-detail__requests"><strong>Invitaciones pendientes</strong>@for (invitation of sentInvitations; track invitation.id) {
+<article><span><b>{{invitationTarget(invitation)}}</b><small>Caduca el {{invitation.caduca | date:'dd/MM/yyyy'}}</small></span><div><button type="button" (click)="withdrawInvitation(invitation)" [disabled]="invitationActionIds.has(invitation.id)">Retirar</button></div></article>
+}</div>
 }</section>
 }@if (joinRequests.length) {
-<div class="club-detail__requests"><strong>Solicitudes pendientes</strong>@for (request of joinRequests; track request) {
-<article><span><b>{{request.Solicitante.Nombre}}</b>@if (request.Mensaje) {
-<small>{{request.Mensaje}}</small>
-}</span><div><button type="button" (click)="resolveJoinRequest(request, 'aceptada')" [disabled]="joinRequestActionIds.has(request.Id)">Aceptar</button><button type="button" (click)="resolveJoinRequest(request, 'rechazada')" [disabled]="joinRequestActionIds.has(request.Id)">Rechazar</button></div></article>
+<div class="club-detail__requests"><strong>Solicitudes pendientes</strong>@for (request of joinRequests; track request.id) {
+<article><span><b>{{requestName(request)}}</b>@if (request.mensaje) {
+<small>{{request.mensaje}}</small>
+}</span><div><button type="button" (click)="resolveJoinRequest(request, 'aprobar')" [disabled]="joinRequestActionIds.has(request.id)">Aprobar</button><button type="button" (click)="resolveJoinRequest(request, 'rechazar')" [disabled]="joinRequestActionIds.has(request.id)">Rechazar</button></div></article>
 }</div>
 }@if (membershipError) {
 <p role="alert">{{membershipError}}</p>

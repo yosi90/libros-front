@@ -7,6 +7,8 @@ import { SocialSummary } from '../../../../interfaces/chat';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { PlatformSocialService, PlatformSocialSummary } from '../../../../services/platform/platform-social.service';
+import { PlatformSpacesService } from '../../../../services/platform/platform-spaces.service';
+import { clubIdFromSpace } from '../../../../shared/club-spaces';
 import { ChatStoreService } from '../../../../services/stores/chat-store.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -37,9 +39,11 @@ export class SocialSummaryComponent implements OnInit, OnDestroy {
     loading = false;
     error = '';
     private unreadMessages = 0;
+    /** Las invitaciones a clubes pendientes, de los espacios de la plataforma (`null` si no han llegado). */
+    private clubInvitations: number | null = null;
     private readonly subscriptions = new Subscription();
 
-    constructor(private community: CommunityService, private social: PlatformSocialService, private chats: ChatStoreService, private session: PlatformSessionService, private presentation: PresentationModeService) { }
+    constructor(private community: CommunityService, private social: PlatformSocialService, private chats: ChatStoreService, private session: PlatformSessionService, private presentation: PresentationModeService, private spaces: PlatformSpacesService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
@@ -64,9 +68,12 @@ export class SocialSummaryComponent implements OnInit, OnDestroy {
         this.error = '';
         forkJoin({
             clubs: this.community.socialSummary().pipe(map(value => ({ value, failed: null })), catchError(error => of({ value: null, failed: error as unknown }))),
-            relationships: this.social.summary().pipe(map(value => ({ value, failed: null })), catchError(error => of({ value: null, failed: error as unknown })))
-        }).subscribe(({ clubs, relationships }) => {
+            relationships: this.social.summary().pipe(map(value => ({ value, failed: null })), catchError(error => of({ value: null, failed: error as unknown }))),
+            // Las invitaciones son de los espacios (fase 4): el contador de la API sale de sus tablas archivadas.
+            invitations: this.spaces.myInvitations().pipe(map(items => items.filter(item => clubIdFromSpace(item.espacio.idExterno) !== null).length), catchError(() => of(null)))
+        }).subscribe(({ clubs, relationships, invitations }) => {
             this.loading = false;
+            this.clubInvitations = invitations;
             this.summary = clubs.value;
             this.relationships = relationships.value;
             if (!clubs.value && !relationships.value) {
@@ -91,7 +98,7 @@ export class SocialSummaryComponent implements OnInit, OnDestroy {
         const clubs = this.summary?.Resumen.Clubes;
         if (clubs) cards.push(
             { label: 'Clubes activos', value: clubs.Activos, icon: 'groups_3', path: '../clubs' },
-            { label: 'Invitaciones a clubes', value: clubs.InvitacionesPendientes, icon: 'mark_email_unread', path: '../clubs', accent: clubs.InvitacionesPendientes > 0 }
+            { label: 'Invitaciones a clubes', value: this.clubInvitations ?? clubs.InvitacionesPendientes, icon: 'mark_email_unread', path: '../clubs', accent: (this.clubInvitations ?? clubs.InvitacionesPendientes) > 0 }
         );
         cards.push({ label: 'Mensajes sin leer', value: this.unreadMessages, icon: 'forum', path: '../messages', accent: this.unreadMessages > 0 });
         return cards;

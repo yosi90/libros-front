@@ -21,12 +21,20 @@
 .state
     @include web.state
 
-.error
+.error, .notice
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-2)
     margin: 0 0 var(--web-space-3)
+    max-width: 900px
+
+.error
     color: var(--web-color-danger)
 
-.more
-    margin-top: var(--web-space-4)
+.notice
+    color: var(--web-color-success)
+
 
 .access__filters
     display: flex
@@ -35,17 +43,8 @@
     gap: var(--web-space-3)
     margin-bottom: var(--web-space-4)
 
-.access__state
-    display: grid
-    gap: 4px
-
-    > span
-        color: var(--web-color-ink-muted)
-        font-size: 12px
-        font-weight: 600
-
-    .field
-        min-width: 180px
+.access__reload
+    margin-left: auto
 
 .access__list
     display: grid

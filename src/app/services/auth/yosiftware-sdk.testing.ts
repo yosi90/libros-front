@@ -1,3 +1,4 @@
+import { CanalDeEspacio, MensajeDelCanal } from '../../interfaces/platform-spaces';
 import { AjustesPlataforma, AvisoTiempoReal, EstadoPlataforma, EstadoTiempoReal, EventoTiempoReal, YosiftwareSdk } from './yosiftware-sdk';
 
 /**
@@ -17,6 +18,8 @@ export class YosiftwareSdkDouble implements YosiftwareSdk {
     private oyentesConexion: Array<(estado: EstadoTiempoReal) => void> = [];
     private oyentesNoLeidos: Array<(noLeidos: number) => void> = [];
     private secuencia = 0;
+    /** Los canales de espacio abiertos, por espacio (`yosiftware.espacios.canal`). */
+    private canales = new Map<number, Set<(mensaje: MensajeDelCanal) => void>>();
 
     readonly salir = jasmine.createSpy('salir').and.resolveTo();
     readonly entrar = jasmine.createSpy('entrar').and.resolveTo(true);
@@ -77,6 +80,15 @@ export class YosiftwareSdkDouble implements YosiftwareSdk {
         escribiendo: jasmine.createSpy('chat.escribiendo')
     };
 
+    readonly espacios = {
+        canal: jasmine.createSpy('espacios.canal').and.callFake((id: number, oyente: (mensaje: MensajeDelCanal) => void): CanalDeEspacio => {
+            const oyentes = this.canales.get(id) ?? new Set();
+            oyentes.add(oyente);
+            this.canales.set(id, oyentes);
+            return { espacio: id, presentes: [], cerrar: () => { oyentes.delete(oyente); if (!oyentes.size) this.canales.delete(id); } };
+        })
+    };
+
     listo(): Promise<EstadoPlataforma> { return Promise.resolve(this.estado); }
     alCambiar(oyente: (estado: EstadoPlataforma) => void): () => void {
         this.oyentes.push(oyente);
@@ -102,6 +114,10 @@ export class YosiftwareSdkDouble implements YosiftwareSdk {
         this.chat.noLeidos = total;
         this.oyentesNoLeidos.forEach(oyente => oyente(total));
     }
+    /** Lo que entrega el canal de un espacio a quien lo tiene abierto. */
+    canal(espacio: number, mensaje: MensajeDelCanal): void { this.canales.get(espacio)?.forEach(oyente => oyente(mensaje)); }
+    /** Cuántos canales de espacio siguen abiertos. */
+    get canalesAbiertos(): number { return [...this.canales.values()].reduce((total, oyentes) => total + oyentes.size, 0); }
     /** Cuántos oyentes tiene el tiempo real: sin ninguno, el SDK cierra el socket. */
     get oyentesDelTiempoReal(): number { return this.oyentesEvento.length + this.oyentesAviso.length + this.oyentesConexion.length; }
 }

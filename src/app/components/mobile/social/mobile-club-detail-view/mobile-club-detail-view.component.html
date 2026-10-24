@@ -11,23 +11,28 @@
     <section class="m-card m-club-detail__deleted"><mat-icon>inventory_2</mat-icon><h1 class="m-title">{{ c.deletedClubName }} está eliminado</h1><p>El histórico y los miembros se conservan, pero el acceso y el chat permanecen revocados.</p><button class="m-button" type="button" (click)="c.restoreClub()" [disabled]="c.isRestoringClub">{{ c.isRestoringClub ? 'Restaurando…' : 'Restaurar club' }}</button>@if (c.actionMessage) { <p class="m-club-detail__message">{{ c.actionMessage }}</p> }</section>
   }
 
+  @if (c.membershipSync !== 'idle') {
+    <p class="m-club-detail__message" role="status">@if (c.membershipSync === 'waiting') { Ya estás dentro en Yosiftware. Libros tarda unos segundos (a veces unos minutos) en abrirte el club: lo seguimos comprobando. } @else { Libros todavía no ha recibido tu entrada en el club. Puede tardar unos minutos más. <button type="button" (click)="c.startMembershipSync()">Comprobar de nuevo</button> }</p>
+  }
+
   @if (!c.isLoading && c.club; as club) {
     <header class="m-card m-club-detail__hero">
       <div><p class="m-eyebrow">Club de lectura · {{ club.Visibilidad }}</p><h1 class="m-title">{{ club.Nombre }}</h1><p class="m-supporting">{{ club.DescripcionMarkdown || 'Este club aún no ha añadido una descripción.' }}</p></div>
       <div class="m-club-detail__hero-actions">
-        @if (!c.isMember) { <button class="m-button" type="button" (click)="c.joinOrRequest()" [disabled]="c.isJoining"><mat-icon>{{ club.Visibilidad === 'abierto' ? 'group_add' : 'mark_email_unread' }}</mat-icon>{{ c.isJoining ? 'Enviando…' : club.Visibilidad === 'abierto' ? 'Unirme' : 'Solicitar acceso' }}</button> }
+        @if (c.canJoin && c.ownRequestPending) { <span class="m-club-detail__pending"><mat-icon>schedule_send</mat-icon>Solicitud enviada</span><button class="m-button m-button--outline" type="button" (click)="c.withdrawJoinRequest()" [disabled]="c.isWithdrawingRequest">{{ c.isWithdrawingRequest ? 'Retirando…' : 'Retirar solicitud' }}</button> }
+        @else if (c.canJoin) { <button class="m-button" type="button" (click)="c.joinOrRequest()" [disabled]="c.isJoining"><mat-icon>{{ club.Visibilidad === 'abierto' ? 'group_add' : 'mark_email_unread' }}</mat-icon>{{ c.isJoining ? 'Enviando…' : club.Visibilidad === 'abierto' ? 'Unirme' : 'Solicitar acceso' }}</button> }
         @if (c.isMember) { <button class="m-button" type="button" (click)="c.openClubChat()" [disabled]="!c.clubChatAvailable" [title]="c.clubChatUnavailableReason"><mat-icon>forum</mat-icon>Abrir chat</button> }
         @if (!c.isOwner) { <button class="m-button m-button--outline is-danger" type="button" (click)="c.reportClub()" [disabled]="c.isReportingClub"><mat-icon>flag</mat-icon>{{ c.isReportingClub ? 'Enviando…' : 'Denunciar' }}</button> }
       </div>
     </header>
 
-    @if (c.actionMessage) { <p class="m-club-detail__message" role="status">{{ c.actionMessage }}</p> }
+    @if (c.actionMessage) { <p class="m-club-detail__message" role="status">{{ c.actionMessage }}@if (c.actionHelp === 'dos_pasos') { <a [href]="c.securityUrl" target="_blank" rel="noopener">Activar la verificación en dos pasos</a> }</p> }
+    @if (c.needsTwoSteps) { <p class="m-club-detail__message is-error" role="alert">El club exige la verificación en dos pasos: hasta que la actives, tu acceso está en pausa. <a [href]="c.securityUrl" target="_blank" rel="noopener">Activarla</a></p> }
     @if (c.sectionError) { <p class="m-club-detail__message is-error" role="alert">{{ c.sectionError }} <button type="button" (click)="c.load()">Reintentar</button></p> }
 
     <section class="m-club-detail__metrics" aria-label="Actividad del club">
       <article><mat-icon>groups</mat-icon><strong>{{ club.Metricas.MiembrosActivos }}</strong><span>Miembros</span></article>
       <article><mat-icon>article</mat-icon><strong>{{ club.Metricas.Publicaciones }}</strong><span>Publicaciones</span></article>
-      <article><mat-icon>forum</mat-icon><strong>{{ club.Metricas.Mensajes }}</strong><span>Mensajes</span></article>
     </section>
     @if (club.Visibilidad === 'abierto') {
       <section class="m-card m-club-detail__authors"><h2 class="m-club-detail__authors-title"><mat-icon>person_search</mat-icon>Autores más leídos</h2><app-stat-rows [rows]="c.clubReadingAuthors" [ranked]="true" empty="Aún no hay datos suficientes: hacen falta tres lectores del club que compartan sus estadísticas."></app-stat-rows></section>
@@ -81,6 +86,24 @@
       </div>
     </details>
 
+    @if (c.isMember) {
+      <details class="m-card m-club-section">
+        <summary><span class="m-list-item__icon"><mat-icon>chat</mat-icon></span><span><strong>Chat</strong><small>Conversación del club</small></span><mat-icon>expand_more</mat-icon></summary>
+        <div class="m-club-section__body">
+          @if (c.clubChatAvailable) { <button class="m-button" type="button" (click)="c.openClubChat()"><mat-icon>forum</mat-icon>Abrir el chat del club</button> } @else { <p class="m-club-detail__empty">{{ c.clubChatUnavailableReason }}</p> }
+        </div>
+      </details>
+
+      <details class="m-card m-club-section">
+        <summary><span class="m-list-item__icon"><mat-icon>article</mat-icon></span><span><strong>Publicaciones</strong><small>Lo que comparten los miembros</small></span><mat-icon>expand_more</mat-icon></summary>
+        <div class="m-club-section__body">
+          @for (publication of c.publications; track publication.Id) { <article class="m-club-row"><mat-icon>article</mat-icon><span><strong>{{ publication.Titulo || 'Publicación' }}</strong><small>{{ publication.Autor.Nombre }} · {{ publication.FechaCreacion | date:'dd/MM/yyyy HH:mm' }}</small><p>{{ publication.ContenidoMarkdown || 'Contenido oculto por spoiler.' }}</p></span>@if (c.canReportPublication(publication)) { <button class="m-icon-button" type="button" aria-label="Denunciar publicación" (click)="c.reportPublication(publication)" [disabled]="c.reportingPublicationIds.has(publication.Id)"><mat-icon>flag</mat-icon></button> }</article> } @empty { @if (!c.isLoadingPublications) { <p class="m-club-detail__empty">No hay publicaciones todavía.</p> } }
+          @if (c.nextPublicationCursor) { <button class="m-button m-button--outline" type="button" (click)="c.loadPublications(false)" [disabled]="c.isLoadingPublications">Cargar más</button> }
+          @if (c.publicationError) { <p class="is-error" role="alert">{{ c.publicationError }}</p> }
+        </div>
+      </details>
+    }
+
     <details class="m-card m-club-section">
       <summary><span class="m-list-item__icon"><mat-icon>forum</mat-icon></span><span><strong>Debates</strong><small>Conversaciones persistentes</small></span><mat-icon>expand_more</mat-icon></summary>
       <div class="m-club-section__body">
@@ -106,13 +129,15 @@
       <div class="m-club-section__body">
         @if (c.isMember && !c.isOwner) { <button class="m-button m-button--outline is-danger" type="button" (click)="c.leaveClub()" [disabled]="c.isLeaving">{{ c.isLeaving ? 'Saliendo…' : 'Abandonar club' }}</button> }
         @if (c.isOwner) { <button class="m-button m-button--outline is-danger" type="button" (click)="c.deleteClub()" [disabled]="c.isDeletingClub">{{ c.isDeletingClub ? 'Eliminando…' : 'Eliminar club' }}</button> }
-        @if (c.canManageClub) {
-          <form class="m-club-form m-club-invite" (submit)="$event.preventDefault(); c.loadInvitationCandidates()"><input type="search" [(ngModel)]="c.invitationQuery" name="mInvitationQuery" maxlength="100" placeholder="Buscar una persona para invitar"><button class="m-button" type="submit" [disabled]="c.isSearchingInvitationCandidates">{{ c.isSearchingInvitationCandidates ? 'Buscando…' : 'Buscar' }}</button></form>
-          @for (candidate of c.invitationCandidates; track candidate) { <article class="m-list-item"><span class="m-list-item__icon">@if (candidate.Imagen) { <img [src]="candidate.Imagen" alt=""> } @else { <mat-icon>person</mat-icon> }</span><span class="m-list-item__body"><strong>{{ candidate.Nombre }}</strong><span>{{ c.invitationRelationLabel(candidate) }}</span></span><button class="m-button m-button--tonal" type="button" (click)="c.inviteCandidate(candidate)" [disabled]="c.invitingCandidateIds.has(candidate.UsuarioId) || c.isSearchingInvitationCandidates">{{ c.invitingCandidateIds.has(candidate.UsuarioId) ? 'Enviando…' : 'Invitar' }}</button></article> }
-          @if (!c.isSearchingInvitationCandidates && !c.invitationCandidates.length) { <p class="m-club-detail__empty">No hay personas disponibles con este criterio.</p> }
-          @if (c.nextInvitationCandidateCursor) { <button class="m-button m-button--outline" type="button" (click)="c.loadInvitationCandidates(false)" [disabled]="c.isSearchingInvitationCandidates">Cargar más</button> }
+        @if (c.canInvite) {
+          <form class="m-club-form m-club-invite" (submit)="$event.preventDefault(); c.searchPeople()"><input type="search" [(ngModel)]="c.peopleQuery" name="mPeopleQuery" maxlength="60" placeholder="Buscar una persona de Yosiftware" aria-label="Buscar una persona para invitar"><button class="m-button" type="submit" [disabled]="c.isSearchingPeople">{{ c.isSearchingPeople ? 'Buscando…' : 'Buscar' }}</button></form>
+          @if (c.canChooseInvitationRole) { <label class="m-club-form__role">Invitar como<select [(ngModel)]="c.invitationRole" name="mInvitationRole"><option value="miembro">Miembro</option><option value="moderacion">Moderación</option></select></label> }
+          @for (person of c.people; track person.id) { <article class="m-list-item"><span class="m-list-item__icon">@if (person.avatar) { <img [src]="person.avatar.miniatura" alt=""> } @else { <mat-icon>person</mat-icon> }</span><span class="m-list-item__body"><strong>{{ c.personName(person) }}</strong><span>&#64;{{ person.alias }}</span></span><button class="m-button m-button--tonal" type="button" (click)="c.invitePerson(person)" [disabled]="c.invitingKeys.has('cuenta:' + person.id)">{{ c.invitingKeys.has('cuenta:' + person.id) ? 'Enviando…' : 'Invitar' }}</button></article> }
+          @if (c.peopleSearched && !c.isSearchingPeople && !c.people.length) { <p class="m-club-detail__empty">No hay personas con ese nombre o alias.</p> }
+          <form class="m-club-form m-club-invite" (submit)="$event.preventDefault(); c.inviteEmail()"><input type="email" [(ngModel)]="c.invitationEmail" name="mInvitationEmail" maxlength="254" placeholder="O invita a un correo" aria-label="Correo al que invitar"><button class="m-button m-button--tonal" type="submit" [disabled]="c.invitingKeys.size > 0">Invitar</button></form>
+          @if (c.sentInvitations.length) { <section class="m-club-requests"><h3>Invitaciones pendientes</h3>@for (invitation of c.sentInvitations; track invitation.id) { <article><span><strong>{{ c.invitationTarget(invitation) }}</strong><small>Caduca el {{ invitation.caduca | date:'dd/MM/yyyy' }}</small></span><div><button class="m-button m-button--outline" type="button" (click)="c.withdrawInvitation(invitation)" [disabled]="c.invitationActionIds.has(invitation.id)">Retirar</button></div></article> }</section> }
         }
-        @if (c.joinRequests.length) { <section class="m-club-requests"><h3>Solicitudes pendientes</h3>@for (request of c.joinRequests; track request) { <article><span><strong>{{ request.Solicitante.Nombre }}</strong>@if (request.Mensaje) { <small>{{ request.Mensaje }}</small> }</span><div><button class="m-button m-button--tonal" type="button" (click)="c.resolveJoinRequest(request, 'aceptada')" [disabled]="c.joinRequestActionIds.has(request.Id)">Aceptar</button><button class="m-button m-button--outline" type="button" (click)="c.resolveJoinRequest(request, 'rechazada')" [disabled]="c.joinRequestActionIds.has(request.Id)">Rechazar</button></div></article> }</section> }
+        @if (c.joinRequests.length) { <section class="m-club-requests"><h3>Solicitudes pendientes</h3>@for (request of c.joinRequests; track request.id) { <article><span><strong>{{ c.requestName(request) }}</strong>@if (request.mensaje) { <small>{{ request.mensaje }}</small> }</span><div><button class="m-button m-button--tonal" type="button" (click)="c.resolveJoinRequest(request, 'aprobar')" [disabled]="c.joinRequestActionIds.has(request.id)">Aprobar</button><button class="m-button m-button--outline" type="button" (click)="c.resolveJoinRequest(request, 'rechazar')" [disabled]="c.joinRequestActionIds.has(request.id)">Rechazar</button></div></article> }</section> }
         @if (c.membershipError) { <p class="is-error" role="alert">{{ c.membershipError }}</p> }
         @for (member of club.MiembrosDetalle; track member) { <article class="m-list-item"><span class="m-list-item__icon"><mat-icon>person</mat-icon></span><span class="m-list-item__body"><strong>{{ member.Nombre }}</strong><span>{{ member.Rol }}</span></span>@if (c.isOwner && member.Rol !== 'propietario') { <span class="m-club-member-actions"><button class="m-icon-button" type="button" [attr.aria-label]="member.Rol === 'moderador' ? 'Quitar moderación' : 'Hacer moderador'" (click)="c.changeMemberRole(member)" [disabled]="c.memberActionUserIds.has(member.Id)"><mat-icon>{{ member.Rol === 'moderador' ? 'person' : 'admin_panel_settings' }}</mat-icon></button><button class="m-icon-button is-danger" type="button" aria-label="Expulsar" (click)="c.removeMember(member)" [disabled]="c.memberActionUserIds.has(member.Id)"><mat-icon>person_remove</mat-icon></button></span> }</article> } @empty { <p class="m-club-detail__empty">El listado de miembros todavía está vacío.</p> }
       </div>

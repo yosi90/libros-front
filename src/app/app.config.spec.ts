@@ -10,4 +10,15 @@ describe('arranque de la aplicación', () => {
 
         expect(order).toEqual(['limpieza', 'sesion']);
     });
+
+    it('lee los enlaces de invitación a clubes antes de arrancar la sesión', () => {
+        const order: string[] = [];
+        const accountScope = { start: () => order.push('limpieza') };
+        const session = { start: () => order.push('sesion') };
+        const links = { start: () => order.push('invitaciones') };
+
+        startApplicationSession(accountScope, session, links);
+
+        expect(order).toEqual(['limpieza', 'invitaciones', 'sesion']);
+    });
 });

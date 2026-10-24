@@ -1,12 +1,14 @@
 import { WebCommunityViewComponent } from '../../../web/social/web-community-view/web-community-view.component';
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ClubAccessInboxCounters, ClubDiscoveryCursor, ClubDiscoveryItem, ClubPublicActivitySummary, ClubUpcomingEvent, ClubUpcomingEventCursor, MyClubSummary } from '../../../../interfaces/community';
+import { Subscription } from 'rxjs';
 import { CommunityService } from '../../../../services/entities/community.service';
+import { ClubAccessService } from '../../../../services/platform/club-access.service';
 import { getProductStateMessage } from '../../../../shared/api-error-message';
 import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
@@ -18,6 +20,7 @@ import { MobileCommunityViewComponent } from '../../../mobile/social/mobile-comm
  * Los clubes de lectura de Libros (descubrir, los míos, próximos eventos y acceso). Las personas, las amistades, los
  * bloqueos y el muro general se retiraron con la adhesión a Yosiftware: las personas y las relaciones son de la web
  * social, y la actividad automática, novedades de la plataforma (`RUTAS_RETIRADAS.md`, «Adhesión a Yosiftware»).
+ * Las pendientes del acceso (invitaciones y solicitudes) son de los espacios de la plataforma (`ClubAccessService`).
  */
 @Component({
     standalone: true,
@@ -27,7 +30,7 @@ import { MobileCommunityViewComponent } from '../../../mobile/social/mobile-comm
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community.component.sass'
 })
-export class CommunityComponent implements OnInit {
+export class CommunityComponent implements OnInit, OnDestroy {
     readonly view = 'clubs' as const;
     clubs: ClubDiscoveryItem[] = [];
     clubSearch = '';
@@ -54,8 +57,9 @@ export class CommunityComponent implements OnInit {
     isLoadingMyClubs = false;
     isLoadingClubEvents = false;
     nextClubEventCursor: ClubUpcomingEventCursor | null = null;
+    private subscriptions = new Subscription();
 
-    constructor(private community: CommunityService, private router: Router, private route: ActivatedRoute, private universeStore: UniverseStoreService, public readonly access: ModerationAccessService, private presentation: PresentationModeService) { }
+    constructor(private community: CommunityService, private router: Router, private route: ActivatedRoute, private universeStore: UniverseStoreService, public readonly access: ModerationAccessService, private presentation: PresentationModeService, private clubAccess: ClubAccessService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
@@ -65,9 +69,14 @@ export class CommunityComponent implements OnInit {
         const requestedClubTab = this.route.snapshot.queryParamMap.get('clubTab');
         if (requestedClubTab === 'discover' || requestedClubTab === 'mine' || requestedClubTab === 'events' || requestedClubTab === 'access') this.clubTab = requestedClubTab;
         this.access.refresh().subscribe();
+        this.subscriptions.add(this.clubAccess.counters$.subscribe(counters => this.clubAccessCounters = counters));
         this.load();
         this.loadClubHome();
+        // El centro de acceso las carga él mismo cuando está a la vista.
+        if (this.clubTab !== 'access') this.clubAccess.refresh().subscribe({ error: () => undefined });
     }
+
+    ngOnDestroy(): void { this.subscriptions.unsubscribe(); }
 
     load(): void {
         this.isLoading = true;
@@ -115,7 +124,6 @@ export class CommunityComponent implements OnInit {
                 this.myClubs = summary.ClubesPropios;
                 this.upcomingClubEvents = summary.ProximosEventos;
                 this.popularClubs = summary.ClubesPublicosActivos;
-                this.clubAccessCounters = summary.BandejasAcceso;
                 if (!summary.TieneClubes && (this.clubTab === 'mine' || this.clubTab === 'events')) this.selectClubTab('discover');
             }
         });

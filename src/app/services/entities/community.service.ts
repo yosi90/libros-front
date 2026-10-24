@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { ClubAccessDirection, ClubCalendarEvent, ClubCalendarEventCreateRequest, ClubCreateRequest, ClubDebate, ClubDebateDetail, ClubDetail, ClubDiscoveryCursor, ClubDiscoveryPage, ClubInboxCursor, ClubInboxFilterState, ClubInvitationCandidateCursor, ClubInvitationCandidatePage, ClubInvitationPage, ClubJoinRequestOwnPage, ClubJoinRequestPage, ClubMilestone, ClubMilestoneCreateRequest, ClubPoll, ClubProgress, ClubReading, ClubSocialSummary, ClubSpoiler, ClubSummary, ClubUpcomingEvent, ClubUpcomingEventCursor, MyClubSummary } from '../../interfaces/community';
+import { ClubCalendarEvent, ClubCalendarEventCreateRequest, ClubCreateRequest, ClubDebate, ClubDebateDetail, ClubDetail, ClubDiscoveryCursor, ClubDiscoveryPage, ClubMilestone, ClubMilestoneCreateRequest, ClubPoll, ClubProgress, ClubPublication, ClubPublicationCursor, ClubReading, ClubSocialSummary, ClubSpoiler, ClubSummary, ClubUpcomingEvent, ClubUpcomingEventCursor, MyClubSummary } from '../../interfaces/community';
 import { ModerationAccessService } from '../stores/moderation-access.service';
 import { SocialSummary } from '../../interfaces/chat';
 
@@ -30,18 +30,10 @@ export class CommunityService {
             .pipe(map(response => response.Clubes));
     }
 
+    /** `BandejasAcceso` salió en la fase 4: las pendientes son de la plataforma (`ClubAccessService`). */
     clubSocialSummary(): Observable<ClubSocialSummary> {
         return this.http.get<{ success: boolean } & ClubSocialSummary>(`${environment.apiUrl}clubes-lectura/resumen`)
-            .pipe(map(({ TieneClubes, ClubesPropios, ProximosEventos, ClubesPublicosActivos, BandejasAcceso }) => ({
-                TieneClubes,
-                ClubesPropios,
-                ProximosEventos,
-                ClubesPublicosActivos,
-                BandejasAcceso: BandejasAcceso ?? {
-                    Solicitudes: { EnviadasPendientes: 0, RecibidasPendientes: 0 },
-                    Invitaciones: { EnviadasPendientes: 0, RecibidasPendientes: 0 }
-                }
-            })));
+            .pipe(map(({ TieneClubes, ClubesPropios, ProximosEventos, ClubesPublicosActivos }) => ({ TieneClubes, ClubesPropios, ProximosEventos, ClubesPublicosActivos })));
     }
 
     myClubs(): Observable<{ TieneClubes: boolean; Total: number; Clubes: MyClubSummary[] }> {
@@ -69,63 +61,9 @@ export class CommunityService {
             .pipe(map(response => response.Club));
     }
 
-    joinClub(id: number): Observable<void> {
-        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/unirse`, {}).pipe(map(() => void 0)));
-    }
-
-    requestClubAccess(id: number, message?: string): Observable<void> {
-        const normalizedMessage = message?.trim();
-        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/solicitudes`, normalizedMessage ? { Mensaje: normalizedMessage } : {}).pipe(map(() => void 0)));
-    }
-
-    clubInvitations(direction: ClubAccessDirection, state: ClubInboxFilterState = 'pendiente', cursor?: ClubInboxCursor): Observable<ClubInvitationPage> {
-        let params = new HttpParams().set('direccion', direction).set('estado', state).set('limit', 20);
-        if (cursor) params = params.set('cursorId', cursor.cursorId);
-        return this.http.get<{ success: boolean } & ClubInvitationPage>(`${environment.apiUrl}bandejas/clubes/invitaciones`, { params }).pipe(map(({ Direccion, Invitaciones, SiguienteCursor }) => ({ Direccion, Invitaciones, SiguienteCursor } as ClubInvitationPage)));
-    }
-
-    ownClubJoinRequests(direction: ClubAccessDirection, state: ClubInboxFilterState = 'pendiente', cursor?: ClubInboxCursor): Observable<ClubJoinRequestOwnPage> {
-        let params = new HttpParams().set('direccion', direction).set('estado', state).set('limit', 20);
-        if (cursor) params = params.set('cursorId', cursor.cursorId);
-        return this.http.get<{ success: boolean } & ClubJoinRequestOwnPage>(`${environment.apiUrl}bandejas/clubes/solicitudes`, { params }).pipe(map(({ Direccion, Solicitudes, SiguienteCursor }) => ({ Direccion, Solicitudes, SiguienteCursor } as ClubJoinRequestOwnPage)));
-    }
-
-    cancelOwnClubJoinRequest(requestId: number): Observable<void> {
-        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}bandejas/clubes/solicitudes/${requestId}`, { Estado: 'cancelada' }).pipe(map(() => void 0)));
-    }
-
-    cancelClubInvitation(invitationId: number): Observable<void> {
-        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}bandejas/clubes/invitaciones/${invitationId}`, { Estado: 'cancelada' }).pipe(map(() => void 0)));
-    }
-
-    resolveClubInvitation(clubId: number, invitationId: number, state: 'aceptada' | 'rechazada'): Observable<void> {
-        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}clubes-lectura/${clubId}/invitaciones/${invitationId}`, { Estado: state }).pipe(map(() => void 0)));
-    }
-
-    clubJoinRequests(id: number, cursor?: ClubInboxCursor): Observable<ClubJoinRequestPage> {
-        let params = new HttpParams().set('estado', 'pendiente').set('limit', 20);
-        if (cursor) params = params.set('cursorId', cursor.cursorId);
-        return this.http.get<{ success: boolean } & ClubJoinRequestPage>(`${environment.apiUrl}clubes-lectura/${id}/solicitudes`, { params }).pipe(map(({ Solicitudes, SiguienteCursor }) => ({ Solicitudes, SiguienteCursor })));
-    }
-
-    resolveClubJoinRequest(id: number, requestId: number, state: 'aceptada' | 'rechazada'): Observable<void> {
-        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}clubes-lectura/${id}/solicitudes/${requestId}`, { Estado: state }).pipe(map(() => void 0)));
-    }
-
-    inviteToClub(id: number, userId: number): Observable<void> {
-        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/invitaciones`, { UsuarioId: userId }).pipe(map(() => void 0)));
-    }
-
-    clubInvitationCandidates(id: number, query = '', cursor?: ClubInvitationCandidateCursor): Observable<ClubInvitationCandidatePage> {
-        let params = new HttpParams().set('limit', 20);
-        if (query.trim()) params = params.set('q', query.trim());
-        if (cursor) params = params
-            .set('cursorTipo', cursor.cursorTipo)
-            .set('cursorNombre', cursor.cursorNombre)
-            .set('cursorId', cursor.cursorId);
-        return this.http.get<{ success: boolean } & ClubInvitationCandidatePage>(`${environment.apiUrl}clubes-lectura/${id}/invitaciones/candidatos`, { params })
-            .pipe(map(({ Candidatos, SiguienteCursor }) => ({ Candidatos, SiguienteCursor })));
-    }
+    // Entrar, salir, pedir entrar, las solicitudes, las invitaciones, sus candidatos y `/bandejas/clubes/*` se retiraron
+    // en la fase 4 (RUTAS_RETIRADAS.md): son de los espacios de la plataforma (`PlatformSpacesService`). Expulsar y
+    // cambiar el rol siguen en Libros, solo para la propiedad del club: la API los lleva al espacio.
 
     changeClubMemberRole(id: number, userId: number, role: 'moderador' | 'miembro'): Observable<void> {
         return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}clubes-lectura/${id}/miembros/${userId}`, { Rol: role }).pipe(map(() => void 0)));
@@ -133,10 +71,6 @@ export class CommunityService {
 
     removeClubMember(id: number, userId: number): Observable<void> {
         return this.access.gate('clubes', true, this.http.delete(`${environment.apiUrl}clubes-lectura/${id}/miembros/${userId}`).pipe(map(() => void 0)));
-    }
-
-    leaveClub(id: number): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/salir`, {}).pipe(map(() => void 0));
     }
 
     deleteClub(id: number): Observable<void> {
@@ -186,6 +120,14 @@ export class CommunityService {
 
     deleteClubCalendarEvent(id: number, eventId: number): Observable<void> {
         return this.access.gate('clubes', true, this.http.delete(`${environment.apiUrl}clubes-lectura/${id}/eventos/${eventId}`).pipe(map(() => void 0)));
+    }
+
+    /** Las publicaciones del club (miembros activos): se leen y se denuncian; el muro general se retiró. */
+    clubPublications(id: number, cursor?: ClubPublicationCursor): Observable<{ Publicaciones: ClubPublication[]; SiguienteCursor: ClubPublicationCursor | null }> {
+        let params = new HttpParams().set('limit', 20);
+        if (cursor) params = params.set('cursorFecha', cursor.cursorFecha).set('cursorId', cursor.cursorId);
+        return this.http.get<{ success: boolean; Publicaciones: ClubPublication[]; SiguienteCursor: ClubPublicationCursor | null }>(`${environment.apiUrl}clubes-lectura/${id}/publicaciones`, { params })
+            .pipe(map(({ Publicaciones, SiguienteCursor }) => ({ Publicaciones: Publicaciones ?? [], SiguienteCursor: SiguienteCursor ?? null })));
     }
 
     clubDebates(id: number, revealSpoilers = false): Observable<ClubDebate[]> {

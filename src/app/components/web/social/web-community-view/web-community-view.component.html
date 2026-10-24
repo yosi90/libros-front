@@ -70,7 +70,7 @@
         </div>
         @if (c.nextClubEventCursor) {<button class="web-button more" type="button" [disabled]="c.isLoadingClubEvents" (click)="c.loadUpcomingClubEvents(c.nextClubEventCursor)">Cargar más eventos</button>}
       } @else {
-        <app-club-access-center [counters]="c.clubAccessCounters" [refreshToken]="c.clubAccessRefreshToken" (accessChanged)="c.refreshClubContext()"></app-club-access-center>
+        <app-club-access-center [refreshToken]="c.clubAccessRefreshToken" (accessChanged)="c.refreshClubContext()"></app-club-access-center>
       }
     </section>
   }

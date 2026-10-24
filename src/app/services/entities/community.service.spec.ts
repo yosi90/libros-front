@@ -38,58 +38,43 @@ describe('CommunityService resumen social', () => {
         } });
     });
 
-    it('carga el resumen privado de clubes y sus próximos eventos', () => {
+    it('carga el resumen privado de clubes y sus próximos eventos, sin las bandejas propias retiradas', () => {
         service.clubSocialSummary().subscribe(summary => {
             expect(summary.TieneClubes).toBeTrue();
-            expect(summary.BandejasAcceso.Solicitudes.EnviadasPendientes).toBe(0);
+            // `BandejasAcceso` salió en la fase 4: las pendientes son de los espacios de la plataforma.
+            expect('BandejasAcceso' in summary).toBeFalse();
         });
         const request = http.expectOne(`${environment.apiUrl}clubes-lectura/resumen`);
         request.flush({ success: true, TieneClubes: true, ClubesPropios: [], ProximosEventos: [], ActividadReciente: [], ClubesPublicosActivos: [], Cursores: { Eventos: null, Actividad: null } });
     });
 
-    it('envía dirección, estado y cursor al consultar solicitudes propias', () => {
-        service.ownClubJoinRequests('recibidas', 'aceptada', { cursorId: 18 }).subscribe(page => expect(page.Direccion).toBe('recibidas'));
-        const request = http.expectOne(req => req.url === `${environment.apiUrl}bandejas/clubes/solicitudes`);
-        expect(request.request.params.get('direccion')).toBe('recibidas');
-        expect(request.request.params.get('estado')).toBe('aceptada');
-        expect(request.request.params.get('cursorId')).toBe('18');
-        request.flush({ success: true, Direccion: 'recibidas', Solicitudes: [], SiguienteCursor: null });
-    });
-
-    it('cancela una solicitud propia sin exponer su referencia en la interfaz', () => {
-        service.cancelOwnClubJoinRequest(9).subscribe();
-        const request = http.expectOne(`${environment.apiUrl}bandejas/clubes/solicitudes/9`);
-        expect(request.request.method).toBe('PATCH');
-        expect(request.request.body).toEqual({ Estado: 'cancelada' });
-        request.flush({ success: true });
-    });
-
-    it('envía el mensaje opcional al solicitar acceso a un club cerrado', () => {
-        service.requestClubAccess(4, '  Me encantaría participar  ').subscribe();
-        const request = http.expectOne(`${environment.apiUrl}clubes-lectura/4/solicitudes`);
-        expect(request.request.body).toEqual({ Mensaje: 'Me encantaría participar' });
-        request.flush({ success: true });
-    });
-
-    it('busca candidatos de invitación por referencia humana y cursor compuesto', () => {
-        service.clubInvitationCandidates(6, '  mara  ', { cursorTipo: 'amistad', cursorNombre: 'Mara', cursorId: 12 }).subscribe(page => {
-            expect(page.Candidatos[0].Nombre).toBe('Mara');
-            expect(page.Candidatos[0].UsuarioId).toBe(19);
+    it('lee las publicaciones del club con su cursor', () => {
+        service.clubPublications(3, { cursorFecha: '2026-10-20T10:00:00Z', cursorId: 40 }).subscribe(page => {
+            expect(page.Publicaciones[0].Autor.Nombre).toBe('Ada');
+            expect(page.SiguienteCursor).toBeNull();
         });
-        const request = http.expectOne(req => req.url === `${environment.apiUrl}clubes-lectura/6/invitaciones/candidatos`);
-        expect(request.request.params.get('q')).toBe('mara');
-        expect(request.request.params.get('cursorTipo')).toBe('amistad');
-        expect(request.request.params.get('cursorNombre')).toBe('Mara');
-        expect(request.request.params.get('cursorId')).toBe('12');
-        request.flush({ success: true, Candidatos: [{ UsuarioId: 19, Nombre: 'Mara', Imagen: null, Relacion: 'amistad' }], SiguienteCursor: null });
+        const request = http.expectOne(req => req.url === `${environment.apiUrl}clubes-lectura/3/publicaciones`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('cursorId')).toBe('40');
+        request.flush({ success: true, Publicaciones: [{ Id: 41, Titulo: null, ContenidoMarkdown: 'Hola', Autor: { Id: 2, Nombre: 'Ada', Imagen: null }, Spoiler: null, FechaCreacion: '2026-10-19T10:00:00Z', Comentarios: 0, Reacciones: 0 }], SiguienteCursor: null });
     });
 
-    it('envía internamente el usuario seleccionado al crear la invitación', () => {
-        service.inviteToClub(6, 19).subscribe();
-        const request = http.expectOne(`${environment.apiUrl}clubes-lectura/6/invitaciones`);
-        expect(request.request.method).toBe('POST');
-        expect(request.request.body).toEqual({ UsuarioId: 19 });
-        request.flush({ success: true });
+    it('ya no tiene las rutas de acceso retiradas en la fase 4: son de los espacios de la plataforma', () => {
+        for (const retired of ['joinClub', 'leaveClub', 'requestClubAccess', 'clubJoinRequests', 'resolveClubJoinRequest', 'inviteToClub', 'clubInvitationCandidates', 'clubInvitations', 'ownClubJoinRequests', 'cancelOwnClubJoinRequest', 'cancelClubInvitation', 'resolveClubInvitation'])
+            expect((service as unknown as Record<string, unknown>)[retired]).withContext(retired).toBeUndefined();
+    });
+
+    it('expulsa y cambia el rol con las rutas de Libros, que lo llevan al espacio', () => {
+        service.removeClubMember(6, 19).subscribe();
+        const removal = http.expectOne(`${environment.apiUrl}clubes-lectura/6/miembros/19`);
+        expect(removal.request.method).toBe('DELETE');
+        removal.flush({ success: true });
+
+        service.changeClubMemberRole(6, 19, 'moderador').subscribe();
+        const role = http.expectOne(`${environment.apiUrl}clubes-lectura/6/miembros/19`);
+        expect(role.request.method).toBe('PATCH');
+        expect(role.request.body).toEqual({ Rol: 'moderador' });
+        role.flush({ success: true });
     });
 
     it('conserva la identidad humana de debates y comentarios', () => {

@@ -25,7 +25,7 @@
         <section class="m-club-list">@if (c.isLoadingClubEvents) { <p>Cargando próximos eventos…</p> } @for (event of c.upcomingClubEvents; track event.Id) { <button class="m-list-item" type="button" (click)="c.openClubEvent(event)"><span class="m-list-item__icon"><mat-icon>{{ event.EnCurso ? 'schedule' : 'event' }}</mat-icon></span><span class="m-list-item__body"><strong>{{ event.Titulo }}</strong><span>{{ event.Club.Nombre }} · {{ event.FechaInicio | date:'dd/MM · HH:mm' }}</span></span><mat-icon>chevron_right</mat-icon></button> } @empty { @if (!c.isLoadingClubEvents) { <p class="m-community__hint">No hay próximos eventos.</p> } }</section>
         @if (c.nextClubEventCursor) { <button class="m-button m-button--outline m-community__more" type="button" [disabled]="c.isLoadingClubEvents" (click)="c.loadUpcomingClubEvents(c.nextClubEventCursor)">Cargar más eventos</button> }
       } @else {
-        <app-club-access-center [counters]="c.clubAccessCounters" [refreshToken]="c.clubAccessRefreshToken" (accessChanged)="c.refreshClubContext()"></app-club-access-center>
+        <app-club-access-center [refreshToken]="c.clubAccessRefreshToken" (accessChanged)="c.refreshClubContext()"></app-club-access-center>
       }
     </section>
   }
