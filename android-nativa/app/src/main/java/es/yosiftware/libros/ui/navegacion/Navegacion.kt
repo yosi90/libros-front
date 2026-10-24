@@ -237,6 +237,9 @@ fun Rail(
     alPulsarMas: () -> Unit,
     alPulsarAvisos: () -> Unit,
     modifier: Modifier = Modifier,
+    avatar: String? = null,
+    nombre: String? = null,
+    alPulsarAvatar: (() -> Unit)? = null,
 ) {
     val colores = LocalColores.current
     val zona = WindowInsets.zonaSegura.asPaddingValues()
@@ -262,9 +265,10 @@ fun Rail(
             val fila = Modifier.fillMaxWidth()
             val alto = 68.dp
             val perfilActivo = estado.actual.seccion == Destino.Perfil
-            ElementoDeNavegacion("Perfil", perfilActivo, { alElegir(Destino.Perfil) }, fila, alturaMinima = alto) {
+            // El avatar abre el panel de cuentas (hito 6); Perfil sigue en la hoja «Más».
+            ElementoDeNavegacion("Perfil", perfilActivo, alPulsarAvatar ?: { alElegir(Destino.Perfil) }, fila, alturaMinima = alto) {
                 // `.m-navigation__avatar`: la foto de 38 dp en una caja de 42, con el punto de 8 dp en su esquina.
-                Avatar(tamanoFoto = 38.dp, tamanoCaja = 42.dp, sinLeer = estado.mensajesSinLeer > 0)
+                Avatar(tamanoFoto = 38.dp, tamanoCaja = 42.dp, url = avatar, nombre = nombre, sinLeer = estado.mensajesSinLeer > 0)
             }
             listOf(Destino.Biblioteca, Destino.Catalogo, Destino.Comunidad).forEach { destino ->
                 Spacer(Modifier.height(Espacios.e2))

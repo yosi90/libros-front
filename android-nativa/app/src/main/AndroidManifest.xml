@@ -2,7 +2,9 @@
 <!--
   Libros (docs/roadmaps/ecosistema/ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md, hito 5):
   - Internet, para la plataforma (la sesión) y la API de Libros, y el estado de la red, para la barrera «sin conexión»
-    (datos/red/EstadoDeRed.kt). Nada más por ahora.
+    (datos/red/EstadoDeRed.kt).
+  - El servicio en primer plano corto mientras se entra con Google (cuenta/ServicioDeEntrada.kt, hito 6), para que
+    MagicOS no congele la app con la ventana de Google delante: `shortService` desde Android 14 y `dataSync` antes.
   - Fuera los permisos de huella que trae Credential Manager para las llaves de acceso, que la app no usa.
   - Sin copias de seguridad ni transferencia entre dispositivos: la sesión cifrada no debe salir del móvil.
   - Sin orientación ni proporción fijas, por los móviles plegables (ecosistema-kit/APK.md, «Móviles plegables»).
@@ -12,6 +14,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove" />
 
@@ -38,6 +42,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".cuenta.ServicioDeEntrada"
+            android:exported="false"
+            android:foregroundServiceType="shortService|dataSync" />
     </application>
 
 </manifest>

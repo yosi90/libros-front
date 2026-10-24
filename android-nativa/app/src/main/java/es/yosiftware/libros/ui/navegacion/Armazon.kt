@@ -3,11 +3,13 @@ package es.yosiftware.libros.ui.navegacion
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -32,6 +34,10 @@ import es.yosiftware.libros.ui.tema.TemaMobile
  * contenido entre las dos (64 dp más la zona segura de arriba; 72 más la de abajo). Desde 600 dp, el rail a la
  * izquierda y el contenido a su lado, desde la zona segura de arriba hasta el borde de abajo, sin app bar.
  *
+ * El avatar (la miniatura del perfil de la plataforma) va en la app bar, el rail y la hoja «Más». El del rail y la entrada
+ * «Cuenta» de la hoja abren el panel de cuentas ([alAbrirCuentas]); el de la app bar, Perfil, como en la APK actual.
+ * [aviso] va encima del contenido (sin conexión).
+ *
  * Atrás cierra antes la hoja «Más» y después vuelve por el historial; sin historial, sale de la app. Cada destino
  * guarda su estado (desplazamiento, lo escrito) al ir a otro y volver, y todo sobrevive a plegar y desplegar.
  *
@@ -48,6 +54,9 @@ fun Armazon(
     tema: TemaMobile,
     alAlternarTema: () -> Unit,
     nav: NavegacionViewModel = viewModel(),
+    avatar: String? = null,
+    alAbrirCuentas: () -> Unit = {},
+    aviso: (@Composable () -> Unit)? = null,
     contenido: @Composable (Destino) -> Unit = { PantallaVacia(it) },
 ) {
     val colores = LocalColores.current
@@ -80,16 +89,25 @@ fun Armazon(
                 .consumeWindowInsets(hueco)
                 .imePadding(),
         ) {
-            porDestino.SaveableStateProvider(nav.actual.name) { contenido(nav.actual) }
+            Column(Modifier.fillMaxSize()) {
+                // El aviso de la sesión (sin conexión), encima del contenido.
+                aviso?.invoke()
+                Box(Modifier.weight(1f).fillMaxWidth()) {
+                    porDestino.SaveableStateProvider(nav.actual.name) { contenido(nav.actual) }
+                }
+            }
         }
 
         if (ventana.clase.conRail) {
-            Rail(estado, elegir, alternarMas, alPulsarAvisos = { elegir(Destino.Avisos) }, Modifier.align(Alignment.TopStart))
+            Rail(
+                estado, elegir, alternarMas, alPulsarAvisos = { elegir(Destino.Avisos) }, Modifier.align(Alignment.TopStart),
+                avatar = avatar, nombre = nombre, alPulsarAvatar = { masAbierta = false; alAbrirCuentas() },
+            )
         } else {
             // La app bar va encima del contenido, como la `fixed` de la web (con z-index 20).
             BarraSuperior(nav.actual.titulo, Modifier.align(Alignment.TopStart)) {
                 BotonDeCampana(abierta = nav.actual == Destino.Avisos, sinLeer = false, alPulsar = { elegir(Destino.Avisos) })
-                BotonDePerfil(mensajesSinLeer = 0) {
+                BotonDePerfil(mensajesSinLeer = 0, avatar = avatar, nombre = nombre) {
                     masAbierta = false
                     elegir(Destino.Perfil)
                 }
@@ -105,6 +123,8 @@ fun Armazon(
             tema = tema,
             alAlternarTema = alAlternarTema,
             alElegir = elegir,
+            avatar = avatar,
+            alAbrirCuentas = alAbrirCuentas,
         )
     }
 }

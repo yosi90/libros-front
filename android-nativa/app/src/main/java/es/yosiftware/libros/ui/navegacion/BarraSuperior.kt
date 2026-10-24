@@ -94,15 +94,17 @@ fun BarraSuperior(
 }
 
 /**
- * `.m-dashboard-actions__button`: el acceso a Perfil de la app bar, un círculo de 48 dp con la foto de 34 dp y su
- * borde, y el punto de 9 dp a 5 dp de la esquina si hay mensajes sin leer.
+ * `.m-dashboard-actions__button`: el acceso a Perfil de la app bar, un círculo de 48 dp con la foto de 34 dp (la
+ * miniatura del perfil de la plataforma) y su borde, y el punto de 9 dp a 5 dp de la esquina si hay mensajes sin leer.
  */
 @Composable
-fun BotonDePerfil(mensajesSinLeer: Int, alPulsar: () -> Unit) {
+fun BotonDePerfil(mensajesSinLeer: Int, avatar: String? = null, nombre: String? = null, alPulsar: () -> Unit) {
     val descripcion = if (mensajesSinLeer > 0) "Abrir perfil, $mensajesSinLeer mensajes sin leer" else "Abrir perfil"
     Avatar(
         tamanoFoto = 34.dp,
         tamanoCaja = Alturas.botonDeIcono,
+        url = avatar,
+        nombre = nombre,
         sinLeer = mensajesSinLeer > 0,
         punto = PuntoSinLeer(9.dp, 5.dp),
         // Sin recortar la caja: el punto sobresale del círculo, como el `::after` de la web.

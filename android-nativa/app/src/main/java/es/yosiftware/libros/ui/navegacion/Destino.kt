@@ -25,7 +25,9 @@ enum class Destino(
     Avisos("Avisos", "Avisos", Iconos.notifications, hito = 12),
     Estadisticas("Estadísticas", "Estadísticas", Iconos.barChart, hito = 8),
     Preferencias("Preferencias", "Preferencias", Iconos.settings, hito = 11),
-    Cuenta("Cuenta y seguridad", "Cuenta y seguridad", Iconos.shield, hito = 6),
+    // «Cuenta y seguridad» se retira con la adhesión: la entrada de la hoja «Más» abre el panel de cuentas (hito 6), no
+    // una pantalla, y lo de la seguridad está en la web social.
+    Cuenta("Cuenta", "Cuenta", Iconos.shield, hito = 6),
     Mensajes("Mensajes", "Comunidad", Iconos.forum, hito = 12, seccion = Comunidad),
     ;
 
