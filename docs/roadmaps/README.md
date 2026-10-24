@@ -22,6 +22,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 ## Roadmaps pausados
 
 - `common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: implementación cerrada; queda la checklist manual de presentación, navegación y regresión.
+- `common/ROADMAP_PAUSADO_duplicados-frontend.md`: propuestas de la auditoría completa de duplicados del frontend (24/10/2026) que no se aplicaron por tamaño o por cruzar con el backend.
 
 ## Roadmaps finalizados
 

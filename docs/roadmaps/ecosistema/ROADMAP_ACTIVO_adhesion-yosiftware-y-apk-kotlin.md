@@ -59,7 +59,7 @@ Cada hito lleva sus casillas. Se marcan durante la sesión, no al cerrar.
 - **Peligros del cambio:** el riesgo es alterar un comportamiento al unificar. Por eso solo se aplica lo seguro, con un commit por cambio, `npm run test:ci`, typecheck y Playwright de lo tocado; lo grande queda como propuesta en `bugs.md`.
 
 - [ ] Rama, base, commits, propuestas y cifras de pruebas; rama unida.
-- [ ] Código muerto del inventario confirmado y retirado (o justificado).
+- [x] Código muerto del inventario confirmado y retirado (o justificado). Rama `revisor/auditoria-completa-frontend-2026-10-24`: retirados `add-*`, `update-*`, `book-pages/character`, `mobile-object-manager-view` y la parte inalcanzable de `object-manager` (que sigue vivo como listado del Perfil); `FirebasePrivateStateService` y `NativeFirebaseAuthAdapter.signInCanonical` confirmados sin uso y anotados, sin retirar, en `common/ROADMAP_PAUSADO_duplicados-frontend.md`.
 - [ ] Veredicto anotado en `docs/codex/PROJECT_WORKING_NOTES.md`.
 
 ### Hito 2. Web: entrar con la cuenta de Yosiftware
