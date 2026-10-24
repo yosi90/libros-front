@@ -15,7 +15,7 @@
         }
       </div>
       <dl class="m-book-stats__timeline">
-        <div><dt><i></i><span>Comprado</span></dt><dd>@if (c.boughtDate) {{{c.boughtDate | date:'dd/MM/yyyy'}}} @else if (c.canAddPurchaseDate) {<label>Establecer fecha<input type="date" [disabled]="c.isSavingPurchaseDate" (change)="savePurchaseDate($event)"></label>} @else {Sin dato}</dd></div>
+        <div><dt><i></i><span>Comprado</span></dt><dd>@if (c.boughtDate) {{{c.boughtDate | date:'dd/MM/yyyy'}}} @else if (c.canAddPurchaseDate) {<label>Establecer fecha<input #purchaseInput type="date" [disabled]="c.isSavingPurchaseDate" (change)="c.savePurchaseDateFromInput(purchaseInput.value)"></label>} @else {Sin dato}</dd></div>
         <div><dt><i></i><span>Comenzado</span></dt><dd>{{c.startedDate ? (c.startedDate | date:'dd/MM/yyyy') : c.startedDateLabel}}</dd></div>
         <div><dt><i></i><span>Leído</span></dt><dd>{{c.finishedDate ? (c.finishedDate | date:'dd/MM/yyyy') : c.readDateLabel}}</dd></div>
       </dl>

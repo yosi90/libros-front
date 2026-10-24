@@ -22,7 +22,7 @@
             @if (c.boughtDate) {
               <strong>{{c.boughtDate | date:'d MMM y'}}</strong>
             } @else if (c.canAddPurchaseDate) {
-              <label class="journey__date">Añadir fecha<input type="date" [disabled]="c.isSavingPurchaseDate" (change)="savePurchaseDate($event)"></label>
+              <label class="journey__date">Añadir fecha<input #purchaseInput type="date" [disabled]="c.isSavingPurchaseDate" (change)="c.savePurchaseDateFromInput(purchaseInput.value)"></label>
             } @else {
               <strong class="is-muted">Sin dato</strong>
             }

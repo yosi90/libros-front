@@ -190,6 +190,14 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         return !!this.book.Id && !this.boughtDate;
     }
 
+    /** Mobile y Web usan un <input type="date">: su valor (AAAA-MM-DD) se toma como fecha local. */
+    savePurchaseDateFromInput(value: string): void {
+        if (!value)
+            return;
+        this.purchaseDate.setValue(new Date(`${value}T00:00:00`));
+        this.savePurchaseDate();
+    }
+
     savePurchaseDate(): void {
         const selectedDate = this.purchaseDate.value;
         if (!this.book.Id || !selectedDate) {

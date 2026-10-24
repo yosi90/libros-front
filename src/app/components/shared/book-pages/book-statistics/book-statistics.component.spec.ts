@@ -98,6 +98,18 @@ describe('BookStatisticsComponent', () => {
     expect(bookStore.getBook().Estados[0].Fecha).toBe('2026-01-05T00:00:00');
     expect(component.purchaseDate.value).toBeNull();
   });
+
+  it('takes the purchase date of a native date input as a local day', () => {
+    const save = spyOn(component, 'savePurchaseDate');
+
+    component.savePurchaseDateFromInput('');
+    expect(save).not.toHaveBeenCalled();
+
+    component.savePurchaseDateFromInput('2026-07-01');
+    expect(component.purchaseDate.value?.getDate()).toBe(1);
+    expect(component.purchaseDate.value?.getHours()).toBe(0);
+    expect(save).toHaveBeenCalled();
+  });
 });
 
 function createBook(estados: Book['Estados']): Book {
