@@ -1,0 +1,254 @@
+@if (controller.selectedDetailItem; as item) {
+  <section class="catalog-modal-backdrop" (click)="controller.closePublicDetailModal()">
+    <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
+      <section class="public-detail-layout">
+        <img class="public-detail-cover" [src]="controller.publicDetailCoverName() | coverCache | async" [alt]="controller.publicDetailTitle()" (error)="controller.handleCoverImageError($event)">
+        <div class="public-detail-main">
+          <div class="public-detail-title-row">
+            <h3>{{controller.publicDetailTitle()}}</h3>
+            <div class="public-detail-actions">
+              @if (canAddWithStatus && !controller.isDetailInCollection()) {
+                <button type="button" [matMenuTriggerFor]="addDetailMenu" (click)="$event.stopPropagation()" [disabled]="controller.isSavingCollection">
+                  <mat-icon>library_add</mat-icon>
+                  Añadir a mi biblioteca
+                </button>
+              }
+              <mat-menu #addDetailMenu="matMenu" class="catalog-add-menu" xPosition="before" yPosition="below">
+                <div class="catalog-add-menu__content" (click)="$event.stopPropagation()">
+                  <p>¿En qué estado quieres añadirlo?</p>
+                  @for (status of controller.statusOptions; track status) {
+                    <button type="button" (click)="addWithStatus(item, status.Id, $event)">
+                      <mat-icon>{{status.icon}}</mat-icon>
+                      <span>{{status.Nombre}}</span>
+                    </button>
+                  }
+                </div>
+              </mat-menu>
+              @if (item.Tipo === 'libro' && controller.isDetailInCollection()) {
+                <button type="button" (click)="controller.openReadingFromDetail()">
+                  <mat-icon>menu_book</mat-icon>
+                  Abrir lectura
+                </button>
+              }
+              @if (showCorrection) {
+                <button type="button" (click)="correctionRequested.emit({ item, event: $event })">
+                  <mat-icon>rate_review</mat-icon>
+                  Proponer corrección
+                </button>
+              }
+              <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="controller.closePublicDetailModal()"><mat-icon>close</mat-icon></button>
+            </div>
+          </div>
+          <p>{{controller.publicDetailAuthorsLabel()}}</p>
+          <dl class="public-detail-meta">
+            <div>
+              <dt>ISBN</dt>
+              <dd>{{controller.publicDetailIsbn() || 'Sin datos'}}</dd>
+            </div>
+            <div>
+              <dt>Publicación</dt>
+              <dd>{{controller.publicDetailPublicationDate() || 'Sin datos'}}</dd>
+            </div>
+            <div>
+              <dt>Páginas</dt>
+              <dd>{{controller.selectedPublicDetail?.Paginas || 'Sin datos'}}</dd>
+            </div>
+            <div>
+              <dt>Idiomas</dt>
+              <dd>{{controller.publicDetailLanguagesLabel() || 'Sin datos'}}</dd>
+            </div>
+            <div>
+              <dt>Estilos</dt>
+              <dd>{{controller.publicDetailStylesLabel() || 'Sin datos'}}</dd>
+            </div>
+            <div>
+              <dt>Puntuación media</dt>
+              <dd>{{controller.publicDetailAverageRatingLabel()}}</dd>
+            </div>
+          </dl>
+          @if (controller.publicDetailEditions().length) {
+            <section class="public-detail-editions" [class.has-error]="controller.editionSelectionError" aria-label="Ediciones de la obra">
+              <h4>Ediciones</h4>
+              <div class="public-detail-editions__list">
+                @for (edition of controller.publicDetailEditions(); track edition.Id) {
+                  <button type="button" [class.is-selected]="controller.selectedEdition()?.Id === edition.Id" [attr.aria-pressed]="controller.selectedEdition()?.Id === edition.Id" (click)="controller.selectEdition(edition.Id)">
+                    <span>{{edition.ISBN || 'Edición sin ISBN'}}</span>
+                    <small>{{edition.FechaPublicacion || 'Fecha desconocida'}}</small>
+                    @if (edition.EnMiBiblioteca) {<strong>La tienes</strong>}
+                  </button>
+                }
+              </div>
+              @if (controller.selectedEdition(); as edition) {
+                <button class="public-detail-editions__ownership" type="button" [disabled]="controller.isSavingEditions" (click)="controller.toggleSelectedEditionOwnership()">
+                  <mat-icon>{{edition.EnMiBiblioteca ? 'remove_circle_outline' : 'library_add'}}</mat-icon>{{edition.EnMiBiblioteca ? 'Retirar esta edición' : 'Tengo esta edición'}}
+                </button>
+                @if (edition.EnMiBiblioteca) {<p>Retirarla conserva la obra y su historial de lectura.</p>}
+              }
+              @if (controller.editionSelectionError) {<p class="public-detail-editions__error" role="alert">{{controller.editionSelectionError}}</p>}
+            </section>
+          }
+        </div>
+      </section>
+      @if (controller.selectedPublicDetail?.MiColeccion; as ownCollection) {
+        <section class="public-own-collection">
+          <h4><mat-icon>import_contacts</mat-icon>Mi biblioteca</h4>
+          <dl>
+            <div>
+              <dt>Estado</dt>
+              <dd>{{controller.isDetailInCollection() ? (controller.publicDetailPersonalStatusName() || 'Sin estado') : 'Fuera de tu biblioteca'}}</dd>
+            </div>
+            <div>
+              <dt>Puntuación</dt>
+              <dd>
+                @if (controller.publicDetailPersonalRating()) {
+                  <span class="public-rating-stars">
+                    @for (star of controller.ratingStarValues(); track star) {
+                      <mat-icon [class.is-filled]="star <= (controller.publicDetailPersonalRating() || 0)">star</mat-icon>
+                    }
+                  </span>
+                } @else {
+                  @if (controller.isDetailInCollection()) {
+                    <button class="public-own-collection__review-action" type="button" (click)="controller.openReviewFromDetail($event)">
+                      <mat-icon>hotel_class</mat-icon>
+                      Añadir puntuación y reseña
+                    </button>
+                  }
+                }
+              </dd>
+            </div>
+          </dl>
+          @if (controller.publicDetailHasPersonalReview()) {
+            <div class="public-own-collection__review public-review-text">
+              <p [class.is-clamped]="!controller.expandedOwnReview && controller.reviewTextNeedsToggle(controller.publicDetailPersonalReview())">
+                <strong>{{controller.publicOwnReviewAuthorHandle()}} dice:</strong>
+                {{controller.publicDetailPersonalReview()}}
+              </p>
+              @if (controller.reviewTextNeedsToggle(controller.publicDetailPersonalReview())) {
+                <button class="public-review-toggle" type="button" (click)="controller.toggleOwnReview()">
+                  {{controller.expandedOwnReview ? 'Leer menos' : 'Leer más'}}
+                </button>
+              }
+            </div>
+          }
+          @if (controller.publicDetailPersonalReview() && controller.publicDetailPersonalReviewHidden()) {
+            <p class="public-own-collection__review public-own-collection__review--muted">Reseña oculta por moderación.</p>
+          }
+        </section>
+      }
+      @if (controller.isLoadingPublicDetail) {
+        <section class="public-detail-loading">
+          <mat-icon>hourglass_top</mat-icon>
+          <span>Cargando estadísticas públicas</span>
+        </section>
+      }
+      @if (controller.publicDetailLoadFailed) {
+        <section class="public-detail-warning">
+          <mat-icon>info</mat-icon>
+          <span>Las estadísticas públicas aún no están disponibles.</span>
+        </section>
+      }
+      @if (controller.publicDetailStats(); as stats) {
+        <section class="public-detail-insights">
+          @if (controller.stateDistributionRows().length > 0) {
+            <article>
+              <h4><mat-icon>donut_large</mat-icon>Estados</h4>
+              @for (row of controller.stateDistributionRows(); track row.EstadoId) {
+                <div class="distribution-row">
+                  <span>{{row.Estado}}</span>
+                  <strong>{{row.Total}} · {{controller.formatPercent(row.Porcentaje)}}</strong>
+                </div>
+              }
+            </article>
+          }
+          @if (controller.ratingDistributionRows().length > 0) {
+            <article>
+              <h4><mat-icon>hotel_class</mat-icon>Puntuaciones</h4>
+              @for (row of controller.ratingDistributionRows(); track row.Puntuacion) {
+                <div class="distribution-row">
+                  <span>{{row.Puntuacion}} estrellas</span>
+                  <strong>{{row.Total}}</strong>
+                </div>
+              }
+            </article>
+          }
+          @if (stats.Popularidad || stats.ActividadAgregada) {
+            <div class="public-detail-insights__stack">
+              @if (stats.Popularidad) {
+                <article>
+                  <h4><mat-icon>leaderboard</mat-icon>Popularidad</h4>
+                  <div class="distribution-row">
+                    <span>Bibliotecas</span>
+                    <strong>{{controller.formatRanking(stats.Popularidad.Bibliotecas)}}</strong>
+                  </div>
+                  <div class="distribution-row">
+                    <span>Puntuación</span>
+                    <strong>{{controller.formatRanking(stats.Popularidad.Puntuacion)}}</strong>
+                  </div>
+                </article>
+              }
+              @if (stats.ActividadAgregada) {
+                <article>
+                  <h4><mat-icon>event</mat-icon>Actividad</h4>
+                  <div class="distribution-row">
+                    <span>Primera incorporación</span>
+                    <strong>{{stats.ActividadAgregada.PrimeraFechaAgregado ? (stats.ActividadAgregada.PrimeraFechaAgregado | date:'dd/MM/yyyy') : 'Sin dato'}}</strong>
+                  </div>
+                  <div class="distribution-row">
+                    <span>Último cambio de estado</span>
+                    <strong>{{stats.ActividadAgregada.UltimoCambioEstado ? (stats.ActividadAgregada.UltimoCambioEstado | date:'dd/MM/yyyy') : 'Sin dato'}}</strong>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </section>
+      }
+      <section class="public-detail-reviews">
+        <h4><mat-icon>reviews</mat-icon>Reseñas</h4>
+        @for (review of controller.pagedPublicReviewRows(); track review.Id ?? $index) {
+          <article class="public-review">
+            <header>
+              @if (review.Puntuacion) {
+                <span class="public-rating-stars">
+                  @for (star of controller.ratingStarValues(); track star) {
+                    <mat-icon [class.is-filled]="star <= (review.Puntuacion || 0)">star</mat-icon>
+                  }
+                </span>
+              }
+              @if (controller.publicReviewDate(review)) {
+                <time>{{controller.publicReviewDate(review) | date:'dd/MM/yyyy'}}</time>
+              }
+            </header>
+            <div class="public-review-text">
+              <p [class.is-clamped]="!controller.isPublicReviewExpanded(review, $index) && controller.reviewTextNeedsToggle(review.Resena)">
+                <strong>{{controller.publicReviewAuthorHandle(review)}} dice:</strong>
+                {{review.Resena}}
+              </p>
+              @if (controller.reviewTextNeedsToggle(review.Resena)) {
+                <button class="public-review-toggle" type="button" (click)="controller.togglePublicReview(review, $index)">
+                  {{controller.isPublicReviewExpanded(review, $index) ? 'Leer menos' : 'Leer más'}}
+                </button>
+              }
+            </div>
+          </article>
+        }
+        @if (controller.hasPublicReviewPages()) {
+          <nav class="public-review-pager" aria-label="Paginación de reseñas">
+            <button type="button" (click)="controller.previousPublicReviewPage()" [disabled]="controller.publicReviewPage === 0">
+              <mat-icon>chevron_left</mat-icon>
+              Anterior
+            </button>
+            <span>{{controller.publicReviewPage + 1}} de {{controller.publicReviewTotalPages()}}</span>
+            <button type="button" (click)="controller.nextPublicReviewPage()" [disabled]="controller.publicReviewPage + 1 >= controller.publicReviewTotalPages()">
+              Siguiente
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </nav>
+        }
+        @if (controller.publicReviewRows().length === 0) {
+          <p class="public-detail-reviews__empty">No hay reseñas públicas visibles.</p>
+        }
+      </section>
+    </article>
+  </section>
+}

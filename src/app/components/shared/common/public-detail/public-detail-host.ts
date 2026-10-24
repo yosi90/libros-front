@@ -58,6 +58,8 @@ export abstract class PublicDetailHost implements PublicDetailController {
     ) { }
 
     abstract openReadingFromDetail(): void;
+    /** Opcional: Catálogo permite añadir la obra con un estado sin abrir el editor. */
+    addToCollectionWithStatus?(item: CatalogItem, statusId: ReadingStatusId, event?: MouseEvent): void;
 
     get canSubmitCollection(): boolean {
         return !!this.selectedCollectionItem && this.selectedCollectionStatus !== null && !this.isSavingCollection;

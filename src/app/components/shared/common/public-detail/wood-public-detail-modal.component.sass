@@ -1,0 +1,376 @@
+@use '../../../../../assets/css/wood/primitives' as wood
+@use '../../../../../assets/css/wood/catalog-modal'
+
+// Ficha pública Wood: solo existe en la presentación Wood.
+::ng-deep .catalog-add-menu.mat-mdc-menu-panel
+    @include catalog-modal.add-menu-panel
+
+.catalog-add-menu__content
+    @include catalog-modal.add-menu-content
+
+.catalog-modal-backdrop
+    @include catalog-modal.backdrop
+
+.catalog-modal
+    @include catalog-modal.surface
+
+.catalog-modal .catalog-modal__close
+    @include catalog-modal.close-button
+
+.catalog-modal--detail
+    width: min(1120px, calc(100vw - 32px))
+    max-height: calc(100vh - 24px)
+
+.public-detail-layout
+    display: grid
+    grid-template-columns: 190px minmax(0, 1fr)
+    gap: 20px
+    align-items: stretch
+
+.public-detail-cover
+    width: 190px
+    min-height: 282px
+    object-fit: cover
+    background: rgba(0, 0, 0, .26)
+    border-radius: 6px
+    box-shadow: 10px 0 22px rgba(0, 0, 0, .3)
+
+.public-detail-main
+    display: grid
+    align-content: start
+    gap: 10px
+    min-width: 0
+
+    h3
+        margin: 0
+        color: #fbecd6
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 2rem
+        font-weight: 500
+        line-height: 1.1
+
+    p
+        color: #d8c3a2
+
+.public-detail-title-row
+    display: grid
+    grid-template-columns: minmax(0, 1fr) max-content
+    align-items: start
+    gap: 16px
+    min-width: 0
+
+    h3
+        min-width: 0
+
+.public-detail-actions
+    display: inline-flex
+    flex-wrap: wrap
+    justify-content: flex-end
+    gap: 8px
+    max-width: 100%
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 8px
+        min-height: 36px
+        color: #f6e6c9
+        background: rgba(20, 17, 13, .58)
+        border: 1px solid rgba(218, 166, 91, .24)
+        border-radius: 7px
+        padding: 0 12px
+
+        &:hover
+            color: #261708
+            background: linear-gradient(180deg, #f4cd80, #d89a36)
+            border-color: rgba(255, 218, 142, .72)
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+            line-height: 18px
+
+.public-detail-meta
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 10px
+    margin: 8px 0 0
+
+    div
+        min-width: 0
+        background: rgba(20, 17, 13, .48)
+        border: 1px solid rgba(218, 166, 91, .16)
+        border-radius: 7px
+        padding: 10px
+
+    dt
+        color: #bfa77f
+        font-size: .78rem
+
+    dd
+        margin: 4px 0 0
+        color: #f0dfc5
+
+.public-detail-editions
+    display: grid
+    gap: 10px
+    margin-top: 16px
+
+    h4
+        margin: 0
+        color: #f5d69a
+        font-family: Georgia, 'Times New Roman', serif
+
+    &__list
+        display: grid
+        gap: 8px
+
+        button
+            @include wood.focus-ring
+            display: flex
+            flex-wrap: wrap
+            align-items: center
+            gap: 8px
+            min-height: 44px
+            padding: 8px 12px
+            color: #f0dfc5
+            background: rgba(20, 17, 13, .48)
+            border: 1px solid rgba(218, 166, 91, .24)
+            border-radius: 7px
+            text-align: left
+
+            &.is-selected
+                border-color: #e9b66b
+
+            small
+                color: #d8c3a2
+
+            strong
+                margin-left: auto
+                color: #f2c77c
+
+    &__ownership
+        @include wood.focus-ring
+        display: inline-flex
+        align-items: center
+        justify-self: start
+        gap: 8px
+        min-height: 44px
+        padding: 8px 12px
+        color: #261708
+        background: #e9b66b
+        border: 0
+        border-radius: 7px
+
+    &.has-error &__list button
+        border-color: #ffb4ab
+
+    &__error
+        color: #ffb4ab !important
+
+    p
+        margin: 0
+        color: #d8c3a2
+        font-size: .8rem
+
+.public-detail-loading,
+.public-detail-warning
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    color: #d8c3a2
+    background: rgba(20, 17, 13, .46)
+    border: 1px solid rgba(218, 166, 91, .16)
+    border-radius: 7px
+    padding: 10px 12px
+
+    mat-icon
+        color: #d9a956
+
+.public-own-collection,
+.public-detail-reviews,
+.public-detail-insights article
+    display: grid
+    gap: 10px
+    background: rgba(20, 17, 13, .48)
+    border: 1px solid rgba(218, 166, 91, .16)
+    border-radius: 7px
+    padding: 12px
+
+    h4
+        display: flex
+        align-items: center
+        gap: 8px
+        margin: 0
+        color: #f5d69a
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1rem
+        font-weight: 500
+
+        mat-icon
+            color: #d9a956
+
+.public-own-collection
+    dl
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: 8px
+        margin: 0
+
+    div
+        min-width: 0
+
+    dt
+        color: #bfa77f
+        font-size: .78rem
+
+    dd
+        margin: 3px 0 0
+        color: #f0dfc5
+
+.public-rating-stars
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    color: rgba(217, 169, 86, .35)
+
+    mat-icon
+        width: 17px
+        height: 17px
+        font-size: 17px
+        line-height: 17px
+
+        &.is-filled
+            color: #f1bd55
+
+.public-own-collection__review
+    margin: 2px 0 0
+    color: #ead8bc
+    background: rgba(10, 9, 7, .28)
+    border-left: 3px solid rgba(217, 169, 86, .7)
+    border-radius: 6px
+    padding: 10px 12px
+
+.public-own-collection__review--muted,
+.public-detail-reviews__empty
+    color: #bfa77f
+
+.public-own-collection__review-action
+    justify-self: start
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 34px
+    color: #261708
+    background: linear-gradient(180deg, #f4cd80, #d89a36)
+    border: 1px solid rgba(255, 218, 142, .72)
+    border-radius: 7px
+    padding: 0 12px
+
+.public-detail-insights
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    align-items: stretch
+    width: 100%
+    gap: 14px
+
+    > article
+        height: 100%
+
+.public-detail-insights__stack
+    display: grid
+    grid-template-rows: repeat(2, minmax(0, 1fr))
+    align-content: stretch
+    gap: 14px
+    height: 100%
+    min-width: 0
+
+    article
+        height: 100%
+
+.distribution-row
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    min-height: 28px
+    color: #d8c3a2
+    border-top: 1px solid rgba(218, 166, 91, .1)
+    padding-top: 7px
+
+    span
+        min-width: 0
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    strong
+        color: #f0dfc5
+        font-weight: 500
+        white-space: nowrap
+
+.public-review
+    display: grid
+    gap: 8px
+    border-top: 1px solid rgba(218, 166, 91, .1)
+    padding-top: 10px
+
+    header
+        display: flex
+        align-items: center
+        gap: 10px
+        min-width: 0
+
+        time
+            margin-left: auto
+            color: #bfa77f
+            font-size: .8rem
+            white-space: nowrap
+
+.public-review-text
+    display: grid
+    gap: 6px
+
+    p
+        margin: 0
+        color: #ead8bc
+        line-height: 1.45
+
+        &.is-clamped
+            display: -webkit-box
+            overflow: hidden
+            -webkit-box-orient: vertical
+            -webkit-line-clamp: 3
+
+        strong
+            color: #f5d69a
+            font-weight: 600
+
+.public-review-toggle
+    justify-self: center
+    color: #f5d69a
+    background: transparent
+    border: 0
+    border-bottom: 1px solid rgba(217, 169, 86, .48)
+    padding: 2px 4px
+
+.public-review-pager
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 12px
+    border-top: 1px solid rgba(218, 166, 91, .1)
+    padding-top: 10px
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 32px
+        padding: 0 10px
+
+        &:disabled
+            opacity: .45
+            cursor: default

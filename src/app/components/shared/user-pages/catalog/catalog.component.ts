@@ -50,6 +50,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileFullscreenReturnService } from '../../../../services/navigation/mobile-fullscreen-return.service';
 import { MobileCatalogViewComponent } from '../../../mobile/user/mobile-catalog-view/mobile-catalog-view.component';
 import { PublicDetailHost } from '../../common/public-detail/public-detail-host';
+import { WoodPublicDetailModalComponent } from '../../common/public-detail/wood-public-detail-modal.component';
 import {
     applyLibrarySearch,
     libraryTextScopeOptions,
@@ -82,7 +83,8 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
         CollectionStateModalComponent,
         CoverCachePipe,
         SnackbarModule,
-        MobileCatalogViewComponent
+        MobileCatalogViewComponent,
+        WoodPublicDetailModalComponent
     ],
     templateUrl: './catalog.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -441,7 +443,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         });
     }
 
-    addToCollectionWithStatus(item: CatalogItem, statusId: ReadingStatusId, event?: MouseEvent): void {
+    override addToCollectionWithStatus(item: CatalogItem, statusId: ReadingStatusId, event?: MouseEvent): void {
         event?.stopPropagation();
         if (this.isSavingCollection)
             return;

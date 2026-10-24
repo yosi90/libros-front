@@ -32,6 +32,7 @@ import { ManagerViewStateService } from '../../../../shared/manager-view-state.s
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
 import { PublicDetailHost } from '../../common/public-detail/public-detail-host';
+import { WoodPublicDetailModalComponent } from '../../common/public-detail/wood-public-detail-modal.component';
 
 @Component({
     standalone: true,
@@ -47,12 +48,13 @@ import { PublicDetailHost } from '../../common/public-detail/public-detail-host'
         MatMenuModule,
         MatTooltipModule,
         CollectionStateModalComponent,
+        WoodPublicDetailModalComponent,
         CoverCachePipe,
         SnackbarModule
     ],
     templateUrl: './object-manager.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrls: ['./object-manager.component.sass', '../catalog/catalog.component.sass']
+    styleUrl: './object-manager.component.sass'
 })
 export class ObjectManagerComponent extends PublicDetailHost implements OnInit, OnDestroy, AfterViewChecked {
     /**
