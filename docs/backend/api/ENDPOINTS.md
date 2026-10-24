@@ -1087,7 +1087,7 @@ Las escrituras directas de sagas fueron retiradas. Admin/moderador usan `/catalo
 |---|---|---|---|
 | GET | `/libros` | JWT | Lista basica de libros. |
 | GET | `/libros/{id_libro}` | JWT | Detalle completo de libro. |
-| GET | `/libros/{id_libro}/personajes/orden` | JWT | Lista ligera de personajes ordenados para refrescos tras editar escenas: `[{ Id, Nombre }]`. |
+| GET | `/libros/{id_libro}/personajes/orden` | JWT | Lista ligera de personajes ordenados para refrescos tras editar escenas o crear un personaje: `[{ Id, Nombre, Grupo, OrdenGrupo }]`. |
 | GET | `/libros/leidos` | JWT | Cuenta libros leidos. |
 | GET | `/libros/no_leidos` | JWT | Cuenta libros no leidos. |
 | GET | `/libros/sin_leer` | JWT | Libro con mas tiempo sin leer. |
@@ -1162,7 +1162,7 @@ Body saga:
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/personajes/estados/catalogo` | JWT | Lista catalogo de estados de personaje. |
-| POST | `/personajes` | Owner | Crea personaje, lo asocia a un libro y asigna su nombre/apodo contextual. |
+| POST | `/personajes` | Owner | Crea personaje, lo asocia a un libro y asigna su nombre/apodo contextual. Con `IdCliente`, un reintento devuelve `200` con el personaje ya creado. |
 | GET | `/personajes/{id_personaje}?libroId={id_libro}` | JWT | Detalle de personaje en contexto opcional de libro. |
 | GET | `/personajes/{id_personaje}/apodos?includeDeleted=false` | JWT | Lista apodos conocidos del personaje. |
 | POST | `/personajes/{id_personaje}/apodos` | Owner | Crea/reutiliza un apodo conocido sin cambiar el nombre contextual visible. |
@@ -1266,6 +1266,7 @@ Notas:
 - `Organizaciones`, `Eventos` y `Citas` contienen relaciones resumidas visibles en el contexto del libro abierto.
 - `EsSagaPrevia` indica que el personaje procede de una saga previa visible para el libro abierto.
 - `POST /personajes` exige al menos una entrada valida. Usar `Entradas: [{ Nombre, Descripcion }]`; como compatibilidad, `Descripcion` crea una unica entrada inicial con nombre igual a `Apodo`.
+- `POST /personajes` acepta `IdCliente` opcional (UUID). El cliente lo genera al primer intento de un alta y lo conserva en sus reintentos hasta que la confirma o abandona el formulario: si la API ya creo un personaje con ese `IdCliente` en ese libro, responde `200` con ese personaje en lugar de crear otro (`201` solo cuando crea). El mismo `IdCliente` en otro libro devuelve `409 character_client_request_conflict`, y uno que no es UUID, `400 invalid_client_request_id` (`field: IdCliente`). Dos personajes distintos pueden llamarse igual en un libro o saga: la API no rechaza nombres repetidos; avisar antes de crear uno es cosa del cliente. Sin la tabla `personaje_altas_cliente` en la base, el alta funciona sin esta proteccion.
 - Cada entrada debe tener `Nombre` entre 2 y 100 caracteres y `Descripcion` de minimo 15 caracteres. Si se manda una lista, todas las entradas deben ser validas.
 - Esta regla de entradas aplica tambien en `/entradas` para personajes, localizaciones, organizaciones, conceptos, eventos y citas.
 - `Apodo` debe tener entre 2 y 100 caracteres.
@@ -1533,7 +1534,7 @@ Notas:
 - Una escena valida requiere `Nombre` minimo 3, `Descripcion` minimo 15, localizacion existente y al menos un personaje asignado. Un personaje con `Nombrado = true` cumple el requisito; una lista vacia no.
 - `GET /libros/{id_libro}` mantiene `Escenas[].Personajes` como lista de ids por compatibilidad y anade `Escenas[].PersonajesDetalle` como `{ Id, Nombrado }`. `GET /escenas/{id_escena}` devuelve `Personajes` como `{ Id, Nombrado }`.
 - `Personajes` y `PersonajesDetalle` solo incluyen los personajes ya creados en el libro de la escena o antes; `PUT` conserva los ocultos aunque no vengan en el cuerpo.
-- Los endpoints de escenas no recalculan ni devuelven el orden de personajes del libro. Para refrescar ese orden, usar `GET /libros/{id_libro}/personajes/orden`, que devuelve `[{ Id, Nombre }]`.
+- Los endpoints de escenas no recalculan ni devuelven el orden de personajes del libro. Para refrescar ese orden, usar `GET /libros/{id_libro}/personajes/orden`, que devuelve `[{ Id, Nombre, Grupo, OrdenGrupo }]` con el mismo grupo que `GET /libros/{id_libro}`.
 
 ## Capitulos, partes e interludios
 

@@ -21,7 +21,7 @@
         <button class="web-button web-button--primary" type="button" (click)="c.navigateToCreate()"><mat-icon>add</mat-icon>Crear {{c.getConfig().singular}}</button>
       } @else {
         <span [matTooltip]="c.canSubmit() ? '' : c.getCreateSubmitHint()">
-          <button class="web-button web-button--primary" type="submit" form="web-narrative-form" [disabled]="!c.canSubmit()">
+          <button class="web-button web-button--primary" type="submit" form="web-narrative-form" [disabled]="!c.canSubmit() || c.isSubmittingEntity">
             <mat-icon>save</mat-icon>{{c.isUpdateMode() ? 'Guardar cambios' : 'Crear ' + c.getConfig().singular}}
           </button>
         </span>

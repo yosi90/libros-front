@@ -4,6 +4,7 @@
     tags:
     - Personajes
     summary: Crea personaje y lo asocia a un libro
+    description: Con `IdCliente`, un reintento de la misma alta devuelve `200` con el personaje ya creado en lugar de crear otro.
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/CharacterCreate'
     responses:
@@ -13,10 +14,17 @@
           application/json:
             schema:
               $ref: '../../openapi.yaml#/components/schemas/Character'
+      '200':
+        description: Reintento con un `IdCliente` ya usado en este libro; devuelve el personaje que creó la primera petición
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
       '400':
         $ref: '../../openapi.yaml#/components/responses/Message'
       '403':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /personajes/estados/catalogo:
   get:
     operationId: getPersonajesEstadosCatalogo

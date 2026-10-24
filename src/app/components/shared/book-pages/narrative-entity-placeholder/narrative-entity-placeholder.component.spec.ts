@@ -1,7 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap, Router, UrlSegment } from '@angular/router';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, NEVER, of, Subject, throwError } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { BookService } from '../../../../services/entities/book.service';
@@ -22,6 +22,9 @@ describe('NarrativeEntityPlaceholderComponent', () => {
     let narrativeService: jasmine.SpyObj<NarrativeEntityService>;
     let entryService: jasmine.SpyObj<EntryService>;
     let router: jasmine.SpyObj<Router>;
+    let loader: { activateLoader: jasmine.Spy; deactivateLoader: jasmine.Spy };
+    let orderRefresh: { isRefreshing$: jasmine.Spy; refresh: jasmine.Spy };
+    let snackBar: { openSnackBar: jasmine.Spy; openApiError: jasmine.Spy };
 
     const routeUrl$ = new BehaviorSubject<UrlSegment[]>([new UrlSegment('concepts', {})]);
     const queryParamMap$ = new BehaviorSubject(convertToParamMap({ selected: '30' }));
@@ -58,6 +61,9 @@ describe('NarrativeEntityPlaceholderComponent', () => {
                     useValue: jasmine.createSpyObj<CharacterService>('CharacterService', {
                         getStateCatalog: of([]),
                         create: of({ Id: 12 } as any),
+                        get: of({ Id: 12, Nombre: 'Kaladin' } as any),
+                        createAlias: of({ Id: 1 } as any),
+                        createRelation: of({ Id: 1 } as any),
                         updateBookState: of({ Id: 1 } as any),
                         createState: of({ Id: 1 } as any),
                         updateRoot: of({ Id: 12 } as any),
@@ -74,7 +80,7 @@ describe('NarrativeEntityPlaceholderComponent', () => {
                 },
                 { provide: LoaderEmmitterService, useValue: { activateLoader: jasmine.createSpy('activateLoader'), deactivateLoader: jasmine.createSpy('deactivateLoader') } },
                 { provide: SnackbarModule, useValue: { openSnackBar: jasmine.createSpy('openSnackBar'), openApiError: jasmine.createSpy('openApiError') } },
-                { provide: CharacterOrderRefreshService, useValue: { isRefreshing$: jasmine.createSpy('isRefreshing$').and.returnValue(of(false)) } }
+                { provide: CharacterOrderRefreshService, useValue: { isRefreshing$: jasmine.createSpy('isRefreshing$').and.returnValue(of(false)), refresh: jasmine.createSpy('refresh').and.returnValue(of([])) } }
             ]
         }).compileComponents();
 
@@ -83,6 +89,8 @@ describe('NarrativeEntityPlaceholderComponent', () => {
         narrativeService = TestBed.inject(NarrativeEntityService) as jasmine.SpyObj<NarrativeEntityService>;
         entryService = TestBed.inject(EntryService) as jasmine.SpyObj<EntryService>;
         router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+        loader = TestBed.inject(LoaderEmmitterService) as any;
+        orderRefresh = TestBed.inject(CharacterOrderRefreshService) as any;
         bookStore.setBook(createBook());
         fixture = TestBed.createComponent(NarrativeEntityPlaceholderComponent);
         component = fixture.componentInstance;
@@ -256,6 +264,149 @@ describe('NarrativeEntityPlaceholderComponent', () => {
             4200,
             jasmine.objectContaining({ icon: 'help_outline' })
         );
+    });
+
+    describe('creating characters', () => {
+        // Caso real (Siega, 20/10/2026): el alta de «Segador Goodall» se guardó, el loader no
+        // terminaba, la lista no lo mostraba al volver y el segundo intento lo duplicó.
+        beforeEach(() => {
+            queryParamMap$.next(convertToParamMap({}));
+            routeUrl$.next([new UrlSegment('character', {})]);
+            characterService.get.and.callFake((id: number) => of({ Id: id, Nombre: 'Segador Goodall', Sexo: 1, Entradas: [], Apodos: [], Estados: [], Relaciones: [] } as any));
+            component.characterSex.setValue(1);
+            component.characterStatusId.setValue(1);
+            component.name.setValue('Segador Goodall');
+            component.createEntryDrafts[0].description.setValue('Segador de la región de MidMérica');
+            snackBar = {
+                openSnackBar: spyOn((component as any).snackBar, 'openSnackBar'),
+                openApiError: spyOn((component as any).snackBar, 'openApiError')
+            };
+            loader.activateLoader.calls.reset();
+            loader.deactivateLoader.calls.reset();
+            orderRefresh.refresh.calls.reset();
+        });
+
+        it('creates several characters in a row and adds each one to the list without reloading the book', () => {
+            const bookService = TestBed.inject(BookService) as any;
+            bookService.getBook.calls.reset();
+            characterService.create.and.returnValues(
+                of({ Id: 1202, Nombre: 'Segador Mandela', Estados: [{ EstadoId: 1, Origen: 1 }] } as any),
+                of({ Id: 1203, Nombre: 'Segador Goodall', Estados: [{ EstadoId: 1, Origen: 1 }] } as any)
+            );
+
+            component.createEntity();
+            component.name.setValue('Segador Goodall');
+            component.characterSex.setValue(1);
+            component.characterStatusId.setValue(1);
+            component.createEntryDrafts[0].description.setValue('Segador de la región de MidMérica');
+            component.createEntity();
+
+            expect(characterService.create).toHaveBeenCalledTimes(2);
+            expect(bookStore.getBook().Personajes.map(character => character.Id)).toEqual([1202, 1203]);
+            expect(bookService.getBook).not.toHaveBeenCalled();
+            expect(characterService.updateBookState).not.toHaveBeenCalled();
+            expect(loader.deactivateLoader).toHaveBeenCalledTimes(2);
+            expect(component.isSubmittingEntity).toBeFalse();
+            expect(orderRefresh.refresh).toHaveBeenCalledWith(1);
+        });
+
+        it('ignores a second submit while the first creation is still waiting for the API', () => {
+            const response = new Subject<any>();
+            characterService.create.and.returnValue(response.asObservable());
+
+            component.createEntity();
+            component.createEntity();
+
+            expect(characterService.create).toHaveBeenCalledTimes(1);
+            expect(component.isSubmittingEntity).toBeTrue();
+            response.next({ Id: 1203, Nombre: 'Segador Goodall' });
+            response.complete();
+            expect(component.isSubmittingEntity).toBeFalse();
+            expect(loader.deactivateLoader).toHaveBeenCalled();
+        });
+
+        it('keeps the created character in the list and releases the loader when a later step fails', () => {
+            characterService.create.and.returnValue(of({ Id: 1203, Nombre: 'Segador Goodall' } as any));
+            characterService.updateBookState.and.returnValue(throwError(() => new Error('500')));
+            component.characterStatusId.setValue(3);
+
+            component.createEntity();
+
+            expect(bookStore.getBook().Personajes.map(character => character.Id)).toEqual([1203]);
+            expect(loader.deactivateLoader).toHaveBeenCalled();
+            expect(snackBar.openSnackBar).toHaveBeenCalledWith(jasmine.stringMatching(/Personaje creado, pero no se ha podido guardar el estado/), 'errorBar');
+            expect(router.navigate).toHaveBeenCalledWith(['../characters'], jasmine.anything());
+        });
+
+        it('retries with the same IdCliente after an error and starts a new one after a success', () => {
+            characterService.create.and.returnValue(throwError(() => new Error('red caída')));
+            component.createEntity();
+            const firstId = characterService.create.calls.mostRecent().args[0].IdCliente;
+            component.createEntity();
+            const retryId = characterService.create.calls.mostRecent().args[0].IdCliente;
+
+            expect(firstId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+            expect(retryId).toBe(firstId);
+            expect(orderRefresh.refresh).toHaveBeenCalledWith(1);
+            expect(loader.deactivateLoader).toHaveBeenCalledTimes(2);
+
+            characterService.create.and.returnValue(of({ Id: 1203, Nombre: 'Segador Goodall' } as any));
+            component.createEntity();
+            component.name.setValue('Segador Colbert');
+            component.characterSex.setValue(1);
+            component.characterStatusId.setValue(1);
+            component.createEntryDrafts[0].description.setValue('Segador de la región de MidMérica');
+            component.createEntity();
+            const nextId = characterService.create.calls.mostRecent().args[0].IdCliente;
+
+            expect(nextId).not.toBe(firstId);
+        });
+
+        it('ends the loader when the API never answers and keeps the form for an idempotent retry', fakeAsync(() => {
+            characterService.create.and.returnValue(NEVER);
+
+            component.createEntity();
+            tick(30_000);
+
+            expect(component.isSubmittingEntity).toBeFalse();
+            expect(loader.deactivateLoader).toHaveBeenCalled();
+            expect(snackBar.openSnackBar).toHaveBeenCalledWith(jasmine.stringMatching(/no se duplicará/), 'errorBar');
+            expect(orderRefresh.refresh).toHaveBeenCalledWith(1);
+            expect(component.name.value).toBe('Segador Goodall');
+        }));
+
+        it('releases the loader when the screen is left during the creation and does not navigate back', () => {
+            const response = new Subject<any>();
+            characterService.create.and.returnValue(response.asObservable());
+
+            component.createEntity();
+            fixture.destroy();
+
+            expect(loader.deactivateLoader).toHaveBeenCalledTimes(1);
+            response.next({ Id: 1203, Nombre: 'Segador Goodall' });
+            response.complete();
+
+            expect(bookStore.getBook().Personajes.map(character => character.Id)).toEqual([1203]);
+            expect(loader.deactivateLoader).toHaveBeenCalledTimes(1);
+            expect(router.navigate).not.toHaveBeenCalledWith(['../characters'], jasmine.anything());
+        });
+
+        it('asks before creating a character whose name is already in the book', () => {
+            bookStore.setBook({ ...createBook(), Personajes: [{ Id: 1203, Nombre: 'Segador Goodall', Sexo: 1, Entradas: [], Apodos: [], Estados: [], Relaciones: [] }] });
+            const confirm = spyOn(window, 'confirm').and.returnValue(false);
+
+            component.createEntity();
+
+            expect(confirm).toHaveBeenCalledWith(jasmine.stringMatching(/Ya hay un personaje llamado «Segador Goodall»/));
+            expect(characterService.create).not.toHaveBeenCalled();
+            expect(loader.activateLoader).not.toHaveBeenCalled();
+        });
+
+        it('checks the list against the API when coming back to the characters list', () => {
+            routeUrl$.next([new UrlSegment('characters', {})]);
+
+            expect(orderRefresh.refresh).toHaveBeenCalledWith(1);
+        });
     });
 });
 

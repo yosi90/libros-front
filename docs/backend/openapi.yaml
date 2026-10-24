@@ -1125,6 +1125,10 @@ components:
                 type: string
                 minLength: 15
                 description: Atajo legacy. Si no se envia Entradas, crea una unica entrada con nombre igual a Apodo.
+              IdCliente:
+                type: string
+                format: uuid
+                description: Opcional. Identifica el alta en el cliente; se conserva al reintentarla. Repetido en el mismo libro devuelve 200 con el personaje ya creado; en otro libro, 409 character_client_request_conflict. Si no es un UUID, 400 invalid_client_request_id.
     CharacterRootUpdate:
       required: true
       content:
@@ -5332,11 +5336,18 @@ components:
       required:
       - Id
       - Nombre
+      - Grupo
+      - OrdenGrupo
       properties:
         Id:
           type: integer
         Nombre:
           type: string
+        Grupo:
+          type: string
+          enum: [Principales, Recurrentes, Secundarios, Desaparecidos, Muertos, Antiguos]
+        OrdenGrupo:
+          type: integer
     ChapterWrite:
       type: object
       required:

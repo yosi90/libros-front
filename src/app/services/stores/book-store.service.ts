@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Book } from '../../interfaces/book';
 import { Chapter } from '../../interfaces/chapter';
+import { Character } from '../../interfaces/character';
 
 @Injectable({
     providedIn: 'root'
@@ -56,6 +57,24 @@ export class BookStoreService {
 
     clear(): void {
         this.bookSubject.next(this.libroVacio);
+    }
+
+    /**
+     * Añade o actualiza un personaje del libro abierto sin recargar el libro entero.
+     * Un personaje nuevo se crea siempre en el libro actual; lo que ya había en la lista
+     * (origen, grupo, métricas) se conserva si la respuesta no lo trae.
+     */
+    upsertCharacter(bookId: number, character: Character): void {
+        const book = this.getBook();
+        if (book.Id !== bookId || !character?.Id)
+            return;
+
+        const characters = book.Personajes ?? [];
+        const index = characters.findIndex(current => Number(current.Id) === Number(character.Id));
+        const personajes = index >= 0
+            ? characters.map((current, position) => position === index ? { ...current, ...character } : current)
+            : [...characters, { EsLibroActual: true, OrigenContexto: 'actual', EsSagaPrevia: false, EsSeccionOrigen: false, ...character } as Character];
+        this.bookSubject.next({ ...book, Personajes: personajes });
     }
 
     getChapter(chapterId: number): Chapter {
