@@ -1,18 +1,21 @@
 import { CatalogItem, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats, Edition } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 
-/** Lo que necesita la ficha pública Web; lo cumplen Catálogo y los gestores. */
-export interface WebPublicDetailController {
+/**
+ * Lo que necesitan las vistas de la ficha pública de una obra (Web, Wood y Mobile).
+ * Lo cumplen Catálogo y los gestores del Perfil a través de PublicDetailHost.
+ */
+export interface PublicDetailController {
     selectedDetailItem: CatalogItem | null;
     selectedPublicDetail: CatalogPublicDetail | null;
     /** Modales que se abren encima de la ficha: mientras estén abiertos, Escape no la cierra. */
-    selectedCollectionItem: unknown;
+    selectedCollectionItem: CatalogItem | null;
     isRequestModalOpen?: boolean;
     isLoadingPublicDetail: boolean;
     publicDetailLoadFailed: boolean;
     isSavingCollection: boolean;
-    isSavingEditions?: boolean;
-    editionSelectionError?: string;
+    isSavingEditions: boolean;
+    editionSelectionError: string;
     publicReviewPage: number;
     statusOptions: ReadonlyArray<{ Id: ReadingStatusId; Nombre: string; icon: string }>;
     /** Opcional: sin él, «Añadir» abre el editor de estado. */
@@ -23,13 +26,13 @@ export interface WebPublicDetailController {
     isDetailInCollection(): boolean;
     handleCoverImageError(event: Event): void;
     publicDetailTitle(): string;
-    publicDetailCoverName?(): string | null;
-    publicDetailEditions?(): Edition[];
-    selectedEdition?(): Edition | null;
-    selectEdition?(editionId: number): void;
-    toggleSelectedEditionOwnership?(): void;
-    publicDetailIsbn?(): string | null;
-    publicDetailPublicationDate?(): string | null;
+    publicDetailCoverName(): string | null;
+    publicDetailEditions(): Edition[];
+    selectedEdition(): Edition | null;
+    selectEdition(editionId: number): void;
+    toggleSelectedEditionOwnership(): void;
+    publicDetailIsbn(): string | null;
+    publicDetailPublicationDate(): string | null;
     publicDetailAuthorsLabel(): string;
     publicDetailLanguagesLabel(): string;
     publicDetailStylesLabel(): string;

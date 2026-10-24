@@ -1,11 +1,11 @@
 import { CatalogItem } from '../../../../interfaces/catalog';
 import { WebPublicDetailPanelComponent } from './web-public-detail-panel.component';
-import { WebPublicDetailController } from './web-public-detail-panel.model';
+import { PublicDetailController } from '../../../shared/common/public-detail/public-detail.model';
 
 describe('WebPublicDetailPanelComponent', () => {
     const item = { Tipo: 'libro', Id: 5, Nombre: 'Siega', Portada: null, Autores: [], Estados: [], ISBN: '', FechaPublicacion: '2016-11-22' } as CatalogItem;
 
-    function create(overrides: Partial<WebPublicDetailController> = {}) {
+    function create(overrides: Partial<PublicDetailController> = {}) {
         const controller = {
             selectedDetailItem: item,
             selectedPublicDetail: null,
@@ -16,8 +16,12 @@ describe('WebPublicDetailPanelComponent', () => {
             publicDetailLanguagesLabel: () => 'Español',
             publicDetailStylesLabel: () => '',
             publicDetailPersonalStatusName: () => 'En marcha',
+            publicDetailEditions: () => [],
+            selectedEdition: () => null,
+            publicDetailIsbn: () => null,
+            publicDetailPublicationDate: () => null,
             ...overrides
-        } as unknown as WebPublicDetailController;
+        } as unknown as PublicDetailController;
         const component = new WebPublicDetailPanelComponent();
         component.controller = controller;
         return { component, controller };

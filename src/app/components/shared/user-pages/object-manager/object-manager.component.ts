@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, Observable, Subject, switchMap, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,13 +20,10 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
-import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
-import { getApiErrorField } from '../../../../shared/backend-field-error';
-import { ownedEditionIds, preferredEdition } from '../../../../shared/edition-selection';
 import { SessionService } from '../../../../services/auth/session.service';
-import { getLatestStatusName, getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
+import { getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
 import { CatalogService } from '../../../../services/entities/catalog.service';
-import { CatalogItem, CatalogOption, CatalogOwnCollection, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats, Edition } from '../../../../interfaces/catalog';
+import { CatalogItem, CatalogOption } from '../../../../interfaces/catalog';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
@@ -34,6 +31,7 @@ import { ManagerConfig, ManagerKind, ManagerMetric, ManagerRow, ManagerSortDirec
 import { ManagerViewStateService } from '../../../../shared/manager-view-state.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
+import { PublicDetailHost } from '../../common/public-detail/public-detail-host';
 
 @Component({
     standalone: true,
@@ -56,7 +54,7 @@ import { LibrarySearchStateService } from '../../../../shared/library-search-sta
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./object-manager.component.sass', '../catalog/catalog.component.sass']
 })
-export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class ObjectManagerComponent extends PublicDetailHost implements OnInit, OnDestroy, AfterViewChecked {
     /**
      * Tipo fijado por el Perfil, el único que monta el gestor: es un listado de
      * consulta y cada fila abre su ficha o la Biblioteca filtrada. Las altas y
@@ -113,7 +111,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         Nombre: status.Nombre,
         Fecha: ''
     }));
-    readonly statusOptions = readingStatusOptions;
 
     kind: ManagerKind = 'authors';
     config = this.configs.authors;
@@ -127,23 +124,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
     pageIndex = 0;
     pageSize = 6;
     pageSizeOptions = [6, 12, 24, 48];
-    isLoadingPublicDetail = false;
-    publicDetailLoadFailed = false;
-    selectedDetailItem: CatalogItem | null = null;
-    selectedPublicDetail: CatalogPublicDetail | null = null;
-    selectedEditionId: number | null = null;
-    isSavingEditions = false;
-    editionSelectionError = '';
-    publicReviewPage = 0;
-    expandedOwnReview = false;
-    expandedPublicReviews = new Set<string>();
-    selectedCollectionItem: CatalogItem | null = null;
-    selectedCollectionStatus: ReadingStatusId | null = null;
-    selectedCollectionRating: number | null = null;
-    selectedCollectionReview = '';
-    excludeCollectionActivity = false;
-    isSavingCollection = false;
-    private selectedCollectionOriginalReview = '';
     private pendingScrollRestore: number | null = null;
     private indexScrollTop = 0;
 
@@ -160,16 +140,18 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
     constructor(
         private router: Router,
         private authorStore: AuthorStoreService,
-        private universeStore: UniverseStoreService,
-        private snackBar: SnackbarModule,
+        universeStore: UniverseStoreService,
+        snackBar: SnackbarModule,
         private loader: LoaderEmmitterService,
-        private sessionSrv: SessionService,
-        private catalogService: CatalogService,
-        private collectionService: CollectionService,
+        sessionSrv: SessionService,
+        catalogSrv: CatalogService,
+        collectionSrv: CollectionService,
         private managerViewState: ManagerViewStateService = new ManagerViewStateService(),
         private presentation: PresentationModeService = { snapshot: { isMobilePresentationActive: false } } as PresentationModeService,
         private librarySearchState: LibrarySearchStateService = new LibrarySearchStateService()
-    ) { }
+    ) {
+        super(catalogSrv, collectionSrv, universeStore, sessionSrv, snackBar);
+    }
 
     get isWebPresentation(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
@@ -196,6 +178,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
 
     ngOnDestroy(): void {
         this.persistViewState();
+        this.cancelPublicDetailRequest();
         this.destroy$.next();
         this.destroy$.complete();
     }
@@ -329,16 +312,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         return this.rows.reduce((total, row) => total + row.anthologiesCount, 0);
     }
 
-    get canSubmitCollection(): boolean {
-        return !!this.selectedCollectionItem && this.selectedCollectionStatus !== null && !this.isSavingCollection;
-    }
-
-    get collectionModalTitle(): string {
-        return this.selectedCollectionItem
-            ? `Actualizando ${this.selectedCollectionItem.Nombre}`
-            : 'Actualizando lectura';
-    }
-
     isReadableKind(): boolean {
         return this.kind === 'books' || this.kind === 'anthologies';
     }
@@ -362,7 +335,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
     /** Acción principal de una fila incrustada en el Perfil. */
     openEmbeddedRow(row: ManagerRow): void {
         if (this.isReadableKind()) {
-            this.openPublicDetail(row);
+            this.openItem(this.toCatalogItem(row));
             return;
         }
         const scope = this.kind === 'authors' ? 'author' : this.kind === 'universes' ? 'universe' : 'saga';
@@ -371,124 +344,10 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         void this.router.navigate(['/dashboard', 'books']);
     }
 
-    openPublicDetail(row: ManagerRow, event?: MouseEvent): void {
-        event?.stopPropagation();
-        if (!this.isReadableKind())
-            return;
-
-        const item = this.toCatalogItem(row);
-        this.selectedDetailItem = item;
-        this.selectedPublicDetail = null;
-        this.selectedEditionId = preferredEdition(item.Ediciones ?? [])?.Id ?? null;
-        this.editionSelectionError = '';
-        this.resetReviewDisplayState();
-        this.publicDetailLoadFailed = false;
-        this.isLoadingPublicDetail = true;
-
-        const request = item.Tipo === 'libro'
-            ? this.catalogService.getBookPublicDetail(item.Id)
-            : this.catalogService.getAnthologyPublicDetail(item.Id);
-
-        request.pipe(takeUntil(this.destroy$)).subscribe({
-            next: detail => {
-                if (this.selectedDetailItem?.Id !== item.Id || this.selectedDetailItem.Tipo !== item.Tipo)
-                    return;
-                this.selectedPublicDetail = detail;
-                this.selectedEditionId = preferredEdition(detail.Ediciones ?? item.Ediciones ?? [], detail.MiColeccion?.EdicionesIds)?.Id ?? null;
-                this.applyOwnCollectionFromDetail(detail);
-                this.isLoadingPublicDetail = false;
-            },
-            error: () => {
-                if (this.selectedDetailItem?.Id !== item.Id || this.selectedDetailItem.Tipo !== item.Tipo)
-                    return;
-                this.publicDetailLoadFailed = true;
-                this.isLoadingPublicDetail = false;
-            }
-        });
-    }
-
-    closePublicDetailModal(): void {
-        this.selectedDetailItem = null;
-        this.selectedPublicDetail = null;
-        this.selectedEditionId = null;
-        this.editionSelectionError = '';
+    /** En el gestor, la ficha se cierra también con el editor de estado abierto encima. */
+    override closePublicDetailModal(): void {
+        super.closePublicDetailModal();
         this.closeCollectionModal();
-        this.resetReviewDisplayState();
-        this.publicDetailLoadFailed = false;
-        this.isLoadingPublicDetail = false;
-    }
-
-    openCollectionModal(item: CatalogItem, event?: MouseEvent): void {
-        event?.stopPropagation();
-        this.selectedCollectionItem = item;
-        this.selectedCollectionStatus = item.Estados?.[item.Estados.length - 1]?.EstadoId ?? null;
-        this.selectedCollectionRating = item.Puntuacion ?? null;
-        this.selectedCollectionReview = item.Resena ?? '';
-        this.selectedCollectionOriginalReview = this.selectedCollectionReview;
-        this.excludeCollectionActivity = false;
-    }
-
-    closeCollectionModal(): void {
-        this.selectedCollectionItem = null;
-        this.selectedCollectionStatus = null;
-        this.selectedCollectionRating = null;
-        this.selectedCollectionReview = '';
-        this.selectedCollectionOriginalReview = '';
-        this.excludeCollectionActivity = false;
-    }
-
-    setCollectionRating(rating: number | null): void {
-        this.selectedCollectionRating = rating;
-        if (rating === null)
-            this.selectedCollectionReview = '';
-    }
-
-    saveToCollection(): void {
-        if (!this.selectedCollectionItem || this.selectedCollectionStatus === null) {
-            this.snackBar.openSnackBar('Selecciona un estado de lectura', 'errorBar');
-            return;
-        }
-
-        this.isSavingCollection = true;
-        const item = this.selectedCollectionItem;
-        const statusRequest = item.Tipo === 'libro'
-            ? this.collectionService.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) })
-            : this.collectionService.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) });
-
-        const requests: Observable<unknown>[] = [statusRequest];
-        if (this.selectedCollectionRating !== null) {
-            const ratingRequest = item.Tipo === 'libro'
-                ? this.collectionService.updateBookRating(item.Id, {
-                    Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue(),
-                    ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
-                })
-                : this.collectionService.updateAnthologyRating(item.Id, {
-                    Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue(),
-                    ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
-                });
-            requests.push(ratingRequest);
-        }
-
-        forkJoin(requests).pipe(
-            switchMap(() => this.collectionService.getUniverses()),
-            takeUntil(this.destroy$)
-        ).subscribe({
-            next: universes => {
-                this.universeStore.setUniverses(universes);
-                this.snackBar.openSnackBar('Biblioteca personal actualizada', 'successBar');
-                this.syncSelectedDetailFromCollectionModal();
-                this.closeCollectionModal();
-            },
-            error: error => {
-                this.snackBar.openApiError(error, 'Error al actualizar tu biblioteca');
-                this.isSavingCollection = false;
-            },
-            complete: () => {
-                this.isSavingCollection = false;
-            }
-        });
     }
 
     openReadingFromDetail(): void {
@@ -499,294 +358,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         this.closePublicDetailModal();
         this.loader.activateLoader('book');
         requestAnimationFrame(() => void this.router.navigate(['/book', bookId]));
-    }
-
-    publicDetailTitle(): string {
-        return this.selectedPublicDetail?.Nombre ?? this.selectedDetailItem?.Nombre ?? '';
-    }
-
-    publicDetailCoverName(): string | null {
-        const cover = this.selectedEdition()?.Portada ?? this.selectedPublicDetail?.Portada ?? this.selectedDetailItem?.Portada ?? null;
-        return cover;
-    }
-
-    publicDetailEditions(): Edition[] {
-        return this.selectedPublicDetail?.Ediciones ?? this.selectedDetailItem?.Ediciones ?? [];
-    }
-
-    selectedEdition(): Edition | null {
-        return this.publicDetailEditions().find(edition => edition.Id === this.selectedEditionId)
-            ?? preferredEdition(this.publicDetailEditions(), this.selectedPublicDetail?.MiColeccion?.EdicionesIds);
-    }
-
-    selectEdition(editionId: number): void {
-        if (this.publicDetailEditions().some(edition => edition.Id === editionId)) {
-            this.selectedEditionId = editionId;
-            this.editionSelectionError = '';
-        }
-    }
-
-    publicDetailIsbn(): string | null {
-        return this.selectedEdition()?.ISBN ?? (this.publicDetailEditions().length ? null : this.selectedPublicDetail?.ISBN ?? this.selectedDetailItem?.ISBN ?? null);
-    }
-
-    publicDetailPublicationDate(): string | null {
-        return this.selectedEdition()?.FechaPublicacion ?? (this.publicDetailEditions().length ? null : this.selectedPublicDetail?.FechaPublicacion ?? this.selectedDetailItem?.FechaPublicacion ?? null);
-    }
-
-    toggleSelectedEditionOwnership(): void {
-        const item = this.selectedDetailItem;
-        const edition = this.selectedEdition();
-        if (!item || !edition || this.isSavingEditions)
-            return;
-
-        this.isSavingEditions = true;
-        const getEditions = item.Tipo === 'libro'
-            ? this.catalogService.getBookEditions(item.Id)
-            : this.catalogService.getAnthologyEditions(item.Id);
-        getEditions.pipe(switchMap(current => {
-            const selected = current.Ediciones.find(candidate => candidate.Id === edition.Id);
-            if (!selected)
-                throw new Error('La edición ya no pertenece a esta obra.');
-            const ids = ownedEditionIds(current.Ediciones).filter(id => id !== selected.Id);
-            if (!selected.EnMiBiblioteca)
-                ids.push(selected.Id);
-            return item.Tipo === 'libro'
-                ? this.collectionService.updateBookEditions(item.Id, ids)
-                : this.collectionService.updateAnthologyEditions(item.Id, ids);
-        }), takeUntil(this.destroy$)).subscribe({
-            next: response => {
-                this.editionSelectionError = '';
-                if (this.selectedDetailItem?.Id === item.Id && this.selectedDetailItem.Tipo === item.Tipo) {
-                    const ownedIds = ownedEditionIds(response.Ediciones);
-                    this.selectedDetailItem = { ...this.selectedDetailItem, Ediciones: response.Ediciones };
-                    if (this.selectedPublicDetail) {
-                        this.selectedPublicDetail = {
-                            ...this.selectedPublicDetail,
-                            Ediciones: response.Ediciones,
-                            MiColeccion: {
-                                ...this.selectedPublicDetail.MiColeccion,
-                                EnBiblioteca: this.selectedPublicDetail.MiColeccion?.EnBiblioteca || ownedIds.length > 0,
-                                Estados: this.selectedPublicDetail.MiColeccion?.Estados ?? [],
-                                EdicionesIds: ownedIds
-                            }
-                        };
-                    }
-                }
-                this.collectionService.getUniverses().subscribe({
-                    next: universes => this.universeStore.setUniverses(universes),
-                    error: () => this.universeStore.clear()
-                });
-                this.snackBar.openSnackBar(response.Ediciones.find(value => value.Id === edition.Id)?.EnMiBiblioteca
-                    ? 'Edición añadida a tu biblioteca'
-                    : 'Edición retirada; la obra y su historial permanecen en tu biblioteca', 'successBar');
-            },
-            error: error => {
-                if (getApiErrorCode(error) === 'edition_selection_invalid' && getApiErrorField(error) === 'EdicionesIds')
-                    this.editionSelectionError = getApiErrorMessage(error, 'Revisa las ediciones seleccionadas.');
-                if (error instanceof Error && !('status' in error))
-                    this.snackBar.openSnackBar(error.message, 'errorBar');
-                else
-                    this.snackBar.openApiError(error, 'No se ha podido actualizar la edición');
-                this.isSavingEditions = false;
-            },
-            complete: () => { this.isSavingEditions = false; }
-        });
-    }
-
-    publicDetailAuthorsLabel(): string {
-        const authors = this.selectedPublicDetail?.Autores ?? this.selectedDetailItem?.Autores ?? [];
-        return authors.map(author => author.Nombre).join(', ') || 'Sin autor';
-    }
-
-    publicDetailLanguagesLabel(): string {
-        return this.catalogOptionsLabel(this.selectedPublicDetail?.IdiomasDisponibles ?? this.selectedDetailItem?.IdiomasDisponibles);
-    }
-
-    publicDetailStylesLabel(): string {
-        return this.catalogOptionsLabel(this.selectedPublicDetail?.Estilos ?? this.selectedDetailItem?.Estilos);
-    }
-
-    publicDetailAverageRatingLabel(): string {
-        const stats = this.publicDetailStats();
-        if (!stats || stats.PuntuacionMedia === null || stats.PuntuacionMedia === undefined)
-            return 'Sin datos';
-
-        return `${stats.PuntuacionMedia.toFixed(1)} (${this.formatStat(stats.TotalPuntuaciones)} puntuaciones)`;
-    }
-
-    publicDetailStats(): CatalogPublicStats | null {
-        return this.selectedPublicDetail?.Estadisticas ?? null;
-    }
-
-    isDetailInCollection(): boolean {
-        const ownCollection = this.selectedPublicDetail?.MiColeccion;
-        if (ownCollection)
-            return ownCollection.EnBiblioteca ||
-                !!ownCollection.EdicionesIds?.length ||
-                this.ownCollectionStatuses(ownCollection).length > 0 ||
-                ownCollection.Puntuacion !== null && ownCollection.Puntuacion !== undefined ||
-                !!ownCollection.Resena ||
-                !!ownCollection.FechaAgregado;
-
-        return this.selectedDetailItem ? this.isInCollection(this.selectedDetailItem) : false;
-    }
-
-    publicDetailPersonalStatusName(): string {
-        const ownCollection = this.selectedPublicDetail?.MiColeccion;
-        const ownStatuses = this.ownCollectionStatuses(ownCollection);
-        if (ownStatuses.length > 0)
-            return getLatestStatusName(ownStatuses);
-
-        return this.selectedDetailItem ? getLatestStatusName(this.selectedDetailItem.Estados) : '';
-    }
-
-    publicDetailPersonalRating(): number | null {
-        if (this.selectedPublicDetail?.MiColeccion)
-            return this.selectedPublicDetail.MiColeccion.Puntuacion ?? this.selectedPublicDetail.Puntuacion ?? this.selectedDetailItem?.Puntuacion ?? null;
-
-        return this.selectedDetailItem?.Puntuacion ?? null;
-    }
-
-    publicDetailPersonalReview(): string {
-        if (this.selectedPublicDetail?.MiColeccion)
-            return this.selectedPublicDetail.MiColeccion.Resena ?? this.selectedPublicDetail.Resena ?? this.selectedDetailItem?.Resena ?? '';
-
-        return this.selectedDetailItem?.Resena ?? '';
-    }
-
-    publicDetailPersonalReviewHidden(): boolean {
-        if (this.selectedPublicDetail?.MiColeccion)
-            return this.selectedPublicDetail.MiColeccion.ResenaOculta ?? false;
-
-        return this.selectedDetailItem?.ResenaOculta ?? false;
-    }
-
-    publicDetailHasPersonalReview(): boolean {
-        return !!this.publicDetailPersonalReview().trim() && !this.publicDetailPersonalReviewHidden();
-    }
-
-    ratingStarValues(): number[] {
-        return [1, 2, 3, 4, 5];
-    }
-
-    publicReviewRows(): CatalogPublicReview[] {
-        const detail = this.selectedPublicDetail;
-        if (!detail)
-            return [];
-
-        const aliases: Array<CatalogPublicReview[] | undefined> = [
-            detail.Resenas,
-            detail.ResenasPublicas,
-            detail.ResenasVisibles,
-            (detail as unknown as Record<string, CatalogPublicReview[] | undefined>)['Reseñas'],
-            (detail as unknown as Record<string, CatalogPublicReview[] | undefined>)['ReseñasPublicas']
-        ];
-        const personalReview = this.publicDetailPersonalReview().trim();
-        const reviews = aliases.find((candidate): candidate is CatalogPublicReview[] => Array.isArray(candidate)) ?? [];
-
-        return reviews.filter(review => {
-            const reviewText = review.Resena?.trim() ?? '';
-            if (!reviewText || review.ResenaOculta)
-                return false;
-            if (review.EsMia || review.EsPropia)
-                return false;
-            return !personalReview || reviewText !== personalReview;
-        });
-    }
-
-    pagedPublicReviewRows(): CatalogPublicReview[] {
-        const start = this.publicReviewPage * 3;
-        return this.publicReviewRows().slice(start, start + 3);
-    }
-
-    publicReviewTotalPages(): number {
-        return Math.max(1, Math.ceil(this.publicReviewRows().length / 3));
-    }
-
-    hasPublicReviewPages(): boolean {
-        return this.publicReviewRows().length > 3;
-    }
-
-    nextPublicReviewPage(): void {
-        this.publicReviewPage = Math.min(this.publicReviewPage + 1, this.publicReviewTotalPages() - 1);
-        this.expandedPublicReviews.clear();
-    }
-
-    previousPublicReviewPage(): void {
-        this.publicReviewPage = Math.max(this.publicReviewPage - 1, 0);
-        this.expandedPublicReviews.clear();
-    }
-
-    publicReviewAuthorLabel(review: CatalogPublicReview): string {
-        return review.Usuario?.Nombre || 'Usuario';
-    }
-
-    publicReviewAuthorHandle(review: CatalogPublicReview): string {
-        return this.toUserHandle(this.publicReviewAuthorLabel(review));
-    }
-
-    publicOwnReviewAuthorHandle(): string {
-        return this.toUserHandle(this.sessionSrv.username ?? this.sessionSrv.displayName ?? (this.sessionSrv.userName || 'Usuario'));
-    }
-
-    publicReviewDate(review: CatalogPublicReview): string | null {
-        return review.Fecha ?? review.FechaCreacion ?? null;
-    }
-
-    reviewTextNeedsToggle(text: string | null | undefined): boolean {
-        return (text?.trim().length ?? 0) > 180;
-    }
-
-    publicReviewKey(review: CatalogPublicReview, index: number): string {
-        return String(review.Id ?? `${this.publicReviewPage}-${index}-${review.UsuarioId ?? review.Usuario?.Id ?? 'anonimo'}`);
-    }
-
-    isPublicReviewExpanded(review: CatalogPublicReview, index: number): boolean {
-        return this.expandedPublicReviews.has(this.publicReviewKey(review, index));
-    }
-
-    togglePublicReview(review: CatalogPublicReview, index: number): void {
-        const key = this.publicReviewKey(review, index);
-        if (this.expandedPublicReviews.has(key)) {
-            this.expandedPublicReviews.delete(key);
-            return;
-        }
-
-        this.expandedPublicReviews.add(key);
-    }
-
-    toggleOwnReview(): void {
-        this.expandedOwnReview = !this.expandedOwnReview;
-    }
-
-    ratingDistributionRows(): NonNullable<CatalogPublicStats['DistribucionPuntuaciones']> {
-        return [...(this.selectedPublicDetail?.Estadisticas.DistribucionPuntuaciones ?? [])]
-            .sort((a, b) => b.Puntuacion - a.Puntuacion);
-    }
-
-    stateDistributionRows(): NonNullable<CatalogPublicStats['DistribucionEstados']> {
-        return [...(this.selectedPublicDetail?.Estadisticas.DistribucionEstados ?? [])]
-            .sort((a, b) => b.Total - a.Total);
-    }
-
-    formatStat(value: number | null | undefined): string {
-        return value === null || value === undefined ? 'Sin datos' : String(value);
-    }
-
-    formatAverageRating(value: number | null | undefined): string {
-        return value === null || value === undefined ? 'Sin datos' : value.toFixed(1);
-    }
-
-    formatPercent(value: number | null | undefined): string {
-        return value === null || value === undefined ? 'Sin datos' : `${value.toFixed(1)}%`;
-    }
-
-    formatRanking(metric: { Ranking?: number; TotalItems?: number } | null | undefined): string {
-        if (!metric?.Ranking || !metric.TotalItems)
-            return 'Sin datos';
-
-        return `#${metric.Ranking} de ${metric.TotalItems}`;
     }
 
     editableUniverses(): Universe[] {
@@ -861,10 +432,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         if (!languageName)
             return 'Sin idioma';
         return `${this.languageFlag(author)} ${languageName}`;
-    }
-
-    handleCoverImageError(event: Event): void {
-        (event.target as HTMLImageElement).src = 'assets/media/img/error.png';
     }
 
     onSearchChange(): void {
@@ -990,23 +557,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         return readingStatusOptions.find(option => this.normalize(option.Nombre) === this.normalize(status.Nombre ?? ''))?.Id ?? 0;
     }
 
-    private isInCollection(item: CatalogItem): boolean {
-        return (item.Estados?.length ?? 0) > 0 ||
-            !!item.Ediciones?.some(edition => edition.EnMiBiblioteca) ||
-            item.Puntuacion !== null && item.Puntuacion !== undefined ||
-            !!item.Resena;
-    }
-
-    private catalogOptionsLabel(options: CatalogOption[] | string[] | null | undefined): string {
-        if (!options?.length)
-            return '';
-
-        return options
-            .map(option => typeof option === 'string' ? option : option.Nombre)
-            .filter(Boolean)
-            .join(', ');
-    }
-
     private toCatalogOptions(options: CatalogOption[] | string[] | null | undefined): CatalogOption[] | null {
         if (!options?.length)
             return null;
@@ -1014,93 +564,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         return options.map((option, index) => typeof option === 'string'
             ? { Id: index, Nombre: option }
             : option);
-    }
-
-    private applyOwnCollectionFromDetail(detail: CatalogPublicDetail): void {
-        if (!this.selectedDetailItem || !detail.MiColeccion)
-            return;
-
-        const ownStatuses = this.ownCollectionStatuses(detail.MiColeccion);
-        this.selectedDetailItem = {
-            ...this.selectedDetailItem,
-            Ediciones: detail.Ediciones ?? this.selectedDetailItem.Ediciones,
-            Estados: ownStatuses,
-            Puntuacion: detail.MiColeccion.Puntuacion ?? detail.Puntuacion ?? this.selectedDetailItem.Puntuacion ?? null,
-            Resena: detail.MiColeccion.Resena ?? detail.Resena ?? this.selectedDetailItem.Resena ?? null,
-            ResenaOculta: detail.MiColeccion.ResenaOculta ?? false,
-            PuedeAbrirNarrativa: detail.MiColeccion.PuedeAbrirNarrativa ?? detail.PuedeAbrirNarrativa ?? this.selectedDetailItem.PuedeAbrirNarrativa,
-            NarrativaPersonalDisponible: detail.MiColeccion.NarrativaPersonalDisponible ?? detail.NarrativaPersonalDisponible ?? this.selectedDetailItem.NarrativaPersonalDisponible
-        };
-    }
-
-    private ownCollectionStatuses(ownCollection: CatalogOwnCollection | null | undefined) {
-        if (!ownCollection)
-            return [];
-
-        if (ownCollection.Estados?.length)
-            return ownCollection.Estados;
-
-        return ownCollection.EstadoActual ? [ownCollection.EstadoActual] : [];
-    }
-
-    private toUserHandle(name: string): string {
-        const trimmed = name.trim() || 'Usuario';
-        return '@' + trimmed.replace(/^@+/, '').replace(/\s+/g, '');
-    }
-
-    private resetReviewDisplayState(): void {
-        this.publicReviewPage = 0;
-        this.expandedOwnReview = false;
-        this.expandedPublicReviews.clear();
-    }
-
-    private reviewPayloadValue(): string | null {
-        const review = this.selectedCollectionReview.trim();
-        return review ? review : null;
-    }
-
-    private syncSelectedDetailFromCollectionModal(): void {
-        if (!this.selectedDetailItem || !this.selectedCollectionItem)
-            return;
-        if (this.selectedDetailItem.Tipo !== this.selectedCollectionItem.Tipo || this.selectedDetailItem.Id !== this.selectedCollectionItem.Id)
-            return;
-
-        const selectedStatus = readingStatusOptions.find(status => status.Id === this.selectedCollectionStatus);
-        const updatedStatuses = selectedStatus
-            ? [{ Id: selectedStatus.Id, EstadoId: selectedStatus.Id, Nombre: selectedStatus.Nombre, Fecha: new Date().toISOString() }]
-            : this.selectedDetailItem.Estados;
-        const review = this.reviewPayloadValue();
-
-        this.selectedDetailItem = {
-            ...this.selectedDetailItem,
-            Estados: updatedStatuses,
-            Puntuacion: this.selectedCollectionRating,
-            Resena: review,
-            ResenaOculta: false,
-            PuedeAbrirNarrativa: this.selectedDetailItem.PuedeAbrirNarrativa,
-            NarrativaPersonalDisponible: this.selectedDetailItem.NarrativaPersonalDisponible
-        };
-
-        if (this.selectedPublicDetail) {
-            this.selectedPublicDetail = {
-                ...this.selectedPublicDetail,
-                Puntuacion: this.selectedCollectionRating,
-                Resena: review,
-                ResenaOculta: false,
-                MiColeccion: {
-                    EnBiblioteca: true,
-                    EstadoActual: updatedStatuses[updatedStatuses.length - 1] ?? null,
-                    Estados: updatedStatuses,
-                    Puntuacion: this.selectedCollectionRating,
-                    Resena: review,
-                    ResenaOculta: false,
-                    PuedeAbrirNarrativa: this.selectedDetailItem.PuedeAbrirNarrativa,
-                    NarrativaPersonalDisponible: this.selectedDetailItem.NarrativaPersonalDisponible,
-                    FechaAgregado: this.selectedPublicDetail.MiColeccion?.FechaAgregado ?? null,
-                    FechaActualizacion: new Date().toISOString()
-                }
-            };
-        }
     }
 
     private setKind(kind: ManagerKind): void {
