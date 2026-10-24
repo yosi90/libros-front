@@ -1,0 +1,11 @@
+# Compilación y herramientas
+.gradle/
+build/
+.idea/
+*.iml
+.kotlin/
+captures/
+local.properties
+
+# Privado: google-services.json de la plataforma y firma de publicación (ver README.md)
+/.runtime/

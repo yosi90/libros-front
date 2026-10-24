@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Los mismos nombres que la APK de Capacitor: el de la app y el corto, bajo el icono del lanzador. -->
+    <string name="app_name">Memoria Bibliográfica</string>
+    <string name="launcher_name">Mem.Bib.</string>
+</resources>
