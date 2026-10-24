@@ -42,7 +42,7 @@
           [matTooltip]="canSubmit() ? (isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular : getCreateSubmitHint()"
           matTooltipClass="tt-accent">
           <button class="header-create-submit" mat-raised-button type="submit" form="narrative-create-form"
-            [disabled]="!canSubmit()" [attr.aria-label]="(isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular">
+            [disabled]="!canSubmit() || isSubmittingEntity" [attr.aria-label]="(isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular">
             <mat-icon>save</mat-icon>
           </button>
         </span>

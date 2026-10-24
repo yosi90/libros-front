@@ -15,7 +15,7 @@
       </button>
     } @else {
       <button class="m-icon-button m-icon-button--filled" type="submit" form="mobile-narrative-form"
-        [disabled]="!c.canSubmit()" [attr.aria-label]="(c.isUpdateMode() ? 'Actualizar ' : 'Crear ') + c.getConfig().singular">
+        [disabled]="!c.canSubmit() || c.isSubmittingEntity" [attr.aria-label]="(c.isUpdateMode() ? 'Actualizar ' : 'Crear ') + c.getConfig().singular">
         <mat-icon>save</mat-icon>
       </button>
     }
@@ -197,7 +197,7 @@
       }
 
       <div class="m-entity-form__submit">
-        <button class="m-button" type="submit" [disabled]="!c.canSubmit()"><mat-icon>save</mat-icon>{{ c.isUpdateMode() ? 'Guardar cambios' : 'Crear ' + c.getConfig().singular }}</button>
+        <button class="m-button" type="submit" [disabled]="!c.canSubmit() || c.isSubmittingEntity"><mat-icon>save</mat-icon>{{ c.isUpdateMode() ? 'Guardar cambios' : 'Crear ' + c.getConfig().singular }}</button>
       </div>
     </form>
   } @else {

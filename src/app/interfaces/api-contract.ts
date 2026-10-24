@@ -36,6 +36,8 @@ export interface CharacterCreate {
     Apodo: string;
     Sexo: boolean | number;
     Entradas: NarrativeEntryCreate[];
+    /** UUID del alta: se conserva en sus reintentos para que la API no cree otro personaje. */
+    IdCliente?: string;
 }
 
 export interface CharacterBookAliasWrite {

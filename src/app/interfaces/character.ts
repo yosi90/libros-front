@@ -35,6 +35,8 @@ export interface CharacterSimple {
 export interface CharacterOrderSummary {
     Id: number;
     Nombre: string;
+    Grupo?: Character['Grupo'];
+    OrdenGrupo?: number | null;
 }
 export interface CharacterStatus {
     Id: number;
