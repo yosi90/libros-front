@@ -13,10 +13,11 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 - `common/`: componentes compartidos de shell, navegacion y superficies comunes.
 - `narrative-entities/`: mantenimiento de personajes, localizaciones, conceptos, organizaciones, eventos y citas dentro de libros.
 - `qa/`: estrategia transversal, automatizacion y campañas integrales de calidad del frontend.
+- `ecosistema/`: adhesión a la plataforma común Yosiftware (cuenta única, chat, notificaciones, espacios) y APK nativa en Kotlin.
 
 ## Roadmap activo
 
-Ninguno.
+- `ecosistema/ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md`: adhesión de la web a Yosiftware con el kit vigente y clon exacto de la APK en Kotlin (`android-nativa/`), adherido desde el principio; abierto el 24/10/2026. Maestro y backend en `../Libros API/docs/roadmaps/ACTIVO_adhesion-yosiftware/`.
 
 ## Roadmaps pausados
 
