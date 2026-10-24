@@ -11,7 +11,6 @@ import { Chapter } from '../../../../interfaces/chapter';
 import { Scene, SceneCharacterDetail } from '../../../../interfaces/scene';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { catchError, debounceTime, finalize, forkJoin, map, merge, Observable, of, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
-import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSelectModule } from '@angular/material/select';
@@ -176,7 +175,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private router: Router,
         private fBuild: FormBuilder,
         private _snackBar: SnackbarModule,
-        private bookEmmitterSrv: BookEmmitterService,
         private sceneSrv: SceneService,
         private chapterSrv: ChapterService,
         private characterOrderRefreshSrv: CharacterOrderRefreshService,
@@ -878,7 +876,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             tap(() => {
                 this.skipNextBookStoreSync = true;
                 this.bookStore.setBook(this.book);
-                this.bookEmmitterSrv.updateBook(this.book);
                 this.deletedSceneIds = this.deletedSceneIds.filter(sceneId => !batch.deletedSceneIds.includes(sceneId));
                 if (this.formRevision === batch.revision)
                     this.refreshSavedSnapshots();
