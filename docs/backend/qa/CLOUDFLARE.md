@@ -1,5 +1,7 @@
 # Publicación QA con Cloudflare Tunnel
 
+> **Adhesión a Yosiftware (fase 3, rama `adhesion/api-identidad`).** QA ya no tiene WebSocket propio (`wss://qa-ws.yosiftware.es`), NATS, gateway, workers de tiempo real, Firebase Authentication, Firestore, RTDB ni FCM: la sesión es la cuenta de Yosiftware de la plataforma de QA y sus cuentas de prueba (`scripts/qa-plataforma-smoke.py`), y las contraseñas `QA_*_PASSWORD` y `QA_PHONE_TEST_*` ya no sirven para entrar. El perfil `realtime-recovery` se conserva como fixture SQL, sin entrega en directo. Lo que sigue documenta el contrato anterior donde no se ha actualizado; prevalecen `../api/ADHESION_YOSIFTWARE.md`, `README.md` y `ENTORNO_QA.md`.
+
 QA se publica mediante el túnel independiente `libros-qa` (`4abcd448-8e39-4043-b21d-eb26edeba4fa`). No comparte túnel, credenciales ni ingress con `fichas-api` o producción.
 
 | Recurso público | Origen privado |

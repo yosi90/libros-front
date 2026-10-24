@@ -8,28 +8,6 @@
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleList'
-  post:
-    operationId: postEstadoLocalizacionCatalogo
-    tags:
-    - EstadoLocalizacion
-    summary: Crea estado catalogo
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/NameOnly'
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '201':
-        $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
-  patch:
-    operationId: patchEstadoLocalizacionCatalogo
-    tags:
-    - EstadoLocalizacion
-    summary: Actualiza estado catalogo
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/IdName'
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
 /estado_localizacion/localizacion/{id}:
   get:
     operationId: getEstadoLocalizacionLocalizacionById

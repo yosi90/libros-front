@@ -6,15 +6,15 @@ Guía para el front web de `https://libros.yosiftware.es`. Yosiftadísticas cuen
 
 | Parte | Estado |
 | --- | --- |
-| API: `ExcluirMedicionAudiencia` | Publicado en QA y producción (`cccc9621be102751953774573f532003c2c484a7`, 2026-10-06). En QA siempre vale `false` |
+| API: `ExcluirMedicionAudiencia` | **Retirado con la adhesión a Yosiftware** (rama `adhesion/api-identidad`, fase 3; petición de migración, decisión 13). La marca la pone el SDK de la plataforma en la web; la API ya no la calcula ni guarda la lista `LIBROS_AUDIENCE_EXCLUDED_USER_IDS`. Producción la conserva hasta el corte |
 | Normas de uso v2 con la sección de medición | Publicadas en producción el 2026-10-06; requieren nueva aceptación |
 | Normas de uso v3 | Publicadas el 2026-10-06 en producción como versión 3 de `uso`. Precisan el token de visita, la IP y el user-agent según la sección 3. Requieren nueva aceptación con el flujo existente, sin cambios de contrato |
 | Colector `https://estadisticas.yosiftware.es/health` | Disponible: el 2026-10-06 por la noche respondió `200` `{"estado":"ok"}` y `s.js` se sirve como `application/javascript`. Si vuestro DNS aún no resuelve el dominio, esperad a que se propague |
 | Front: marca de exclusión | Implementada por el front |
-| Front: script | **Listo para publicar en producción.** Las normas de uso v3 ya están activas. Ejecutad después la verificación de la sección 4 y comunicad el resultado |
-| QA | El script no envía nada en `qa-libros.yosiftware.es` y `ExcluirMedicionAudiencia` siempre vale `false`. En QA solo se comprueba que el script carga sin errores; la marca y los envíos se verifican en producción |
+| Front: script | Publicado en producción. El 2026-10-07 `https://libros.yosiftware.es/` sirve `<script defer src="https://estadisticas.yosiftware.es/s.js">`. El front dio la integración por terminada |
+| QA | El script no envía nada en `qa-libros.yosiftware.es`. En QA solo se comprueba que el script carga sin errores; la marca y los envíos se verifican en producción |
 
-Esta tabla se actualizará cuando el colector esté disponible.
+Integración cerrada el 2026-10-07. Mantened las condiciones de la sección 1 en cambios futuros de `index.html`, CSP o service workers.
 
 ## 1. Cargar el script
 
@@ -33,7 +33,9 @@ Añadid al `<head>` del `index.html`:
 
 ## 2. Marcar los dispositivos del propietario
 
-Todo objeto de usuario propio incluye un booleano nuevo:
+> **Desde la adhesión a Yosiftware** la marca la pone el SDK de la plataforma con la cuenta del propietario (`ecosistema-kit/ACCESO.md`): la web deja de leer `ExcluirMedicionAudiencia`, que la API ya no envía. Lo que sigue describe el contrato de producción hasta el corte.
+
+Hasta el corte, todo objeto de usuario propio incluye un booleano:
 
 ```json
 "Usuario": {

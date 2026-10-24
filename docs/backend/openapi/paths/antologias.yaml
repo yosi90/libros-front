@@ -62,39 +62,6 @@
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/MetricObject'
-/antologias/secciones:
-  post:
-    operationId: postAntologiasSecciones
-    tags:
-    - Antologias
-    summary: Crea seccion de antologia
-    description: Acepta Sinopsis opcional para el libro-seccion creado.
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionCreate'
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '201':
-        description: Seccion creada
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/FlexibleObject'
-  patch:
-    operationId: patchAntologiasSecciones
-    tags:
-    - Antologias
-    summary: Actualiza metadatos editoriales de una seccion de antologia
-    description: Edicion parcial para admin/moderador. Admite JSON o multipart con `payload` y `image`; no altera estado, valoracion, pertenencia a antologia ni convierte la seccion en libro de catalogo o coleccion general.
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionUpdate'
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        description: Seccion actualizada
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/AnthologySectionMetadata'
 /antologias/secciones/{id_libro}:
   get:
     operationId: getAntologiasSeccionesByIdLibro

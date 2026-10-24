@@ -1,5 +1,21 @@
 # Integración de Libros con Notificapp
 
+## Versión 1.1.0 (adhesión a Yosiftware, 2026-10-24): pendiente de instalar en el corte
+
+Decisión 12 de la petición de migración. El plugin `libros-api` pasa de la 1.0.8 a la **1.1.0**:
+
+- `books_request` sigue igual, con sus acciones (`list`, `detail`, `respond` y `respond_image`) y `onSuccess: "answered"` en las dos que resuelven.
+- `books_review_report` sigue igual (denuncias de reseñas).
+- `books_community_report` queda solo para los clubes, sus publicaciones y sus comentarios: las denuncias de perfiles y mensajes son de la plataforma y ya no llegan a Libros.
+- **`books_appeal` desaparece** con la moderación de cuentas propia (las alegaciones son de la plataforma).
+- El panel rotula las denuncias («Denuncia de reseña», «Denuncia en un club») y recuerda que se resuelven en el plugin de Libros de la **administración de Yosiftware** (las colas de denuncias, con su incidente opcional, están allí: [ENDPOINTS.md](ENDPOINTS.md#plugin-de-la-administración)). Las peticiones de catálogo se siguen resolviendo desde aquí.
+
+Quitar un tipo de `eventKinds` cambia los permisos del plugin: **no se publica con `publish.py`**. El ZIP (`.runtime/entregas/libros-api-1.1.0.notificapp.zip`, hecho con `pack.py` del kit; la lectura del paquete de Notificapp lo acepta) se entrega al propietario, que lo instala en el corte con `plugin_cli upgrade` y vuelve a activar después las actualizaciones remotas si las quiere ([ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md#el-plugin-de-notificapp-libros-api-110)). Hasta entonces la 1.0.8 instalada sigue con las alegaciones de producción, que desaparecen justo en el corte.
+
+Las rutas `/notificapp/v1/…` no cambian y no dependen de nada retirado en las fases 3 y 4: leen `peticiones_catalogo`, `usuarios` y el catálogo, resuelven con la misma vista que el plugin de la administración y avisan a la persona con las notificaciones de la plataforma tras confirmar (comprobado por `tests/test_notificapp_plugin.py` y `tests/test_notificapp_manifest.py`).
+
+## Historial
+
 La versión 1.0.8 del plugin declara `onSuccess: "answered"` en `respond` y `respond_image`. Notificapp asocia la acción al aviso que abrió el panel y, solo si Libros devuelve HTTP 2xx con JSON válido tras resolver la petición, lo mueve a la bandeja «Respondidas». Los errores HTTP y las cancelaciones dejan el aviso en su bandeja. Las APK anteriores a 0.3.11 todavía pueden responder, pero no envían el identificador del aviso y no pueden moverlo automáticamente. La versión se revisó e instaló localmente porque `onSuccess` cambia el permiso de la acción; se reactivaron después las actualizaciones remotas. La API de Libros y su contrato de respuesta no cambiaron. La petición real #2, ya aprobada antes de esta versión, se trasladó a «Respondidas» tras consultar su estado vigente en Libros.
 
 El proyecto conserva el plugin existente `libros-api` y el tipo `books_request`. El paquete con panel se prepara en `notificapp-plugin/`. Su primera instalación fue un `upgrade` de la identidad registrada; las versiones siguientes se publican con la credencial privada de actualización mientras no cambien los permisos. El panel corre dentro de la APK de Notificapp y no contiene credenciales.
@@ -16,10 +32,9 @@ Solo `LIBROS_ENVIRONMENT=produccion` envía avisos. La API publica después del 
 | --- | --- | --- |
 | `books_request` | Nueva petición de catálogo | `catalog-request-{id}` |
 | `books_review_report` | Nuevo grupo pendiente de reportes de reseña | `review-report-group-{id}` |
-| `books_community_report` | Nuevo grupo pendiente de denuncias comunitarias | `community-report-group-{id}` |
-| `books_appeal` | Nueva alegación de sanción | `moderation-appeal-{id}` |
+| `books_community_report` | Nuevo grupo pendiente de denuncias de un club, de una publicación o de un comentario de club | `community-report-group-{id}` |
 
-Un reporte adicional sobre un grupo ya abierto no crea otro aviso. El centro de notificaciones interno de Libros sigue su propio flujo.
+Un reporte adicional sobre un grupo ya abierto no crea otro aviso. Desde la 1.1.0 no hay `books_appeal`: las alegaciones son de la plataforma. Las notificaciones a las personas son de la plataforma (`utils/platform_notifications.py`); Notificapp sigue avisando al propietario.
 
 ## Panel
 

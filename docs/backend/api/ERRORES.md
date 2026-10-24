@@ -34,4 +34,4 @@ Actualizar `src/app/shared/api-error-message.ts` para usar `error` como texto fi
 3. Añadir o ajustar una prueba cuando el error afecte a un flujo de escritura o a una guardia. Mantener OpenAPI y `ENDPOINTS.md` sincronizados al cambiar el contrato.
 4. Antes de cerrar una petición, revisar los errores antiguos de las rutas tocadas. El normalizador común evita que textos legados técnicos lleguen a `error`; las frases genéricas detectadas en esos flujos se sustituyen por mensajes específicos.
 
-`POST /catalogo/admin/libros` y `PATCH /catalogo/admin/libros/{id}` admiten en `FechaPublicacion` `AAAA`, `AAAA-MM` o `AAAA-MM-DD`; el backend completa con `01` los componentes omitidos. El front no debe exigir día y mes si la persona solo conoce el año.
+Las altas y ediciones de obras (hoy en el plugin de la administración, `/admin/v1/catalogo/…`; antes `/catalogo/admin/libros`) y las peticiones de catálogo admiten en `FechaPublicacion` `AAAA`, `AAAA-MM` o `AAAA-MM-DD`; el backend completa con `01` los componentes omitidos. El front no debe exigir día y mes si la persona solo conoce el año.

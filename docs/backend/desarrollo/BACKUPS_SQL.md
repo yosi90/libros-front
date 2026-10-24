@@ -1,6 +1,6 @@
 # Backup SQL administrativo
 
-`GET /admin/backup` crea una fotografia completa de los datos de la base SQL Server conectada. La ruta exige JWT de administrador y no admite parametros.
+La acción `copia` del plugin de la administración (`POST /admin/v1/copias`, por la propia máquina y con la credencial del plugin; antes `GET /admin/backup`) crea una fotografia completa de los datos de la base SQL Server conectada. Se genera en segundo plano y el ZIP queda en `.runtime/copias/` del servidor (el plugin solo recibe JSON); `GET /admin/v1/copias` dice si hay una en curso, cómo acabó la última y lista las guardadas.
 
 ## Comportamiento por entorno
 

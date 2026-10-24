@@ -1,5 +1,7 @@
 # Traspaso QA al Codex del front
 
+> **Adhesión a Yosiftware (fase 3, rama `adhesion/api-identidad`).** QA ya no tiene WebSocket propio (`wss://qa-ws.yosiftware.es`), NATS, gateway, workers de tiempo real, Firebase Authentication, Firestore, RTDB ni FCM: la sesión es la cuenta de Yosiftware de la plataforma de QA y sus cuentas de prueba (`scripts/qa-plataforma-smoke.py`), y las contraseñas `QA_*_PASSWORD` y `QA_PHONE_TEST_*` ya no sirven para entrar. El perfil `realtime-recovery` se conserva como fixture SQL, sin entrega en directo. Lo que sigue documenta el contrato anterior donde no se ha actualizado; prevalecen `../api/ADHESION_YOSIFTWARE.md`, `README.md` y `ENTORNO_QA.md`.
+
 Esta guía es, junto con `PLAYWRIGHT_FRONT.md`, la fuente de verdad para `yosi90/libros-front`. El contrato HTTP canónico sigue siendo `docs/backend/openapi.yaml` y los eventos realtime están en `docs/backend/realtime/CONTRATOS.md`.
 
 ## Decisiones que toma backend
@@ -15,8 +17,8 @@ Esta guía es, junto con `PLAYWRIGHT_FRONT.md`, la fuente de verdad para `yosi90
 ## Entregado por backend
 
 - Stack QA nativo y aislado en el servidor oficial: SQL `libros_qa`, NATS, gateway, workers, Cloudflare Tunnel y proyecto Firebase/FCM `libros-qa`.
-- Cuatro cuentas verificadas fijas y 37 aliases, incluido `auth.phone.member-a`, para autenticacion, catálogo, seis estados de colección, escena RTF 2297, relaciones, comunidad, chat, clubes, notificaciones, políticas, reportes, sanciones, alegaciones y auditoría.
-- Perfiles cerrados `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`.
+- Cuatro cuentas verificadas fijas y 26 aliases (desde la fase 4 de la adhesión, sin los de los clubes: un club es un espacio de la plataforma y se crea en cada prueba), para autenticacion, catálogo, seis estados de colección, escena RTF 2297, relaciones, comunidad, chat, notificaciones, políticas, reportes, sanciones, alegaciones y auditoría.
+- Perfiles cerrados `baseline`, `expired-sessions`, `rate-limited` y `realtime-recovery` (`version-conflict` se retiró en la fase 4 de la adhesión con los clubes de la provisión).
 - Contratos cerrados y ejemplos validados para `GET /universos/metricas` y `GET /health/realtime`.
 - Lease SQL auditable con propietarios `backend-smoke`, `frontend-playwright` y `manual`, TTL de 600 segundos, renovación y liberación idempotente.
 - Reset protegido por entorno QA, habilitación, marca SQL positiva, token y `X-QA-Lease-Id`. Las rutas `/qa/*` no tienen CORS y no existen fuera de QA.

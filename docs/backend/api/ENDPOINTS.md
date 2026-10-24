@@ -12,9 +12,8 @@ En escrituras administrativas de catálogo, `FechaPublicacion` acepta año (`AAA
 
 - La biblioteca queda filtrada por usuario autenticado: autores, libros, sagas, antologias y universos propios.
 - `GET /estadisticas/comunidad` agrega lectura consentida y actividad de clubes públicos. `GET /estadisticas/comunidad/clubes/{id}` devuelve los autores más leídos por miembros activos de un club abierto visible. Ambos aceptan `limit=1..25` (10 por defecto), requieren JWT y ocultan grupos de lectura con menos de tres personas. Campos, definiciones y comportamiento de `null`: [Estadísticas de comunidad para el front](ESTADISTICAS_COMUNIDAD_FRONT.md).
-- Las preferencias de actividad automática usan `seguidores` como audiencia inicial efectiva cuando aún no existe una fila persistida. Las preferencias ya guardadas no se sobrescriben; `PublicarActividad` omitido se resuelve en backend según sus opt-ins.
-- `GET /comunidad/actividad/preferencias` incluye `Reconocimientos` por cuenta (`Estado`, `Puntuacion`, `Resena`). `POST /comunidad/actividad/reconocimientos/{categoria}` marca una categoría como explicada de forma idempotente, sin cambiar opt-ins/audiencia ni publicar actividad.
-- Usar `/catalogo/*` para buscar el catalogo compartido y `/coleccion/*` para estado, puntuacion y biblioteca personal. Las escrituras administrativas de catalogo estan bajo `/catalogo/admin/*` y requieren admin o moderador.
+- **Novedades de la plataforma** (decisión 2 de la petición de migración): empezar o terminar una obra (estados `En marcha` y `Leido`), puntuarla y reseñarla se publican, después de confirmar y en segundo plano, como novedades de la plataforma (`libro.empezado`, `libro.terminado`, `libro.puntuado` y `libro.resenado`; `utils/platform_novedades.py`). `PublicarActividad: false` en `POST`/`PATCH /coleccion/{libros|antologias}/{id}/estado`, `/puntuacion` y `/resena` no publica esa novedad; `true`, `null` u omitido la publican y la plataforma aplica los ajustes de compartir de la persona (`https://social.yosiftware.es/?vista=novedades`). Borrar una reseña o que la oculte la moderación retira su novedad. Las preferencias propias (`/comunidad/actividad/preferencias` y sus reconocimientos) y el muro general se retiraron: [RUTAS_RETIRADAS.md](RUTAS_RETIRADAS.md).
+- Usar `/catalogo/*` para buscar el catalogo compartido y `/coleccion/*` para estado, puntuacion y biblioteca personal. El catalogo canonico se administra desde el plugin de la administracion de la plataforma (`/admin/v1/*`, abajo): la web ya no tiene escrituras de catalogo.
 - `universos.id = 1` (`Sin universo`) es global, visible para todos e inmodificable.
 - `GET /biblioteca/actividad_reciente?limit=4` devuelve una lista mezclada de libros y antologias ordenada por fecha de ultimo estado descendente.
 
@@ -35,10 +34,8 @@ Base URL QA: la entrega `QA_API_BASE_URL` se gestiona fuera del repositorio. Ant
 ## Autenticacion y permisos
 
 - Publico: no necesita token.
-- JWT: necesita `Authorization: Bearer <token>`.
-- Admin: necesita JWT y rol admin.
-- Sesion nueva: access JWT de 15 minutos en memoria; refresh opaco en cookie HttpOnly y doble envio CSRF.
-- El refresh JWT legacy permanece solo durante la rama interna y se retirara en el corte coordinado.
+- JWT: necesita `Authorization: Bearer <token>` con el token de la cuenta de Yosiftware (audiencia `libros-api`), el que da el SDK de la plataforma (`yosiftware.token()` o `yosiftware.fetch()`). Es la unica forma de entrar: la sesion propia de Libros (Firebase, refresh, CSRF y telefono) se retiro con la adhesion. Errores y alcance de `restricciones` y `normasPendientes`: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md).
+- Plugin de la administracion: `/admin/v1/*` solo responde por la propia maquina y con la credencial del plugin, nunca con un JWT ni por el tunel ([Plugin de la administración](#plugin-de-la-administración)). El rol (`usuario`, `administrador`, `moderador`) sigue en la base de Libros, por la cuenta de Yosiftware.
 
 ## Notas de datos
 
@@ -70,10 +67,11 @@ Este bloque es el contrato recomendado para las nuevas pantallas del front.
 - Cambiar estado, puntuacion o resena de un libro/antologia lo anade automaticamente a la coleccion personal.
 - Los historicos de estado pueden corregirse por id historico desde `/coleccion/*/estados/{id}`; `DELETE` hace borrado logico con `id_estado = -1`.
 - Las entidades narrativas internas de libros, como capitulos, personajes, escenas, notas, entradas, conceptos, localizaciones, organizaciones, eventos y citas, pertenecen al usuario que las crea mediante `id_usuario_creador`.
+- Los ids de las entidades narrativas de `GET /libros/{id_libro}` (`Id`, `Id_Libro_Origen`, `Id_Localizacion`, `Id_Personaje`, `Id_Estado`) son enteros JSON, como declara OpenAPI. Hasta el 24/10/2026, localizaciones, organizaciones, eventos, conceptos y citas los devolvian como texto (`"64"`); el cliente debe compararlos como numeros.
+- En una saga, una entidad narrativa (personaje, localizacion, organizacion, evento, concepto o cita) solo se ve en el libro en que se creo (`saga_<entidad>.id_libro_origen`) y en los posteriores, contando las sagas previas como las listas de `GET /libros/{id_libro}`. Toda entidad mostrada dentro de otra en el contexto de un libro sigue esa regla: participantes de organizaciones (`/organizaciones/{id}/personajes|localizaciones?libroId=` y los ids embebidos), personajes de eventos, relaciones entre personajes (`?libroId=`) y personajes de escenas. La localizacion global (`Id = 1`) es siempre visible. Al reescribir desde un libro anterior la lista de personajes de una escena (`PUT /escenas/{id}`) o de un evento (`PATCH /eventos/{id}` con `LibroId`), los participantes que aun no existen en ese libro se conservan.
 - Las metricas de `/universos` y `/universos/metricas` son de coleccion privada: no cuentan catalogo completo ni contenido narrativo creado por otros usuarios.
 - Usuarios normales no deben crear/editar catalogo directamente. Deben crear peticiones en `/peticiones/catalogo`.
-- `admin` y `moderador` pueden crear/editar catalogo y resolver peticiones. `moderador` no equivale a admin de cuentas.
-- `admin` y `moderador` pueden ver y resolver reportes agrupados de resenas desde `/moderacion/reportes`.
+- Crear y editar el catalogo, resolver peticiones y moderar las denuncias de resenas y de clubes se hace desde el plugin de la administracion (`/admin/v1/*`), que solo usa el propietario. El rol `moderador` sigue existiendo, pero hoy no tiene donde moderar (decision 14 de la peticion de migracion).
 
 ### Estados de lectura
 
@@ -210,29 +208,19 @@ Notas:
 - `Idioma` y `LugarOrigen` pueden ser `null`.
 - `IdiomasDisponibles`, `Estilos` y `EstiloEscritura` son listas de objetos normalizados.
 - `lugares_origen` no se prerrellena como catalogo cerrado: el backend crea/reutiliza filas por `nombre_normalizado` cuando un admin/moderador crea o edita autores con texto de origen.
-- Para escritura canonica completa de altas/ediciones con autores, universo, saga, idiomas, estilos y portada, los usuarios normales usan `/peticiones/catalogo`. Admin/moderador resuelven peticiones y operan el CRUD vigente bajo `/catalogo/admin/*`.
+- Para escritura canonica completa de altas/ediciones con autores, universo, saga, idiomas, estilos y portada, los usuarios normales usan `/peticiones/catalogo`. El propietario resuelve las peticiones y opera el catalogo desde el plugin de la administracion (`/admin/v1/*`).
 
 ### Administracion del catalogo
 
-Todas estas rutas exigen admin o moderador.
+Desde la adhesion a Yosiftware, el catalogo canonico se administra **solo** desde el plugin de la administracion de la plataforma: [Plugin de la administración](#plugin-de-la-administración). Las antiguas rutas `/catalogo/admin/*` ya no existen ([RUTAS_RETIRADAS.md](RUTAS_RETIRADAS.md)). Lo que sigue describe las reglas del catalogo, que son las mismas en el plugin.
 
-| Metodo | Ruta | Uso |
-|---|---|---|
-| GET | `/catalogo/admin/estadisticas/peticiones` | Resume la cola de peticiones de catalogo. |
-| POST | `/catalogo/admin/{tipo}` | Crea una entidad canonica; `tipo` es `autores`, `universos`, `sagas`, `libros` o `antologias`. |
-| PATCH | `/catalogo/admin/{tipo}/{id}` | Edita una entidad canonica y sus relaciones validadas para los mismos tipos. |
-| POST | `/catalogo/admin/idiomas` y `/catalogo/admin/estilos` | Crea metadatos editoriales. |
-| PATCH/DELETE | `/catalogo/admin/idiomas/{id}` y `/catalogo/admin/estilos/{id}` | Edita o elimina metadatos sin referencias. |
-| PATCH | `/catalogo/admin/lugares-origen/{id}` | Corrige un lugar de origen. |
-| POST | `/catalogo/admin/lugares-origen/{id}/fusionar` | Fusiona el lugar en otro ID. |
+`GET /catalogo/google-books/isbn/{isbn}` consulta metadatos externos como ayuda editorial y requiere JWT (lo usan las peticiones de catalogo); el plugin tiene su propia accion `isbn`.
 
-Los cuerpos y respuestas tipados de estas operaciones estan en OpenAPI. `GET /catalogo/google-books/isbn/{isbn}` consulta metadatos externos como ayuda editorial y requiere JWT.
+Al editar un libro (`editar` con `tipo=libro`), `Titulo` y `Wiki` son opcionales: se validan y escriben solo si se envían. Un valor histórico vacío no bloquea cambios de nombre, páginas, relaciones o portada. Si se envía `Titulo` o `Wiki`, debe ser texto no vacío. `Nombre` sigue siendo obligatorio en el cuerpo editorial. `Nombre` es el nombre oficial de la obra; `Titulo` está reservado para un titular creativo de la app de Windows, que gestiona esa función por completo. Esta API no genera titulares con IA.
 
-En `PATCH /catalogo/admin/libros/{id}`, `Titulo` y `Wiki` son opcionales: se validan y escriben solo si se envían. Un valor histórico vacío no bloquea cambios de nombre, páginas, relaciones o portada. Si se envía `Titulo` o `Wiki`, debe ser texto no vacío. `Nombre` sigue siendo obligatorio en el cuerpo editorial del `PATCH`. `Nombre` es el nombre oficial de la obra; `Titulo` está reservado para un titular creativo de la app de Windows, que gestiona esa función por completo. La web no necesita mostrarlo ni enviarlo. Esta API no genera titulares con IA.
+La portada de un libro o una antologia viaja en el mismo JSON, en `Imagen` (`data:image/png|jpeg|webp;base64,…`): la interfaz del plugin no sube archivos y el cuerpo de una accion no pasa de 256 KiB, asi que el panel la reduce antes a 600 × 900 en JPEG. La API la valida como siempre (PNG, JPEG o WebP de hasta 10 MB), la normaliza a PNG de 600x900, actualiza `cover` en la misma transaccion editorial y devuelve `Portada` con el nombre persistido junto a `Id` y `TipoEntidad`. Si falla la imagen o la escritura, no se confirma el cambio editorial. La ruta personal `/image/set/cover/{name}` no puede modificar archivos referenciados por obras canonicas.
 
-En `POST /catalogo/admin/libros`, `PATCH /catalogo/admin/libros/{id}` y las dos rutas equivalentes de `antologias`, la portada se envia junto con los datos en `multipart/form-data`: `payload` contiene el mismo objeto editorial JSON serializado e `image` contiene un PNG, JPEG o WebP de hasta 10 MB. La API normaliza la portada a PNG de 600x900, actualiza `cover` en la misma transaccion editorial y devuelve `Portada` con el nombre persistido junto a `Id` y `TipoEntidad`. Si falla la imagen o la escritura, no se confirma el cambio editorial. Para operaciones sin imagen se mantiene `application/json`. La ruta personal `/image/set/cover/{name}` no puede modificar archivos referenciados por obras canonicas.
-
-Las ediciones se administran con `POST /catalogo/admin/libros/{id}/ediciones`, `POST /catalogo/admin/antologias/{id}/ediciones` y `PATCH /catalogo/admin/ediciones/{id}` (admin/moderador). Una edición nueva exige `ISBN` válido y admite `FechaPublicacion` (`AAAA`, `AAAA-MM`, `AAAA-MM-DD`) y `image` opcional mediante `multipart/form-data` (`payload` JSON). Si el ISBN pertenece a otra edición se devuelve `409 edition_isbn_conflict`. `VincularEdicionId` en el POST enlaza una edición existente a otra obra y exige rol `administrador`; el moderador recibe `403 edition_shared_admin_required`. La respuesta incluye `Id` de edición, `ISBN` y `Portada` cuando se sube imagen. En el editor antiguo de obra, una portada con varias ediciones requiere `EdicionId` en el payload para elegir cuál actualizar.
+Las ediciones se administran con las acciones `ediciones`, `crear_edicion` (`/admin/v1/catalogo/fichas/{id}/ediciones?tipo=libro|antologia`) y `editar_edicion` (`/admin/v1/catalogo/ediciones/{id}`). Una edición nueva exige `ISBN` válido y admite `FechaPublicacion` (`AAAA`, `AAAA-MM`, `AAAA-MM-DD`) e `Imagen`. Si el ISBN pertenece a otra edición se devuelve `409 edition_isbn_conflict`. `VincularEdicionId` enlaza una edición existente a otra obra (solo `administrador`, que es la cuenta del plugin). La respuesta incluye `Id` de edición, `ISBN` y `Portada` cuando se sube imagen. Al cambiar la portada desde la ficha de una obra con varias ediciones, `EdicionId` elige cuál actualizar (por defecto, la principal).
 
 `GET /catalogo/libros/{id}/ediciones` y `GET /catalogo/antologias/{id}/ediciones` devuelven `{Tipo,ObraId,Ediciones}`. Cada edición tiene `{Id,ISBN,Portada,FechaPublicacion,EnMiBiblioteca}`. El ISBN puede ser `null` si una edición histórica no está identificada; nunca se representa con ceros. Los listados y detalles de catálogo incluyen `Ediciones`; los campos compactos `ISBN`, `Portada` y `FechaPublicacion` toman la **edición principal**, elegida por la fecha de publicación más reciente. Una edición sin fecha queda detrás de las fechadas, y los empates usan el menor ID. `MiColeccion.EdicionesIds` enumera las ediciones propias, mientras estado, reseña y puntuación permanecen en la obra.
 
@@ -326,11 +314,9 @@ El `PATCH` contextual exige al menos uno de `EstadoId`, `Puntuacion` o `Resena`.
 
 Si la antologia no pertenece a la coleccion autenticada responde `404 anthology_not_in_collection`. Si `id_libro` no pertenece a la antologia indicada responde `404 anthology_section_relation_not_found`. Los endpoints independientes de libro mantienen el `409 anthology_section_collection_forbidden`.
 
-### Backup administrativo
+### Copias de seguridad
 
-| Método | Ruta | Descripción |
-| --- | --- | --- |
-| GET | `/admin/backup` | Solo administrador. Fuera de QA actualiza los bloques `INSERT ... VALUES` existentes en los scripts 1-10 del entorno activo, conserva cinco snapshots y descarga un ZIP con un SQL por cada tabla real de la base conectada. En QA devuelve `409 admin_backup_unavailable_in_qa`. Véase `docs/backend/desarrollo/BACKUPS_SQL.md`. |
+Las copias se generan desde el plugin de la administracion (acciones `copias` y `copia`, [Plugin de la administración](#plugin-de-la-administración)). `GET /admin/backup`, que descargaba el ZIP, se retiro: el plugin solo recibe JSON.
 
 Respuesta de `/coleccion/items`:
 
@@ -435,7 +421,7 @@ Las sagas de `Sagas[]` se ordenan por familia y `OrdenLectura`. `FamiliaSagaId` 
 
 `GET /catalogo/sagas` devuelve esos mismos campos de relacion y `UniversoId` para todas las sagas canonicas, con o sin paginacion. El detalle publico anade `Universo: {Id, Nombre} | null` y `Autores: [{Id, Nombre}]`. Para mostrar «Continua a» y «Continua en», usar `SagasPrevias` y `SagasSiguientes` respectivamente.
 
-En `POST /catalogo/admin/sagas` y `PATCH /catalogo/admin/sagas/{id}`, `SagasPreviasIds: number[]` fija la lista completa de anteriores directas. `[]` la vacia; omitirla en PATCH conserva los enlaces. Las sagas vinculadas deben existir en el mismo universo, y se rechazan autorreferencias, ciclos y cambios de universo que separen sagas vinculadas. Los errores de esta validacion son `400` con `error` legible, `debug`, `code` y `field` (`SagasPreviasIds` o `UniversoId`). La aprobacion de peticiones de catalogo aplica las mismas reglas.
+Al dar de alta o editar una saga (plugin de la administracion, `crear` en `sagas` o `editar` con `tipo=saga`), `SagasPreviasIds: number[]` fija la lista completa de anteriores directas. `[]` la vacia; omitirla en PATCH conserva los enlaces. Las sagas vinculadas deben existir en el mismo universo, y se rechazan autorreferencias, ciclos y cambios de universo que separen sagas vinculadas. Los errores de esta validacion son `400` con `error` legible, `debug`, `code` y `field` (`SagasPreviasIds` o `UniversoId`). La aprobacion de peticiones de catalogo aplica las mismas reglas.
 
 Actualizar estado:
 
@@ -521,15 +507,15 @@ Errores comunes:
 
 ### Peticiones de catalogo
 
-Los usuarios normales usan este flujo para pedir altas o ediciones de catalogo. Admin/moderador revisan la cola.
+Los usuarios normales usan este flujo para pedir altas o ediciones de catalogo. La cola la resuelve el propietario desde el plugin de la administracion (acciones `peticiones` y `resolver_peticion`) o desde el panel de Notificapp.
 
 | Metodo | Ruta | Permiso | Uso |
 |---|---|---|---|
 | POST | `/peticiones/catalogo` | JWT | Crea una peticion. |
 | GET | `/peticiones/catalogo/mias?estado=activas` | JWT | Lista peticiones propias. `activas` incluye `pendiente` y `devuelta`. |
 | POST/PATCH | `/peticiones/catalogo/mias/{id}/responder` | JWT | Reenvia una peticion propia devuelta con un nuevo `Payload`. |
-| GET | `/peticiones/catalogo?estado=pendiente` | Admin/moderador | Lista peticiones. |
-| PATCH | `/peticiones/catalogo/{id}/resolver` | Admin/moderador | Aprueba, rechaza o devuelve el grupo pendiente; admite `Obra.ObraId` para seleccionar una obra existente. |
+| GET | `/admin/v1/peticiones?estado=pendiente` | Plugin de la administración | Lista peticiones (antes `GET /peticiones/catalogo`). |
+| POST | `/admin/v1/peticiones/{id}/resolucion` | Plugin de la administración | Aprueba, rechaza o devuelve el grupo pendiente; admite `Obra.ObraId` para seleccionar una obra existente (antes `PATCH /peticiones/catalogo/{id}/resolver`). |
 
 Cada usuario puede mantener como máximo cinco peticiones activas en total (`pendiente` o `devuelta`, de cualquier tipo). Al intentar crear la sexta, `POST /peticiones/catalogo` devuelve `409 catalog_active_request_limit`; las peticiones aprobadas y rechazadas no cuentan. El límite se comprueba dentro de una transacción que serializa las altas del mismo usuario.
 
@@ -537,9 +523,9 @@ Las peticiones de `alta` de `libro` o `antologia` exigen `Payload.ISBN` como tex
 
 Las altas con el mismo ISBN comparten `GrupoISBN` y cada persona conserva su propia petición y cuota. Si ya tiene una activa de ese ISBN, `POST` responde `200` con su `Id` y no crea otra fila; si indica un tipo de obra distinto, responde `409 catalog_isbn_request_conflict`. Un ISBN ya vinculado a una única obra del mismo tipo se aprueba inmediatamente. Con ISBN nuevo, se aprueba y crea la edición si `Nombre` coincide con una sola obra y `Autores` representa exactamente el mismo conjunto de IDs o nombres existentes. Sin título, autores, coincidencia única o con un ISBN compartido entre obras, se deja pendiente de revisión. La cola `GET /peticiones/catalogo?estado=pendiente` y Notificapp muestran una entrada por grupo con `Participantes`; `/mias` sigue mostrando las filas individuales. Resolver la entrada pendiente aprueba, rechaza o devuelve a todos sus participantes pendientes en una transacción, con notificación e historial propio para cada uno. La respuesta incluye `ParticipantesResueltos`.
 
-El resolver web canónico es `PATCH /peticiones/catalogo/{id}/resolver`, con JWT y JSON. Al aprobar un alta de obra admite `{"Estado":"aprobada","Obra":{"ObraId":53}}`: el tipo y el ISBN provienen de la petición; se crea o reutiliza una edición de la obra seleccionada y se devuelve `EntidadId`, `EdicionId` y `ParticipantesResueltos`. Una edición nueva usa `Obra.FechaPublicacion` o, si se omite, `Payload.FechaPublicacion`; su portada inicial es `nocover.png`. Una edición existente conserva sus datos. `Obra.VincularEdicionId` autoriza en la misma transacción un ISBN compartido exclusivamente al administrador. No se admite `Obra.ISBN` en la selección de una obra existente. El resolver web no acepta multipart: la portada se edita después en `/catalogo/admin/ediciones/{EdicionId}`. Ejemplos, permisos, errores y diferencias con Notificapp: [EDICIONES_ISBN_FRONT.md](EDICIONES_ISBN_FRONT.md#resolver-desde-la-web-contra-una-obra-existente). `POST` en esta ruta se retira y responde `405`.
+La resolución es la acción `resolver_peticion` del plugin de la administración (`POST /admin/v1/peticiones/{id}/resolucion`, JSON; la web ya no resuelve). Al aprobar un alta de obra admite `{"Estado":"aprobada","Obra":{"ObraId":53}}`: el tipo y el ISBN provienen de la petición; se crea o reutiliza una edición de la obra seleccionada y se devuelve `EntidadId`, `EdicionId` y `ParticipantesResueltos`. Una edición nueva usa `Obra.FechaPublicacion` o, si se omite, `Payload.FechaPublicacion`; su portada inicial es `nocover.png`. Una edición existente conserva sus datos. `Obra.VincularEdicionId` autoriza en la misma transacción un ISBN compartido exclusivamente al administrador. No se admite `Obra.ISBN` en la selección de una obra existente. No acepta imagen: la portada se edita después con la acción `editar_edicion` del plugin. Ejemplos, permisos, errores y diferencias con Notificapp: [EDICIONES_ISBN_FRONT.md](EDICIONES_ISBN_FRONT.md#resolver-desde-la-web-contra-una-obra-existente).
 
-Tras confirmar una petición nueva en producción, el backend envía un aviso privado al propietario mediante Notificapp. También avisa al abrir un grupo nuevo de reportes de reseña, una denuncia comunitaria o una alegación de sanción. El fallo de ese canal no cambia la respuesta HTTP; se conserva para reintento local. El paquete y las operaciones del panel se describen en [NOTIFICAPP.md](NOTIFICAPP.md).
+Tras confirmar una petición nueva en producción, el backend envía un aviso privado al propietario mediante Notificapp. También avisa al abrir un grupo nuevo de reportes de reseña (`books_review_report`) o una denuncia de un club, de una publicación o de un comentario de club (`books_community_report`); las alegaciones son de la plataforma. El fallo de ese canal no cambia la respuesta HTTP; se conserva para reintento local. El paquete y las operaciones del panel se describen en [NOTIFICAPP.md](NOTIFICAPP.md).
 
 En el panel de Notificapp, aprobar un alta de `libro` o `antologia` exige `Obra` con nombre, al menos un autor y una ubicación en universo o saga. `Obra.Autores` recoge IDs existentes y `Obra.AutoresNuevos` puede incluir hasta 20 fichas nuevas con nombre obligatorio, idioma natal, estilos y un lugar de origen existente (`LugarOrigenId`, incluido `0`) o nuevo (`LugarOrigenNombre`); los demás campos de autor son opcionales. El detalle ofrece `Opciones.LugaresOrigen` junto a autores, universos, sagas, idiomas y estilos. La API reutiliza por nombre normalizado o crea el lugar, crea los autores, crea la obra y sus relaciones, obtiene `EntidadId`, marca la petición como aprobada y genera la notificación propia dentro de **una misma transacción**. La notificación nunca se confirma antes de existir el libro o la antología. El formulario permite completar ISBN, páginas, fecha de publicación, sinopsis, wiki, titular creativo del libro, idiomas y estilos cuando correspondan. Una edición actualiza la ficha existente en esa misma transacción. La portada es opcional: con imagen, Notificapp envía `multipart/form-data` con `payload` JSON e `image` PNG/JPEG/WebP de hasta 10 MiB a la misma ruta privada; la API valida, normaliza, guarda y enlaza el archivo antes de confirmar la transacción. Sin imagen se mantiene JSON y la portada provisional. La respuesta con imagen incluye `Portada`.
 
@@ -590,7 +576,7 @@ Para propuestas que no se refieren a una ficha concreta, `otro` usa un texto lib
 }
 ```
 
-`Accion` se guarda como `comentario` aunque se omita. `EntidadId` no se admite. `Payload.Texto` es obligatorio, no puede quedar vacío tras quitar espacios y admite hasta 4000 caracteres; `Payload.Titulo` admite de 1 a 120 caracteres si se envía. No se admiten otras claves en `Payload`. La petición sigue la misma cola, las bandejas propias y las notificaciones existentes. Resolverla como `aprobada` la marca atendida sin crear ni editar una entidad del catálogo; `EntidadId` permanece `null`. Una petición `otro` devuelta debe reenviarse con un `Payload` que cumpla las mismas reglas.
+`Accion` se guarda como `comentario` aunque se omita. `EntidadId` no se admite. `Payload.Texto` es obligatorio, no puede quedar vacío tras quitar espacios y admite hasta 4000 caracteres; `Payload.Titulo` admite de 1 a 120 caracteres si se envía. No se admiten otras claves en `Payload`. La petición sigue la misma cola, las bandejas propias y los avisos existentes. Resolverla como `aprobada` la marca atendida sin crear ni editar una entidad del catálogo; `EntidadId` permanece `null`. Una petición `otro` devuelta debe reenviarse con un `Payload` que cumpla las mismas reglas.
 
 Respuesta de creacion:
 
@@ -665,8 +651,8 @@ Usuarios autenticados pueden reportar resenas visibles. La moderacion recibe gru
 |---|---|---|---|
 | POST | `/reportes` | JWT | Reporta una resena de libro o antologia. |
 | GET | `/reportes/mios?estado=activas` | JWT | Lista reportes creados por el usuario. `activas` incluye pendientes. |
-| GET | `/moderacion/reportes?estado=pendiente` | Admin/moderador | Lista grupos de reportes. |
-| POST/PATCH | `/moderacion/reportes/{id}/resolver` | Admin/moderador | Acepta o rechaza un grupo completo. |
+| GET | `/admin/v1/reportes?estado=pendiente` | Plugin de la administración | Lista grupos de reportes (antes `/moderacion/reportes`). |
+| POST | `/admin/v1/reportes/{id}/resolucion` | Plugin de la administración | Acepta o rechaza un grupo completo; al aceptar puede registrar un incidente (antes `/moderacion/reportes/{id}/resolver`). |
 
 Crear reporte:
 
@@ -734,7 +720,7 @@ Resolver reporte:
 }
 ```
 
-`aceptado` oculta la resena conservando su texto y auditoria. `rechazado` solo cierra el grupo. Si el propietario edita la resena, vuelve a quedar visible.
+`aceptado` oculta la resena conservando su texto y auditoria. `rechazado` solo cierra el grupo. Si el propietario edita la resena, vuelve a quedar visible. Al aceptar, `Incidente: { "Caso": "<clave de un caso de la plataforma>", "Mensaje": "<lo que leerá la persona>" }` registra, tras confirmar, un incidente en la plataforma a la cuenta de quien escribio la resena (`POST /v1/servicio/moderacion/incidentes`, `idExterno` `reporte-resena-{id}`); la respuesta trae `IncidenteRegistrado`. Con `rechazado`, o sin caso o sin mensaje, es `400 invalid_report_incident`.
 
 Errores comunes:
 
@@ -748,114 +734,93 @@ Errores comunes:
 | `invalid_report_resolution` | Resolucion distinta de `aceptado` o `rechazado`. |
 | `report_group_already_resolved` | El grupo ya no esta pendiente. |
 
-### Moderacion administrativa
+### Moderacion de cuentas
 
-Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/backend/openapi.yaml`) es el contrato tipado de referencia para cuerpos y respuestas; este documento mantiene el resumen humano vigente.
+La moderación de cuentas es de la plataforma (`ecosistema-kit/MODERACION.md`): Libros ya no tiene casos, etapas, sanciones, alegaciones, incidentes ni políticas `uso` y `creacion` con su aceptación. Lo limitado llega en el token (`restricciones`, `normasPendientes`) y lo aplica la guardia de la API (`403 platform_restriction_active` y `403 platform_rules_acceptance_required`, [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md)). `uso` pasa a las normas de uso comunes y `creacion`, a las normas propias de Libros que publica la plataforma. Libros sigue moderando su contenido (las denuncias de reseñas, de clubes y de publicaciones de club); cuando una merezca avisar o sancionar a la cuenta, registrará un incidente en la plataforma (`utils/platform_moderation.py`, pendiente). Rutas retiradas: `RUTAS_RETIRADAS.md`.
 
-| Método | Ruta | Uso |
-|---|---|---|
-| GET/POST | `/moderacion/admin/casos` | Lista o crea casos de sanción con etapas y alcances. |
-| GET | `/moderacion/admin/metricas-operativas?horas=24` | Métricas horarias agregadas de outboxes, clubes, moderación y versión de configuración; solo administración. |
-| GET/PATCH/DELETE | `/moderacion/admin/casos/{case_id}` | Consulta, edita o borra lógicamente un caso personalizado. |
-| PUT | `/moderacion/admin/casos/{case_id}/etapas` | Sustituye la escalera completa de etapas. |
-| GET/POST | `/moderacion/admin/incidentes` | Lista por `usuarioId` o registra un incidente confirmado. |
-| GET | `/moderacion/admin/usuarios/{user_id}/historial` | Historial de incidentes del usuario. |
-| GET | `/moderacion/admin/sanciones` | Sanciones, con `usuarioId`, `activeOnly`, `limit` y `offset` opcionales. |
-| DELETE | `/moderacion/admin/usuarios/{user_id}/sanciones` | Revoca todas las sanciones activas; exige `{ "Motivo": "..." }`. |
-| GET/PUT | `/moderacion/admin/politicas/{kind}/borrador` | Consulta o guarda el borrador de política `uso` o `creacion`. Si aún no existe configuración, `GET` devuelve borrador vacío y `PUT` la crea. |
-| POST | `/moderacion/admin/politicas/{kind}/publicar` | Publica el borrador o, sin borrador previo, recibe `Titulo` y `Markdown` para crear la primera versión. |
-| GET/PATCH | `/moderacion/admin/alegaciones` y `/moderacion/admin/alegaciones/{appeal_id}` | Lista y resuelve alegaciones. El listado incluye `UsuarioId` y `Usuario { Id, Nombre, Email }` solo para administradores. Aceptarla revoca la sanción asociada. |
+### Plugin de la administración
 
-Las rutas propias (`/moderacion/mis-incidentes`, `/moderacion/alegaciones` y políticas activas) no exponen contexto interno, snapshots ni notas administrativas. Los paneles de usuario deben consumirlas separadamente de las rutas administrativas.
+Todo el panel de administración de Libros es el plugin `libros` de la administración de la plataforma (decisión 1 de la petición de migración; `ecosistema-kit/PLUGIN_ADMINISTRACION.md`). Su paquete está en `admin-plugin/` (manifiesto e interfaz) y se empaqueta con `python -m scripts.empaquetar_plugin_admin`. Guía de instalación para el propietario: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md#el-panel-de-administración-plugin-de-la-administración).
 
-Los estados funcionales de las mutaciones administrativas se declaran en `x-functional-error-codes` de OpenAPI. El panel debe cerrar y refrescar ante `moderation_case_not_found` o `user_not_found`; mantener el detalle en solo lectura ante `system_case_cannot_be_deleted` o `legacy_banned_account`; y conservar el borrador sin reintento automático ante `moderation_case_disabled`, `moderation_case_has_no_stages` o `moderation_stage_not_found`. Los errores de validación se corrigen en el formulario y no revelan datos de terceros.
+**Acceso.** `/admin/v1/*` solo responde a la administración:
 
-### Administración de cuentas y auditoría
+- por la propia máquina: con `CF-Connecting-IP`, `CF-Ray`, `CDN-Loop`, `X-Forwarded-For`, `Forwarded` u otra cabecera de proxy, desde otra dirección que `127.0.0.1`/`::1` o con otro `Host` (el túnel llega a `127.0.0.1` con `Host: libros-api.yosiftware.es`), responde `404 route_not_found`;
+- con la credencial del plugin (`Authorization: Bearer <credencial>`), comparada en tiempo constante con su huella SHA-256 (`LIBROS_PLUGIN_ADMIN_CREDENCIAL_SHA256`, configuración privada): `401 admin_plugin_unauthorized` si falta o no es; `503 admin_plugin_not_configured` sin huella;
+- actúa la cuenta de administración del entorno (`LIBROS_PLUGIN_ADMIN_ID_GLOBAL`, el `sub` del propietario en esa plataforma), que tiene que ser `administrador` y estar activa (`503 admin_plugin_actor_unavailable` si no);
+- las `POST` exigen `Idempotency-Key` (la pone la administración): repetirla devuelve la respuesta guardada con `Idempotent-Replayed: true` sin repetir el cambio; con otra petición, `409 idempotency_key_conflict`; sin ella, `400 idempotency_key_invalid` (tabla `plugin_admin_idempotencia`, 7 días);
+- errores con el formato común (`error`, `code`, `field` y `debug`); las escrituras dejan traza en `administracion_auditoria`, con quién lo hizo en la administración (`X-Yosi-Admin-Usuario`) en `Despues.UsuarioAdministracion`.
 
-| Método | Ruta | Uso |
-|---|---|---|
-| GET | `/admin/resumen` | Agregados de cuentas, colas, moderación y outboxes sin datos personales. |
-| GET | `/admin/auth/phone-attempts` | Histórico paginado y sanitizado de preflights telefónicos; filtra por fechas, países, resultado y usuario conocido sin exponer número, IP, HMAC ni tokens. |
-| GET | `/admin/roles` | Roles disponibles para el selector administrativo. |
-| GET | `/admin/usuarios` | Lista administrativa paginada por `cursorFecha` y `cursorId`; `q` también busca email. |
-| GET | `/admin/usuarios/{id}` | Ficha completa de cuenta e incidentes paginados. Nunca incluye contraseña, hash, tokens ni secretos. |
-| PATCH | `/admin/usuarios/{id}/rol` | Cambia rol con `{ RolId, Motivo }`; no permite autoedición ni retirar el último administrador activo. |
-| GET | `/admin/auditoria` | Auditoría de escrituras administrativas, filtrable y paginada. |
-| GET | `/moderacion/usuarios` | Lista limitada para moderadores: sin email, perfil privado ni preferencias. |
-| GET | `/moderacion/usuarios/{id}` | Ficha y expediente limitado, sin snapshots o contexto interno. |
+| Acción | Método | Ruta (`/admin/v1` +) | Qué hace |
+|---|---|---|---|
+| `resumen` | GET | `/resumen` | Cuentas por estado y rol y las tres colas pendientes. |
+| `estadisticas` | GET | `/estadisticas` | Peticiones de catálogo por estado y desglose (antes `/catalogo/admin/estadisticas/peticiones`). |
+| `roles` | GET | `/roles` | Roles de Libros. |
+| `usuarios` | GET | `/usuarios` | Usuarios locales con `IdGlobal` (su cuenta de Yosiftware), alias, rol y estado; `q` busca por alias o por `IdGlobal` exacto; `rolId`, `estadoId`, `limit` y cursor. |
+| `rol` | POST | `/usuarios/{id}/rol` | `{ RolId, Motivo }`; no cambia el rol de la propia cuenta ni retira el último administrador activo. |
+| `peticiones` | GET | `/peticiones` | Cola de peticiones de catálogo (`estado`). |
+| `resolver_peticion` | POST | `/peticiones/{id}/resolucion` | `{ Estado, Comentario?, Obra? }`, como antes. |
+| `catalogo` | GET | `/catalogo/{tipo}` | Lista `libros`, `antologias`, `autores` (estos tres con `page` y `pageSize` obligatorios), `universos`, `sagas`, `idiomas`, `estilos`, `lugares-origen` o `estados-localizacion`; `q` filtra. |
+| `crear` | POST | `/catalogo/{tipo}` | Alta en `libros`, `antologias`, `autores`, `universos`, `sagas` (cuerpo editorial; obras con `Imagen`), `idiomas` (`Nombre`, `Codigo`), `estilos` o `estados-localizacion` (`Nombre`). |
+| `ficha` | GET | `/catalogo/fichas/{id}?tipo=` | Ficha editable de un `libro` o una `antologia` (autores, idiomas, estilos, saga con orden o universo, ediciones, secciones o antología a la que pertenece), `autor`, `universo` o `saga`. |
+| `editar` | POST | `/catalogo/fichas/{id}?tipo=` | Guarda `libro`, `antologia`, `autor`, `universo`, `saga`, `idioma`, `estilo`, `lugar-origen` (corrige el nombre) o `estado-localizacion`. |
+| `borrar` | POST | `/catalogo/fichas/{id}/borrado?tipo=` | Borra un `idioma` o un `estilo` sin usar (`409 metadata_in_use`). |
+| `ediciones` | GET | `/catalogo/fichas/{id}/ediciones?tipo=` | Ediciones de la obra. |
+| `crear_edicion` | POST | `/catalogo/fichas/{id}/ediciones?tipo=` | Edición nueva (`ISBN`, `FechaPublicacion?`, `Imagen?`) o compartida (`VincularEdicionId`). |
+| `editar_edicion` | POST | `/catalogo/ediciones/{id}` | `ISBN`, `FechaPublicacion` o `Imagen`. |
+| `crear_seccion` | POST | `/catalogo/antologias/{id}/secciones` | Sección nueva: `Nombre`, `Autores`, `PaginaInicio`, `PaginaFinal` y, opcionales, los datos editoriales e `Imagen` (antes `POST /antologias/secciones`; `Estado` ya no es obligatorio). |
+| `editar_seccion` | POST | `/catalogo/secciones/{id}` | Edición parcial de la sección (el libro `{id}`; la antología se deduce), con `Imagen` (antes `PATCH /antologias/secciones`). |
+| `fusionar_lugar` | POST | `/catalogo/lugares-origen/{id}/fusion` | `{ DestinoId }`: los autores pasan al destino y el lugar se borra. |
+| `isbn` | GET | `/catalogo/isbn/{isbn}` | Metadatos de Google Books (con la portada como `data:`). |
+| `reportes` | GET | `/reportes` | Denuncias de reseñas (`estado`: `pendiente`, `aceptado`, `rechazado`, `todos`). |
+| `resolver_reporte` | POST | `/reportes/{id}/resolucion` | `{ Estado: aceptado|rechazado, Comentario?, Incidente? }`. |
+| `denuncias` | GET | `/denuncias` | Denuncias de clubes, de sus publicaciones y de sus comentarios (`estado`: `pendiente`, `aceptada`, `rechazada`, `todos`). |
+| `resolver_denuncia` | POST | `/denuncias/{id}/resolucion` | `{ Estado: aceptada|rechazada, Comentario?, Medida?, Incidente? }`. |
+| `casos` | GET | `/moderacion/casos` | Casos de moderación de la plataforma, para elegir el del incidente (`503 platform_moderation_unavailable` si no responde). |
+| `copias` | GET | `/copias` | Copias guardadas en `.runtime/copias/` del servidor, si hay una en curso y cómo acabó la última (`Disponible: false` en QA). |
+| `copia` | POST | `/copias` | Empieza en segundo plano una copia completa (`202`): actualiza los SQL canónicos del entorno y deja el ZIP en `.runtime/copias/`. En QA, `409 admin_backup_unavailable_in_qa`; con otra en curso, `409 admin_backup_in_progress`. |
+| `auditoria` | GET | `/auditoria` | Auditoría de las escrituras administrativas, filtrable y paginada. |
 
-Las restricciones, bloqueos y baneos no se editan desde cuentas: se crean y revocan mediante los incidentes y sanciones de `/moderacion/admin/*`. Las escrituras administrativas dejan una traza segura en `administracion_auditoria`; no conserva contraseñas, tokens, cuerpos de chat ni contenido sensible innecesario.
+**Incidentes** (decisión 10 de la petición): al aceptar una denuncia de reseña o de club, `Incidente: { Caso, Mensaje }` registra, después de confirmar y en segundo plano, un incidente en la plataforma a la cuenta de quien escribió lo denunciado (`POST /v1/servicio/moderacion/incidentes`, `idExterno` `reporte-resena-{id}` o `denuncia-comunidad-{id}`, así que repetir no duplica). La plataforma aplica la escalera del caso. Sin `Incidente`, la resolución no avisa ni sanciona a la cuenta, como antes.
 
-### Chat: respuestas y directos
+La gestión de cuentas (estado, intentos de teléfono, ficha de cuenta con incidentes y la lectura de cuentas para moderadores) se retiró con la adhesión a Yosiftware: la cuenta y su moderación son de la plataforma.
 
-| Método | Ruta | Uso |
-|---|---|---|
-| POST | `/chat/conversaciones/{id}/mensajes` | `MensajeRespondidoId` opcional responde a un mensaje de la misma conversación. |
-| GET | `/chat/directos/elegibilidad/{user_id}` | Consulta si el usuario autenticado puede iniciar un directo antes de mostrar la acción. |
-| POST | `/chat/conversaciones/directa` | Crea o recupera el directo; sigue siendo la comprobación definitiva. |
-| GET | `/comunidad/resumen` | Contadores privados de relaciones, clubes y mensajes no leídos humanos/sistema para la portada social. |
-| GET | `/chat/conversaciones` | Bandeja enriquecida: tipo `directa|club|grupo|sistema`, vista previa, contraparte, permisos y contador no leído. |
-| GET | `/chat/conversaciones/{id}` | Detalle de conversación accesible y sus participantes activos. |
-| POST | `/chat/grupos` | Crea el grupo con su administrador y genera invitaciones para `Invitados`; no incorpora terceros directamente. |
-| PATCH/DELETE | `/chat/grupos/{id}` | Edita título o `HistorialNuevosMiembros`, o abandona el grupo. |
-| GET | `/chat/grupos/candidatos` | Búsqueda canónica por relación elegible; acepta `ConversacionId` opcional y devuelve `EsAmistad`. |
-| POST | `/chat/grupos/{id}/invitaciones` | Genera invitaciones pendientes; solo administrador y con límite conjunto de 50 plazas. |
-| GET | `/bandejas/chat/grupos/invitaciones` | Bandeja propia paginada. |
-| PATCH | `/bandejas/chat/grupos/invitaciones/{id}` | Acepta o rechaza; aceptar revalida acceso y concede historial/realtime. |
-| PATCH | `/chat/grupos/{id}/invitaciones/{id}` | Cancela una pendiente; solo administrador. |
-| DELETE | `/chat/grupos/{id}/participantes/{user_id}` | Expulsa un participante activo; las altas directas no existen. |
-| PATCH | `/chat/grupos/{id}/participantes/{user_id}/rol` | Cambia entre `admin` y `miembro`; siempre permanece un administrador. |
-| GET/PATCH | `/chat/preferencias-flotantes` | Preferencias privadas versionadas del chat flotante; `Version` evita sobrescrituras y se guardan como máximo cinco ventanas. |
+### Chat
 
-Los historiales y búsquedas de chat devuelven en cada `ChatMessage` `Reacciones.PorTipo`, `Reacciones.MiReaccion` y `Permisos` efectivos (`PuedeResponder`, `PuedeReaccionar`, `PuedeEditar`, `PuedeBorrar`, `PuedeDenunciar`). Las notificaciones correlacionadas con el archivo de sistema exponen `ConversationId` y `MessageId` al nivel superior, además de su contexto funcional tipado.
+El chat propio de Libros (directos, grupos, invitaciones a grupos, mensajes, reacciones, respuestas, el archivo de sistema, la conversación de cada club, las ventanas flotantes y los tickets de WebSocket) se retiró con la adhesión a Yosiftware: la web usa el chat de la plataforma pintado por Libros (`ecosistema-kit/CHAT.md`, rutas `/v1/chat/…`). La conversación de cada club es la conversación de su espacio (`ConversacionId` en el detalle del club; fase 4). Rutas retiradas y recambios: `RUTAS_RETIRADAS.md`.
 
-Los mensajes de sistema `catalog_request.pending` destinados a `cola_catalogo` incluyen `PeticionCatalogo={ Id, NombreUsuario, TipoEntidad, Accion, Estado, Texto }` en el historial y la búsqueda. `GET /chat/conversaciones` añade el mismo objeto a `UltimoMensaje` cuando este corresponde a una petición y usa `Texto` como `VistaPrevia`. El texto identifica al solicitante con su nombre público vigente, el tipo y la acción; añade `Pendiente`, `Devuelta al usuario`, `Ya resuelta: aprobada` o `Ya resuelta: rechazada`. `Estado` y el nombre se calculan en cada lectura: también se actualizan los mensajes históricos y los reenvíos. Si la petición falta o no puede proyectarse, `Estado=no_disponible`, los datos de solicitante/tipo/acción son `null` y `Texto=Petición de catálogo no disponible`; `Id` también es `null` si faltaba en el contexto histórico. El cuerpo persistido `CuerpoMarkdown` no se reescribe; para estos mensajes el front debe mostrar `PeticionCatalogo.Texto` y conservar `Accion` para «Ver detalle» solo si hay `Id` y la petición es accesible. El campo no aparece en otros mensajes.
+`GET /comunidad/resumen` devuelve los contadores privados de clubes (`Resumen.Clubes`) de la portada social; ya no incluye relaciones ni mensajes.
 
-Cada mensaje humano nuevo de un directo, grupo o club crea atomícamente una notificación por destinatario elegible con `Codigo=chat.message_created`, `Categoria=chat`, `ContextoTipo=chat_conversation` y `Contexto={ ConversacionId, MensajeId }`. Se excluyen remitente, participantes inactivos, bloqueos bilaterales, cuentas no operativas, sanciones que retiren ese acceso y membresías de club perdidas. La notificación no se copia al archivo personal de sistema, porque el mensaje humano ya es persistente y esa copia duplicaría los no leídos. Un reintento con el mismo `ClientMessageId` devuelve el mensaje existente sin volver a crear notificación u outbox.
+### Notificaciones
 
-El outbox FCM solo se inserta si `chat/push` está habilitado y el worker entrega únicamente a dispositivos no revocados. En Android, `chat.message_created` es `data-only` con prioridad alta. `data` contiene `notificationId`, código, categoría, contexto canónico, `senderName` (máximo 120), `messagePreview` de texto plano (máximo 160), `publicTitle`, `publicBody` y `notificationTag=chat-conversation-<ConversacionId>`; nunca contiene tokens, JWT ni una URL de navegación. La APK debe construir `VISIBILITY_PRIVATE` con una `publicVersion` genérica para ocultar remitente y fragmento en una pantalla bloqueada segura. Web e iOS conservan el aviso genérico sin los campos privados. Historial y contador se reconcilian siempre por REST; el backend no intenta inferir foreground.
-
-En grupos, `HistorialNuevosMiembros=desde_ingreso|completo` se copia al participante al aceptar. `HistorialDesde` nulo significa acceso completo; una fecha limita historial, búsqueda, previews y no leídos. Las invitaciones duran 30 días y una pendiente consume plaza. El flujo realtime asociado está en [CONTRATOS.md](../realtime/CONTRATOS.md).
-
-Las notificaciones operativas de catálogo, reportes, denuncias comunitarias y alegaciones se consumen por `GET /notificaciones` y `notification.created`; sus contextos incluyen `Destino` tipado y el contrato realtime vigente está en `docs/backend/realtime/CONTRATOS.md`. La emisión está deduplicada por destinatario, entidad, transición y código.
-
-`catalog_request.resolved` añade a `Contexto` los campos `TipoEntidad`, `Accion` y `EntidadId` cuando existe entidad canónica. Una aprobación de libro nueva o editada incluye su `EntidadId`; `otro` aprobado no tiene entidad. Los avisos antiguos pueden carecer de esos campos. En `GET /notificaciones`, los avisos propios de libro aprobado con `EntidadId` incluyen `EnBiblioteca` calculado al leer la página. `GET /notificaciones/{id}` devuelve una sola notificación propia con el mismo dato actualizado (`404` si no pertenece al usuario). Ese detalle es el contrato para abrir un push y revalidar antes de ofrecer «Añadir a mi biblioteca». `notification.created` y el push incluyen el contexto estático, pero omiten `EnBiblioteca`, que puede cambiar después del evento.
-
-Las preferencias se consultan con `GET /notificaciones/preferencias` y se guardan con `PUT /notificaciones/preferencias`. El `PUT` acepta entre 1 y 14 combinaciones únicas `{ Categoria, Canal, Habilitado }`, incluida la matriz completa de las siete categorías por `in_app|push`, y devuelve siempre las 14 preferencias efectivas. El guardado completo es transaccional e idempotente: repetirlo devuelve `200` y no registra, duplica, rota ni revoca dispositivos FCM. `moderacion/in_app` y `sistema/in_app` son obligatorias (`409 mandatory_notification_category`); cuerpos, tipos, valores o duplicados inválidos devuelven `400` tipado antes de escribir. Sin una fila explícita, la preferencia efectiva de cualquier canal `push`, incluido `chat/push`, es `false`.
-
-Los mensajes devuelven `MensajeRespondido` como resumen o `null`. Si el mensaje referenciado se eliminó u ocultó, conserva su identidad pero su contenido se devuelve como tombstone. La elegibilidad no revela quién bloqueó a quién; puede cambiar entre la consulta y la creación del directo. Ver [CONTRATOS.md](../realtime/CONTRATOS.md).
+El centro de notificaciones propio (`/notificaciones/*`), sus preferencias por categoría y canal, el registro de dispositivos FCM y el push propio se retiraron con la adhesión a Yosiftware (decisión 7 de la petición de migración): las notificaciones son de la plataforma (`ecosistema-kit/NOTIFICACIONES.md`) y la web las enseña con `<yosi-notificaciones>`; el push lo envía la plataforma. El backend avisa por un único punto, `utils/platform_notifications.notificar()`: después de confirmar la transacción, en segundo plano, a la cuenta de la persona (`POST /v1/servicio/notificaciones`) y con un `idExterno` estable; declara su catálogo de tipos al arrancar y retira los avisos que dejan de valer. Catálogo y textos: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md). Los mensajes de sistema que cada notificación creaba en el chat desaparecen con el chat propio.
 
 ### Gates propios
 
-`GET /moderacion/mi-estado-acceso` devuelve las restricciones y políticas efectivas del usuario autenticado. Está exento de los gates de sanción y de aceptación de políticas —no de JWT— para que el primer login pueda descubrir una política pendiente y mostrar su aceptación. Usar `Restricciones` y `Politicas` para bloquear solo la función afectada. Si `RequiereLimpiarRealtime` es `true`, limpiar sockets y RTDB; no cerrar la sesión salvo que el producto lo decida expresamente.
+Las normas pendientes las indica el token de la plataforma (`normasPendientes`): mientras falten, la API responde `403 platform_rules_acceptance_required` a todo salvo las lecturas de arranque (listados de autores, universos, sagas y catálogos auxiliares, el resumen de colección, las capacidades y el usuario local propio, `GET /usuarios/me`). La reacción esperada del cliente está en `ERRORES_Y_GATES.md`.
 
-Mientras falte aceptar la política de uso, la API conserva la verificación de correo y las sanciones, pero permite las lecturas de arranque sin interacción: listados de autores, universos, sagas y catálogos auxiliares, el resumen de colección, capacidades, notificaciones propias y sus preferencias, el tema visual (`GET /usuarios/me/preferencias-interfaz`) y la seguridad de la cuenta (`GET /auth/sessions` y `GET /auth/access-methods`). Las escrituras de esas rutas siguen exigiendo la aceptación. La reacción esperada del cliente está en `ERRORES_Y_GATES.md`. Siguen bloqueados la ficha de una obra, los cambios de colección y cualquier superficie comunitaria o de creación.
+`GET /comunidad/capacidades` entrega las banderas de despliegue de interfaz para la cuenta autenticada y una versión semver declarada en `X-Client-Version` (o `clientVersion`). La respuesta contiene `VersionConfiguracion`, `CacheTtlSegundos`, `FechaExpiracion` y las capacidades `feed` y `clubes` (las de sanciones, tiempo real, notificaciones y chat se retiraron con la adhesión: son de la plataforma). Sin versión válida, con expiración o ante `503 community_capabilities_unavailable`, tratar todas como desactivadas y conservar sesión y biblioteca. Estas banderas no reemplazan los gates de la plataforma (`restricciones`, `normasPendientes`) ni los de audiencia o membresía ya aplicados en servidor.
 
-`GET /comunidad/capacidades` entrega las banderas de despliegue de interfaz para la cuenta autenticada y una versión semver declarada en `X-Client-Version` (o `clientVersion`). La respuesta contiene `VersionConfiguracion`, `CacheTtlSegundos`, `FechaExpiracion` y las capacidades `sanciones`, `realtime`, `notificaciones`, `feed`, `chat` y `clubes`. Sin versión válida, con expiración o ante `503 community_capabilities_unavailable`, tratar todas como desactivadas y conservar sesión y biblioteca. Estas banderas no reemplazan los gates de sanción, política, audiencia, bloqueo o membresía ya aplicados en servidor.
+### Relaciones
 
-### Relaciones propias
+Las amistades, los seguimientos, los bloqueos, sus solicitudes y los perfiles públicos de comunidad son de la plataforma (`ecosistema-kit/SOCIAL.md`): Libros ya no guarda ni consulta relaciones. Lo que la web enseña de otras personas sale del feed de cambios, que copia el alias en `usuarios.nombre` (los campos `Nombre` de autores de debates, publicaciones, miembros, solicitudes e invitaciones de clubes). El catálogo de `error.code` de gates está en [ERRORES_Y_GATES.md](ERRORES_Y_GATES.md).
 
-El catálogo de `error.code` de gates y relaciones, con HTTP y acción de cliente, está en [ERRORES_Y_GATES.md](ERRORES_Y_GATES.md). OpenAPI replica los códigos específicos en `x-functional-error-codes` de cada operación.
+- El muro general se retiró con las novedades de la plataforma (decisión 2 de la petición de migración): solo quedan las publicaciones de los clubes.
+- Los listados de clubes y debates ya no filtran por bloqueos: los bloqueos de la plataforma se aplican al chat, a las notificaciones y a las invitaciones de los espacios.
+- Para invitar a alguien, el frontend busca personas en la plataforma (`GET /v1/personas?q=`) e invita con `POST /v1/espacios/{EspacioId}/invitaciones` (fase 4).
 
-- `GET /comunidad/relaciones/{seguidos|seguidores|amistades|bloqueos}` usa `afterId` y `limit` (máximo 100).
-- `GET /comunidad/amistades/solicitudes?tipo=recibidas|enviadas` lista solicitudes pendientes propias.
-- `GET /comunidad/usuarios/{id}/relacion` devuelve seguimientos, amistad, solicitud pendiente y `PuedeInteractuar`; nunca revela quién bloqueó a quién.
+### Clubes en los espacios de la plataforma
 
-### Bandejas de clubes
+Desde la fase 4 de la adhesión, cada club es un **espacio** de la plataforma Yosiftware (`ecosistema-kit/ESPACIOS.md`): la pertenencia (quién está, con qué rol, cómo se entra, las invitaciones, las solicitudes y sus avisos), la conversación y el canal de tiempo real son de la plataforma; las lecturas, el progreso, los hitos, el calendario, las encuestas, los debates y las publicaciones siguen en Libros. Guía para el frontend: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md).
 
-- `GET /bandejas/clubes/solicitudes?direccion=enviadas|recibidas&estado=pendiente&limit=20&cursorId=` devuelve el historial global por ID descendente. Las recibidas solo pertenecen a clubes donde la cuenta conserva rol activo de propietario o moderador e incluyen `Solicitante`; las enviadas lo omiten.
-- `GET /bandejas/clubes/invitaciones?direccion=enviadas|recibidas&estado=pendiente&limit=20&cursorId=` exige `direccion`. Las recibidas incluyen `Invitador`; las enviadas abarcan todos los clubes administrados actualmente e incluyen `Invitador` e `Invitado`. Las invitaciones no exponen `Mensaje` porque no lo almacenan.
-- Los estados de ambas bandejas son `pendiente`, `aceptada`, `rechazada`, `cancelada` o `todas`. Un club eliminado nunca aparece; uno retirado solo aparece a quien mantiene membresía activa; los bloqueos bilaterales ocultan la fila.
-- `PATCH /bandejas/clubes/solicitudes/{id}` con `{ Estado: "cancelada" }` cancela únicamente una solicitud pendiente propia. `PATCH /bandejas/clubes/invitaciones/{id}` hace lo mismo para un propietario o moderador activo; esta última operación notifica al invitado.
-- `GET /clubes-lectura/resumen` carga la portada autenticada: hasta tres clubes propios, cinco eventos futuros o en curso, diez tarjetas privadas y diez clubes públicos activos en 30 días. Incluye cursores y `BandejasAcceso`, con los cuatro contadores pendientes calculados bajo las mismas reglas que los listados.
+- `POST /clubes-lectura` crea el club y su espacio (`idExterno` `club-<Id>`) a nombre de quien lo crea, que tiene su propiedad, en la misma transacción: si la plataforma falla responde `503 club_space_unavailable` (u otro `club_space_*`, en OpenAPI) y no crea nada. Devuelve `{ Id, EspacioId }`. `abierto` es un espacio con `entrada: "abierto"`; `cerrado`, con `entrada: "solicitud"` (se pide y también se invita). Editar el nombre o la visibilidad (`PATCH /clubes-lectura/{id}`) lo lleva al espacio tras confirmar; borrar el club borra su espacio y restaurarlo crea uno nuevo con quien lo tiene como único miembro.
+- Los clubes (`GET /clubes-lectura`, `/mios`, `/resumen` y el detalle) traen `EspacioId`; el detalle, además, `ConversacionId` (la conversación del espacio en el chat de la plataforma; `null` hasta que la plataforma la da). `EstadoMembresia` es `miembro` o `disponible`; `GET /clubes-lectura/resumen` ya no trae `BandejasAcceso`.
+- **Entrar, pedir entrar, invitar, aceptar, rechazar y salir** los hace la persona con el token de la plataforma: `POST /v1/espacios/{EspacioId}/entrar`, `POST …/solicitudes`, `POST …/invitaciones`, `POST /v1/espacios/invitaciones/{id}/aceptar` y `DELETE /v1/espacios/{EspacioId}/miembros/yo` (o `yosiftware.espacios` del SDK). Las rutas propias se retiraron: `RUTAS_RETIRADAS.md`.
+- **Expulsar** (`DELETE /clubes-lectura/{id}/miembros/{userId}`) y **cambiar el rol** (`PATCH …`, `moderador` o `miembro`) siguen en Libros para la propiedad del club: la API los hace en el espacio con su credencial de servicio en la misma transacción. Quien es expulsado recibe `club.expulsion` y solo vuelve con una invitación.
+- La API autoriza con su copia del feed (`club_miembros`, solo `estado = 'activo'`): un cambio hecho en la plataforma (entrar, salir, un rol, un traspaso de la propiedad) se nota en Libros cuando el lector del feed lo aplica (cada 5 minutos o al aviso de NATS). Los roles de Libros son los de siempre: `propietario` (la propiedad del espacio), `moderador` (rol `moderacion` del espacio) y `miembro`.
+- El límite de tres clubes por persona ya no existe (decide la plataforma: 300 espacios por cuenta); sigue el de crear un solo club.
+- Los eventos `club.updated`, `club.reading_updated`, `club.milestone_*` y `club.event_*` se publican en el canal del espacio tras confirmar: `{ "tipo", "ClubId", … }` en `mensaje.datos` (`yosiftware.espacios.canal(EspacioId, …)`).
 - `GET /clubes-lectura/mios` lista todas las membresías activas, incluidos clubes cerrados o retirados del descubrimiento; nunca incluye eliminados.
-- `GET /clubes-lectura/mios/eventos/proximos` pagina por `cursorFechaInicio` + `cursorId`; `/clubes-lectura/mios/actividad` usa `cursorFecha` + `cursorTipo` + `cursorId`. Las tarjetas no exponen cuerpos, votos, progreso, expulsiones ni auditoría. Véase [INTEGRACION_FRONT.md](../realtime/INTEGRACION_FRONT.md).
-- `GET /clubes-lectura/{id}/solicitudes?estado=pendiente&limit=20&cursorId=` devuelve solicitudes del club para propietario o moderador activo, con el mismo cursor y estados.
-- `GET /clubes-lectura/{id}/invitaciones/candidatos?q=&limit=&cursorTipo=&cursorNombre=&cursorId=` busca candidatos para propietario o moderador activo. Ordena amistad, personas que siguen al gestor y perfiles públicos; excluye bloqueos, sanciones, cuentas no verificadas/inactivas, miembros, pendientes y el límite de tres clubes. El cursor compuesto se envía completo y `POST /clubes-lectura/{id}/invitaciones` aplica la misma regla al ID recibido.
-- Crear una solicitud valida `Mensaje` a un máximo de 500 caracteres (`400 club_join_request_message_too_long`). Repetir una invitación pendiente devuelve `409 duplicate_club_invitation` sin fila ni notificación adicional.
-- Errores de las nuevas superficies: `invalid_club_inbox_direction`, `invalid_club_inbox_limit`, `invalid_club_inbox_state`, `invalid_club_cursor`, `invalid_club_request_cancellation_state`, `invalid_club_invitation_cancellation_state`, `club_join_request_not_found`, `club_invitation_not_found`, `club_moderator_required` y `club_access_unavailable`. OpenAPI indica HTTP y recuperación por operación.
-- Los bloqueos bilaterales cancelan los pendientes afectados; los listados no revelan su dirección ni la existencia de la relación.
-- Guía de integración: [INTEGRACION_FRONT.md](../realtime/INTEGRACION_FRONT.md).
+- `GET /clubes-lectura/mios/eventos/proximos` pagina por `cursorFechaInicio` + `cursorId`; `/clubes-lectura/mios/actividad` usa `cursorFecha` + `cursorTipo` + `cursorId`. Las tarjetas no exponen cuerpos, votos, progreso, expulsiones ni auditoría.
 
 ### Colección personal y lecturas de club
 
@@ -867,24 +832,23 @@ El catálogo de `error.code` de gates y relaciones, con HTTP y acción de client
 - Las operaciones de acceso, lecturas, progreso, hitos, eventos, encuestas y debates que requieren membresía activa devuelven `404 club_access_unavailable` cuando el club no puede usarse. No diferencia inexistencia, eliminación, retirada para quien no pertenece ni membresía inactiva; retirar la vista y refrescar los listados propios.
 - La retirada del descubrimiento no expulsa ni bloquea a los miembros activos: conservan el acceso y las escrituras que su rol permita.
 - Si la membresía sigue activa pero falta rol, `club_moderator_required` o `club_owner_required` devuelve `403`: conservar la vista en solo lectura y mostrar el mensaje de producto correspondiente.
-- Los debates y comentarios exponen `Autor { Id, Nombre, Imagen }`, nunca `AutorId`. El bloqueo bilateral excluye debates y comentarios de la contraparte; el detalle directo de un debate bloqueado devuelve `404 club_debate_not_found`.
+- Los debates y comentarios exponen `Autor { Id, Nombre, Imagen }`, nunca `AutorId`.
 
 ### Voto concurrente en encuestas
 
 - `GET /clubes-lectura/{id}/encuestas` devuelve `MiVotoVersion` junto a `MiVotoId`. El primer voto no envía versión; para sustituir uno existente, `PUT /clubes-lectura/{id}/encuestas/{pollId}/voto` debe incluir `{ OpcionId, Version: MiVotoVersion }`.
 - La respuesta correcta devuelve la nueva `Version`. `409 club_poll_vote_conflict` significa que el voto ya cambió o que falta/sobra una versión: refrescar encuestas y pedir confirmación antes de volver a sustituir. `409 club_poll_closed` deja la encuesta en solo lectura.
 
-### Denuncias de mensajes y clubes
+### Denuncias de contenido y clubes
 
-- `POST /comunidad/denuncias` admite `mensaje` y `club` además de contenido social. El backend valida el acceso y crea el snapshot de moderación; no aceptar texto ni participantes aportados por el cliente.
-- `GET|POST|PATCH /moderacion/comunidad/denuncias` gestiona grupos y medidas de contenido. `mensaje_ocultado|mensaje_restaurado` no sancionan la cuenta; `club_retirado_descubrimiento|club_restaurado_descubrimiento` solo afectan al directorio público, no a miembros, chat ni histórico.
-- Resolver un grupo crea notificaciones persistentes `community.report_source_resolved` para la fuente y `community.report_reporter_resolved` para cada denunciante. No exponen motivos, medidas, contenido, conversación, terceros ni moderador; `GET /notificaciones` conserva la fuente de verdad.
+- `POST /comunidad/denuncias` admite `publicacion`, `comentario` y `club`. Las denuncias de perfiles y de mensajes son de la plataforma (`yosiftware.denunciar()` o su interfaz con la API) y responden `400 invalid_content_report`. El backend valida el acceso y crea el snapshot de moderación; no aceptar texto aportado por el cliente.
+- La cola se gestiona desde el plugin de la administración (`denuncias` y `resolver_denuncia`; antes `GET|POST|PATCH /moderacion/comunidad/denuncias`), con sus medidas de contenido y, al aceptar, el incidente opcional. `club_retirado_descubrimiento|club_restaurado_descubrimiento` solo afectan al directorio público, no a miembros ni histórico. Los grupos archivados de perfiles y mensajes siguen apareciendo en la cola y solo se cierran (sin medida).
+- Resolver un grupo de una publicación, un comentario o un club avisa a la fuente (`club.contenido_revisado`) y a cada denunciante (`club.denuncia_resuelta`) con notificaciones de la plataforma, y retira el aviso de la cola. No exponen motivos, contenido, terceros ni moderador. Las publicaciones y comentarios que se pueden denunciar son solo los de los clubes.
 
-### Publicaciones con audiencia de club
+### Publicaciones de los clubes
 
-- `POST /comunidad/publicaciones` acepta `Audiencia: club` junto a `ClubId`; el ID es obligatorio solo en esa audiencia y se rechaza para las demás. `POST /clubes-lectura/{id}/publicaciones` sigue disponible y fuerza la misma audiencia.
+- Se publica con `POST /clubes-lectura/{id}/publicaciones` (audiencia `club`; `ClubId`, si se envía, debe coincidir con la ruta) y se lee con `GET /clubes-lectura/{id}/publicaciones`. El muro general (`GET` y `POST /comunidad/publicaciones`, audiencias `publico`, `seguidores` y `amigos`) se retiró. Editar, borrar, comentar y reaccionar siguen en `/comunidad/publicaciones/{id}…`, solo para publicaciones de un club (las del muro antiguo responden `404 post_not_found`).
 - Solo publica quien sea miembro activo de un club no eliminado. Un club retirado del descubrimiento sigue siendo publicable por sus miembros. Un destino inválido, eliminado o sin membresía responde `404 club_post_target_unavailable` sin distinguir la causa.
-- Los bloqueos bilaterales no cancelan la publicación para el club completo: el backend excluye a las personas bloqueadas de realtime y el feed ya las excluye también por REST.
 
 ### Spoilers en comentarios de Comunidad
 
@@ -901,7 +865,7 @@ El catálogo de `error.code` de gates y relaciones, con HTTP y acción de client
 - Para buscar opciones al crear relaciones o filtros, usar `/catalogo/autores`, `/catalogo/sagas` y `/catalogo/universos`.
 - Para filtros/formularios de metadatos editoriales, usar `/catalogo/idiomas`, `/catalogo/estilos` y `/catalogo/lugares-origen`.
 - No filtrar catalogo por `id_usuario_creador`; ya no representa propiedad.
-- Las escrituras de catalogo solo estan disponibles para admin/moderador bajo `/catalogo/admin/*`; los usuarios normales abren una peticion en `/peticiones/catalogo`.
+- Las escrituras de catalogo solo estan en el plugin de la administracion (`/admin/v1/*`); los usuarios normales abren una peticion en `/peticiones/catalogo`.
 - Si el usuario normal propone un alta o cambio de ficha canonica, abrir una peticion en `/peticiones/catalogo`.
 - Si se actualiza estado o puntuacion desde una ficha de catalogo, despues refrescar `/coleccion/items` o actualizar cache local porque el item ya pertenece a la coleccion personal.
 
@@ -910,10 +874,9 @@ El catálogo de `error.code` de gates y relaciones, con HTTP y acción de client
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/health` | Publico | Liveness HTTP minimo de la API. |
-| GET | `/verify` | Publico | Readiness agregada de API, SQL Server, NATS, gateway realtime y workers. |
-| GET | `/health/realtime` | Admin | Diagnostico de outboxes y alcance TCP de NATS. |
+| GET | `/verify` | Publico | Readiness agregada de API, SQL Server y el lector del feed de la plataforma. |
 
-`/health` sigue siendo el ping HTTP mínimo. Usar `/verify` para diagnóstico de arranque o recuperación: responde `200` con `EstadoGeneral: healthy|degraded` cuando API y SQL Server están disponibles, y `503 database_connection_failed` cuando SQL Server no lo está. Incluye `Entorno` (`local`, `qa` o `produccion`) y `VersionDatasetQa` solo cuando corresponde. Un componente `unavailable` o `degraded` no contiene errores internos ni secretos; permite desactivar únicamente realtime, push o proyecciones sin asumir que la biblioteca REST está caída.
+`/health` sigue siendo el ping HTTP mínimo. Usar `/verify` para diagnóstico de arranque o recuperación: responde `200` con `EstadoGeneral: healthy|degraded` cuando API y SQL Server están disponibles, y `503 database_connection_failed` cuando SQL Server no lo está. Incluye `Entorno` (`local`, `qa` o `produccion`) y `VersionDatasetQa` solo cuando corresponde. Un componente `unavailable` o `degraded` no contiene errores internos ni secretos; si el lector del feed no late, las cuentas nuevas o cambiadas en la plataforma tardan en reflejarse, pero la biblioteca REST sigue disponible.
 
 Respuesta OK:
 
@@ -927,7 +890,7 @@ Respuesta OK:
   "Componentes": {
     "api": { "Estado": "healthy", "Fuente": "request" },
     "sqlServer": { "Estado": "healthy", "Fuente": "query", "LatenciaMs": 4 },
-    "realtimeGateway": { "Estado": "unavailable", "Fuente": "http" }
+    "plataformaFeedWorker": { "Estado": "unavailable", "Fuente": "heartbeat" }
   },
   "UmbralHeartbeatSegundos": 45
 }
@@ -937,7 +900,7 @@ Respuesta OK:
 
 | Método | Ruta | Permiso | Descripción |
 |---|---|---|---|
-| GET | `/runtime-config` | Público | Configuración web pública por entorno: Firebase, FCM, WebSocket e identificador de entorno. Nunca expone secretos. |
+| GET | `/runtime-config` | Público | Identificador de entorno y versión del dataset QA. Firebase y el WebSocket propio se retiraron con la adhesión. Nunca expone secretos. |
 | GET | `/qa/fixtures` | Secreto CI QA | Resuelve aliases estables del dataset QA; no existe fuera de QA. |
 | GET | `/qa/status` | Secreto CI QA | Semaforo tipado de escenario, reset, lease, capacidades, componentes e identidad de despliegue; admite `X-QA-Lease-Id` opcional sin devolverlo. |
 | POST | `/qa/lease/acquire` | Secreto CI QA | Adquiere durante 10 minutos la exclusión global de campaña. |
@@ -945,7 +908,7 @@ Respuesta OK:
 | DELETE | `/qa/lease/{lease_id}` | Secreto CI QA | Libera idempotentemente la lease propia. |
 | POST | `/qa/reset` | Secreto CI QA + lease | Restaura baseline y aplica un perfil QA cerrado; exige `X-QA-Lease-Id` y no existe fuera de QA. |
 
-Las rutas `/qa/*` no tienen CORS y no se llaman desde JavaScript de navegador. Requieren `X-QA-Reset-Token`, `LIBROS_ENVIRONMENT=qa`, reset habilitado y la marca de base QA. Los perfiles permitidos son `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`. `GET /qa/status` separa la aptitud para iniciar una campaña de las capacidades `Reset`/`Cleanup`: una variación diagnóstica de release nunca invalida por sí sola el cleanup de una lease activa. Consultar [ENTORNO_QA.md](../qa/ENTORNO_QA.md) para operación, rotación y fixtures.
+Las rutas `/qa/*` no tienen CORS y no se llaman desde JavaScript de navegador. Requieren `X-QA-Reset-Token`, `LIBROS_ENVIRONMENT=qa`, reset habilitado y la marca de base QA. Los perfiles permitidos son `baseline`, `expired-sessions`, `rate-limited` y `realtime-recovery` (`version-conflict` se retiró en la fase 4 de la adhesión con los clubes de la provisión). `GET /qa/status` separa la aptitud para iniciar una campaña de las capacidades `Reset`/`Cleanup`: una variación diagnóstica de release nunca invalida por sí sola el cleanup de una lease activa. Consultar [ENTORNO_QA.md](../qa/ENTORNO_QA.md) para operación, rotación y fixtures.
 
 Respuesta sin BD:
 
@@ -962,95 +925,18 @@ Respuesta sin BD:
 }
 ```
 
-## Auth
+## Usuario actual
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| GET | `/auth/user` | JWT | Devuelve el usuario de una sesion local autenticada. |
-| GET | `/auth/account-states` | Admin | Lista estados de cuenta para pantallas de administracion. |
-| PUT | `/auth/update` | JWT completo | Actualiza exclusivamente datos de perfil; email y contrasena usan flujos Firebase dedicados. |
-| POST | `/auth/firebase-custom-token` | JWT completo | Emite un custom token Firebase de corta duracion para `libros:<id_usuario>`. |
-| POST | `/auth/phone/preflight` | Publico; JWT opcional | Valida E.164 y allowlist `ES`, aplica rate limit y devuelve `IntentoId` antes de solicitar SMS; si hay JWT se aplican además las guardas normales. |
-| POST | `/auth/session` | Publico + ID token Firebase | Intercambia password, Google o telefono vinculado por estado discriminado o sesion revocable. Telefono exige `PhoneAttemptId` y nunca inicia onboarding. |
-| POST | `/auth/onboarding` | Ticket de 10 min | Crea cuenta SQL, alias y aceptacion de politica; password no verificado queda sin JWT. Google copia el nombre y materializa su avatar como PNG local `u_<id_usuario>.png`, con fallback `default.png`; no vuelve a sincronizarlo en futuros logins. |
-| POST | `/auth/onboarding/email-correction/confirm` | ID token Firebase password reciente | Sincroniza el correo nuevo ya verificado en Firebase con una unica alta SQL password pendiente y activa la cuenta; no crea sesion. |
-| GET | `/auth/onboarding-context` | Publico | Devuelve ID, version y contenido de la politica de uso vigente que debe aceptar el alta. |
-| GET | `/auth/session/csrf` | Cookie refresh | Restaura `CsrfToken` tras recargar sin exponer ni rotar el refresh. |
-| POST | `/auth/session/refresh` | Cookie refresh + cabecera CSRF | Rota refresh/CSRF, revalida Firebase, cuenta y sesion, y emite access JWT de 15 minutos. |
-| DELETE | `/auth/session` | Cookie refresh + cabecera CSRF | Revoca idempotentemente la sesion y su dispositivo push; limpia la cookie. |
-| GET | `/auth/sessions` | JWT | Lista solo metadatos sanitizados de sesiones propias. |
-| DELETE | `/auth/sessions/{session_id}` | JWT | Revoca una sesion propia y cierra solo sus sockets. |
-| POST | `/auth/sessions/revoke-all` | JWT | Incrementa `sessionVersion`, revoca sesiones/push y cierra todos los sockets. |
-| POST | `/auth/reauthentication` | JWT + ID token Firebase reciente | Emite ticket de cinco minutos para operaciones sensibles. |
-| GET | `/auth/access-methods` | JWT | Lista metodos activos sin exponer sujetos de proveedor. |
-| POST | `/auth/access-methods/link` | JWT + reautenticacion + prueba Firebase/link | Consume `LinkTicket` para el conflicto Google, o vincula Google/telefono con ID token reciente; telefono exige `PhoneAttemptId`. Google con correo distinto exige confirmacion explicita mediante `ConfirmEmailMismatch=true`. No admite añadir password. |
-| DELETE | `/auth/access-methods/{method}` | JWT + reautenticacion | Desvincula logicamente, revoca sus sesiones y conserva al menos un metodo recuperable. |
-| POST | `/auth/email-change/reservations` | JWT + reautenticacion | Reserva un email localmente durante 24 horas. |
-| POST | `/auth/email-change/confirm` | JWT + reserva + ID token actualizado | Confirma el email ya verificado en Firebase y revoca todas las sesiones. |
-
-El refresh tiene 30 dias de inactividad y 90 dias absolutos. `libros_refresh` es host-only/HttpOnly y `CsrfToken` se devuelve en JSON para `X-CSRF-Token`; `GET /auth/session/csrf` lo restaura tras recargar sin exponer el refresh. Reutilizar un refresh rotado devuelve `401 refresh_replay_detected` y revoca esa sesion.
-
-Password se registra, verifica, recupera y cambia exclusivamente mediante Firebase. El backend nunca recibe ni almacena la contrasena, y `usuarios` no contiene hashes. Las rutas legacy estan retiradas y sus recambios figuran en `RUTAS_RETIRADAS.md`.
-
-Si una persona detecta una errata tras `verification_required`, `Usuario.Email` muestra el correo actual. El cliente reautentica con password en Firebase y llama a `verifyBeforeUpdateEmail` con la direccion corregida. Tras confirmar el enlace, debe iniciar sesion en Firebase con el correo nuevo y enviar `{ "FirebaseIdToken": "..." }` a `POST /auth/onboarding/email-correction/confirm`; el token requiere `auth_time` de los ultimos cinco minutos. La API lee el correo verificado desde Firebase, exige la misma identidad password y que SQL siga pendiente, comprueba la unicidad, actualiza y audita en una transaccion y devuelve `{ "success": true, "Estado": "email_corrected", "Email": "nuevo@ejemplo.es" }`. A continuacion el cliente llama a `POST /auth/session` para obtener sesion local. El enlace y sus limites de envio/caducidad los gobierna Firebase; esta ruta no envia correos. `pending_email_correction_not_verified` indica que falta confirmar el enlace; `pending_email_correction_account_unavailable` impide modificar cuentas verificadas o con otros metodos; `email_already_registered` señala colision SQL.
-
-El alta distingue ahora `409 onboarding_email_taken` (`field: Email`) de `409 onboarding_alias_taken` (`field: Alias`). Una cuenta presente solo en Firebase no demuestra por si misma que la API haya recibido `/auth/onboarding`.
-
-## Preferencias de interfaz
-
-| Metodo | Ruta | Permiso | Descripcion |
-|---|---|---|---|
-| GET | `/usuarios/me/preferencias-interfaz` | JWT + gates normales | Devuelve el tema solicitado por la cuenta y su version de concurrencia. |
-| PATCH | `/usuarios/me/preferencias-interfaz` | JWT + gates normales | Actualiza parcialmente las preferencias si `Version` sigue vigente. |
-
-Sin fila persistida, GET devuelve `{ "Tema": "light", "Version": 1, "FechaActualizacion": null }`. PATCH exige `Version` y, actualmente, `Tema: wood|light|dark`; rechaza campos desconocidos. Un cambio real incrementa la version y actualiza la fecha UTC. Repetir el mismo tema es idempotente y no altera version ni fecha.
-
-`409 interface_preferences_conflict` incluye el estado actual en `details.Preferencias`; el cliente no debe sobrescribirlo silenciosamente. Las respuestas son `private, no-store`. Cada cambio efectivo emite `user.interface_preferences_updated` por `/ws/community`; aplicar solo versiones superiores a la local y reconciliar con GET al reconectar o detectar saltos.
-
-### GET `/auth/account-states`
-
-Endpoint admin para la gestion de cuentas:
+| GET | `/usuarios/me` | JWT | Devuelve el usuario local de Libros de la cuenta de Yosiftware autenticada: `Id`, `Nombre` (el alias que copia el feed) y `Role`. Exenta de `normasPendientes`; respuesta `private, no-store`. |
 
 ```json
-{ "success": true, "EstadosCuenta": [{ "Id": 1, "Nombre": "Activa" }] }
+{ "success": true, "user": { "Id": 1, "Nombre": "yosi", "Role": { "Id": 2, "Nombre": "administrador" } } }
 ```
 
-### GET `/auth/user`
+El perfil (nombre, biografía, avatar, país, idioma y opciones de privacidad), el correo y las preferencias de interfaz son de la plataforma: la web los lee con el SDK (`yosiftware.sesion()`, `/v1/personas`) y los cambia en la vista de perfil de la plataforma. Las rutas retiradas (`GET /auth/user`, `PUT /auth/update`, `/usuarios/me/preferencias-interfaz`, `POST /image/set/photo`) figuran en `RUTAS_RETIRADAS.md`.
 
-Respuesta:
-
-```json
-{
-  "success": true,
-  "user": {
-    "Id": 1,
-    "Nombre": "Nombre",
-    "Email": "user@example.com",
-    "Imagen": "default.png",
-    "Username": "lector",
-    "DisplayName": "Lector",
-    "Bio": null,
-    "PaisCodigo": "ES",
-    "PaisNombre": "Espana",
-    "PerfilPublico": false,
-    "MostrarEstadisticas": false,
-    "MostrarBiblioteca": false,
-    "PermitirMensajes": false,
-    "EmailVerificado": false,
-    "VerificationPending": true,
-    "EstadoCuenta": { "Id": 2, "Nombre": "No activa" },
-    "Role": { "Id": 1, "Nombre": "usuario" },
-    "ExcluirMedicionAudiencia": false
-  }
-}
-```
-
-`ExcluirMedicionAudiencia` aparece en todos los objetos de usuario propio (`user` de `/auth/user` y `/auth/update`, y `Usuario` de `/auth/session`, `/auth/session/refresh`, onboarding y `verification_required`). Vale `true` solo si la cuenta autenticada pertenece al propietario según la configuración privada del servidor; el cliente debe entonces marcar el dispositivo para que Yosiftadísticas no lo mida. La lista de cuentas nunca se expone. Integración: [MEDICION_AUDIENCIA_FRONT.md](MEDICION_AUDIENCIA_FRONT.md).
-
-### PUT `/auth/update`
-
-Solo admite datos de perfil. Enviar `email`, `password` o `password_old` devuelve `400 authentication_field_requires_dedicated_flow`; email y contrasena se gestionan mediante Firebase y las rutas dedicadas.
-El país queda fijado a España. `paisCodigo`, `pais_codigo`, `paisNombre` y `pais_nombre` se rechazan con `400 country_is_fixed`; el cliente debe omitirlos. `POST /auth/onboarding` acepta `PaisCodigo` por compatibilidad, pero lo ignora y guarda `ES`; puede omitirse. Perfil, sesión y comunidad siguen devolviendo `PaisCodigo: "ES"` y, donde se expone, `PaisNombre: "España"` una vez aplicado el backfill de cuentas históricas.
 ## Autores
 
 | Metodo | Ruta | Permiso | Descripcion |
@@ -1058,7 +944,7 @@ El país queda fijado a España. `paisCodigo`, `pais_codigo`, `paisNombre` y `pa
 | GET | `/autores` | JWT | Lista autores. |
 | GET | `/autores/{id_autor}` | JWT | Detalle de autor. |
 
-Las escrituras directas de autores fueron retiradas. Admin/moderador usan `/catalogo/admin/autores`; usuarios normales, `/peticiones/catalogo`.
+Las escrituras directas de autores fueron retiradas. El catálogo se edita desde el plugin de la administración; usuarios normales, `/peticiones/catalogo`.
 
 ## Universos
 
@@ -1068,7 +954,7 @@ Las escrituras directas de autores fueron retiradas. Admin/moderador usan `/cata
 | GET | `/universos/{id_universo}` | JWT | Detalle de universo. |
 | GET | `/universos/metricas` | JWT | Metricas agregadas de la coleccion privada. |
 
-Las escrituras directas de universos fueron retiradas. Admin/moderador usan `/catalogo/admin/universos`.
+Las escrituras directas de universos fueron retiradas. El catálogo se edita desde el plugin de la administración.
 
 ## Sagas
 
@@ -1077,7 +963,7 @@ Las escrituras directas de universos fueron retiradas. Admin/moderador usan `/ca
 | GET | `/sagas` | JWT | Lista sagas. |
 | GET | `/sagas/{id_saga}` | JWT | Detalle de saga. |
 
-Las escrituras directas de sagas fueron retiradas. Admin/moderador usan `/catalogo/admin/sagas`.
+Las escrituras directas de sagas fueron retiradas. El catálogo se edita desde el plugin de la administración.
 
 ## Libros
 
@@ -1085,7 +971,7 @@ Las escrituras directas de sagas fueron retiradas. Admin/moderador usan `/catalo
 |---|---|---|---|
 | GET | `/libros` | JWT | Lista basica de libros. |
 | GET | `/libros/{id_libro}` | JWT | Detalle completo de libro. |
-| GET | `/libros/{id_libro}/personajes/orden` | JWT | Lista ligera de personajes ordenados para refrescos tras editar escenas: `[{ Id, Nombre }]`. |
+| GET | `/libros/{id_libro}/personajes/orden` | JWT | Lista ligera de personajes ordenados para refrescos tras editar escenas o crear un personaje: `[{ Id, Nombre, Grupo, OrdenGrupo }]`. |
 | GET | `/libros/leidos` | JWT | Cuenta libros leidos. |
 | GET | `/libros/no_leidos` | JWT | Cuenta libros no leidos. |
 | GET | `/libros/sin_leer` | JWT | Libro con mas tiempo sin leer. |
@@ -1095,7 +981,7 @@ Las escrituras directas de sagas fueron retiradas. Admin/moderador usan `/catalo
 | GET | `/libros/historial_leidos` | JWT | Historial mensual de leidos. |
 | GET | `/libros/promedio_compra_lectura` | JWT | Promedio dias compra-lectura. |
 
-Las escrituras directas y `/libros/wiki` fueron retiradas. Admin/moderador usan `/catalogo/admin/libros`; usuarios normales, `/peticiones/catalogo`.
+Las escrituras directas y `/libros/wiki` fueron retiradas. El catálogo se edita desde el plugin de la administración; usuarios normales, `/peticiones/catalogo`.
 
 ## Antologias
 
@@ -1106,22 +992,18 @@ Las escrituras directas y `/libros/wiki` fueron retiradas. Admin/moderador usan 
 | GET | `/antologias/leidos` | JWT | Cuenta antologias leidas. |
 | GET | `/antologias/no_leidos` | JWT | Cuenta antologias no leidas. |
 | GET | `/antologias/secciones/leidas` | JWT | Cuenta las secciones de antologias en la coleccion cuyo ultimo estado es leido; usa el historial contextual donde existe y el historial de libros en instalaciones anteriores. Devuelve `{ "secciones_leidas": 0 }` cuando no hay ninguna. |
-| POST | `/antologias/secciones` | Admin/moderador | Crea seccion/libro dentro de antologia. |
-| PATCH | `/antologias/secciones` | Admin/moderador | Edicion editorial parcial de una seccion. Admite portada multipart, nombre, autores, idiomas, ISBN, wiki, titulo, contenido HTML/estilos internos, sinopsis, paginas, fecha, estilos normalizados y paginas de encaje. |
 | GET | `/antologias/secciones/{id_libro}` | JWT | Detalle contextual de una seccion cuya antologia pertenece a la coleccion autenticada. `Libro` cumple `BookDetail` e incluye narrativa personal, metricas y el historial contextual de la seccion. |
 
-Las escrituras directas de antologias fueron retiradas. Admin/moderador usan `/catalogo/admin/antologias`.
+Las escrituras directas de antologias fueron retiradas. El catálogo, también las secciones, se edita desde el plugin de la administración (`crear_seccion` y `editar_seccion`).
 
 El detalle de seccion tiene la envoltura tipada `{ Antologia, Libro, PaginaInicio, PaginaFinal }`. `Libro` incluye `Capitulos`, `Partes`, `Interludios`, `Personajes`, `Localizaciones`, `Conceptos`, `Organizaciones`, `Eventos`, `Citas`, `Universo`, `Saga` y `Metricas` bajo las mismas reglas personales que `GET /libros/{id_libro}`. Su campo `Estados` procede de `fecha_estado_secciones_antologia`; puntuacion y resena se consultan y escriben exclusivamente mediante `/coleccion/antologias/{id_antologia}/secciones/{id_libro}`.
 
-El editor administrativo `PATCH /antologias/secciones` es parcial y solo exige `AntologiaId`, `LibroId` y al menos un campo editable. En JSON acepta `PaginaInicio`, `PaginaFinal`, `Nombre`, `Autores`, `Idiomas`, `Wiki`, `Titulo`, `Html`, `Styles`, `ThreadId`, `Sinopsis`, `ISBN`, `Paginas`, `FechaPublicacion` y `Estilos`. Las secciones históricas con páginas desconocidas devuelven `PaginaInicio` y `PaginaFinal` como `null`; para fijarlas se envían ambos valores juntos. Para portada se envia `multipart/form-data` con el JSON serializado en `payload` (o `data`) y el archivo en `image`. No acepta cambios de estado, puntuacion, resena, universo/saga ni traslado a otra antologia.
+La edición de una sección (acción `editar_seccion` del plugin, `POST /admin/v1/catalogo/secciones/{id}`) es parcial y exige al menos un campo editable. Acepta `PaginaInicio`, `PaginaFinal`, `Nombre`, `Autores`, `Idiomas`, `Wiki`, `Titulo`, `Html`, `Styles`, `ThreadId`, `Sinopsis`, `ISBN`, `Paginas`, `FechaPublicacion`, `Estilos` e `Imagen` (la portada, en el mismo JSON). Las secciones históricas con páginas desconocidas devuelven `PaginaInicio` y `PaginaFinal` como `null`; para fijarlas se envían ambos valores juntos. No acepta cambios de estado, puntuacion, resena, universo/saga ni traslado a otra antologia.
 
-Body seccion:
+Cuerpo de `editar_seccion` (sección `25`):
 
 ```json
 {
-  "AntologiaId": 1,
-  "LibroId": 25,
   "PaginaInicio": 10,
   "PaginaFinal": 80
 }
@@ -1160,7 +1042,7 @@ Body saga:
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/personajes/estados/catalogo` | JWT | Lista catalogo de estados de personaje. |
-| POST | `/personajes` | Owner | Crea personaje, lo asocia a un libro y asigna su nombre/apodo contextual. |
+| POST | `/personajes` | Owner | Crea personaje, lo asocia a un libro y asigna su nombre/apodo contextual. Con `IdCliente`, un reintento devuelve `200` con el personaje ya creado. |
 | GET | `/personajes/{id_personaje}?libroId={id_libro}` | JWT | Detalle de personaje en contexto opcional de libro. |
 | GET | `/personajes/{id_personaje}/apodos?includeDeleted=false` | JWT | Lista apodos conocidos del personaje. |
 | POST | `/personajes/{id_personaje}/apodos` | Owner | Crea/reutiliza un apodo conocido sin cambiar el nombre contextual visible. |
@@ -1254,6 +1136,7 @@ Respuesta de personaje:
 Notas:
 
 - `Nombre` no es un campo editable global del personaje; es el apodo principal resuelto para el libro/saga.
+- Si el personaje no tiene nombre principal para el orden del libro (`personaje_nombre` con `orden <=` el del contexto), `Nombre` es el de su libro de creacion: el nombre principal vigente en el orden de `saga_personajes.id_libro_origen` (o el de menor orden si todos son posteriores), despues el apodo de ese libro y, por ultimo, cualquier apodo no borrado. Es solo resolucion de lectura y aplica a listas, fichas, relaciones, participantes y `/libros/{id_libro}/personajes/orden`.
 - `Sexo` se devuelve como valor numerico de BD (`0`, `1`, `2`); el backend acepta booleano o numero al crear por compatibilidad.
 - En `GET /libros/{id_libro}`, `Personajes` viene ordenado por `OrdenGrupo` y `Nombre`. Los grupos posibles son `Principales`, `Recurrentes`, `Secundarios`, `Desaparecidos`, `Muertos` y `Antiguos`.
 - `Apariciones` cuenta capitulos/interludios del libro actual donde el personaje aparece; `Nombramientos` cuenta los casos marcados como nombrado.
@@ -1263,6 +1146,7 @@ Notas:
 - `Organizaciones`, `Eventos` y `Citas` contienen relaciones resumidas visibles en el contexto del libro abierto.
 - `EsSagaPrevia` indica que el personaje procede de una saga previa visible para el libro abierto.
 - `POST /personajes` exige al menos una entrada valida. Usar `Entradas: [{ Nombre, Descripcion }]`; como compatibilidad, `Descripcion` crea una unica entrada inicial con nombre igual a `Apodo`.
+- `POST /personajes` acepta `IdCliente` opcional (UUID). El cliente lo genera al primer intento de un alta y lo conserva en sus reintentos hasta que la confirma o abandona el formulario: si la API ya creo un personaje con ese `IdCliente` en ese libro, responde `200` con ese personaje en lugar de crear otro (`201` solo cuando crea). El mismo `IdCliente` en otro libro devuelve `409 character_client_request_conflict`, y uno que no es UUID, `400 invalid_client_request_id` (`field: IdCliente`). Dos personajes distintos pueden llamarse igual en un libro o saga: la API no rechaza nombres repetidos; avisar antes de crear uno es cosa del cliente. Sin la tabla `personaje_altas_cliente` en la base, el alta funciona sin esta proteccion.
 - Cada entrada debe tener `Nombre` entre 2 y 100 caracteres y `Descripcion` de minimo 15 caracteres. Si se manda una lista, todas las entradas deben ser validas.
 - Esta regla de entradas aplica tambien en `/entradas` para personajes, localizaciones, organizaciones, conceptos, eventos y citas.
 - `Apodo` debe tener entre 2 y 100 caracteres.
@@ -1346,6 +1230,7 @@ Notas:
 - Si el libro es autoconclusivo, el backend crea la relacion en `libro_localizaciones`.
 - `EstadoId` es opcional y debe existir en `/estado_localizacion/catalogo`.
 - La respuesta tiene el formato `{ Id, Nombre, Id_Estado, Estado, Entradas }`.
+- `Id_Estado` y `Estado` son el estado vigente en el libro: en una saga, el de `localizacion_estados` con origen en ese libro o, si no tiene, en el origen visible anterior mas cercano; en un libro sin saga, el de ese libro. `Estado` es el nombre del catalogo `/estado_localizacion/catalogo` para `Id_Estado` (o `Desconocido` si no hay estado). Las listas de `GET /libros/{id_libro}` y las respuestas de `POST /localizaciones` y `PATCH /localizaciones/{id}` con `LibroId` usan la misma regla. `Id`, `Id_Estado` e `Id_Libro_Origen` son enteros, igual que `Id` en `GET /estado_localizacion/catalogo`.
 
 ## Conceptos
 
@@ -1411,7 +1296,8 @@ Notas:
 - Si el libro es autoconclusivo, el backend crea la relacion en `libro_organizaciones`.
 - La respuesta tiene el formato `{ Id, Nombre, Entradas, Personajes, Localizaciones }`.
 - Las relaciones de organizacion con personajes/localizaciones tienen descripcion y origen propios; se gestionan desde los subrecursos `/personajes` y `/localizaciones`.
-- `GET` de relaciones acepta `?libroId={id_libro}` para filtrar por contexto de saga.
+- `GET` de relaciones acepta `?libroId={id_libro}` para filtrar por contexto de saga: una fila se devuelve si el orden de su `Origen` no supera el del libro y si el personaje o la localizacion ya existe en ese libro (creado en el o antes). Los ids `Personajes` y `Localizaciones` de cada organizacion siguen el mismo filtro.
+- Cada fila de relacion incluye `Nombre`: el nombre del personaje resuelto en el libro de `libroId` (o, en las respuestas de alta y edicion, en el libro de `Origen`) o el nombre de la localizacion. Permite pintar la fila sin buscarla en las listas del libro.
 - `Descripcion` de relaciones debe tener minimo 15 caracteres.
 
 Body relacion con personaje:
@@ -1464,6 +1350,7 @@ Notas:
 - Si el libro pertenece a una saga o seccion de saga, el backend crea la relacion en `saga_eventos` con `id_libro_origen = LibroId`.
 - Si el libro es autoconclusivo, el backend crea la relacion en `libro_eventos`.
 - `Personajes` es opcional y crea filas en `evento_personajes`; esa tabla no guarda descripcion/origen propio.
+- En `GET /libros/{id_libro}`, `Personajes` de cada evento solo incluye los personajes ya creados en ese libro o antes. `PATCH /eventos/{id_evento}` con `LibroId` conserva los participantes ocultos en ese libro aunque no vengan en la lista.
 - La respuesta tiene el formato `{ Id, Nombre, Id_Localizacion, Entradas, Personajes }`.
 
 ## Citas
@@ -1526,7 +1413,8 @@ Notas:
 
 - Una escena valida requiere `Nombre` minimo 3, `Descripcion` minimo 15, localizacion existente y al menos un personaje asignado. Un personaje con `Nombrado = true` cumple el requisito; una lista vacia no.
 - `GET /libros/{id_libro}` mantiene `Escenas[].Personajes` como lista de ids por compatibilidad y anade `Escenas[].PersonajesDetalle` como `{ Id, Nombrado }`. `GET /escenas/{id_escena}` devuelve `Personajes` como `{ Id, Nombrado }`.
-- Los endpoints de escenas no recalculan ni devuelven el orden de personajes del libro. Para refrescar ese orden, usar `GET /libros/{id_libro}/personajes/orden`, que devuelve `[{ Id, Nombre }]`.
+- `Personajes` y `PersonajesDetalle` solo incluyen los personajes ya creados en el libro de la escena o antes; `PUT` conserva los ocultos aunque no vengan en el cuerpo.
+- Los endpoints de escenas no recalculan ni devuelven el orden de personajes del libro. Para refrescar ese orden, usar `GET /libros/{id_libro}/personajes/orden`, que devuelve `[{ Id, Nombre, Grupo, OrdenGrupo }]` con el mismo grupo que `GET /libros/{id_libro}`.
 
 ## Capitulos, partes e interludios
 
@@ -1603,17 +1491,11 @@ Respuesta: `{ Id, Id_Interludio, Nombre, Orden, Pagina, EsInterludio, Escenas }`
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/estado_localizacion/catalogo` | JWT | Lista catalogo de estados de localizacion. |
-| POST | `/estado_localizacion/catalogo` | Admin | Crea estado catalogo. |
-| PATCH | `/estado_localizacion/catalogo` | Admin | Actualiza estado catalogo. |
 | GET | `/estado_localizacion/localizacion/{id_localizacion}` | JWT | Lista estados de una localizacion. |
 | POST | `/estado_localizacion/localizacion` | Owner | Asocia estado a localizacion. |
 | DELETE | `/estado_localizacion/localizacion/{id_relacion}` | Owner | Elimina relacion. |
 
-Body catalogo:
-
-```json
-{ "Id": 1, "Nombre": "Visitada" }
-```
+El catálogo de estados de localización se edita desde el plugin de la administración (`crear` en `estados-localizacion` y `editar` con `tipo=estado-localizacion`, `{ "Nombre": "Visitada" }`).
 
 Body relacion:
 
@@ -1654,6 +1536,5 @@ Alta (`POST`):
 | GET | `/image/get/cover/{name}` | Publico | Devuelve portada o fallback. |
 | GET | `/image/get/photo/{name}` | Publico | Devuelve foto o fallback. |
 | POST | `/image/set/cover/{name}` | Owner | Sube portada personal en campo `image`; normaliza a PNG max 600x900 y el nombre debe usar prefijo `b_<id_usuario>_` o `a_<id_usuario>_`. Rechaza nombres referenciados por libros o antologias canonicos. |
-| POST | `/image/set/photo` | JWT | Sube avatar en campo `image`; la API genera `u_<id_usuario>.png`, borra avatares anteriores y normaliza a PNG max 256x256. |
 
 Los uploads usan `multipart/form-data`.

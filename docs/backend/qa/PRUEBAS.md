@@ -8,8 +8,8 @@ Esta es la guia canonica para elegir y ejecutar verificaciones del backend. La r
 |---|---|---|
 | Unitario y contrato Python | Guards, permisos, controladores, configuracion, documentacion y registro de rutas | `.\.venv\Scripts\python.exe -m unittest discover -s tests` |
 | OpenAPI | Sintaxis y referencias del contrato publico | `npm run lint:openapi` |
-| Firebase | Reglas Firestore y RTDB contra emuladores | `npm run test:firebase-rules` |
-| SQL/realtime | Dataset y aliases, rollback, outboxes y concurrencia de claims | Con variables QA cargadas y `RUN_SQL_INTEGRATION=1`: `.\.venv\Scripts\python.exe -m unittest tests.test_sql_realtime_integration` |
+| Firebase | Las reglas Firestore y RTDB, cerradas del todo, contra emuladores | `npm run test:firebase-rules` |
+| SQL | Dataset y aliases, rollback y transacciones de catálogo, colección y clubes | Con variables QA cargadas y `RUN_SQL_INTEGRATION=1`: `.\.venv\Scripts\python.exe -m unittest tests.test_sql_realtime_integration` |
 | Provision y smoke QA | Reconstruccion, identidad del entorno, runtime config, login, reset, perfiles y fixtures publicados | El primer `qa/start.ps1` diario reconstruye `libros_qa`; para forzarlo, `qa/setup.ps1 -ResetDatabase`, y despues `scripts/qa-smoke.ps1` con secretos del entorno QA |
 | Front E2E | Recorridos Chromium y Firefox sobre perfiles deterministas | Pertenece al repositorio del front; contrato en `PLAYWRIGHT_FRONT.md` |
 
@@ -23,16 +23,14 @@ GitHub Actions reproduce los niveles de backend en `.github/workflows/qa.yml`. L
 | Logica Python aislada | Tests dirigidos del modulo y suite Python completa |
 | Ruta o contrato HTTP | Suite Python, OpenAPI lint y revision conjunta de OpenAPI, `api/ENDPOINTS.md` y `api/RUTAS_RETIRADAS.md` |
 | Firebase, Firestore o RTDB | Suite Python y emuladores Firebase |
-| NATS, gateway, workers u outboxes | Suite Python e integracion SQL/realtime |
+| Lector del feed o puntos únicos hacia la plataforma | Suite Python y `scripts/qa-plataforma-smoke.py` contra la plataforma de QA |
 | Esquema, reset, fixtures o perfiles QA | Suite Python, provision/reset repetido, integracion SQL/realtime y restauracion final a `baseline` |
 | Seguridad, autenticacion, permisos, despliegue, CI o cambio transversal | Todos los niveles de backend aplicables y workflow manual completo contra QA |
 | Contrato consumido por el front | Lo anterior y, cuando exista la campana, Playwright en Chromium y Firefox |
 
 Un cambio se considera grande si afecta varias capas o dominios, cambia un contrato publico, modifica seguridad o persistencia compartida, altera infraestructura o puede contaminar datos/eventos. Si hay duda razonable, se trata como grande.
 
-Para investigar en el host un posible cruce de buses o relay duplicado, cargar `qa/.env` mediante `Import-QaEnvironment` y ejecutar `.\.venv\Scripts\python.exe scripts/qa-realtime-routing-probe.py`. La salida valida numero de IDs, frames QA y coincidencias en produccion; la sonda adquiere lease y restaura `baseline` incluso al fallar.
-
-Antes de contar una campana Playwright, `/verify` debe devolver `SourceDirty: false`; `ReleaseId` debe ser un SHA Git de 40 caracteres y coincidir con `Componentes.realtimeGateway.ReleaseId`. El workflow debe registrar esos valores, nunca inferir la version por la hora de despliegue.
+Antes de contar una campana Playwright, `/verify` debe devolver `SourceDirty: false`; `ReleaseId` debe ser un SHA Git de 40 caracteres. El workflow debe registrar esos valores, nunca inferir la version por la hora de despliegue.
 
 ## Reglas de seguridad
 

@@ -1,5 +1,7 @@
 # Secciones de antología: integración del front
 
+> **Desde la adhesión a Yosiftware (rama `adhesion/api-identidad`, 2026-10-24):** las rutas de administración que cita esta guía (`/catalogo/admin/*`, `PATCH /peticiones/catalogo/{id}/resolver`, `POST` y `PATCH /antologias/secciones`) ya no están en la API pública: son acciones del plugin de la administración de la plataforma, por la propia máquina. La web retira su página de administración. Equivalencias: [ENDPOINTS.md](ENDPOINTS.md#plugin-de-la-administración) y [RUTAS_RETIRADAS.md](RUTAS_RETIRADAS.md).
+
 ## Estado de entrega — 2026-09-05
 
 **Publicado y verificado en QA.** El front confirmó que las secciones ya no aparecen en el catálogo general. La navegación contextual de antologías todavía no existe en la APK, por lo que se mantiene como trabajo del cliente; el backend la cubre mediante integración SQL. El reset QA se corrigió para sanear también el snapshot histórico: tras restaurar `baseline` permanecen cero asociaciones inválidas. La release final `5a75430427d1eca376cb2d3f1eda970274491525` está saludable, con `SourceDirty=false` y sin lease. Producción no se ha modificado.
