@@ -24,6 +24,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
+import { findNarrativeEntityName } from '../../../../shared/narrative-entity-names';
 import { htmlToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -553,7 +554,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     getCharacterName(characterId: number): string {
-        return this.book.Personajes.find(character => character.Id === characterId)?.Nombre || `Personaje ${characterId}`;
+        return findNarrativeEntityName(this.book.Personajes, characterId) ?? `Personaje ${characterId}`;
     }
 
     getSceneCharacters(sceneGroup: any): FormArray {

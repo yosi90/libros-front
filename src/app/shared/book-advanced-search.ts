@@ -2,6 +2,7 @@ import { Book } from '../interfaces/book';
 import { Character } from '../interfaces/character';
 import { SceneCharacterDetail } from '../interfaces/scene';
 import { rtfToPlainText } from './rtf/rtf-text';
+import { findNarrativeEntityName } from './narrative-entity-names';
 import { foldText } from './text';
 
 export type AdvancedSearchCategory = 'chapters' | 'characters' | 'organizations' | 'events' | 'locations' | 'concepts' | 'quotes';
@@ -484,7 +485,7 @@ function relationNames(items: Array<number | { Id?: number; Nombre?: string }> |
 function getSceneCharacterNames(book: Book, characters: Array<number | SceneCharacterDetail> | undefined): string[] {
     return (characters ?? [])
         .map(character => typeof character === 'number' ? character : character.Id)
-        .map(characterId => book.Personajes?.find(character => character.Id === characterId)?.Nombre ?? '')
+        .map(characterId => findNarrativeEntityName(book.Personajes, characterId) ?? '')
         .filter(Boolean);
 }
 
@@ -492,12 +493,12 @@ function getQuoteCharacterName(book: Book, item: any): string {
     return item.Personaje?.Nombre
         ?? item.PersonajeNombre
         ?? item.NombrePersonaje
-        ?? book.Personajes?.find(character => character.Id === (item.PersonajeId ?? item.Id_Personaje))?.Nombre
+        ?? findNarrativeEntityName(book.Personajes, item.PersonajeId ?? item.Id_Personaje)
         ?? '';
 }
 
 function getLocationName(book: Book, locationId: number | undefined): string {
-    return book.Localizaciones?.find(location => location.Id === locationId)?.Nombre ?? '';
+    return findNarrativeEntityName(book.Localizaciones, locationId) ?? '';
 }
 
 function field(label: string, rawValue: string): IndexedField {

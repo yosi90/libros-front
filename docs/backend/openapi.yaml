@@ -5218,6 +5218,9 @@ components:
           type: integer
         PersonajeId:
           type: integer
+        Nombre:
+          type: string
+          description: Nombre del personaje resuelto en el libro de `libroId` (en altas y ediciones, en el libro de `Origen`).
         Descripcion:
           type: string
         Origen:
@@ -5233,6 +5236,9 @@ components:
           type: integer
         LocalizacionId:
           type: integer
+        Nombre:
+          type: string
+          description: Nombre de la localizacion.
         Descripcion:
           type: string
         Origen:

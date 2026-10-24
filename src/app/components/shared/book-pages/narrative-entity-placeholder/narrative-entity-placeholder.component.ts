@@ -28,6 +28,7 @@ import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
+import { narrativeEntityDisplayName } from '../../../../shared/narrative-entity-names';
 import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -1350,19 +1351,22 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         });
     }
 
-    getCharacterName(characterId: number): string {
-        return this.book.Personajes.find(character => character.Id === characterId)?.Nombre ?? `Personaje ${characterId}`;
+    getCharacterName(characterId: number, rowName?: string | null): string {
+        return narrativeEntityDisplayName(this.book.Personajes, characterId, rowName, `Personaje ${characterId}`);
     }
 
-    getLocationName(locationId: number): string {
-        return this.book.Localizaciones.find(location => location.Id === locationId)?.Nombre ?? `Localización ${locationId}`;
+    getLocationName(locationId: number, rowName?: string | null): string {
+        return narrativeEntityDisplayName(this.book.Localizaciones, locationId, rowName, `Localización ${locationId}`);
+    }
+
+    getOrganizationCharacterRelationName(relation: OrganizationCharacterRelation): string {
+        return this.getCharacterName(relation.PersonajeId, relation.Nombre);
     }
 
     getOrganizationLocationRelationName(relation: OrganizationLocationRelation): string {
         return relation.Localizacion?.Nombre
             ?? relation.LocalizacionNombre
-            ?? relation.Nombre
-            ?? this.getLocationName(relation.LocalizacionId);
+            ?? this.getLocationName(relation.LocalizacionId, relation.Nombre);
     }
 
     private loadSelectedItemDetails(showLoader = true): void {
@@ -1548,10 +1552,12 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     private mergeLocationStates(currentStates: LocationStatus[], nextStates: LocationStatus[]): LocationStatus[] {
+        // Los ids se comparan como números: hasta el 24/10/2026 la API los devolvía como texto.
         const statesById = new Map<number, LocationStatus>();
         [...currentStates, ...nextStates].forEach(state => {
-            if (state?.Id && state?.Nombre)
-                statesById.set(state.Id, state);
+            const id = Number(state?.Id);
+            if (id && state?.Nombre)
+                statesById.set(id, { ...state, Id: id });
         });
         return [...statesById.values()].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
     }
@@ -1657,7 +1663,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     private populateEditForm(item: any): void {
         const quoteCharacterId = this.getQuoteCharacterId(item);
         this.editName.setValue(item.Nombre ?? '');
-        this.editEstadoId.setValue(item.Id_Estado ?? null);
+        this.editEstadoId.setValue(item.Id_Estado ? Number(item.Id_Estado) : null);
         this.editLocationId.setValue(item.Id_Localizacion ?? null);
         this.editPage.setValue(item.Pagina ?? null);
         this.editCharacterId.setValue(quoteCharacterId);
@@ -1708,7 +1714,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             ...characterRelations.map(relation => ({
                 kind: 'character' as const,
                 id: relation.PersonajeId,
-                name: this.getCharacterName(relation.PersonajeId),
+                name: this.getOrganizationCharacterRelationName(relation),
                 description: new FormControl(relation.Descripcion ?? '')
             })),
             ...locationRelations.map(relation => ({
@@ -1727,7 +1733,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 return {
                     relationId: relation.Id,
                     id: characterId,
-                    name: relation.Relativo?.Nombre ?? this.getCharacterName(characterId),
+                    name: relation.Relativo?.Nombre ?? this.getCharacterName(characterId, relation.Nombre),
                     relation: new FormControl(relation.Parentesco ?? '', [Validators.required, Validators.minLength(2), Validators.maxLength(100)])
                 };
             })
@@ -2020,7 +2026,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     private getItemLocationStatusId(item: any): number | null {
         if (item.Id_Estado ?? item.EstadoId)
-            return item.Id_Estado ?? item.EstadoId;
+            return Number(item.Id_Estado ?? item.EstadoId);
         const statusName = item.Estado;
         if (statusName) {
             const status = this.locationStates.find(state => foldText(state.Nombre).trim() === foldText(statusName).trim());

@@ -209,6 +209,37 @@ describe('NarrativeEntityPlaceholderComponent', () => {
             .toBe('Descripción del evento');
     });
 
+    it('names organization participants from the book list or, if missing, from the API row', () => {
+        component.book = { ...component.book, Personajes: [{ Id: 331, Nombre: 'Dalinar' } as any] };
+        const relation = (PersonajeId: number, Nombre?: string) =>
+            ({ OrganizacionId: 24, PersonajeId, Nombre, Descripcion: 'Alto príncipe', Origen: 3, Orden: 1 });
+
+        expect(component.getOrganizationCharacterRelationName(relation(331, 'Otro'))).toBe('Dalinar');
+        expect(component.getOrganizationCharacterRelationName(relation(605, 'Aladar'))).toBe('Aladar');
+        expect(component.getOrganizationCharacterRelationName(relation(605))).toBe('Personaje 605');
+    });
+
+    it('finds organization locations even when the book list carries text ids', () => {
+        component.book = { ...component.book, Localizaciones: [{ Id: '64', Nombre: 'Alezkar' } as any] };
+        const relation = { OrganizacionId: 24, LocalizacionId: 64, Descripcion: 'Sede', Origen: 3, Orden: 1 };
+
+        expect(component.getOrganizationLocationRelationName(relation)).toBe('Alezkar');
+        expect(component.getOrganizationLocationRelationName({ ...relation, LocalizacionId: 70 })).toBe('Localización 70');
+        expect(component.getOrganizationLocationRelationName({ ...relation, LocalizacionId: 70, Nombre: 'Kharbranth' }))
+            .toBe('Kharbranth');
+    });
+
+    it('selects the location state of the list row whatever the id type', () => {
+        const merged = (component as any).mergeLocationStates([], [
+            { Id: '1', Nombre: 'Buen estado' },
+            { Id: 2, Nombre: 'En ruinas' }
+        ]);
+
+        expect(merged.map((state: any) => state.Id)).toEqual([1, 2]);
+        expect((component as any).getItemLocationStatusId({ Id_Estado: '1', Estado: 'Buen estado' })).toBe(1);
+        expect((component as any).getItemLocationStatusId({ Id_Estado: 1, Estado: 'Buen estado' })).toBe(1);
+    });
+
     it('does not add another entry until every existing entry is valid', () => {
         const notice = spyOn((component as any).snackBar, 'openSnackBar');
         component.routePath = 'event';

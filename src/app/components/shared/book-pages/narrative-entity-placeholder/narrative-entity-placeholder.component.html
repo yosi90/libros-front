@@ -713,7 +713,7 @@
                     <article>
                       @if (editingOrganizationCharacterId !== relation.PersonajeId) {
                         <div class="assignment-chip assignment-chip--relation">
-                          <span>{{ getCharacterName(relation.PersonajeId) }}</span>
+                          <span>{{ getOrganizationCharacterRelationName(relation) }}</span>
                           <small>{{ relation.Descripcion || 'Sin descripción.' }}</small>
                         </div>
                         <div class="relation-actions">
@@ -725,7 +725,7 @@
                           </button>
                         </div>
                       } @else {
-                        <strong>{{ getCharacterName(relation.PersonajeId) }}</strong>
+                        <strong>{{ getOrganizationCharacterRelationName(relation) }}</strong>
                         <input class="relation-inline-input" type="text" [formControl]="relationEditDescription"
                           maxlength="250" placeholder="Descripción" aria-label="Descripción">
                         <div class="relation-actions">
