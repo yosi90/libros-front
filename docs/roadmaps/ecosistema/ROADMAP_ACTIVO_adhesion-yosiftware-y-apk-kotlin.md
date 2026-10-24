@@ -182,8 +182,9 @@ Cada hito lleva sus casillas. Se marcan durante la sesión, no al cerrar.
 - **Peligros si se mantiene como estaba:** no aplica (es nuevo).
 - **Peligros del cambio:** el contrato de la API cambia durante las fases 2 a 4. Los modelos se generan o revisan contra el OpenAPI de cada momento.
 
-- [ ] Cliente, errores, modelos y caché de portadas.
-- [ ] Pruebas JVM del cliente (401 y reintento, errores y respuesta tardía descartada).
+- [x] Cliente, errores, modelos y caché de portadas.
+- [x] Pruebas JVM del cliente (401 y reintento, errores y respuesta tardía descartada).
+- [x] Unido en `main` (2026-10-24): `datos/` con `ClienteLibros` (token de la librería, un reintento tras 401, sin `Origin`), `ClientePlataforma` sobre `conTokenDePlataforma`, `ErrorDeLibros` con las frases de `api-error-message.ts` de lo que se queda, modelos y repositorios (145 llamadas comprobadas contra el OpenAPI), `AmbitoDeCuenta` y `Generacion` por entorno y cuenta, portadas con Coil en disco y estado de la red. JSON con `org.json`, porque la API mezcla formas en un mismo campo. 95 pruebas JVM con MockWebServer. Quedan 12 `TODO(contrato)`, diferencias de forma entre la web y el OpenAPI que la lectura acepta, para pedírselas al backend al retirar lo social, y probar en el móvil `ClientePlataforma` y el estado real de la red cuando la API acepte los tokens de la plataforma.
 
 ### Hito 8. APK Kotlin: Biblioteca, Catálogo y Estadísticas
 
