@@ -134,7 +134,17 @@ Cada hito lleva sus casillas. Se marcan durante la sesión, no al cerrar.
 - **Peligros si se mantiene como estaba:** el riesgo es clonar «de memoria» y que el aspecto se desvíe.
 - **Peligros del cambio:** `minSdk` sube de 24 a 26 (lo exige la librería), así que los móviles con Android 7 se quedan fuera. Las capturas tienen que tomarse antes del corte, con la APK de producción y la cuenta del propietario (después, la APK de Capacitor ya no entra).
 
-- [ ] Capturas de referencia (CDP con `scripts/qa/native-webview-smoke.mjs` o ADB) archivadas fuera de Git o en `docs/referencias/apk-capacitor/`.
+- [x] Capturas de referencia (2026-10-24). Hay 441 en `C:\Users\Yosi\Desktop\Memoria bibliográfica\referencias-apk-capacitor\`, fuera de Git (171 MB), con su `INDICE.md` y los scripts en `_scripts/`. Cómo se hicieron:
+  - APK QA compilada desde `main` (`5dc3120`, el mismo código que producción), con la cuenta `user.member-a` y en solo lectura: una guarda bloqueó las escrituras.
+  - Cada pantalla en claro y en oscuro, en el Honor Magic V3 desplegado (718 dp, con rail) y en el Xiaomi 15 Ultra (384 dp, con barra inferior).
+  - Por ADB, sin emuladores.
+
+  Huecos:
+  - [ ] Honor plegado: no se puede plegar por ADB. Los scripts lo admiten (`CAP_FOLDED=1`) cuando el propietario lo pliegue.
+  - [ ] Contenido real: el dataset de QA no da, para member-a, antologías con secciones en la colección, obras con varias ediciones ni capítulos, escenas o entidades con contenido. Pendiente de decidir si se completa con capturas de solo lectura de la APK de producción del propietario.
+  - Comportamientos de la APK actual vistos al capturar, a decidir si se clonan:
+    - «Cuenta y seguridad» no se puede desplazar (`overflow: hidden` en `app-user-router`); esa pantalla se retira con la adhesión;
+    - el modal «Pedir nuevo libro» sale oscuro también en tema claro.
 - [x] Proyecto, flavors, firma, iconos (punto rojo en `qa`) y `assembleQaDebug` y `assembleProduccionDebug` en verde.
 - [x] Tema, tipografía e iconos; primitivas Compose equivalentes a `.m-button`, `.m-card`, `.m-chip`, `.m-sheet`, `.m-dialog`, `.m-field` y `.m-list-item`.
 - [x] Esqueleto de navegación con pantallas vacías, Atrás por pantalla y overlay, e `imePadding`.
