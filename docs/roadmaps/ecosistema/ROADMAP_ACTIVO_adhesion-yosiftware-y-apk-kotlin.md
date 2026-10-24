@@ -273,13 +273,13 @@ Cada hito lleva sus casillas. Se marcan durante la sesión, no al cerrar.
 
 - [ ] Push central y avisos.
 - [ ] Chat con la interfaz actual sobre la plataforma.
-- [ ] App Links y aviso de versión nueva.
+- [ ] App Links y aviso de versión nueva. Desde el kit 1.57, la versión disponible la da la plataforma (`GET /v1/webs`, `app.version`, con su enlace de instalación), no GitHub Releases como `AndroidReleaseUpdateService` de la APK actual.
 
 ### Hito 13. APK Kotlin: plegables, QA y publicación
 
 - **Descripción:**
   - La lista «App Android» del kit entera.
-  - Pruebas en los emuladores de plegable (de libro y de concha), en el redimensionable y en el Honor Magic V3.
+  - Pruebas en el Honor Magic V3 (plegado y desplegado) y en el Xiaomi 15 Ultra, por ADB. **Sin emuladores**: sobrecargan el servidor (decisión del propietario, 2026-10-24).
   - QA del propietario con el flavor `qa`.
   - Publicación con el mismo paquete y la misma firma, encima de la de Capacitor.
   - La ficha de la app: icono de 512 × 512 e imagen de 1600 × 900.
@@ -292,7 +292,10 @@ Cada hito lleva sus casillas. Se marcan durante la sesión, no al cerrar.
 
 - [ ] Lista «App Android» con su evidencia.
 - [ ] Plegables y QA del propietario.
-- [ ] Publicada, con su ficha y su novedad.
+- [ ] Publicada, con su ficha y su novedad. Desde el kit 1.57 (petición `Libros API/docs/peticiones/publicar-tu-apk-con-tu-credencial-kit-1-57.md`):
+  - la primera versión la revisa el propietario, que activa las actualizaciones remotas de `libros`;
+  - después, la credencial de publicación se copia, sin abrirla, de `C:\Users\Yosi\yosiftware-cuentas\produccion\.runtime\publicacion-apk\libros.token` a `android-nativa/.runtime/publicacion-apk-produccion.token` (ignorada por Git);
+  - cada versión sube con `python ecosistema-kit/herramientas/publicar_apk.py --entorno produccion --credencial android-nativa/.runtime/publicacion-apk-produccion.token <APK firmada>`, con el `versionCode` subido y probada en un móvil. Nada de copiar la APK a mano.
 
 ### Hito 14. Auditoría completa de duplicados de la APK Kotlin (fase 9)
 
