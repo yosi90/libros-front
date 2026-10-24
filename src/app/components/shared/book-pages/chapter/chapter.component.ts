@@ -32,16 +32,12 @@ import { MobileChapterViewComponent } from '../../../mobile/book/mobile-chapter-
 import { WebChapterViewComponent } from '../../../web/book/web-chapter-view/web-chapter-view.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 import { foldText } from '../../../../shared/text';
+import { CharacterGroup, groupCharactersByGroup } from '../../../../shared/character-groups';
 
 interface ChapterCharacterAssignment {
     Id: number;
     Nombre: string;
     Nombrado: boolean;
-}
-
-interface ChapterCharacterGroup {
-    label: string;
-    characters: Character[];
 }
 
 interface ScenePersistOperation {
@@ -523,25 +519,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         });
     }
 
-    getCharacterGroups(): ChapterCharacterGroup[] {
-        const groups = new Map<string, Character[]>();
-        const filter = foldText(this.characterFilter.value ?? '').trim();
-        this.getSortedCharacters()
-            .filter(character => !filter || foldText(character.Nombre).trim().includes(filter))
-            .forEach(character => {
-            const label = character.Grupo || 'Sin grupo';
-            groups.set(label, [...(groups.get(label) || []), character]);
-        });
-
-        return [...groups.entries()]
-            .map(([label, characters]) => ({ label, characters }))
-            .sort((a, b) => {
-                const orderA = Math.min(...a.characters.map(character => character.OrdenGrupo ?? Number.MAX_SAFE_INTEGER));
-                const orderB = Math.min(...b.characters.map(character => character.OrdenGrupo ?? Number.MAX_SAFE_INTEGER));
-                if (orderA !== orderB)
-                    return orderA - orderB;
-                return a.label.localeCompare(b.label);
-        });
+    getCharacterGroups(): CharacterGroup[] {
+        return groupCharactersByGroup(this.getSortedCharacters(), this.characterFilter.value ?? '');
     }
 
     getCharacterDragData(character: Character): ChapterCharacterAssignment {

@@ -35,11 +35,7 @@ import { MobileNarrativeEntityViewComponent } from '../../../mobile/book/mobile-
 import { WebNarrativeEntityViewComponent } from '../../../web/book/web-narrative-entity-view/web-narrative-entity-view.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 import { foldText } from '../../../../shared/text';
-
-interface NarrativeCharacterGroup {
-    label: string;
-    characters: Character[];
-}
+import { CharacterGroup, characterGroupRank, groupCharactersByGroup } from '../../../../shared/character-groups';
 
 interface CreateEntryDraft {
     id?: number;
@@ -410,25 +406,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         return this.getCharacters().filter(character => this.isCurrentBookCharacter(character));
     }
 
-    getCharacterGroups(): NarrativeCharacterGroup[] {
-        const groups = new Map<string, Character[]>();
-        const filter = foldText(this.characterFilter.value ?? '').trim();
-        this.getCharacters()
-            .filter(character => !filter || foldText(character.Nombre).trim().includes(filter))
-            .forEach(character => {
-                const label = character.Grupo || 'Sin grupo';
-                groups.set(label, [...(groups.get(label) ?? []), character]);
-            });
-
-        return [...groups.entries()]
-            .map(([label, characters]) => ({ label, characters }))
-            .sort((a, b) => {
-                const orderA = Math.min(...a.characters.map(character => character.OrdenGrupo ?? Number.MAX_SAFE_INTEGER));
-                const orderB = Math.min(...b.characters.map(character => character.OrdenGrupo ?? Number.MAX_SAFE_INTEGER));
-                if (orderA !== orderB)
-                    return orderA - orderB;
-                return a.label.localeCompare(b.label);
-            });
+    getCharacterGroups(): CharacterGroup[] {
+        return groupCharactersByGroup(this.getCharacters(), this.characterFilter.value ?? '');
     }
 
     getLinkedOrganizationCharacterIds(): number[] {
@@ -2240,22 +2219,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         if (character.OrdenGrupo !== undefined && character.OrdenGrupo !== null)
             return character.OrdenGrupo;
 
-        switch (character.Grupo) {
-            case 'Principales':
-                return 1;
-            case 'Recurrentes':
-                return 2;
-            case 'Secundarios':
-                return 3;
-            case 'Desaparecidos':
-                return 4;
-            case 'Muertos':
-                return 5;
-            case 'Antiguos':
-                return 6;
-            default:
-                return Number.MAX_SAFE_INTEGER;
-        }
+        return characterGroupRank(character.Grupo);
     }
 
     private getPreviousBookLabel(item: { OrdenOrigen?: number | null }): string {
