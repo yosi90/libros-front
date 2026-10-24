@@ -10,6 +10,10 @@ import type { Page } from '@playwright/test';
  * La prueba puede cambiar de estado después con `window.__yosiftwareDoble.emitir(estado)`, entregar un evento del
  * tiempo real con `window.__yosiftwareDoble.evento(tipo, datos)` y leer lo guardado en los ajustes en
  * `window.__yosiftwareDoble.ajustes`.
+ *
+ * Los espacios (ESPACIOS.md): `yosiftware.espacios.canal(id, oyente)` registra el canal; la prueba entrega un mensaje
+ * con `window.__yosiftwareDoble.canal(id, mensaje)` y ve los abiertos en `window.__yosiftwareDoble.canalesAbiertos()`.
+ * Las rutas `/v1/espacios/…` se simulan con `page.route`, como las del chat.
  */
 export interface SdkDoubleAccount {
     id: string;
@@ -39,6 +43,7 @@ const oyentesAviso = new Set();
 const oyentesConexion = new Set();
 const oyentesNoLeidos = new Set();
 let ajustes = { version: 0, documento: ${JSON.stringify(options.ajustes ?? {})} };
+const canales = new Map();
 let secuencia = 0;
 const conSesion = () => sdk.estado.tipo === 'con_sesion';
 const sdk = {
@@ -79,6 +84,15 @@ const sdk = {
         alCambiarNoLeidos(oyente) { oyentesNoLeidos.add(oyente); oyente(0); return () => oyentesNoLeidos.delete(oyente); },
         escribiendo() {}
     },
+    espacios: {
+        canal(id, oyente) {
+            const oyentes = canales.get(id) ?? new Set();
+            oyentes.add(oyente);
+            canales.set(id, oyentes);
+            setTimeout(() => oyente({ tipo: 'abierto', espacio: id, presentes: [] }), 0);
+            return { espacio: id, presentes: [], cerrar() { oyentes.delete(oyente); if (!oyentes.size) canales.delete(id); } };
+        }
+    },
     fetch: (entrada, opciones) => fetch(entrada, opciones)
 };
 function emitir(estado) {
@@ -91,7 +105,14 @@ function evento(tipo, datos) {
     oyentesEvento.forEach(oyente => oyente(ev));
 }
 window.yosiftware = sdk;
-window.__yosiftwareDoble = { emitir, evento, ajustes, oyentesDelTiempoReal: () => oyentesEvento.size + oyentesAviso.size };
+function canal(id, mensaje) {
+    (canales.get(id) ?? new Set()).forEach(oyente => oyente({ espacio: id, ...mensaje }));
+}
+window.__yosiftwareDoble = {
+    emitir, evento, canal, ajustes,
+    oyentesDelTiempoReal: () => oyentesEvento.size + oyentesAviso.size,
+    canalesAbiertos: () => [...canales.entries()].filter(([, oyentes]) => oyentes.size).map(([id]) => id)
+};
 if (!customElements.get('yosi-acceso')) customElements.define('yosi-acceso', class extends HTMLElement {
     connectedCallback() { this.pintar(); }
     pintar() {

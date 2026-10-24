@@ -94,6 +94,9 @@ export async function installLocalVisualSession(page: Page, options: { webPresen
         await page.route('**/v1/chat/conversaciones', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ conversaciones: [] }) }));
         await page.route('**/v1/social/resumen', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ solicitudesRecibidas: 0, solicitudesEnviadas: 0, amistades: 0, seguidos: 0, seguidores: 0, bloqueos: 0 }) }));
         await page.route('**/v1/social/amistades?**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ vinculos: [], cursor: null }) }));
+        // Los espacios de los clubes (fase 4): sin espacios ni invitaciones pendientes, sin red.
+        await page.route('**/v1/espacios', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ espacios: [] }) }));
+        await page.route('**/v1/espacios/invitaciones', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ invitaciones: [] }) }));
         // Perfil: datos personales vacíos para que sus apartados carguen sin red.
         const emptyState = { Total: 0, Comprados: 0, Leidos: 0, Pendientes: 0, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0 };
         await page.route('**/peticiones/catalogo/mias**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
