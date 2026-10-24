@@ -12,7 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Book } from '../../../../interfaces/book';
 import { Character, CharacterAlias, CharacterRelation } from '../../../../interfaces/character';
-import { NarrativeEntityCreate } from '../../../../interfaces/api-contract';
+import { ContextOrigin, NarrativeEntityCreate } from '../../../../interfaces/api-contract';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { BookService } from '../../../../services/entities/book.service';
 import { NarrativeEntityService } from '../../../../services/entities/narrative-entity.service';
@@ -393,19 +393,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         return item?.Id ?? item?.Nombre ?? _index;
     }
 
-    getMixedCharacters(): Character[] {
-        return [...this.book.Personajes].sort((a, b) => {
-            const orderA = this.getCharacterBookStateSortOrder(a);
-            const orderB = this.getCharacterBookStateSortOrder(b);
-            if (orderA !== orderB)
-                return orderA - orderB;
-            return a.Nombre.localeCompare(b.Nombre);
-        });
-    }
-
     getMixedItems(): any[] {
         if (this.getListPath() === 'characters')
-            return this.getMixedCharacters();
+            return this.getCharactersByBookStateOrder();
 
         return [...this.getItems()].sort((a, b) => (a.Nombre ?? '').localeCompare(b.Nombre ?? ''));
     }
@@ -638,16 +628,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     getCharacterOriginLabel(character: Character): string {
         if (character.EsLibroActual || character.OrigenContexto === 'actual')
             return 'Libro actual';
-        if (character.OrigenContexto === 'libro_previo')
-            return this.getPreviousBookLabel(character);
-        const order = character.OrdenOrigen !== undefined && character.OrdenOrigen !== null ? `${character.OrdenOrigen}º - ` : '';
-        if (character.EsSagaPrevia || character.OrigenContexto === 'saga_previa')
-            return `${order}Saga previa`;
-        if (character.EsSeccionOrigen)
-            return `${order}Sección de saga`;
-        if (character.OrigenContexto === 'saga_base')
-            return `${order}Saga base`;
-        return `${order}Contexto actual`;
+        return this.getInheritedOriginLabel(character);
     }
 
     getCharacterGroupLabel(character: Character): string {
@@ -2217,6 +2198,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             return this.getCharacterOriginLabel(item);
         if (this.isCurrentItem(item))
             return 'Libro actual';
+        return this.getInheritedOriginLabel(item);
+    }
+
+    /** Etiqueta de lo heredado de libros, sagas o secciones previas; igual para personajes y demás entidades. */
+    private getInheritedOriginLabel(item: ContextOrigin): string {
         if (item.OrigenContexto === 'libro_previo')
             return this.getPreviousBookLabel(item);
         const order = item.OrdenOrigen !== undefined && item.OrdenOrigen !== null ? `${item.OrdenOrigen}º - ` : '';
@@ -2234,6 +2220,16 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             return this.getCharacterOriginSortOrder(item);
         if (this.isCurrentItem(item))
             return Number.NEGATIVE_INFINITY;
+        return this.getInheritedOriginSortOrder(item);
+    }
+
+    private getCharacterOriginSortOrder(character: Character): number {
+        if (this.isCurrentBookCharacter(character))
+            return Number.NEGATIVE_INFINITY;
+        return this.getInheritedOriginSortOrder(character);
+    }
+
+    private getInheritedOriginSortOrder(item: ContextOrigin): number {
         if (item.OrdenOrigen !== undefined && item.OrdenOrigen !== null)
             return Number(item.OrdenOrigen);
         if (item.OrigenContexto === 'libro_previo')
@@ -2243,22 +2239,6 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         if (item.EsSeccionOrigen)
             return 3000;
         if (item.OrigenContexto === 'saga_base')
-            return 4000;
-        return Number.MAX_SAFE_INTEGER;
-    }
-
-    private getCharacterOriginSortOrder(character: Character): number {
-        if (this.isCurrentBookCharacter(character))
-            return Number.NEGATIVE_INFINITY;
-        if (character.OrdenOrigen !== undefined && character.OrdenOrigen !== null)
-            return Number(character.OrdenOrigen);
-        if (character.OrigenContexto === 'libro_previo')
-            return 1000;
-        if (character.EsSagaPrevia || character.OrigenContexto === 'saga_previa')
-            return 2000;
-        if (character.EsSeccionOrigen)
-            return 3000;
-        if (character.OrigenContexto === 'saga_base')
             return 4000;
         return Number.MAX_SAFE_INTEGER;
     }
