@@ -49,6 +49,8 @@ export interface CharacterRelation {
     Id: number;
     Relativo?: CharacterSimple;
     PersonajeRelacionadoId?: number;
+    /** Nombre del personaje relacionado resuelto por la API en el libro consultado. */
+    Nombre?: string;
     Parentesco: string;
     Origen: number;
     Orden: number | null;

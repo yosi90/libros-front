@@ -68,6 +68,7 @@
     tags:
     - Organizaciones
     summary: Lista relaciones de una organizacion con personajes
+    description: Con `libroId` de una saga, solo devuelve las filas cuyo origen no supera el orden del libro y cuyo personaje ya existe en ese libro (creado en el o antes). Cada fila incluye `Nombre` resuelto en ese libro.
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
     - name: libroId
@@ -155,6 +156,7 @@
     tags:
     - Organizaciones
     summary: Lista relaciones de una organizacion con localizaciones
+    description: Con `libroId` de una saga, solo devuelve las filas cuyo origen no supera el orden del libro y cuyo localizacion ya existe en ese libro (creado en el o antes). Cada fila incluye `Nombre` resuelto en ese libro.
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
     - name: libroId

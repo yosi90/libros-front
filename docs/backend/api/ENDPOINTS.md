@@ -70,6 +70,8 @@ Este bloque es el contrato recomendado para las nuevas pantallas del front.
 - Cambiar estado, puntuacion o resena de un libro/antologia lo anade automaticamente a la coleccion personal.
 - Los historicos de estado pueden corregirse por id historico desde `/coleccion/*/estados/{id}`; `DELETE` hace borrado logico con `id_estado = -1`.
 - Las entidades narrativas internas de libros, como capitulos, personajes, escenas, notas, entradas, conceptos, localizaciones, organizaciones, eventos y citas, pertenecen al usuario que las crea mediante `id_usuario_creador`.
+- Los ids de las entidades narrativas de `GET /libros/{id_libro}` (`Id`, `Id_Libro_Origen`, `Id_Localizacion`, `Id_Personaje`, `Id_Estado`) son enteros JSON, como declara OpenAPI. Hasta el 24/10/2026, localizaciones, organizaciones, eventos, conceptos y citas los devolvian como texto (`"64"`); el cliente debe compararlos como numeros.
+- En una saga, una entidad narrativa (personaje, localizacion, organizacion, evento, concepto o cita) solo se ve en el libro en que se creo (`saga_<entidad>.id_libro_origen`) y en los posteriores, contando las sagas previas como las listas de `GET /libros/{id_libro}`. Toda entidad mostrada dentro de otra en el contexto de un libro sigue esa regla: participantes de organizaciones (`/organizaciones/{id}/personajes|localizaciones?libroId=` y los ids embebidos), personajes de eventos, relaciones entre personajes (`?libroId=`) y personajes de escenas. La localizacion global (`Id = 1`) es siempre visible. Al reescribir desde un libro anterior la lista de personajes de una escena (`PUT /escenas/{id}`) o de un evento (`PATCH /eventos/{id}` con `LibroId`), los participantes que aun no existen en ese libro se conservan.
 - Las metricas de `/universos` y `/universos/metricas` son de coleccion privada: no cuentan catalogo completo ni contenido narrativo creado por otros usuarios.
 - Usuarios normales no deben crear/editar catalogo directamente. Deben crear peticiones en `/peticiones/catalogo`.
 - `admin` y `moderador` pueden crear/editar catalogo y resolver peticiones. `moderador` no equivale a admin de cuentas.
@@ -1254,6 +1256,7 @@ Respuesta de personaje:
 Notas:
 
 - `Nombre` no es un campo editable global del personaje; es el apodo principal resuelto para el libro/saga.
+- Si el personaje no tiene nombre principal para el orden del libro (`personaje_nombre` con `orden <=` el del contexto), `Nombre` es el de su libro de creacion: el nombre principal vigente en el orden de `saga_personajes.id_libro_origen` (o el de menor orden si todos son posteriores), despues el apodo de ese libro y, por ultimo, cualquier apodo no borrado. Es solo resolucion de lectura y aplica a listas, fichas, relaciones, participantes y `/libros/{id_libro}/personajes/orden`.
 - `Sexo` se devuelve como valor numerico de BD (`0`, `1`, `2`); el backend acepta booleano o numero al crear por compatibilidad.
 - En `GET /libros/{id_libro}`, `Personajes` viene ordenado por `OrdenGrupo` y `Nombre`. Los grupos posibles son `Principales`, `Recurrentes`, `Secundarios`, `Desaparecidos`, `Muertos` y `Antiguos`.
 - `Apariciones` cuenta capitulos/interludios del libro actual donde el personaje aparece; `Nombramientos` cuenta los casos marcados como nombrado.
@@ -1346,6 +1349,7 @@ Notas:
 - Si el libro es autoconclusivo, el backend crea la relacion en `libro_localizaciones`.
 - `EstadoId` es opcional y debe existir en `/estado_localizacion/catalogo`.
 - La respuesta tiene el formato `{ Id, Nombre, Id_Estado, Estado, Entradas }`.
+- `Id_Estado` y `Estado` son el estado vigente en el libro: en una saga, el de `localizacion_estados` con origen en ese libro o, si no tiene, en el origen visible anterior mas cercano; en un libro sin saga, el de ese libro. `Estado` es el nombre del catalogo `/estado_localizacion/catalogo` para `Id_Estado` (o `Desconocido` si no hay estado). Las listas de `GET /libros/{id_libro}` y las respuestas de `POST /localizaciones` y `PATCH /localizaciones/{id}` con `LibroId` usan la misma regla. `Id`, `Id_Estado` e `Id_Libro_Origen` son enteros, igual que `Id` en `GET /estado_localizacion/catalogo`.
 
 ## Conceptos
 
@@ -1411,7 +1415,8 @@ Notas:
 - Si el libro es autoconclusivo, el backend crea la relacion en `libro_organizaciones`.
 - La respuesta tiene el formato `{ Id, Nombre, Entradas, Personajes, Localizaciones }`.
 - Las relaciones de organizacion con personajes/localizaciones tienen descripcion y origen propios; se gestionan desde los subrecursos `/personajes` y `/localizaciones`.
-- `GET` de relaciones acepta `?libroId={id_libro}` para filtrar por contexto de saga.
+- `GET` de relaciones acepta `?libroId={id_libro}` para filtrar por contexto de saga: una fila se devuelve si el orden de su `Origen` no supera el del libro y si el personaje o la localizacion ya existe en ese libro (creado en el o antes). Los ids `Personajes` y `Localizaciones` de cada organizacion siguen el mismo filtro.
+- Cada fila de relacion incluye `Nombre`: el nombre del personaje resuelto en el libro de `libroId` (o, en las respuestas de alta y edicion, en el libro de `Origen`) o el nombre de la localizacion. Permite pintar la fila sin buscarla en las listas del libro.
 - `Descripcion` de relaciones debe tener minimo 15 caracteres.
 
 Body relacion con personaje:
@@ -1464,6 +1469,7 @@ Notas:
 - Si el libro pertenece a una saga o seccion de saga, el backend crea la relacion en `saga_eventos` con `id_libro_origen = LibroId`.
 - Si el libro es autoconclusivo, el backend crea la relacion en `libro_eventos`.
 - `Personajes` es opcional y crea filas en `evento_personajes`; esa tabla no guarda descripcion/origen propio.
+- En `GET /libros/{id_libro}`, `Personajes` de cada evento solo incluye los personajes ya creados en ese libro o antes. `PATCH /eventos/{id_evento}` con `LibroId` conserva los participantes ocultos en ese libro aunque no vengan en la lista.
 - La respuesta tiene el formato `{ Id, Nombre, Id_Localizacion, Entradas, Personajes }`.
 
 ## Citas
@@ -1526,6 +1532,7 @@ Notas:
 
 - Una escena valida requiere `Nombre` minimo 3, `Descripcion` minimo 15, localizacion existente y al menos un personaje asignado. Un personaje con `Nombrado = true` cumple el requisito; una lista vacia no.
 - `GET /libros/{id_libro}` mantiene `Escenas[].Personajes` como lista de ids por compatibilidad y anade `Escenas[].PersonajesDetalle` como `{ Id, Nombrado }`. `GET /escenas/{id_escena}` devuelve `Personajes` como `{ Id, Nombrado }`.
+- `Personajes` y `PersonajesDetalle` solo incluyen los personajes ya creados en el libro de la escena o antes; `PUT` conserva los ocultos aunque no vengan en el cuerpo.
 - Los endpoints de escenas no recalculan ni devuelven el orden de personajes del libro. Para refrescar ese orden, usar `GET /libros/{id_libro}/personajes/orden`, que devuelve `[{ Id, Nombre }]`.
 
 ## Capitulos, partes e interludios

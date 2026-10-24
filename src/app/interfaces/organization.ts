@@ -14,6 +14,8 @@ export interface Organization extends ContextOrigin {
 export interface OrganizationCharacterRelation {
     OrganizacionId: number;
     PersonajeId: number;
+    /** Nombre del personaje resuelto por la API en el libro consultado. */
+    Nombre?: string;
     Descripcion: string;
     Origen: number;
     Orden: number | null;
