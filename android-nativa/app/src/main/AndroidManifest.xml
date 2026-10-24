@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Libros (docs/roadmaps/ecosistema/ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md, hito 5):
-  - Internet, para la plataforma (la sesión) y la API de Libros. Nada más por ahora.
+  - Internet, para la plataforma (la sesión) y la API de Libros, y el estado de la red, para la barrera «sin conexión»
+    (datos/red/EstadoDeRed.kt). Nada más por ahora.
   - Fuera los permisos de huella que trae Credential Manager para las llaves de acceso, que la app no usa.
   - Sin copias de seguridad ni transferencia entre dispositivos: la sesión cifrada no debe salir del móvil.
   - Sin orientación ni proporción fijas, por los móviles plegables (ecosistema-kit/APK.md, «Móviles plegables»).
@@ -10,6 +11,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove" />
 
