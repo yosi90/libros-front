@@ -2,13 +2,15 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { YosiftwareAccountComponent } from '../../../../shared/common/yosiftware-account/yosiftware-account.component';
+import { YosiftwareNotificationsComponent } from '../../../../shared/common/yosiftware-notifications/yosiftware-notifications.component';
+import { YosiftwareWebsComponent } from '../../../../shared/common/yosiftware-webs/yosiftware-webs.component';
 import { YosiftwareMarkComponent } from '../../../../shared/common/yosiftware-mark/yosiftware-mark.component';
 import { ReadingQuote } from '../../../../../shared/reading-quotes';
 
 @Component({
     standalone: true,
     selector: 'app-home-wood-view',
-    imports: [YosiftwareAccountComponent, YosiftwareMarkComponent, RouterLink, MatIconModule],
+    imports: [YosiftwareAccountComponent, YosiftwareWebsComponent, YosiftwareNotificationsComponent, YosiftwareMarkComponent, RouterLink, MatIconModule],
     templateUrl: './home-wood-view.component.html',
     styleUrl: './home-wood-view.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush

@@ -13,7 +13,8 @@
     &__bar
         min-height: calc(64px + var(--app-safe-top))
         display: grid
-        grid-template-columns: 48px minmax(0, 1fr) 48px
+        // A la derecha, las webs del ecosistema, la campana y la cuenta de Yosiftware.
+        grid-template-columns: 48px minmax(0, 1fr) auto
         align-items: center
         gap: var(--mobile-space-2)
         padding: max(var(--mobile-space-2), var(--app-safe-top)) max(var(--mobile-space-4), var(--app-safe-right)) var(--mobile-space-2) max(var(--mobile-space-4), var(--app-safe-left))
@@ -41,7 +42,9 @@
     // Equilibra la marca y aloja las acciones de la portada (la cuenta de Yosiftware).
     &__balance
         display: flex
+        align-items: center
         justify-content: flex-end
+        gap: var(--mobile-space-1)
         min-width: 48px
 
     &__content

@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { YosiftwareAccountComponent } from '../../../../shared/common/yosiftware-account/yosiftware-account.component';
+import { YosiftwareNotificationsComponent } from '../../../../shared/common/yosiftware-notifications/yosiftware-notifications.component';
+import { YosiftwareWebsComponent } from '../../../../shared/common/yosiftware-webs/yosiftware-webs.component';
 import { YosiftwareMarkComponent } from '../../../../shared/common/yosiftware-mark/yosiftware-mark.component';
 import { MobilePublicShellComponent } from '../../../../mobile/public/mobile-public-shell/mobile-public-shell.component';
 import { ReadingQuote } from '../../../../../shared/reading-quotes';
@@ -8,7 +10,7 @@ import { ReadingQuote } from '../../../../../shared/reading-quotes';
 @Component({
     selector: 'app-home-mobile-view',
     standalone: true,
-    imports: [YosiftwareAccountComponent, YosiftwareMarkComponent, MatIconModule, MobilePublicShellComponent],
+    imports: [YosiftwareAccountComponent, YosiftwareWebsComponent, YosiftwareNotificationsComponent, YosiftwareMarkComponent, MatIconModule, MobilePublicShellComponent],
     templateUrl: './home-mobile-view.component.html',
     styleUrl: './home-mobile-view.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush

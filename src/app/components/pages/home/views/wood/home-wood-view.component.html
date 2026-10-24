@@ -4,7 +4,12 @@
             <mat-icon>auto_stories</mat-icon>
             <span>Memoria Bibliográfica</span>
         </a>
-        <app-yosiftware-account class="home-landing__account"></app-yosiftware-account>
+        <!-- Las webs del ecosistema, la campana (sin sesión no enseña nada) y la cuenta de Yosiftware. -->
+        <span class="home-landing__platform">
+            <app-yosiftware-webs></app-yosiftware-webs>
+            <app-yosiftware-notifications></app-yosiftware-notifications>
+            <app-yosiftware-account class="home-landing__account"></app-yosiftware-account>
+        </span>
     </header>
 
     <main class="home-landing__content">

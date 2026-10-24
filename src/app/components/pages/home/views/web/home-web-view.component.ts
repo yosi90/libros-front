@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { YosiftwareAccountComponent } from '../../../../shared/common/yosiftware-account/yosiftware-account.component';
+import { YosiftwareNotificationsComponent } from '../../../../shared/common/yosiftware-notifications/yosiftware-notifications.component';
+import { YosiftwareWebsComponent } from '../../../../shared/common/yosiftware-webs/yosiftware-webs.component';
 import { YosiftwareMarkComponent } from '../../../../shared/common/yosiftware-mark/yosiftware-mark.component';
 import { ReadingQuote } from '../../../../../shared/reading-quotes';
 import { WebPublicShellComponent } from '../../../../web/public/web-public-shell/web-public-shell.component';
@@ -8,7 +10,7 @@ import { WebPublicShellComponent } from '../../../../web/public/web-public-shell
 @Component({
     standalone: true,
     selector: 'app-home-web-view',
-    imports: [YosiftwareAccountComponent, YosiftwareMarkComponent, MatIconModule, WebPublicShellComponent],
+    imports: [YosiftwareAccountComponent, YosiftwareWebsComponent, YosiftwareNotificationsComponent, YosiftwareMarkComponent, MatIconModule, WebPublicShellComponent],
     templateUrl: './home-web-view.component.html',
     styleUrl: './home-web-view.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
