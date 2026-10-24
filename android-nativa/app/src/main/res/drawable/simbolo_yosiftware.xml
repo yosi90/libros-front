@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  El símbolo del ecosistema, `simbolo-trazo.svg` de ecosistema-kit/marca/ (MARCA.md), tal cual: el mismo trazo, la
+  misma caja (viewBox 8 8 48 48) y los mismos grosores, sin redibujarlo. Va en negro para que `Icon` lo tiña con el
+  color del texto al que acompaña, como el `currentColor` del SVG. Los círculos se escriben como dos arcos.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
+    <group android:translateX="-8" android:translateY="-8">
+        <path android:pathData="M23.7,21.8L32,32L40.3,21.8M32,32V41.5" android:strokeColor="#FF000000"
+            android:strokeWidth="5" android:strokeLineCap="round" android:strokeLineJoin="round" />
+        <path android:pathData="M14,16a5,5 0,1 0,10 0a5,5 0,1 0,-10 0" android:strokeColor="#FF000000" android:strokeWidth="4" />
+        <path android:pathData="M40,16a5,5 0,1 0,10 0a5,5 0,1 0,-10 0" android:strokeColor="#FF000000" android:strokeWidth="4" />
+        <path android:pathData="M27,49a5,5 0,1 0,10 0a5,5 0,1 0,-10 0" android:strokeColor="#FF000000" android:strokeWidth="4" />
+    </group>
+</vector>

@@ -25,4 +25,26 @@ object Iconos {
     @DrawableRes val darkMode = R.drawable.mi_dark_mode
     @DrawableRes val autoStories = R.drawable.mi_auto_stories
     @DrawableRes val arrowBack = R.drawable.mi_arrow_back
+    @DrawableRes val mail = R.drawable.mi_mail
+    @DrawableRes val lock = R.drawable.mi_lock
+    @DrawableRes val visibility = R.drawable.mi_visibility
+    @DrawableRes val visibilityOff = R.drawable.mi_visibility_off
+    @DrawableRes val personAdd = R.drawable.mi_person_add
+    @DrawableRes val login = R.drawable.mi_login
+    @DrawableRes val logout = R.drawable.mi_logout
+    @DrawableRes val wifiOff = R.drawable.mi_wifi_off
+    @DrawableRes val openInNew = R.drawable.mi_open_in_new
+    @DrawableRes val warning = R.drawable.mi_warning
+    @DrawableRes val info = R.drawable.mi_info
+    @DrawableRes val password = R.drawable.mi_password
+    @DrawableRes val bugReport = R.drawable.mi_bug_report
+    @DrawableRes val chevronRight = R.drawable.mi_chevron_right
+    @DrawableRes val article = R.drawable.mi_article
+    @DrawableRes val eventBusy = R.drawable.mi_event_busy
+
+    /** El símbolo del ecosistema (ecosistema-kit/marca/simbolo-trazo.svg), en todo enlace a la web social (MARCA.md). */
+    @DrawableRes val simboloYosiftware = R.drawable.simbolo_yosiftware
+
+    /** La «G» de Google del botón de entrar (src/assets/media/icons/google-g-logo.png), en color: no se tiñe. */
+    @DrawableRes val logoGoogle = R.drawable.logo_google
 }

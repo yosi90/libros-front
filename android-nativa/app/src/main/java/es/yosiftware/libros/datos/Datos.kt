@@ -3,6 +3,8 @@ package es.yosiftware.libros.datos
 import android.content.Context
 import es.yosiftware.libros.BuildConfig
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
+import es.yosiftware.libros.datos.cuenta.FuenteDePerfiles
+import es.yosiftware.libros.datos.cuenta.PerfilesDeLaPlataforma
 import es.yosiftware.libros.datos.red.ClienteLibros
 import es.yosiftware.libros.datos.red.ClientePlataforma
 import es.yosiftware.libros.datos.red.EstadoDeRed
@@ -32,6 +34,12 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
 
     val api = ClienteLibros(BuildConfig.API_LIBROS, TokensDeLaSesion(sesion), ambito)
     val plataforma: ClientePlataforma? = sesion?.let { ClientePlataforma(it, ambito) }
+
+    /** Los perfiles públicos de las cuentas (nombre y avatar), con el cliente de la plataforma. */
+    val perfiles: FuenteDePerfiles? = sesion?.let { s -> plataforma?.let { PerfilesDeLaPlataforma(it, s.configuracion.api) } }
+
+    /** La API de la plataforma de esta compilación, para las miniaturas de los avatares. */
+    val apiPlataforma: String? = sesion?.configuracion?.api
     val red: EstadoDeRed = EstadoDeRed.de(contexto)
 
     val catalogo = RepositorioCatalogo(api)

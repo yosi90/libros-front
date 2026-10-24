@@ -81,6 +81,8 @@ android {
             buildConfigField("String", "FIREBASE_CLAVE_API", "\"$clave\"")
             buildConfigField("String", "GOOGLE_CLIENTE_WEB", "\"$web\"")
             buildConfigField("String", "API_LIBROS", "\"https://qa-api.yosiftware.es/\"")
+            // La web de Libros, para «Errores y propuestas» (`?reportar`, ecosistema-kit/APK.md).
+            buildConfigField("String", "WEB_LIBROS", "\"https://qa-libros.yosiftware.es/\"")
             buildConfigField("boolean", "PLATAFORMA_QA", "true")
         }
         create("produccion") {
@@ -90,6 +92,7 @@ android {
             buildConfigField("String", "FIREBASE_CLAVE_API", "\"$clave\"")
             buildConfigField("String", "GOOGLE_CLIENTE_WEB", "\"$web\"")
             buildConfigField("String", "API_LIBROS", "\"https://libros-api.yosiftware.es/\"")
+            buildConfigField("String", "WEB_LIBROS", "\"https://libros.yosiftware.es/\"")
             buildConfigField("boolean", "PLATAFORMA_QA", "false")
             signingConfig = signingConfigs.findByName("publicacion")
         }

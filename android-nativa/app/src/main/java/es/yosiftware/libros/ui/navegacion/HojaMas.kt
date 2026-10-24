@@ -1,29 +1,16 @@
 package es.yosiftware.libros.ui.navegacion
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,19 +20,11 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,31 +32,22 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.max
-import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
-import es.yosiftware.libros.ui.adaptable.LocalVentana
-import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
-import es.yosiftware.libros.ui.componentes.Hoja
+import es.yosiftware.libros.ui.componentes.HojaInferior
+import es.yosiftware.libros.ui.cuenta.EnlacesDeLaCuenta
 import es.yosiftware.libros.ui.tema.Alturas
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
@@ -89,7 +59,6 @@ import es.yosiftware.libros.ui.tema.TemaMobile
 import es.yosiftware.libros.ui.tema.Textos
 import es.yosiftware.libros.ui.tema.mezclar
 import es.yosiftware.libros.ui.tema.sombra1
-import kotlin.math.roundToInt
 
 // La hoja «Más» de src/app/components/mobile/user/mobile-dashboard-chrome/ (`.m-more-backdrop` y `.m-more-sheet`).
 
@@ -99,14 +68,12 @@ private val textoEnlace = Textos.cuerpo.copy(fontSize = (0.84 * 16).sp, fontWeig
 private val textoTema = Textos.cuerpo.copy(fontSize = (0.88 * 16).sp, fontWeight = FontWeight.Bold)
 private val textoTemaElegido = Textos.cuerpo.copy(fontSize = (0.74 * 16).sp)
 
-/** Arrastrar el asa más de esto hacia abajo cierra la hoja (`finishMoreSheetDrag`). */
-private val ArrastreParaCerrar = 72.dp
-
 /**
- * La hoja «Más»: la foto y el nombre, los accesos a Perfil, Cuenta y seguridad, Preferencias, Estadísticas y Mensajes,
- * y el interruptor sol/luna del tema. Entra desde abajo (220 ms) sobre el velo (180 ms) y sale en 240 ms. Se cierra
- * con la X, con Atrás, tocando fuera o arrastrando el asa. En la ventana compacta ocupa todo el ancho; desde 600 dp,
- * hasta 620 dp, centrada a la derecha del rail y con las cuatro esquinas redondeadas.
+ * La hoja «Más»: la foto y el nombre, los accesos a Perfil, Cuenta, Preferencias, Estadísticas y Mensajes, lo de la
+ * cuenta en la web social (hito 6) y el interruptor sol/luna del tema. La capa, el velo, el asa y el movimiento son los
+ * de [HojaInferior] (entra desde abajo en 220 ms sobre el velo y sale en 240; se cierra con la X, con Atrás, tocando
+ * fuera o arrastrando el asa). «Cuenta» ya no es «Cuenta y seguridad», que se retira con la adhesión: abre el panel de
+ * cuentas ([alAbrirCuentas]).
  */
 @Composable
 fun HojaMas(
@@ -117,136 +84,25 @@ fun HojaMas(
     tema: TemaMobile,
     alAlternarTema: () -> Unit,
     alElegir: (Destino) -> Unit,
+    avatar: String? = null,
+    alAbrirCuentas: () -> Unit = {},
     chatActivo: Boolean = true,
 ) {
-    val visible = remember { MutableTransitionState(false) }
-    visible.targetState = abierta
-    if (!visible.currentState && !visible.targetState && visible.isIdle) return
-
-    val colores = LocalColores.current
-    val ventana = LocalVentana.current
-    val zona = WindowInsets.zonaSegura.asPaddingValues()
-    val direccion = LocalLayoutDirection.current
-    val densidad = LocalDensity.current
-    val abajo = zona.calculateBottomPadding()
-    val ancha = ventana.clase.conRail
-
-    BackHandler(enabled = abierta, onBack = alCerrar)
-
-    var arrastre by remember { mutableFloatStateOf(0f) }
-    var arrastrando by remember { mutableStateOf(false) }
-    LaunchedEffect(abierta) { if (abierta) arrastre = 0f }
-    val desplazamiento by animateFloatAsState(
-        arrastre,
-        if (arrastrando) snap() else tween(Movimiento.corto, easing = Movimiento.easeOut),
-        label = "arrastre",
-    )
-
-    Box(Modifier.fillMaxSize()) {
-        AnimatedVisibility(
-            visible,
-            enter = fadeIn(tween(180, easing = Movimiento.easeOut)),
-            exit = fadeOut(tween(Movimiento.largo, easing = Movimiento.ease)),
-        ) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(colores.velo)
-                    .clickable(remember { MutableInteractionSource() }, indication = null, onClick = alCerrar),
-            )
+    HojaInferior(abierta = abierta, alCerrar = alCerrar, titulo = "Más destinos") {
+        Cabecera(nombre, avatar, alCerrar)
+        Accesos(actual, chatActivo) { destino ->
+            alCerrar()
+            if (destino == Destino.Cuenta) alAbrirCuentas() else alElegir(destino)
         }
-        val margen = if (ancha) {
-            Modifier.padding(
-                top = max(Espacios.e4, zona.calculateTopPadding()),
-                end = Espacios.e5,
-                bottom = max(Espacios.e4, abajo),
-                start = Alturas.anchoRail + zona.calculateLeftPadding(direccion) + Espacios.e5,
-            )
-        } else {
-            Modifier
-        }
-        Box(Modifier.fillMaxSize().then(margen), contentAlignment = Alignment.BottomCenter) {
-            val salida = with(densidad) { max(Espacios.e5, abajo).roundToPx() }
-            AnimatedVisibility(
-                visible,
-                enter = slideInVertically(tween(220, easing = Movimiento.entrada)) { it },
-                exit = slideOutVertically(tween(Movimiento.largo, easing = Movimiento.salida)) { it + salida },
-            ) {
-                val forma = if (ancha) RoundedCornerShape(Radios.xl) else RoundedCornerShape(topStart = Radios.xl, topEnd = Radios.xl)
-                // Desde 600 dp, `max-height: 100%`: lo que deje el margen.
-                val altoMaximo = if (ancha) Dp.Infinity else min((ventana.altoDp * 0.82f).dp, ventana.altoDp.dp - Alturas.barraSuperior)
-                Hoja(
-                    Modifier
-                        .offset { IntOffset(0, desplazamiento.roundToInt()) }
-                        .then(if (ancha) Modifier.widthIn(max = 620.dp) else Modifier)
-                        .fillMaxWidth()
-                        .heightIn(max = altoMaximo)
-                        // Tocar dentro no cierra (el `stopPropagation` de la web).
-                        .clickable(remember { MutableInteractionSource() }, indication = null) {}
-                        .semantics { paneTitle = "Más destinos" },
-                    conAsa = false,
-                    forma = forma,
-                ) {
-                    Asa(
-                        alArrastrar = { delta -> arrastrando = true; arrastre = (arrastre + delta).coerceAtLeast(0f) },
-                        alSoltar = {
-                            arrastrando = false
-                            if (with(densidad) { arrastre.toDp() } >= ArrastreParaCerrar) alCerrar() else arrastre = 0f
-                        },
-                    )
-                    Column(
-                        Modifier
-                            .verticalScroll(rememberScrollState())
-                            // El relleno de abajo es la zona segura en la compacta (y 20 dp desde 600).
-                            .padding(bottom = if (ancha) 0.dp else max(Espacios.e5, abajo) - Espacios.e5),
-                    ) {
-                        Cabecera(nombre, alCerrar)
-                        Accesos(actual, chatActivo) { destino -> alCerrar(); alElegir(destino) }
-                        FilaDelTema(tema, alAlternarTema)
-                    }
-                }
-            }
-        }
+        EnlacesDeLaCuenta(alAbrir = alCerrar)
+        Spacer(Modifier.height(Espacios.e3))
+        FilaDelTema(tema, alAlternarTema)
     }
 }
 
-/** `.m-more-sheet__handle`: 64 × 28 dp, con la raya de 32 × 4 arriba; sube 12 dp sobre el relleno y deja 8 debajo. */
+/** `.m-more-sheet__profile`: foto de 52 dp (la miniatura del perfil de la plataforma), «Tu espacio» y el nombre, y la X; 16 dp debajo y el borde del contorno. */
 @Composable
-private fun Asa(alArrastrar: (Float) -> Unit, alSoltar: () -> Unit) {
-    val colores = LocalColores.current
-    val subida = 12.dp
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .layout { medible, restricciones ->
-                val colocable = medible.measure(restricciones)
-                val px = subida.roundToPx()
-                layout(colocable.width, colocable.height - px) { colocable.place(0, -px) }
-            },
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        Box(
-            Modifier
-                .size(width = 64.dp, height = 28.dp)
-                .pointerInput(Unit) {
-                    detectVerticalDragGestures(
-                        onDragEnd = alSoltar,
-                        onDragCancel = alSoltar,
-                        onVerticalDrag = { cambio, delta -> cambio.consume(); alArrastrar(delta) },
-                    )
-                }
-                .padding(top = Espacios.e2),
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            Box(Modifier.size(width = 32.dp, height = 4.dp).background(colores.contorno, Radios.pildora))
-        }
-    }
-    Spacer(Modifier.height(Espacios.e2))
-}
-
-/** `.m-more-sheet__profile`: foto de 52 dp, «Tu espacio» y el nombre, y la X; 16 dp debajo y el borde del contorno. */
-@Composable
-private fun Cabecera(nombre: String, alCerrar: () -> Unit) {
+private fun Cabecera(nombre: String, avatar: String?, alCerrar: () -> Unit) {
     val colores = LocalColores.current
     Row(
         Modifier
@@ -259,7 +115,7 @@ private fun Cabecera(nombre: String, alCerrar: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Avatar(tamanoFoto = 52.dp, conBorde = false)
+        Avatar(tamanoFoto = 52.dp, url = avatar, nombre = nombre, conBorde = false)
         Column(Modifier.weight(1f)) {
             Text("Tu espacio", color = colores.tintaSuave, style = textoTuEspacio, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(nombre, Modifier.padding(top = 2.dp), color = colores.tinta, style = textoNombre, maxLines = 1, overflow = TextOverflow.Ellipsis)

@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
         // de las barras (ui/tema/Tema.kt).
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContent { AppLibros(LibrosApp.sesion(this)) }
+        setContent { AppLibros(application as LibrosApp) }
     }
 
     override fun onStart() {

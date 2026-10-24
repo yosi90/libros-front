@@ -3,11 +3,13 @@ package es.yosiftware.libros.ui.navegacion
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -32,6 +34,10 @@ import es.yosiftware.libros.ui.tema.TemaMobile
  * contenido entre las dos (64 dp más la zona segura de arriba; 72 más la de abajo). Desde 600 dp, el rail a la
  * izquierda y el contenido a su lado, desde la zona segura de arriba hasta el borde de abajo, sin app bar.
  *
+ * El avatar (la miniatura del perfil de la plataforma) va en la app bar, el rail y la hoja «Más». Los de la app bar y el
+ * rail llevan a Perfil, como en la APK actual; la entrada «Cuenta» de la hoja abre el panel de cuentas ([alAbrirCuentas]).
+ * [aviso] va encima del contenido (sin conexión).
+ *
  * Atrás cierra antes la hoja «Más» y después vuelve por el historial; sin historial, sale de la app. Cada destino
  * guarda su estado (desplazamiento, lo escrito) al ir a otro y volver, y todo sobrevive a plegar y desplegar.
  *
@@ -48,13 +54,18 @@ fun Armazon(
     tema: TemaMobile,
     alAlternarTema: () -> Unit,
     nav: NavegacionViewModel = viewModel(),
+    avatar: String? = null,
+    alAbrirCuentas: () -> Unit = {},
+    aviso: (@Composable () -> Unit)? = null,
+    /** Con la hoja «Más» ya abierta (las muestras de depuración). */
+    masAbiertaAlPrincipio: Boolean = false,
     contenido: @Composable (Destino) -> Unit = { PantallaVacia(it) },
 ) {
     val colores = LocalColores.current
     val ventana = LocalVentana.current
     val zona = WindowInsets.zonaSegura.asPaddingValues()
     val direccion = LocalLayoutDirection.current
-    var masAbierta by rememberSaveable { mutableStateOf(false) }
+    var masAbierta by rememberSaveable { mutableStateOf(masAbiertaAlPrincipio) }
     val porDestino = rememberSaveableStateHolder()
 
     // La hoja «Más» registra el suyo después, así que Atrás la cierra antes que volver.
@@ -80,16 +91,26 @@ fun Armazon(
                 .consumeWindowInsets(hueco)
                 .imePadding(),
         ) {
-            porDestino.SaveableStateProvider(nav.actual.name) { contenido(nav.actual) }
+            Column(Modifier.fillMaxSize()) {
+                // El aviso de la sesión (sin conexión), encima del contenido.
+                aviso?.invoke()
+                Box(Modifier.weight(1f).fillMaxWidth()) {
+                    porDestino.SaveableStateProvider(nav.actual.name) { contenido(nav.actual) }
+                }
+            }
         }
 
         if (ventana.clase.conRail) {
-            Rail(estado, elegir, alternarMas, alPulsarAvisos = { elegir(Destino.Avisos) }, Modifier.align(Alignment.TopStart))
+            Rail(
+                estado, elegir, alternarMas, alPulsarAvisos = { elegir(Destino.Avisos) }, Modifier.align(Alignment.TopStart),
+                // Como en la APK de Capacitor, el avatar del rail lleva a Perfil; el panel de cuentas se abre desde «Más › Cuenta».
+                avatar = avatar, nombre = nombre,
+            )
         } else {
             // La app bar va encima del contenido, como la `fixed` de la web (con z-index 20).
             BarraSuperior(nav.actual.titulo, Modifier.align(Alignment.TopStart)) {
                 BotonDeCampana(abierta = nav.actual == Destino.Avisos, sinLeer = false, alPulsar = { elegir(Destino.Avisos) })
-                BotonDePerfil(mensajesSinLeer = 0) {
+                BotonDePerfil(mensajesSinLeer = 0, avatar = avatar, nombre = nombre) {
                     masAbierta = false
                     elegir(Destino.Perfil)
                 }
@@ -105,6 +126,8 @@ fun Armazon(
             tema = tema,
             alAlternarTema = alAlternarTema,
             alElegir = elegir,
+            avatar = avatar,
+            alAbrirCuentas = alAbrirCuentas,
         )
     }
 }
