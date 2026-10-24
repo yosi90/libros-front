@@ -15,8 +15,6 @@ export interface ManagerConfig {
     singular: string;
     plural: string;
     icon: string;
-    addLabel: string;
-    saveLabel: string;
 }
 
 export interface ManagerMetric {

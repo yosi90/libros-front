@@ -1,16 +1,12 @@
-@if (isWebEmbedded) {
+@if (isWebPresentation) {
   <app-web-manager-list-view [controller]="this"></app-web-manager-list-view>
 } @else {
-<section #managerViewport class="object-manager" [class.is-embedded]="isEmbedded" [ngClass]="['object-manager--' + kind, isEditorRoute ? 'is-editor-route' : 'is-index-route']" (scroll)="onViewportScroll($event)">
+<section #managerViewport class="object-manager" [ngClass]="'object-manager--' + kind" (scroll)="onViewportScroll($event)">
   <header class="manager-header">
     <div>
       <h1>{{config.title}}</h1>
       <p>{{config.subtitle}}</p>
     </div>
-    <button class="manager-add" type="button" (click)="clearForm()">
-      <mat-icon>add</mat-icon>
-      {{config.addLabel}}
-    </button>
   </header>
 
   <section class="manager-metrics" aria-label="Resumen">
@@ -105,7 +101,7 @@
   <div class="manager-body">
     <section class="manager-list" aria-label="Listado">
       <div #managerListScroll class="manager-list__scroll" (scroll)="onListScroll($event)">
-        <div class="list-head manager-desktop-list">
+        <div class="list-head">
           <span>{{config.singular | titlecase}}</span>
           <span>{{authorColumnLabel}}</span>
           <span>{{locationColumnLabel}}</span>
@@ -119,10 +115,8 @@
         </div>
 
         @for (row of paginatedRows; track row) {
-          <article class="list-row manager-desktop-list" [class.is-selected]="selectedRow?.id === row.id"
-            [class.is-actionable]="isEmbedded" [attr.tabindex]="isEmbedded ? 0 : null" [attr.role]="isEmbedded ? 'link' : null"
-            [attr.aria-label]="isEmbedded ? row.name : null"
-            (click)="isEmbedded && openEmbeddedRow(row)" (keydown.enter)="isEmbedded && openEmbeddedRow(row)">
+          <article class="list-row" tabindex="0" role="link" [attr.aria-label]="row.name"
+            (click)="openEmbeddedRow(row)" (keydown.enter)="openEmbeddedRow(row)">
             <div class="entity-cell">
               @if (row.cover) {
                 <img [src]="row.cover | coverCache | async" [alt]="row.name" (error)="handleCoverImageError($event)">
@@ -150,47 +144,8 @@
                 {{objectsSummary(row)}}
               </span>
             }
-            @if (!isEmbedded && showRowActions(row)) {
-              <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" aria-label="Acciones">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-            }
-            <mat-menu #rowMenu="matMenu">
-              @if (isReadableKind()) {
-                <button mat-menu-item type="button" (click)="openPublicDetail(row)">
-                  <mat-icon>visibility</mat-icon>
-                  <span>Ver detalles</span>
-                </button>
-              }
-              @if (!isSystemRow(row)) {
-                <button mat-menu-item type="button" (click)="selectRow(row)">
-                  <mat-icon>edit</mat-icon>
-                  <span>{{canEditCatalog ? 'Modificar' : 'Proponer corrección'}}</span>
-                </button>
-              }
-            </mat-menu>
           </article>
         }
-
-        <div class="manager-card-list">
-          @for (row of paginatedRows; track row) {
-            <app-manager-entity-card
-              [row]="row"
-              [authorLabel]="authorSummary(row)"
-              [locationLabel]="locationSummary(row)"
-              [objectsLabel]="showObjectsColumn() ? objectsSummary(row) : ''"
-              [orderLabel]="orderSummary(row)"
-              [statusLabel]="showStatusColumn() ? getLatestStatus(row) : ''"
-              [statusClass]="statusClass(row)"
-              [selected]="selectedRow?.id === row.id"
-              [readable]="isEmbedded || isReadableKind()"
-              [editable]="!isEmbedded && !isSystemRow(row)"
-              [editLabel]="canEditCatalog ? 'Modificar' : 'Proponer corrección'"
-              (view)="isEmbedded ? openEmbeddedRow(row) : openPublicDetail(row)"
-              (edit)="selectRow(row)">
-            </app-manager-entity-card>
-          }
-        </div>
 
         @if (filteredRows.length === 0) {
           <div class="empty-list">
@@ -234,300 +189,12 @@
       }
     </section>
 
-    <aside class="manager-form">
-      <header class="manager-form__header">
-        <button class="manager-form__back" type="button" aria-label="Volver al listado" (click)="returnToList()">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        <h2>
-          <mat-icon>{{selectedRow ? 'edit' : 'add'}}</mat-icon>
-          {{formTitle}}
-        </h2>
-        <div class="manager-form__actions">
-          <button class="manager-form__icon-action manager-form__icon-action--save" type="submit" form="object-manager-form" [matTooltip]="saveLabel" [attr.aria-label]="saveLabel" [disabled]="!canSubmit">
-            <mat-icon>{{saveIcon}}</mat-icon>
-          </button>
-          <button class="manager-form__icon-action manager-form__icon-action--clear" type="button" matTooltip="Limpiar formulario" aria-label="Limpiar formulario" (click)="clearForm()">
-            <mat-icon>delete_sweep</mat-icon>
-          </button>
-        </div>
-      </header>
-
-      <form id="object-manager-form" [formGroup]="form" (ngSubmit)="save()">
-        @if (needsCover() && canEditCatalog) {
-          <ngx-dropzone class="cover-dropzone" [multiple]="false" (change)="onSelect($event)">
-            @if (coverPreviewUrl) {
-              <img class="cover-dropzone__image" [src]="coverPreviewUrl" alt="Portada seleccionada">
-            } @else {
-              @if (selectedRow?.cover) {
-                <img class="cover-dropzone__image" [src]="(selectedRow?.cover || '') | coverCache | async" [alt]="selectedRow?.name || 'Portada'">
-              } @else {
-                <ngx-dropzone-label>
-                  <mat-icon>image</mat-icon>
-                  <span>Portada</span>
-                </ngx-dropzone-label>
-              }
-            }
-            @if (coverPreviewUrl) {
-              <button class="cover-dropzone__remove" type="button" aria-label="Quitar portada" (click)="onRemove(); $event.stopPropagation()">
-                <mat-icon>close</mat-icon>
-              </button>
-            }
-            @if (files.length) {
-              <ngx-dropzone-label class="cover-dropzone__filename">
-                <mat-icon>image</mat-icon>
-                <span>{{files[0].name}}</span>
-              </ngx-dropzone-label>
-            }
-          </ngx-dropzone>
-        }
-
-        @if (isReadableKind()) {
-          <mat-form-field appearance="outline" class="form-field form-field--isbn">
-            <mat-label>ISBN</mat-label>
-            <input matInput formControlName="isbn" maxlength="20">
-            <mat-icon matTextPrefix>tag</mat-icon>
-            <button class="isbn-lookup-button" mat-icon-button matSuffix type="button" matTooltip="Buscar por ISBN" aria-label="Buscar por ISBN" [disabled]="isLoadingGoogleBooks || !isbn.value?.trim() || isbn.invalid" (click)="lookupGoogleBooksByIsbn()">
-              <mat-icon>{{isLoadingGoogleBooks ? 'hourglass_top' : 'travel_explore'}}</mat-icon>
-            </button>
-            <mat-hint align="end">{{isbn.value?.length || 0}} / 20</mat-hint>
-            <mat-error>El ISBN no puede superar 20 caracteres</mat-error>
-          </mat-form-field>
-        }
-
-        <mat-form-field appearance="outline" class="form-field form-field--name form-field--full">
-          <mat-label>Nombre</mat-label>
-          <input matInput formControlName="name" maxlength="50" required>
-          <mat-icon matTextPrefix>{{config.icon}}</mat-icon>
-          <mat-hint align="end">{{name.value?.length || 0}} / 50</mat-hint>
-          @if (name.invalid) {
-            <mat-error>El nombre debe tener entre 3 y 50 caracteres</mat-error>
-          }
-        </mat-form-field>
-
-        @if (kind === 'sagas') {
-          <mat-form-field appearance="outline" class="form-field form-field--full">
-            <mat-label>Subtítulo</mat-label>
-            <input matInput formControlName="subtitle" maxlength="80">
-            <mat-icon matTextPrefix>subtitles</mat-icon>
-            <mat-hint align="end">{{subtitle.value?.length || 0}} / 80</mat-hint>
-          </mat-form-field>
-        }
-
-        @if (kind === 'authors') {
-          <mat-form-field appearance="outline" class="form-field form-field--full">
-            <mat-label>Idioma nativo</mat-label>
-            <mat-select formControlName="nativeLanguageId">
-              <mat-option [value]="null">Sin idioma</mat-option>
-              @for (language of languageOptions; track language) {
-                <mat-option [value]="language.Id">{{language.Nombre}}</mat-option>
-              }
-            </mat-select>
-            <mat-icon matTextPrefix>translate</mat-icon>
-          </mat-form-field>
-        }
-
-        @if (kind === 'authors') {
-          <mat-form-field appearance="outline" class="form-field form-field--full">
-            <mat-label>Lugar de origen</mat-label>
-            <input matInput formControlName="originPlace" maxlength="80" [matAutocomplete]="originAuto">
-            <mat-icon matTextPrefix>place</mat-icon>
-            <mat-autocomplete #originAuto="matAutocomplete">
-              @for (origin of filteredOriginOptions; track origin) {
-                <mat-option [value]="origin.Nombre">{{origin.Nombre}}</mat-option>
-              }
-            </mat-autocomplete>
-            <mat-hint align="end">{{originPlace.value?.length || 0}} / 80</mat-hint>
-            <mat-error>El origen no puede superar 80 caracteres</mat-error>
-          </mat-form-field>
-        }
-
-        @if (needsUniverse() && needsSaga()) {
-          <div class="form-row form-row--location">
-            <mat-form-field appearance="outline" class="form-field form-field--universe">
-              <mat-label>Universo</mat-label>
-              <mat-select formControlName="universeId">
-                @for (universe of availableUniverses(); track universe) {
-                  <mat-option [value]="universe.Id">{{universe.Nombre}}</mat-option>
-                }
-              </mat-select>
-              <mat-icon matTextPrefix>public</mat-icon>
-              <mat-error>Selecciona un universo</mat-error>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field form-field--saga">
-              <mat-label>Saga</mat-label>
-              <mat-select formControlName="sagaId">
-                @for (saga of availableSagas(); track saga) {
-                  <mat-option [value]="saga.Id">{{sagaDisplayName(saga)}}</mat-option>
-                }
-              </mat-select>
-              <mat-icon matTextPrefix>bookmark</mat-icon>
-            </mat-form-field>
-          </div>
-        }
-
-        @if (needsUniverse() && !needsSaga()) {
-          <mat-form-field appearance="outline" class="form-field form-field--universe">
-            <mat-label>Universo</mat-label>
-            <mat-select formControlName="universeId">
-              @for (universe of availableUniverses(); track universe) {
-                <mat-option [value]="universe.Id">{{universe.Nombre}}</mat-option>
-              }
-            </mat-select>
-            <mat-icon matTextPrefix>public</mat-icon>
-            <mat-error>Selecciona un universo</mat-error>
-          </mat-form-field>
-        }
-
-        @if (needsAuthors()) {
-          <mat-form-field appearance="outline" class="form-field form-field--authors form-field--full">
-            <mat-label>Autores</mat-label>
-            <mat-select formControlName="authorIds" multiple>
-              @for (author of authors; track author) {
-                <mat-option [value]="author.Id">{{author.Nombre}}</mat-option>
-              }
-            </mat-select>
-            <mat-icon matTextPrefix>groups</mat-icon>
-            <mat-error>Selecciona al menos un autor</mat-error>
-          </mat-form-field>
-        }
-
-        @if (isReadableKind()) {
-          <mat-form-field appearance="outline" class="form-field form-field--styles form-field--full">
-            <mat-label>Estilos</mat-label>
-            <mat-select formControlName="styleIds" multiple>
-              @for (style of styleOptions; track style) {
-                <mat-option [value]="style.Id">{{style.Nombre}}</mat-option>
-              }
-            </mat-select>
-            <mat-icon matTextPrefix>palette</mat-icon>
-          </mat-form-field>
-        }
-
-        @if (isReadableKind()) {
-          <div class="form-row form-row--publication">
-            <mat-form-field appearance="outline" class="form-field form-field--pages">
-              <mat-label>Total de páginas</mat-label>
-              <input matInput type="number" min="0" formControlName="pages">
-              <mat-icon matTextPrefix>auto_stories</mat-icon>
-              <mat-error>Las páginas no pueden ser negativas</mat-error>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field form-field--publication-year">
-              <mat-label>Año de publicación</mat-label>
-              <input matInput formControlName="publicationYear" maxlength="4" inputmode="numeric">
-              <mat-icon matTextPrefix>event</mat-icon>
-              <mat-hint align="end">{{publicationYear.value?.length || 0}} / 4</mat-hint>
-              <mat-error>Introduce un año válido</mat-error>
-            </mat-form-field>
-          </div>
-        }
-
-        @if (canEditCatalog && googleAuthorSuggestions.length) {
-          <section class="google-author-notice">
-            <div>
-              <strong>Autores no encontrados</strong>
-              <span>Selecciona los que quieras crear en el catálogo.</span>
-            </div>
-            @for (suggestion of googleAuthorSuggestions; track suggestion) {
-              <label>
-                <input type="checkbox" [checked]="suggestion.selected" (change)="toggleGoogleAuthorSuggestion(suggestion, $any($event.target).checked)">
-                <span>{{suggestion.name}}</span>
-              </label>
-            }
-            <button type="button" [disabled]="selectedGoogleAuthorNames().length === 0" (click)="openQuickAuthorModal()">
-              <mat-icon>person_add</mat-icon>
-              Crear autores seleccionados
-            </button>
-          </section>
-        }
-
-        @if (isReadableKind()) {
-          <mat-form-field appearance="outline" class="form-field form-field--synopsis form-field--full">
-            <mat-label>Sinopsis</mat-label>
-            <textarea matInput formControlName="synopsis" maxlength="2000" rows="5"></textarea>
-            <mat-icon matTextPrefix>subject</mat-icon>
-            <mat-hint align="end">{{synopsis.value?.length || 0}} / 2000</mat-hint>
-            <mat-error>La sinopsis no puede superar 2000 caracteres</mat-error>
-          </mat-form-field>
-        }
-
-        @if (needsStatus()) {
-          <div class="form-grid form-grid--status">
-            <mat-form-field appearance="outline">
-              <mat-label>Estado</mat-label>
-              <mat-select formControlName="status">
-                @for (status of statuses; track status) {
-                  <mat-option [value]="status.Nombre">{{status.Nombre}}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-        }
-      </form>
-    </aside>
 
   </div>
 </section>
 }
 
-@if (isQuickAuthorModalOpen) {
-  <section class="catalog-modal-backdrop" (click)="closeQuickAuthorModal()">
-    <article class="catalog-modal quick-author-modal" (click)="$event.stopPropagation()">
-      <header class="quick-author-modal__header">
-        <div>
-          <h3>Crear autores</h3>
-          <p>Revisa los autores detectados antes de añadirlos al catálogo.</p>
-        </div>
-        <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closeQuickAuthorModal()">
-          <mat-icon>close</mat-icon>
-        </button>
-      </header>
-      <form class="quick-author-modal__form" (ngSubmit)="saveQuickAuthors()">
-        @for (row of quickAuthorRows; track row; let index = $index) {
-          <section class="quick-author-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Nombre</mat-label>
-              <input matInput [(ngModel)]="row.Nombre" name="quick-author-name-{{index}}" maxlength="50" required>
-              <mat-icon matTextPrefix>person</mat-icon>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Idioma nativo</mat-label>
-              <mat-select [(ngModel)]="row.IdiomaId" name="quick-author-language-{{index}}">
-                <mat-option [value]="null">Sin idioma</mat-option>
-                @for (language of languageOptions; track language) {
-                  <mat-option [value]="language.Id">{{language.Nombre}}</mat-option>
-                }
-              </mat-select>
-              <mat-icon matTextPrefix>translate</mat-icon>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Lugar de origen</mat-label>
-              <input matInput [(ngModel)]="row.LugarOrigenNombre" name="quick-author-origin-{{index}}" maxlength="80" [matAutocomplete]="quickOriginAuto">
-              <mat-icon matTextPrefix>place</mat-icon>
-              <mat-autocomplete #quickOriginAuto="matAutocomplete">
-                @for (origin of quickFilteredOriginOptions(row.LugarOrigenNombre); track origin) {
-                  <mat-option [value]="origin.Nombre">{{origin.Nombre}}</mat-option>
-                }
-              </mat-autocomplete>
-            </mat-form-field>
-            @if (row.error) {
-              <p class="quick-author-row__error">{{row.error}}</p>
-            }
-          </section>
-        }
-        <footer class="quick-author-modal__actions">
-          <button class="clear-button" type="button" (click)="closeQuickAuthorModal()" [disabled]="isSavingQuickAuthors">Cancelar</button>
-          <button class="save-button" type="submit" [disabled]="!canSaveQuickAuthors()">
-            <mat-icon>{{isSavingQuickAuthors ? 'hourglass_top' : 'save'}}</mat-icon>
-            Guardar autores
-          </button>
-        </footer>
-      </form>
-    </article>
-  </section>
-}
-
-@if (!isWebEmbedded && selectedDetailItem) {
+@if (!isWebPresentation && selectedDetailItem) {
   <section class="catalog-modal-backdrop" (click)="closePublicDetailModal()">
     <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
       <section class="public-detail-layout">
