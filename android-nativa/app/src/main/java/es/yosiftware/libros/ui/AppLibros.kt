@@ -38,6 +38,13 @@ import es.yosiftware.libros.ui.libro.Elemento
 import es.yosiftware.libros.ui.libro.IslaDelLector
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
+import es.yosiftware.libros.ui.comunidad.AccionesDeComunidad
+import es.yosiftware.libros.ui.comunidad.CentroDeAccesoViewModel
+import es.yosiftware.libros.ui.comunidad.ClubesViewModel
+import es.yosiftware.libros.ui.comunidad.ComunidadViewModel
+import es.yosiftware.libros.ui.comunidad.CreacionDeClub
+import es.yosiftware.libros.ui.comunidad.DetalleDeClubPendiente
+import es.yosiftware.libros.ui.comunidad.PantallaComunidad
 import es.yosiftware.libros.ui.perfil.FuenteDelPerfil
 import es.yosiftware.libros.ui.perfil.IdentidadDelPerfil
 import es.yosiftware.libros.ui.perfil.PantallaPerfil
@@ -117,6 +124,12 @@ fun AppLibros(app: LibrosApp) {
             avisos,
         )
     }
+    // Comunidad (hito 11): la pestaña con su Resumen, los clubes y el centro de acceso, todos de la cuenta.
+    val comunidad: ComunidadViewModel = viewModel { ComunidadViewModel(app.datos.ambito, app.datos.clubes, app.datos.espacios) }
+    val clubes: ClubesViewModel = viewModel { ClubesViewModel(app.datos.ambito, app.datos.clubes) }
+    val centroDeAcceso: CentroDeAccesoViewModel = viewModel { CentroDeAccesoViewModel(app.datos.ambito, app.datos.espacios) }
+    clubes.alCrear = comunidad::abrirClub
+    centroDeAcceso.alCambiarElAcceso = clubes::refrescar
     catalogo.alVerEnBiblioteca = { obra ->
         nav.irA(Destino.Biblioteca)
         biblioteca.revelar(obra)
@@ -192,6 +205,19 @@ fun AppLibros(app: LibrosApp) {
                                     )
                                     Destino.Catalogo -> PantallaCatalogo(catalogo)
                                     Destino.Estadisticas -> PantallaEstadisticas(estadisticas)
+                                    Destino.Comunidad -> {
+                                        val contexto = LocalContext.current
+                                        PantallaComunidad(
+                                            comunidad, clubes, centroDeAcceso,
+                                            AccionesDeComunidad(
+                                                abrirWebSocial = { vista -> acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial(vista)) } },
+                                                abrirMensajes = { nav.irA(Destino.Mensajes) },
+                                                cambiarDeCuenta = { panelAbierto = true },
+                                                tieneObras = { CreacionDeClub.tieneObras(biblioteca.universos) },
+                                                detalleDelClub = { id -> DetalleDeClubPendiente(id, comunidad::cerrarClub) },
+                                            ),
+                                        )
+                                    }
                                     Destino.Preferencias -> {
                                         val contexto = LocalContext.current
                                         PantallaPreferencias(alAbrirPrivacidad = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("privacidad")) } })

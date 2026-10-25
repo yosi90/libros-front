@@ -125,6 +125,23 @@ object Iconos {
     @DrawableRes val factCheck = R.drawable.mi_fact_check
     @DrawableRes val flag = R.drawable.mi_flag
     @DrawableRes val appSettingsAlt = R.drawable.mi_app_settings_alt
+    @DrawableRes val dashboard = R.drawable.mi_dashboard
+    @DrawableRes val groups3 = R.drawable.mi_groups_3
+    @DrawableRes val markEmailUnread = R.drawable.mi_mark_email_unread
+    @DrawableRes val moveToInbox = R.drawable.mi_move_to_inbox
+    // `outgoing_mail` no está en la fuente de la web (ni en este paquete): allí salía el texto. Su lugar lo ocupa este.
+    @DrawableRes val forwardToInbox = R.drawable.mi_forward_to_inbox
+    @DrawableRes val scheduleSend = R.drawable.mi_schedule_send
+    @DrawableRes val cancelScheduleSend = R.drawable.mi_cancel_schedule_send
+    @DrawableRes val inbox = R.drawable.mi_inbox
+    @DrawableRes val bookmarkAdded = R.drawable.mi_bookmark_added
+    @DrawableRes val poll = R.drawable.mi_poll
+    @DrawableRes val chat = R.drawable.mi_chat
+    @DrawableRes val deleteOutline = R.drawable.mi_delete_outline
+    @DrawableRes val adminPanelSettings = R.drawable.mi_admin_panel_settings
+    @DrawableRes val personRemove = R.drawable.mi_person_remove
+    @DrawableRes val inventory2 = R.drawable.mi_inventory_2
+    @DrawableRes val bookmark = R.drawable.mi_bookmark
     @DrawableRes val hub = R.drawable.mi_hub
     @DrawableRes val group = R.drawable.mi_group
     @DrawableRes val radioButtonUnchecked = R.drawable.mi_radio_button_unchecked
