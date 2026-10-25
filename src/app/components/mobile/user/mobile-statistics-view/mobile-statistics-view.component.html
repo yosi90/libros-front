@@ -38,6 +38,15 @@
     } @else if (controller.generalLoaded) {
     <h2 class="m-stats__section"><mat-icon>groups</mat-icon>Lectura en la comunidad</h2>
     <p class="m-supporting m-stats__section-note">Solo cuentan quienes comparten sus estadísticas; se ocultan los datos de menos de tres personas.</p>
+    <section class="m-stats__consent m-card" aria-label="Tus lecturas en estas estadísticas">
+        <div>
+            <strong>{{controller.shareStatistics ? 'Tus lecturas cuentan aquí' : 'Tus lecturas no cuentan aquí'}}</strong>
+            <span class="m-supporting">Siempre de forma anónima: nadie ve qué lees tú.</span>
+            @if (controller.shareStatisticsError) {<span class="m-stats__error" role="alert">{{controller.shareStatisticsError}}</span>}
+        </div>
+        <button class="m-button m-button--outline" type="button" role="switch" [attr.aria-checked]="controller.shareStatistics"
+            [disabled]="controller.savingShareStatistics" (click)="controller.toggleShareStatistics()">{{controller.shareStatistics ? 'Dejar de compartir' : 'Compartir'}}</button>
+    </section>
     @if (controller.communityError) {
     <p class="m-stats__error" role="status"><mat-icon>info</mat-icon>No se pudieron cargar los datos de la comunidad.</p>
     } @else if (controller.community; as community) {
@@ -73,6 +82,14 @@
         <article class="m-card"><mat-icon>palette</mat-icon><strong>{{controller.catalogStyles.length}}</strong><span>Estilos</span></article>
         <article class="m-card"><mat-icon>translate</mat-icon><strong>{{controller.catalogLanguages.length}}</strong><span>Idiomas</span></article>
     </section>
+    @if (controller.catalogNew; as nuevos) {
+    <section class="m-stats__metrics" aria-label="Libros nuevos en el catálogo">
+        @for (link of controller.newWorksLinks; track link.key) {
+        <a class="m-card m-stats__metric-link" routerLink="/dashboard/catalog" [queryParams]="{ nuevos: link.window }"><mat-icon>fiber_new</mat-icon><strong>{{nuevos[link.key]}}</strong><span>{{link.label}}</span></a>
+        }
+    </section>
+    }
+    <section class="m-stats__panel m-card"><h2><mat-icon>add_circle</mat-icon>Obras añadidas por mes</h2><app-stat-rows [rows]="controller.catalogMonthlyAdditions" empty="Aún no hay altas con fecha."></app-stat-rows></section>
     <section class="m-stats__panel m-card"><h2><mat-icon>palette</mat-icon>Títulos por estilo</h2><app-stat-rows [rows]="controller.catalogStyles" empty="Los libros aún no tienen estilo asignado."></app-stat-rows></section>
     <section class="m-stats__panel m-card"><h2><mat-icon>person_search</mat-icon>Autores con más títulos</h2><app-stat-rows [rows]="controller.catalogAuthors" [ranked]="true" empty="Sin autores en el catálogo."></app-stat-rows></section>
     <section class="m-stats__panel m-card"><h2><mat-icon>translate</mat-icon>Idiomas disponibles</h2><app-stat-rows [rows]="controller.catalogLanguages" empty="Sin idiomas registrados."></app-stat-rows></section>

@@ -10,3 +10,5 @@ Pillow
 python-dotenv
 # Aviso opcional del feed de la plataforma (YOSIFTWARE_NATS_URL), en realtime/plataforma_feed_worker.py.
 nats-py>=2.11,<3
+# La hora de Madrid de la novedad diaria (utils/catalog_daily_news.py): en Windows, zoneinfo no trae las zonas.
+tzdata

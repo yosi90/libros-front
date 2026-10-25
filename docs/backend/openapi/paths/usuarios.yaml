@@ -23,16 +23,52 @@
                 success: {type: boolean, const: true}
                 user:
                   type: object
-                  required: [Id, Nombre, Role]
+                  required: [Id, Nombre, Role, CompartirEstadisticas]
                   properties:
                     Id: {type: integer, minimum: 1}
                     Nombre: {type: string, description: Alias de la cuenta copiado por el feed de cambios.}
                     Role:
                       $ref: '../../openapi.yaml#/components/schemas/IdName'
+                    CompartirEstadisticas:
+                      type: boolean
+                      description: Si sus lecturas cuentan, anónimas, en las estadísticas de la comunidad (`PUT /usuarios/me/estadisticas-comunidad`).
             example:
               success: true
-              user: {Id: 1, Nombre: yosi, Role: {Id: 2, Nombre: administrador}}
+              user: {Id: 1, Nombre: yosi, Role: {Id: 2, Nombre: administrador}, CompartirEstadisticas: false}
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '404':
         $ref: '../../openapi.yaml#/components/responses/NotFound'
+/usuarios/me/estadisticas-comunidad:
+  put:
+    operationId: setCommunityStatisticsConsent
+    tags: [Usuarios]
+    summary: Decide si las lecturas propias cuentan en las estadísticas de la comunidad
+    description: >-
+      Un ajuste de Libros, distinto de «ocultar que uso la web» de la plataforma (`<yosi-privacidad>`). Con
+      `Compartir: true`, las lecturas de la persona cuentan, anónimas y con el umbral de privacidad, en
+      `GET /estadisticas/comunidad` y en la «Comunidad lectora» de los detalles públicos. Por defecto no cuentan.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [Compartir]
+            properties:
+              Compartir: {type: boolean}
+    responses:
+      '200':
+        description: Preferencia guardada.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, CompartirEstadisticas]
+              properties:
+                success: {type: boolean, const: true}
+                CompartirEstadisticas: {type: boolean}
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'

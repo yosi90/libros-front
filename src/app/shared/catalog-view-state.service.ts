@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ReadingStatusId } from '../interfaces/read-status';
-import { CatalogItem } from '../interfaces/catalog';
+import { CatalogItem, CatalogNewWorksWindow } from '../interfaces/catalog';
 
 export type CatalogViewType = 'todos' | 'libro' | 'antologia';
 export type LibraryRevealTarget = { type: 'book' | 'antology'; id: number };
@@ -13,6 +13,7 @@ export interface CatalogViewState {
     selectedRatingFilter: number | '';
     selectedLanguageFilter: number | '';
     selectedStyleFilter: number | '';
+    selectedNewFilter: CatalogNewWorksWindow | '';
     scrollTop: number;
 }
 
@@ -87,6 +88,7 @@ function initialCatalogViewState(): CatalogViewState {
         selectedRatingFilter: '',
         selectedLanguageFilter: '',
         selectedStyleFilter: '',
+        selectedNewFilter: '',
         scrollTop: 0
     };
 }

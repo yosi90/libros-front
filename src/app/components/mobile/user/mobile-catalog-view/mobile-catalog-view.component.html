@@ -15,6 +15,7 @@
     @if (controller.filtersOpen) {
         <section id="mobile-catalog-filters" class="m-catalog__filters m-card" aria-label="Filtros del catálogo">
             <div class="m-catalog__types"><button [class.is-active]="controller.filterType === 'todos'" type="button" (click)="controller.setTypeFilter('todos')">Todos</button><button [class.is-active]="controller.filterType === 'libro'" type="button" (click)="controller.setTypeFilter('libro')">Libros</button><button [class.is-active]="controller.filterType === 'antologia'" type="button" (click)="controller.setTypeFilter('antologia')">Antologías</button></div>
+            <label>Nuevos<select [value]="controller.selectedNewFilter" (change)="controller.applyNewFilter($event)"><option value="">Todas las fechas</option>@for (option of controller.newWorksOptions; track option.value) {<option [value]="option.value">{{option.label}}</option>}</select></label>
             <label>Estado<select [value]="controller.selectedStatusFilter" (change)="controller.applySelectFilter('status', $event)"><option value="">Todos</option>@for (status of controller.statusOptions; track status.Id) {<option [value]="status.Id">{{status.Nombre}}</option>}</select></label>
             <label>Puntuación<select [value]="controller.selectedRatingFilter" (change)="controller.applySelectFilter('rating', $event)"><option value="">Todas</option>@for (rating of [1,2,3,4,5]; track rating) {<option [value]="rating">{{rating}}+</option>}</select></label>
             <label>Idioma<select [value]="controller.selectedLanguageFilter" (change)="controller.applySelectFilter('language', $event)"><option value="">Todos</option>@for (option of controller.languages; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>
@@ -61,7 +62,7 @@
             @if (controller.isLoadingPublicDetail) {<div class="m-detail__notice" role="status"><mat-icon>hourglass_top</mat-icon>Cargando datos públicos…</div>}
             @if (controller.publicDetailLoadFailed) {<div class="m-detail__notice"><mat-icon>info</mat-icon>Las estadísticas públicas no están disponibles.</div>}
 
-            <dl class="m-detail__meta m-card"><div><dt>ISBN</dt><dd>{{controller.publicDetailIsbn() || 'Sin datos'}}</dd></div><div><dt>Publicación</dt><dd>{{controller.publicDetailPublicationDate() || 'Sin datos'}}</dd></div><div><dt>Idiomas</dt><dd>{{controller.publicDetailLanguagesLabel() || 'Sin datos'}}</dd></div><div><dt>Estilos</dt><dd>{{controller.publicDetailStylesLabel() || 'Sin datos'}}</dd></div></dl>
+            <dl class="m-detail__meta m-card"><div><dt>ISBN</dt><dd>{{controller.publicDetailIsbn() || 'Sin datos'}}</dd></div><div><dt>Publicación</dt><dd>{{controller.publicDetailPublicationDate() || 'Sin datos'}}</dd></div><div><dt>En el catálogo</dt><dd>{{controller.publicDetailCatalogEntry() || 'Sin datos'}}</dd></div><div><dt>Idiomas</dt><dd>{{controller.publicDetailLanguagesLabel() || 'Sin datos'}}</dd></div><div><dt>Estilos</dt><dd>{{controller.publicDetailStylesLabel() || 'Sin datos'}}</dd></div></dl>
 
             @if (controller.publicDetailEditions().length) {
                 <section class="m-detail__section m-detail__editions" [class.has-error]="controller.editionSelectionError" aria-label="Ediciones de la obra">

@@ -94,6 +94,18 @@
         <h2><mat-icon aria-hidden="true">groups</mat-icon>Lectura en la comunidad</h2>
         <p>Solo cuentan quienes comparten sus estadísticas, y se ocultan los datos de menos de tres personas.</p>
       </header>
+      <section class="web-stats__consent" aria-label="Tus lecturas en estas estadísticas">
+        <mat-icon aria-hidden="true">{{controller.shareStatistics ? 'visibility' : 'visibility_off'}}</mat-icon>
+        <div>
+          <strong>{{controller.shareStatistics ? 'Tus lecturas cuentan aquí' : 'Tus lecturas no cuentan aquí'}}</strong>
+          <span>Siempre de forma anónima: nadie ve qué lees tú. Puedes cambiarlo cuando quieras.</span>
+          @if (controller.shareStatisticsError) {<span class="web-stats__consent-error" role="alert">{{controller.shareStatisticsError}}</span>}
+        </div>
+        <button class="web-button" type="button" role="switch" [attr.aria-checked]="controller.shareStatistics"
+          [disabled]="controller.savingShareStatistics" (click)="controller.toggleShareStatistics()">
+          {{controller.shareStatistics ? 'Dejar de compartir' : 'Compartir mis lecturas'}}
+        </button>
+      </section>
       @if (controller.communityError) {
         <p class="web-stats__notice" role="status"><mat-icon aria-hidden="true">info</mat-icon>No se pudieron cargar los datos de la comunidad. El catálogo sí está actualizado.</p>
       } @else if (controller.community; as community) {
@@ -119,7 +131,7 @@
               <mat-icon aria-hidden="true">lock_person</mat-icon>
               <div>
                 <h2>Aún no hay datos suficientes</h2>
-                <p>Los rankings de lo más leído aparecen cuando al menos tres personas comparten sus lecturas. Puedes activarlo en Perfil › Preferencias.</p>
+                <p>Los rankings de lo más leído aparecen cuando al menos tres personas comparten sus lecturas. Puedes compartir las tuyas aquí arriba.</p>
               </div>
             </article>
           }
@@ -152,8 +164,18 @@
         <div><strong>{{controller.catalogStyles.length}}</strong><span>Estilos</span></div>
         <div><strong>{{controller.catalogLanguages.length}}</strong><span>Idiomas</span></div>
       </section>
+      @if (controller.catalogNew; as nuevos) {
+        <section class="web-stats__metrics" aria-label="Libros nuevos en el catálogo">
+          @for (link of controller.newWorksLinks; track link.key) {
+            <a class="web-stats__metric-link" routerLink="/dashboard/catalog" [queryParams]="{ nuevos: link.window }">
+              <strong>{{nuevos[link.key]}}</strong><span>{{link.label}}</span>
+            </a>
+          }
+        </section>
+      }
 
       <section class="web-stats__charts">
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Obras añadidas por mes', subtitle: 'Libros y antologías que entraron en el catálogo en los últimos doce meses', chart: catalogAdditions, empty: 'Aún no hay altas con fecha.' }"></ng-container>
         <ng-container *ngTemplateOutlet="barCard; context: { title: 'Títulos por estilo', subtitle: 'Libros del catálogo en cada estilo', chart: catalogStyles, empty: 'Los libros aún no tienen estilo asignado.' }"></ng-container>
         <ng-container *ngTemplateOutlet="barCard; context: { title: 'Autores con más títulos', subtitle: 'Libros del catálogo por autor', chart: catalogAuthors, empty: 'Sin autores en el catálogo.' }"></ng-container>
         <article class="web-stats__card">

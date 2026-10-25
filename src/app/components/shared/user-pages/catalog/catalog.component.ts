@@ -23,8 +23,11 @@ import {
     CatalogEntityType,
     Edition,
     CatalogItem,
+    CatalogNewWorksWindow,
     CatalogQuery,
-    CatalogRequestAction
+    CatalogRequestAction,
+    CATALOG_NEW_WORKS_OPTIONS,
+    isCatalogNewWorksWindow
 } from '../../../../interfaces/catalog';
 import { ownedEditionIds } from '../../../../shared/edition-selection';
 import { Universe } from '../../../../interfaces/universe';
@@ -64,6 +67,11 @@ import {
 } from '../../../../shared/library-search';
 
 type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
+
+/** Con el filtro «Nuevos», libros y antologías juntos, de la más reciente a la más antigua. */
+function newestFirst(a: CatalogItem, b: CatalogItem): number {
+    return (b.FechaAlta ?? '').localeCompare(a.FechaAlta ?? '') || a.Nombre.localeCompare(b.Nombre);
+}
 
 @Component({
     standalone: true,
@@ -120,6 +128,9 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
     selectedRatingFilter: number | '' = '';
     selectedLanguageFilter: number | '' = '';
     selectedStyleFilter: number | '' = '';
+    /** «Nuevos»: solo las obras dadas de alta en el catálogo en ese plazo, de la más reciente a la más antigua. */
+    selectedNewFilter: CatalogNewWorksWindow | '' = '';
+    readonly newWorksOptions = CATALOG_NEW_WORKS_OPTIONS;
     draftQuery = '';
     searchTerms: string[] = [];
     isSearchSuggestionOpen = false;
@@ -166,10 +177,17 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         this.selectedRatingFilter = state.selectedRatingFilter;
         this.selectedLanguageFilter = state.selectedLanguageFilter;
         this.selectedStyleFilter = state.selectedStyleFilter;
+        this.selectedNewFilter = state.selectedNewFilter ?? '';
     }
 
     ngOnInit(): void {
         this.loadMetadata();
+        // La novedad diaria de Yosiftware enlaza aquí con `?nuevos=24h`: el filtro se aplica y sale de la URL.
+        const requestedNew = this.router.url ? this.router.parseUrl(this.router.url).queryParams['nuevos'] : null;
+        if (isCatalogNewWorksWindow(requestedNew)) {
+            this.selectedNewFilter = requestedNew;
+            void this.router.navigate([], { relativeTo: this.route, queryParams: { nuevos: null }, queryParamsHandling: 'merge', replaceUrl: true });
+        }
         this.loadCatalog();
         // Los gestores enlazan aquí para proponer altas de su tipo.
         const requested = this.router.url ? this.router.parseUrl(this.router.url).queryParams['request'] : null;
@@ -244,7 +262,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
                 }));
                 this.items = applyLibrarySearch(searchableItems, this.query, 'all')
                     .map(entry => entry.item)
-                    .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+                    .sort(this.selectedNewFilter ? newestFirst : (a, b) => a.Nombre.localeCompare(b.Nombre));
                 this.isLoading = false;
                 this.restoreScrollPosition();
             },
@@ -282,6 +300,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         this.selectedRatingFilter = '';
         this.selectedLanguageFilter = '';
         this.selectedStyleFilter = '';
+        this.selectedNewFilter = '';
         this.loadCatalog();
     }
 
@@ -304,7 +323,8 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
             selectedStatusFilter: this.selectedStatusFilter,
             selectedRatingFilter: this.selectedRatingFilter,
             selectedLanguageFilter: this.selectedLanguageFilter,
-            selectedStyleFilter: this.selectedStyleFilter
+            selectedStyleFilter: this.selectedStyleFilter,
+            selectedNewFilter: this.selectedNewFilter
         });
     }
 
@@ -385,6 +405,13 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         this.applySelectFilters();
     }
 
+    /** El filtro «Nuevos» elegido en un <select> de Mobile o Web: vacío es «todas las fechas». */
+    applyNewFilter(event: Event): void {
+        const raw = (event.target as HTMLSelectElement).value;
+        this.selectedNewFilter = isCatalogNewWorksWindow(raw) ? raw : '';
+        this.applySelectFilters();
+    }
+
     /** «Proponer corrección» desde la ficha abierta, en cualquier presentación. */
     openDetailCorrection(event: Event): void {
         if (this.selectedDetailItem)
@@ -398,7 +425,8 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
             this.selectedStatusFilter !== '' ||
             this.selectedRatingFilter !== '' ||
             this.selectedLanguageFilter !== '' ||
-            this.selectedStyleFilter !== '';
+            this.selectedStyleFilter !== '' ||
+            this.selectedNewFilter !== '';
     }
 
     /** En Catálogo, el editor de estado sustituye a la ficha de la misma obra. */
@@ -944,7 +972,8 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
             estadoId: this.selectedStatusFilter === '' ? undefined : this.selectedStatusFilter,
             puntuacionMin: this.selectedRatingFilter === '' ? undefined : this.selectedRatingFilter,
             idiomaId: this.selectedLanguageFilter === '' ? undefined : this.selectedLanguageFilter,
-            estiloId: this.selectedStyleFilter === '' ? undefined : this.selectedStyleFilter
+            estiloId: this.selectedStyleFilter === '' ? undefined : this.selectedStyleFilter,
+            nuevos: this.selectedNewFilter === '' ? undefined : this.selectedNewFilter
         };
     }
 

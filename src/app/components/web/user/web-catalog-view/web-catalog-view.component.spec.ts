@@ -15,6 +15,7 @@ describe('WebCatalogViewComponent', () => {
             selectedRatingFilter: '',
             selectedLanguageFilter: '',
             selectedStyleFilter: '',
+            selectedNewFilter: '',
             applySelectFilters: jasmine.createSpy('applySelectFilters'),
             closePublicDetailModal: jasmine.createSpy('closePublicDetailModal'),
             publicDetailLanguagesLabel: () => 'Español',
@@ -28,6 +29,12 @@ describe('WebCatalogViewComponent', () => {
 
     it('cuenta los filtros de selector activos', () => {
         const { component } = create({ selectedRatingFilter: 3, selectedLanguageFilter: '' });
+
+        expect(component.activeSelectCount).toBe(1);
+    });
+
+    it('el filtro «Nuevos» también cuenta como activo', () => {
+        const { component } = create({ selectedNewFilter: '7d' });
 
         expect(component.activeSelectCount).toBe(1);
     });

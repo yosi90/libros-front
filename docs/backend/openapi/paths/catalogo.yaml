@@ -15,6 +15,7 @@
     - $ref: '../../openapi.yaml#/components/parameters/CatalogStyleId'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogReadingStatusId'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogMinRating'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogNewWorks'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
     responses:
@@ -28,6 +29,8 @@
                 items:
                   $ref: '../../openapi.yaml#/components/schemas/CatalogItem'
               - $ref: '../../openapi.yaml#/components/schemas/CatalogItemsPage'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/libros/{id_libro}/detalle-publico:
@@ -67,6 +70,7 @@
     - $ref: '../../openapi.yaml#/components/parameters/CatalogStyleId'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogReadingStatusId'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogMinRating'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogNewWorks'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
     responses:
@@ -80,6 +84,8 @@
                 items:
                   $ref: '../../openapi.yaml#/components/schemas/CatalogItem'
               - $ref: '../../openapi.yaml#/components/schemas/CatalogItemsPage'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/antologias/{id_antologia}/detalle-publico:

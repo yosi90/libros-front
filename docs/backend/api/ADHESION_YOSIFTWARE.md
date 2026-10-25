@@ -16,7 +16,7 @@ Roadmap: `docs/roadmaps/ACTIVO_adhesion-yosiftware/ROADMAP_ACTIVO_adhesion_yosif
 | **Clubes en los espacios** (roles, espacio con cada club, copia del feed, expulsión y roles por la credencial de servicio, conversación y canal del espacio); retiradas las rutas propias de entrar, salir, invitaciones, solicitudes y bandejas | Rama `adhesion/api-identidad`, 2026-10-24 (fase 4, `236dae7`). En QA desde ese día. |
 | **El panel de administración, plugin de la administración** (`libros` 1.0.0); retiradas `/admin/*`, `/catalogo/admin/*`, `/moderacion/*` y las demás rutas de administración | Rama `adhesion/api-identidad`, 2026-10-24 (fase 3). En la API de QA desde ese día; el plugin, **pendiente de que el propietario lo instale** (abajo). |
 | **Plugin de Notificapp `libros-api` 1.1.0** (sin `books_appeal`) | ZIP entregado; lo instala el propietario en el corte (abajo). |
-| Publicación | Solo en el corte: API y web a la vez. Hasta entonces, producción sigue con la sesión propia de Libros. |
+| Publicación | Solo en el corte: API y web a la vez. Hasta entonces, producción sigue con la sesión propia de Libros. **Guion preparado y ensayado sobre una copia de producción** (2026-10-25): `docs/roadmaps/ACTIVO_adhesion-yosiftware/CORTE.md`. La web se publica en su paso 10, después de comprobar la API; entre el arranque de la API nueva y el Hosting nuevo (unos 20 minutos) la web antigua no puede entrar. |
 
 ## Qué cambia para el frontend
 
@@ -131,7 +131,7 @@ Decisión 1 de la petición de migración (`ecosistema-kit/PLUGIN_ADMINISTRACION
    .venv\Scripts\python.exe -c "import hashlib,secrets,pathlib; c=secrets.token_urlsafe(32); pathlib.Path(r'.runtime\plugin-administracion\produccion.credencial').write_text(c); print(hashlib.sha256(c.encode()).hexdigest())"
    ```
 
-2. En el `.env` de producción (`Libros API\.env`): `LIBROS_PLUGIN_ADMIN_CREDENCIAL_SHA256=<la huella>` y `LIBROS_PLUGIN_ADMIN_ID_GLOBAL=6b89e190-60c3-f111-8c4b-002315ef7116` (tu cuenta de producción, enlazada con `usuarios.id = 1`). La tabla `plugin_admin_idempotencia` llega con el esquema del corte. Reiniciar la API.
+2. En el `.env` de producción (`Libros API\.env`): `LIBROS_PLUGIN_ADMIN_CREDENCIAL_SHA256=<la huella>` y `LIBROS_PLUGIN_ADMIN_ID_GLOBAL=6b89e190-60c3-f111-8c4b-002315ef7116` (tu cuenta de producción, enlazada con `usuarios.id = 1`). La tabla `plugin_admin_idempotencia` llega con el esquema del corte (`scripts/sql/adhesion-yosiftware/01 - Corte adhesion Yosiftware.sql`). Reiniciar la API. Estos dos pasos los hace el agente en el paso 6 de `CORTE.md`; hasta que la huella esté puesta, `/admin/v1/*` en local responde `503 admin_plugin_not_configured`.
 3. Comprobar: `http://127.0.0.1:5001/admin/v1/resumen` sin credencial da `401`; `https://libros-api.yosiftware.es/admin/v1/resumen` da `404`.
 4. Instalarlo en la administración de producción (`C:\Users\Yosi\yosiftware-cuentas\produccion`) con las mismas tres órdenes y la credencial de producción (la de QA no se reutiliza).
 

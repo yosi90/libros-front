@@ -108,6 +108,8 @@ paths:
     $ref: ./openapi/paths/runtime-config.yaml#/~1runtime-config
   /usuarios/me:
     $ref: ./openapi/paths/usuarios.yaml#/~1usuarios~1me
+  /usuarios/me/estadisticas-comunidad:
+    $ref: ./openapi/paths/usuarios.yaml#/~1usuarios~1me~1estadisticas-comunidad
   /qa/status:
     $ref: ./openapi/paths/qa.yaml#/~1qa~1status
   /qa/fixtures:
@@ -680,6 +682,14 @@ components:
         type: integer
         minimum: 1
         maximum: 5
+    CatalogNewWorks:
+      name: nuevos
+      in: query
+      required: false
+      description: Solo las obras dadas de alta en el catálogo en las últimas 24 horas, 7 días o 30 días (altas exactas; las aproximadas nunca cuentan), de la más reciente a la más antigua. Otro valor responde 400 invalid_new_works_window.
+      schema:
+        type: string
+        enum: ['24h', '7d', '30d']
     CatalogPage:
       name: page
       in: query
@@ -2178,6 +2188,15 @@ components:
           type:
           - string
           - 'null'
+        FechaAlta:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Cuándo entró la obra en el catálogo (UTC). null en obras antiguas sin ningún rastro.
+        FechaAltaAproximada:
+          type: boolean
+          description: true en las obras de antes de guardar la fecha (reconstruida con su primer rastro); nunca cuentan como nuevas.
         IdiomasDisponibles:
           type: array
           items:
@@ -2345,9 +2364,51 @@ components:
     CommunityStatisticsResponse:
       type: object
       additionalProperties: false
-      required: [UmbralPrivacidad, Resumen, EstilosMasLeidos, AutoresMasLeidos, IdiomasMasLeidos, SagasMasLeidas, UniversosMasLeidos, LibrosMasLeidos, MejorValorados, AntologiasMasLeidas, LecturasPorMes, ActividadComunidad30Dias, ClubesMasAmplios, ClubesMasActivos]
+      required: [UmbralPrivacidad, Resumen, EstilosMasLeidos, AutoresMasLeidos, IdiomasMasLeidos, SagasMasLeidas, UniversosMasLeidos, LibrosMasLeidos, MejorValorados, AntologiasMasLeidas, LecturasPorMes, ActividadComunidad30Dias, ClubesMasAmplios, ClubesMasActivos, Catalogo]
       properties:
         UmbralPrivacidad: {type: integer, const: 3}
+        Catalogo:
+          type: object
+          additionalProperties: false
+          description: Lo que entra en el catálogo. Habla de obras, no de personas, así que no lleva umbral.
+          required: [Totales, Nuevos, AltasPorMes]
+          properties:
+            Totales:
+              type: object
+              additionalProperties: false
+              required: [Libros, Antologias, Autores, Sagas, Universos]
+              properties:
+                Libros: {type: integer, minimum: 0, description: Libros sueltos; las secciones de antología no cuentan.}
+                Antologias: {type: integer, minimum: 0}
+                Autores: {type: integer, minimum: 0}
+                Sagas: {type: integer, minimum: 0}
+                Universos: {type: integer, minimum: 0}
+            Nuevos:
+              type: object
+              additionalProperties: false
+              description: Libros sueltos y antologías con alta exacta en las últimas 24 horas, 7 días y 30 días.
+              required: [Horas24, Dias7, Dias30]
+              properties:
+                Horas24: {type: integer, minimum: 0}
+                Dias7: {type: integer, minimum: 0}
+                Dias30: {type: integer, minimum: 0}
+            AltasPorMes:
+              type: array
+              description: Las altas de los 12 últimos meses, del más antiguo al actual (con las aproximadas, es la curva de crecimiento).
+              minItems: 12
+              maxItems: 12
+              items:
+                type: object
+                additionalProperties: false
+                required: [Anio, Mes, Libros, Antologias, Autores, Sagas, Universos]
+                properties:
+                  Anio: {type: integer}
+                  Mes: {type: integer, minimum: 1, maximum: 12}
+                  Libros: {type: integer, minimum: 0}
+                  Antologias: {type: integer, minimum: 0}
+                  Autores: {type: integer, minimum: 0}
+                  Sagas: {type: integer, minimum: 0}
+                  Universos: {type: integer, minimum: 0}
         Resumen:
           type: object
           additionalProperties: false

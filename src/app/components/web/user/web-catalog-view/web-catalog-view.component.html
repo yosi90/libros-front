@@ -35,6 +35,7 @@
 
   @if (controller.filtersOpen) {
     <section id="web-catalog-filters" class="web-catalog__filters" aria-label="Filtros del catálogo">
+      <label><span>Nuevos</span><select [value]="controller.selectedNewFilter" (change)="controller.applyNewFilter($event)"><option value="">Todas las fechas</option>@for (option of controller.newWorksOptions; track option.value) {<option [value]="option.value">{{option.label}}</option>}</select></label>
       <label><span>Estado</span><select [value]="controller.selectedStatusFilter" (change)="controller.applySelectFilter('status', $event)"><option value="">Todos</option>@for (status of controller.statusOptions; track status.Id) {<option [value]="status.Id">{{status.Nombre}}</option>}</select></label>
       <label><span>Puntuación</span><select [value]="controller.selectedRatingFilter" (change)="controller.applySelectFilter('rating', $event)"><option value="">Todas</option>@for (rating of ratingOptions; track rating) {<option [value]="rating">{{rating}} o más</option>}</select></label>
       <label><span>Idioma</span><select [value]="controller.selectedLanguageFilter" (change)="controller.applySelectFilter('language', $event)"><option value="">Todos</option>@for (option of controller.languages; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>

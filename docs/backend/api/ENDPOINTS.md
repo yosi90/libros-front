@@ -11,7 +11,10 @@ En escrituras administrativas de catálogo, `FechaPublicacion` acepta año (`AAA
 > Referencia humana canónica. Para tipos exactos prevalece `../openapi.yaml`.
 
 - La biblioteca queda filtrada por usuario autenticado: autores, libros, sagas, antologias y universos propios.
-- `GET /estadisticas/comunidad` agrega lectura consentida y actividad de clubes públicos. `GET /estadisticas/comunidad/clubes/{id}` devuelve los autores más leídos por miembros activos de un club abierto visible. Ambos aceptan `limit=1..25` (10 por defecto), requieren JWT y ocultan grupos de lectura con menos de tres personas. Campos, definiciones y comportamiento de `null`: [Estadísticas de comunidad para el front](ESTADISTICAS_COMUNIDAD_FRONT.md).
+- `GET /estadisticas/comunidad` agrega lectura consentida y actividad de clubes públicos. `GET /estadisticas/comunidad/clubes/{id}` devuelve los autores más leídos por miembros activos de un club abierto visible. Ambos aceptan `limit=1..25` (10 por defecto), requieren JWT y ocultan grupos de lectura con menos de tres personas. Campos, definiciones y comportamiento de `null`: [Estadísticas de comunidad para el front](ESTADISTICAS_COMUNIDAD_FRONT.md). `GET /estadisticas/comunidad` trae además `Catalogo`, que no lleva umbral porque habla de obras y no de personas:
+  - `Totales` del catálogo;
+  - `Nuevos` (altas exactas en 24 horas, 7 días y 30 días);
+  - `AltasPorMes` de los 12 últimos meses.
 - **Novedades de la plataforma** (decisión 2 de la petición de migración): empezar o terminar una obra (estados `En marcha` y `Leido`), puntuarla y reseñarla se publican, después de confirmar y en segundo plano, como novedades de la plataforma (`libro.empezado`, `libro.terminado`, `libro.puntuado` y `libro.resenado`; `utils/platform_novedades.py`). `PublicarActividad: false` en `POST`/`PATCH /coleccion/{libros|antologias}/{id}/estado`, `/puntuacion` y `/resena` no publica esa novedad; `true`, `null` u omitido la publican y la plataforma aplica los ajustes de compartir de la persona (`https://social.yosiftware.es/?vista=novedades`). Borrar una reseña o que la oculte la moderación retira su novedad. Las preferencias propias (`/comunidad/actividad/preferencias` y sus reconocimientos) y el muro general se retiraron: [RUTAS_RETIRADAS.md](RUTAS_RETIRADAS.md).
 - Usar `/catalogo/*` para buscar el catalogo compartido y `/coleccion/*` para estado, puntuacion y biblioteca personal. El catalogo canonico se administra desde el plugin de la administracion de la plataforma (`/admin/v1/*`, abajo): la web ya no tiene escrituras de catalogo.
 - `universos.id = 1` (`Sin universo`) es global, visible para todos e inmodificable.
@@ -133,6 +136,9 @@ Filtros de `/catalogo/libros` y `/catalogo/antologias`:
 | `estiloId` | number | Filtra por estilo normalizado. |
 | `estadoId` | number | Filtra por ultimo estado personal del usuario autenticado. |
 | `puntuacionMin` | number | Filtra por puntuacion personal minima. |
+| `nuevos` | `24h`, `7d` o `30d` | Solo las obras dadas de alta en el catálogo en ese plazo, de la más reciente a la más antigua. Cuentan solo las altas exactas: las obras de antes de guardar la fecha llevan `FechaAltaAproximada: true` y nunca son nuevas. Otro valor: `400 invalid_new_works_window`. |
+
+Cada obra trae `FechaAlta` (UTC, ISO 8601; `null` en las antiguas sin ningún rastro) y `FechaAltaAproximada`. También los detalles públicos.
 
 Filtros de `/catalogo/autores`, `/catalogo/sagas` y `/catalogo/universos`:
 
@@ -929,7 +935,8 @@ Respuesta sin BD:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| GET | `/usuarios/me` | JWT | Devuelve el usuario local de Libros de la cuenta de Yosiftware autenticada: `Id`, `Nombre` (el alias que copia el feed) y `Role`. Exenta de `normasPendientes`; respuesta `private, no-store`. |
+| GET | `/usuarios/me` | JWT | Devuelve el usuario local de Libros de la cuenta de Yosiftware autenticada: `Id`, `Nombre` (el alias que copia el feed), `Role` y `CompartirEstadisticas`. Exenta de `normasPendientes`; respuesta `private, no-store`. |
+| PUT | `/usuarios/me/estadisticas-comunidad` | JWT | `{ "Compartir": true|false }`: si las lecturas de la persona cuentan, anónimas y con el umbral de privacidad, en las estadísticas de la comunidad y en la «Comunidad lectora» de las fichas. Por defecto no cuentan. Es un ajuste de Libros, distinto de «ocultar que uso la web» de la plataforma. Otro valor: `400 statistics_consent_invalid`. |
 
 ```json
 { "success": true, "user": { "Id": 1, "Nombre": "yosi", "Role": { "Id": 2, "Nombre": "administrador" } } }

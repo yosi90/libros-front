@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DoCheck, effect, Input } from '@angular/core';
 import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import type { StatisticsComponent, StatisticsTab } from '../../../shared/user-pages/statistics/statistics.component';
@@ -22,7 +23,7 @@ interface WebChartPalette {
 @Component({
     selector: 'app-web-statistics-view',
     standalone: true,
-    imports: [MatIconModule, NgApexchartsModule, NgTemplateOutlet, DecimalPipe],
+    imports: [MatIconModule, NgApexchartsModule, NgTemplateOutlet, DecimalPipe, RouterLink],
     templateUrl: './web-statistics-view.component.html',
     styleUrl: './web-statistics-view.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -42,6 +43,7 @@ export class WebStatisticsViewComponent implements DoCheck {
     catalogAuthors: any = null;
     languages: any = null;
     decades: any = null;
+    catalogAdditions: any = null;
     communityMonthly: any = null;
     communityCards: Array<{ title: string; subtitle: string; chart: any; empty: string }> = [];
     biggestClubs: any = null;
@@ -94,6 +96,7 @@ export class WebStatisticsViewComponent implements DoCheck {
         this.catalogStyles = this.bars(c.catalogStyles, palette, palette.primary, 'Títulos', true);
         this.catalogAuthors = this.bars(c.catalogAuthors, palette, palette.accent, 'Títulos', true);
         this.decades = this.bars(c.catalogDecades, palette, palette.status[4], 'Títulos', false);
+        this.catalogAdditions = this.bars(c.catalogMonthlyAdditions, palette, palette.accent, 'Obras añadidas', false);
         // Comunidad: solo se muestran los rankings con datos (la privacidad oculta grupos pequeños).
         const community: Array<[string, string, StatRow[], string, string]> = [
             ['Libros más leídos', 'Por número de lectores', c.communityBooks, palette.primary, 'Lectores'],

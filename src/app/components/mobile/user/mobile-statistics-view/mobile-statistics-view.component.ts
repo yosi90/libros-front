@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { StatRowsComponent } from '../../../shared/common/stat-rows/stat-rows.component';
 import { StatRow } from '../../../../shared/library-stats';
 import type { StatisticsComponent } from '../../../shared/user-pages/statistics/statistics.component';
@@ -7,7 +8,7 @@ import type { StatisticsComponent } from '../../../shared/user-pages/statistics/
 @Component({
     selector: 'app-mobile-statistics-view',
     standalone: true,
-    imports: [MatIconModule, StatRowsComponent],
+    imports: [MatIconModule, RouterLink, StatRowsComponent],
     templateUrl: './mobile-statistics-view.component.html',
     styleUrl: './mobile-statistics-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
