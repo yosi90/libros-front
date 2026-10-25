@@ -14,7 +14,7 @@ import { EspacioPlataforma, InvitacionEnviada, RolDeInvitacion, SolicitudDeEntra
 import { PlataformaPersona } from '../../../../interfaces/platform-person';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
-import { ClubChannelReconciler, ClubChannelSection, FEED_RETRY_DELAYS_MS, SOCIAL_SECURITY_VIEW, clubPersonName, spaceErrorMessage } from '../../../../shared/club-spaces';
+import { ClubChannelReconciler, ClubChannelSection, FEED_RETRY_DELAYS_MS, SOCIAL_SECURITY_VIEW, SPACE_ERROR_MESSAGES, clubPersonName, spaceErrorMessage } from '../../../../shared/club-spaces';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { PlatformSpacesService, SpaceChannelHandle } from '../../../../services/platform/platform-spaces.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
@@ -743,7 +743,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         const query = this.peopleQuery.trim();
         if (!this.canInvite || this.isSearchingPeople) return;
         if (query.length < 2 || query.length > 60) {
-            this.membershipError = 'Escribe entre 2 y 60 caracteres para buscar.';
+            this.membershipError = SPACE_ERROR_MESSAGES.get('busqueda_no_valida')!;
             return;
         }
         this.isSearchingPeople = true;
@@ -768,7 +768,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     inviteEmail(): void {
         const email = this.invitationEmail.trim();
         if (!EMAIL_PATTERN.test(email)) {
-            this.membershipError = 'Escribe un correo válido.';
+            this.membershipError = SPACE_ERROR_MESSAGES.get('correo_no_valido')!;
             return;
         }
         this.sendInvitation(`correo:${email.toLowerCase()}`, { correo: email }, 'Invitación enviada. Le llegará por correo y, si el correo es de una cuenta, también un aviso.', () => this.invitationEmail = '');

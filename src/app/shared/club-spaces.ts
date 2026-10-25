@@ -29,32 +29,34 @@ export function clubPersonName(person: { nombre: string | null; alias: string })
 /** La web social, para lo que la plataforma pide arreglar allí (la verificación en dos pasos). */
 export const SOCIAL_SECURITY_VIEW = 'seguridad';
 
-/** Texto para la persona de un error de los espacios (`docs/publica/ERRORES.md` y ESPACIOS.md, «Los errores»). */
+/** Texto para la persona de cada error de los espacios (`docs/publica/ERRORES.md` y ESPACIOS.md, «Los errores»). */
+export const SPACE_ERROR_MESSAGES: ReadonlyMap<string, string> = new Map([
+    ['expulsado_del_espacio', 'Te sacaron de este club: solo puedes volver con una invitación.'],
+    ['espacio_no_abierto', 'Este club ya no admite entrar sin más: pide entrar o espera una invitación.'],
+    ['espacio_sin_solicitudes', 'Este club solo admite invitaciones.'],
+    ['espacio_lleno', 'El club está lleno (2000 miembros).'],
+    ['dos_pasos_necesarios', 'Este club exige la verificación en dos pasos. Actívala en tu cuenta de Yosiftware y vuelve a intentarlo.'],
+    ['ya_es_miembro', 'Ya eres miembro de este club.'],
+    ['propietario_no_puede_salir', 'Quien tiene la propiedad del club no puede salir: traspásalo antes.'],
+    ['correo_de_otra_cuenta', 'La invitación es para un correo que esta cuenta no tiene confirmado. Entra con la cuenta de ese correo.'],
+    ['acepta_en_la_web', 'Esta invitación se acepta desde la web de su espacio.'],
+    ['invitacion_no_encontrada', 'Esta invitación ya no vale: caducó, la retiraron o ya se usó.'],
+    ['solicitud_no_encontrada', 'Esa solicitud ya no está pendiente.'],
+    ['persona_no_encontrada', 'No hemos encontrado a esa persona.'],
+    ['correo_no_valido', 'Escribe un correo válido.'],
+    ['invitacion_no_valida', 'La invitación no es válida.'],
+    ['demasiadas_invitaciones', 'Se han enviado demasiadas invitaciones. Prueba más tarde.'],
+    ['demasiadas_peticiones', 'Demasiadas peticiones seguidas. Espera un momento.'],
+    ['sin_permiso_en_el_espacio', 'Tu papel en el club no te deja hacer esto.'],
+    ['espacio_no_encontrado', 'Este club ya no está disponible para tu cuenta.'],
+    ['busqueda_no_valida', 'Escribe entre 2 y 60 caracteres para buscar.'],
+    ['sin_sesion', SIN_SESION_PLATAFORMA.error.error]
+]);
+
+/** Texto para la persona de un error de los espacios; si no es uno de ellos, el de la pantalla. */
 export function spaceErrorMessage(error: unknown, fallback: string): string {
     const code = getApiErrorCode(error);
-    switch (code) {
-        case 'expulsado_del_espacio': return 'Te sacaron de este club: solo puedes volver con una invitación.';
-        case 'espacio_no_abierto': return 'Este club ya no admite entrar sin más: pide entrar o espera una invitación.';
-        case 'espacio_sin_solicitudes': return 'Este club solo admite invitaciones.';
-        case 'espacio_lleno': return 'El club está lleno (2000 miembros).';
-        case 'dos_pasos_necesarios': return 'Este club exige la verificación en dos pasos. Actívala en tu cuenta de Yosiftware y vuelve a intentarlo.';
-        case 'ya_es_miembro': return 'Ya eres miembro de este club.';
-        case 'propietario_no_puede_salir': return 'Quien tiene la propiedad del club no puede salir: traspásalo antes.';
-        case 'correo_de_otra_cuenta': return 'La invitación es para un correo que esta cuenta no tiene confirmado. Entra con la cuenta de ese correo.';
-        case 'acepta_en_la_web': return 'Esta invitación se acepta desde la web de su espacio.';
-        case 'invitacion_no_encontrada': return 'Esta invitación ya no vale: caducó, la retiraron o ya se usó.';
-        case 'solicitud_no_encontrada': return 'Esa solicitud ya no está pendiente.';
-        case 'persona_no_encontrada': return 'No hemos encontrado a esa persona.';
-        case 'correo_no_valido': return 'Escribe un correo válido.';
-        case 'invitacion_no_valida': return 'La invitación no es válida.';
-        case 'demasiadas_invitaciones': return 'Se han enviado demasiadas invitaciones. Prueba más tarde.';
-        case 'demasiadas_peticiones': return 'Demasiadas peticiones seguidas. Espera un momento.';
-        case 'sin_permiso_en_el_espacio': return 'Tu papel en el club no te deja hacer esto.';
-        case 'espacio_no_encontrado': return 'Este club ya no está disponible para tu cuenta.';
-        case 'busqueda_no_valida': return 'Escribe entre 2 y 60 caracteres para buscar.';
-        case 'sin_sesion': return SIN_SESION_PLATAFORMA.error.error;
-        default: return fallback;
-    }
+    return (code && SPACE_ERROR_MESSAGES.get(code)) || fallback;
 }
 
 export type ClubChannelSection = 'club' | 'readings' | 'milestones' | 'calendar' | 'all';
