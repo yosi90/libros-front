@@ -26,6 +26,7 @@ import es.yosiftware.libros.ui.perfil.IdentidadDelPerfil
 import es.yosiftware.libros.ui.perfil.PantallaPerfil
 import es.yosiftware.libros.ui.perfil.PerfilViewModel
 import es.yosiftware.libros.ui.perfil.SeccionDelPerfil
+import es.yosiftware.libros.ui.preferencias.PantallaPreferencias
 import es.yosiftware.libros.ui.tema.TemaLibros
 import es.yosiftware.libros.ui.tema.TemaMobile
 import org.json.JSONArray
@@ -39,7 +40,8 @@ import org.json.JSONObject
  * adb shell am start -n es.yosiftware.libros.qa/es.yosiftware.libros.MuestrasDePerfil --es vista resumen --es tema oscuro
  * ```
  *
- * Vistas: `resumen`, `perfil`, `peticiones`, `peticiones-vacias`, `reportes` y `reportes-vacios`.
+ * Vistas: `resumen`, `perfil`, `peticiones`, `peticiones-vacias`, `reportes` y `reportes-vacios`, y `preferencias` (las
+ * Preferencias, que se ven igual sin cuenta).
  */
 class MuestrasDePerfil : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,13 +65,13 @@ class MuestrasDePerfil : ComponentActivity() {
             if (vista == "peticiones-vacias") emptyList() else peticiones,
             if (vista == "reportes-vacios") emptyList() else reportes,
         )
-        val nav = NavegacionViewModel(SavedStateHandle()).apply { irA(Destino.Perfil) }
+        val nav = NavegacionViewModel(SavedStateHandle()).apply { irA(if (vista == "preferencias") Destino.Preferencias else Destino.Perfil) }
         setContent {
             TemaLibros(tema) {
                 CompositionLocalProvider(LocalVentana provides rememberVentana()) {
                     Box(Modifier.fillMaxSize()) {
-                        Armazon(nombre = "QA Usuario A", tema = tema, alAlternarTema = {}, nav = nav) {
-                            PantallaPerfil(
+                        Armazon(nombre = "QA Usuario A", tema = tema, alAlternarTema = {}, nav = nav) { destino ->
+                            if (destino == Destino.Preferencias) PantallaPreferencias(alAbrirPrivacidad = {}) else PantallaPerfil(
                                 vm = vm,
                                 identidad = IdentidadDelPerfil("QA Usuario A", "qa-usuario-a", null),
                                 recuentos = 6 to 2,

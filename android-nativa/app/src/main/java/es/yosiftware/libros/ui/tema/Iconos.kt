@@ -124,6 +124,7 @@ object Iconos {
     @DrawableRes val accountCircle = R.drawable.mi_account_circle
     @DrawableRes val factCheck = R.drawable.mi_fact_check
     @DrawableRes val flag = R.drawable.mi_flag
+    @DrawableRes val appSettingsAlt = R.drawable.mi_app_settings_alt
     @DrawableRes val hub = R.drawable.mi_hub
     @DrawableRes val group = R.drawable.mi_group
     @DrawableRes val radioButtonUnchecked = R.drawable.mi_radio_button_unchecked

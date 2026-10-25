@@ -357,7 +357,10 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - El perfil de Yosiftware (nombre, alias y avatar) se edita en la web social (`?vista=perfil`), como ofrece el kit: la librería no tiene `editarPerfil()` y una pantalla propia con `/v1/perfil` duplicaría la de la plataforma. Al volver a la app se relee el perfil. Así queda resuelto el punto del hito 6 sobre `/v1/perfil` y el avatar.
   - Fallos de la web corregidos en los dos (front `7958a9e`): reenviar las peticiones «otro» (la API solo admite `Texto` y `Titulo`), el doble envío de «Reenviar» y las antologías de «Actividad reciente», que llevaban a una ruta inexistente; en la APK, una antología se abre en la Biblioteca.
   - Mejora sobre la web: un fallo de carga se dice como tal, no como «Aún no has enviado peticiones.».
-- [ ] Preferencias y permisos.
+- [ ] Preferencias y permisos. Hecho, pendiente de verlo en el Honor (`MuestrasDePerfil --es vista preferencias`).
+  - Dos pestañas: Privacidad (la de la cuenta de Yosiftware, en la web social) y «Permisos del móvil», recuperada de la APK de Capacitor.
+  - Permisos: solo las notificaciones (`POST_NOTIFICATIONS`, declarado ya; el push que lo usa llega en el hito 12). Fotos, cámara y micrófono no están, porque la APK no los usa. Si Android ya no pregunta, el botón abre sus ajustes de notificaciones.
+  - Chat no está: solo gobierna las ventanas flotantes del escritorio. El tema sigue en la hoja «Más», como en la web móvil.
 
 ### Hito 12. APK Kotlin: push, avisos, chat y actualizaciones
 

@@ -43,6 +43,7 @@ import es.yosiftware.libros.ui.perfil.IdentidadDelPerfil
 import es.yosiftware.libros.ui.perfil.PantallaPerfil
 import es.yosiftware.libros.ui.perfil.Perfil
 import es.yosiftware.libros.ui.perfil.PerfilViewModel
+import es.yosiftware.libros.ui.preferencias.PantallaPreferencias
 import es.yosiftware.libros.cuenta.Enlaces
 import androidx.compose.ui.platform.LocalContext
 import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
@@ -191,6 +192,10 @@ fun AppLibros(app: LibrosApp) {
                                     )
                                     Destino.Catalogo -> PantallaCatalogo(catalogo)
                                     Destino.Estadisticas -> PantallaEstadisticas(estadisticas)
+                                    Destino.Preferencias -> {
+                                        val contexto = LocalContext.current
+                                        PantallaPreferencias(alAbrirPrivacidad = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("privacidad")) } })
+                                    }
                                     Destino.Perfil -> {
                                         val contexto = LocalContext.current
                                         PantallaPerfil(
