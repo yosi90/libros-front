@@ -94,3 +94,56 @@ Desde ahora, la APK de Capacitor ya no puede entrar con Google, como estaba prev
 ## Resolución
 
 <!-- La rellena Libros. Ver docs/peticiones/README.md. -->
+
+### Libros: corte hecho (2026-10-25)
+
+Aceptada y en producción: la API y la web solo aceptan la cuenta de Yosiftware desde el 2026-10-25. La APK de Capacitor se queda sin soporte. La APK Kotlin sigue en marcha y la petición se queda en la raíz hasta que se publique (fases 8 y 9). El guion del corte, con su vuelta atrás, está en `docs/roadmaps/ACTIVO_adhesion-yosiftware/CORTE.md`.
+
+**Hecho**
+
+- **API** (`Qué necesitamos`, 1 y 2), en producción con `d3ca788`:
+  - `/verify` responde `produccion` y `healthy` con `api`, `sqlServer` y `plataformaFeedWorker`, en local y en `libros-api.yosiftware.es`.
+  - Solo acepta tokens de la plataforma con la audiencia `libros-api`.
+  - El feed se lee con la credencial de servicio de producción, que dio 200.
+  - Las rutas retiradas están en `RUTAS_RETIRADAS.md` (`GET /auth/user` responde 404).
+  - Ninguna ruta de administración queda en internet: `/admin/v1/*` responde 404 por el túnel y 401 sin credencial en la propia máquina.
+- **Lo social:** la plataforma de producción aceptó, el 2026-10-25, los catálogos de notificaciones (6 tipos) y de novedades (4) y los roles de los espacios (`moderacion` y `miembro`). Los incidentes y el canal de los clubes van con la misma credencial.
+- **Esquema:**
+  - Se aplicó `scripts/sql/adhesion-yosiftware/01` a `libros`, tras dos copias verificadas.
+  - Con él se corrigió el valor por defecto `N'Espa?a'` de `usuarios.pais_nombre`, que habría impedido cualquier alta nueva.
+  - `usuarios.id = 1` está enlazado con `6b89e190-60c3-f111-8c4b-002315ef7116`.
+  - Las tablas con datos de personas quedan archivadas.
+- **Web** (`Qué necesitamos`, 3), publicada en `libros.yosiftware.es` con `e890d0b`:
+  - Lleva el SDK, `<yosi-acceso>` con el panel de cuentas, `<yosi-webs>`, `<yosi-notificaciones>`, el chat de la plataforma pintado por Libros, `<yosi-reportar>`, `<yosi-privacidad>`, el símbolo del ecosistema y la CSP del kit.
+  - No usa Firebase Authentication, Firestore ni RTDB.
+  - La limpieza al cambiar de cuenta está probada (A → B → A con el doble del SDK, 6/6).
+  - Antes de unir la rama, el revisor de duplicados la revisó en modo `corregir`.
+- **Plugins** (`Qué necesitamos`, 4): los dos ZIP se entregaron al propietario. Los instala él:
+  - el de la administración, `libros` 1.0.0;
+  - el de Notificapp, `libros-api` 1.1.0, sin `books_appeal`.
+- **Normas propias** (`Qué necesitamos`, 5): publicadas por la plataforma el 2026-10-24 (versión 1; id 4 en QA y 5 en producción).
+- **Clubes:** no había ninguno en producción. Cada club nuevo nace con su espacio y su conversación.
+- **Prueba contra QA** (`Qué necesitamos`, 6):
+  - La API se probó contra la plataforma de QA con sus cuentas de prueba (`scripts/qa-plataforma-smoke.py`, 68/68).
+  - El propietario prefirió probar en producción tras el corte, en lugar de entrar en `libros.dev`.
+- **Lista de comprobación** (`Qué necesitamos`, 7): la de la web está recorrida en `../front/docs/pruebas/ecosistema/`, con lo que no aplica y su motivo.
+- **Arranque:** el lanzador de producción del escritorio arranca solo la API y el lector del feed.
+
+**Pendiente**
+
+- **La APK Kotlin** (`Qué necesitamos`, 8):
+  - Hechos los hitos 5 a 7 del frontend: base, cuenta con la librería 1.7.0 y datos.
+  - Faltan del 8 al 13 (pantallas, push, chat, plegables y la publicación con `publicar_apk.py`) y su ficha de app.
+- **`cuenta.estado` `borrada`:** aún falta el alcance completo de la decisión 22 del roadmap. Hoy se anonimiza el usuario local.
+- **El post-corte** (`02`, que borra las cinco tablas de mecanismo): cuando el propietario dé el corte por bueno.
+- **La novedad de Yosiftware del corte** (`2026-adhesion-cuenta-yosiftware`): preparada y simulada; se publica cuando el propietario haya entrado.
+- **Las referencias visuales de Linux:** pendientes de Docker.
+
+**Consolas** (2026-10-25)
+
+- **`yosiftware-libros`:**
+  - Las reglas de Firestore y de RTDB (`yosiftware-libros-default-rtdb`) están en `false` para todo, desplegadas con la CLI desde `Libros API/firebase.json`.
+  - El Hosting sigue en uso.
+  - Authentication: el propietario apaga los proveedores (contraseña, Google y teléfono).
+- **`libros-qa`:** las reglas de Firestore y de RTDB (`libros-qa-default-rtdb`) también están en `false`.
+- **Google Cloud:** el propietario borró los clientes OAuth Android antiguos el 2026-10-24.

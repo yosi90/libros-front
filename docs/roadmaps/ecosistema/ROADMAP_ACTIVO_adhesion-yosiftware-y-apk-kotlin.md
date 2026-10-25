@@ -133,7 +133,16 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - [x] Página de administración retirada (`5312ba8`): pasa al plugin de la plataforma; fuera la página, sus componentes, servicios, guardas, rutas y enlaces.
 - [x] Pruebas pendientes de los hitos 2 y 3: la campaña de integración (que entraba con el login propio) se retira o pasa a lo publicado sin sesión; referencias visuales de Windows regeneradas y revisadas (`home`, `account-security`, `book-search`, `chapter-editor`, `narrative-characters`); las de Linux, pendientes de Docker.
 - [x] `docs/backend` sincronizado desde `3037b4e` de la API (`98b7d1e`); la tarjeta «Invitaciones a clubes» sale solo de la plataforma (`c858553`).
-- [ ] Publicación coordinada con la fase 7; humo en producción con el propietario. Lo que queda para el corte: unir `adhesion/web` (con el revisor de duplicados en modo `corregir` sobre `478fc8e..HEAD`), subir la etiqueta `apk-capacitor-final`, que el propietario entre en `libros.dev` con su cuenta de QA y pruebe con cuentas reales el chat, los clubes y el cambio de cuenta, regenerar las referencias visuales de Linux con Docker, y lo marcado «En el corte» en la checklist.
+- [ ] Publicación coordinada con la fase 7; humo en producción con el propietario.
+  - **Publicada el 2026-10-25:**
+    - `adhesion/web` unida en `main` como `e890d0b`, después del revisor de duplicados en modo `corregir` (`e2a3316`…`af0c459`).
+    - Hosting desplegado en verde (ejecución `40180912280`, con `qa:ci`).
+    - Etiqueta `apk-capacitor-final` subida.
+    - `libros.yosiftware.es` sirve el paquete con `<yosi-acceso>` y sin Firebase Auth.
+  - **Falta:**
+    - que el propietario entre en producción (prefirió producción a `libros.dev`) y pruebe con cuentas reales el chat, los clubes y el cambio de cuenta;
+    - regenerar las referencias visuales de Linux con Docker;
+    - de lo marcado «En el corte» en la checklist, los dos plugins (los instala el propietario), la novedad de Yosiftware (cuando entre) y apagar los proveedores de Authentication. Las reglas de Firestore y de RTDB ya están en `false`.
 
 ### Hito 5. APK Kotlin: base del proyecto y referencia visual
 
