@@ -18,7 +18,7 @@ describe('DahsboardComponent', () => {
     }
 
     it('arranca la bandeja del chat de la plataforma con cualquier sesión y publica los no leídos', () => {
-        const { component, chatStore } = create({ isWoodPresentationActive: false, isMobilePresentationActive: true, isNativeMobile: true, canUseDesktopAdministration: false });
+        const { component, chatStore } = create({ isWoodPresentationActive: false, isMobilePresentationActive: true, isNativeMobile: true });
         let unread = 0;
         const subscription = component.unreadChatCount$.subscribe(value => unread = value);
 
@@ -34,12 +34,12 @@ describe('DahsboardComponent', () => {
     });
 
     it('prepara las ventanas flotantes en el escritorio de Wood y Web, y no en Mobile', () => {
-        const wood = create({ isWoodPresentationActive: true, isMobilePresentationActive: false, canUseDesktopAdministration: true });
+        const wood = create({ isWoodPresentationActive: true, isMobilePresentationActive: false });
         wood.component.ngOnInit();
         expect(wood.chatFloating.initialize).toHaveBeenCalledOnceWith(7);
         wood.component.ngOnDestroy();
 
-        const mobile = create({ isWoodPresentationActive: false, isMobilePresentationActive: true, canUseDesktopAdministration: false });
+        const mobile = create({ isWoodPresentationActive: false, isMobilePresentationActive: true });
         mobile.component.ngOnInit();
         expect(mobile.chatFloating.initialize).not.toHaveBeenCalled();
         mobile.component.ngOnDestroy();

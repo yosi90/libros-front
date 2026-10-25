@@ -34,13 +34,6 @@
   </nav>
 
   <div class="web-nav__footer">
-    @if (canAdministrate) {
-      <a class="web-nav__item" routerLink="/dashboard/adminpanel" routerLinkActive="is-active"
-        matTooltip="Administración" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right">
-        <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
-        <span class="web-nav__label">Administración</span>
-      </a>
-    }
     <a class="web-nav__profile" routerLink="/dashboard/profile" routerLinkActive="is-active"
       matTooltip="Perfil" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right">
       <span class="web-nav__avatar" aria-hidden="true">

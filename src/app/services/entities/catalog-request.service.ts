@@ -7,9 +7,6 @@ import {
     CatalogRequestCreate,
     CatalogRequestCreated,
     CatalogRequestResponse,
-    CatalogRequestResolve,
-    CatalogRequestResolved,
-    CatalogRequestStatusFilter,
     OwnCatalogRequestStatusFilter
 } from '../../interfaces/catalog';
 
@@ -25,18 +22,9 @@ export class CatalogRequestService {
         );
     }
 
-    list(estado: CatalogRequestStatusFilter = 'pendiente'): Observable<CatalogRequest[]> {
-        const params = new HttpParams().set('estado', estado);
-        return this.http.get<CatalogRequest[]>(this.apiUrl, { params });
-    }
-
     listMine(estado: OwnCatalogRequestStatusFilter = 'activas'): Observable<CatalogRequest[]> {
         const params = new HttpParams().set('estado', estado);
         return this.http.get<CatalogRequest[]>(`${this.apiUrl}/mias`, { params });
-    }
-
-    resolve(requestId: number, payload: CatalogRequestResolve): Observable<CatalogRequestResolved> {
-        return this.http.patch<CatalogRequestResolved>(`${this.apiUrl}/${requestId}/resolver`, payload);
     }
 
     respond(requestId: number, payload: CatalogRequestResponse): Observable<CatalogRequest> {

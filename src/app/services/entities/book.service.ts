@@ -1,14 +1,10 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, switchMap } from 'rxjs';
-import { Book, BookSimple } from '../../interfaces/book';
+import { map, Observable } from 'rxjs';
+import { Book } from '../../interfaces/book';
 import { CharacterOrderSummary } from '../../interfaces/character';
 import { environment } from '../../../environment/environment';
-import { NewBook } from '../../interfaces/creation/newBook';
-import { BookLanguagesWrite, CatalogAdminEntity } from '../../interfaces/catalog';
-import { CoverCacheService } from '../cover-cache.service';
-import { writeCatalogAdmin } from './catalog-admin-write';
 
 interface AnthologySectionDetailResponse {
     Antologia: { Id: number; Nombre: string };
@@ -22,20 +18,9 @@ interface AnthologySectionDetailResponse {
 })
 export class BookService extends ErrorHandlerService {
     private readonly booksUrl = environment.apiUrl + 'libros';
-    private readonly catalogAdminUrl = environment.apiUrl + 'catalogo/admin/libros';
 
-    constructor(private http: HttpClient, private coverCache: CoverCacheService) {
+    constructor(private http: HttpClient) {
         super();
-    }
-
-    getCover(imagePath: string): Observable<File> {
-        return this.coverCache.getCoverFile(imagePath)
-            .pipe(
-                catchError(error => {
-                    this.errorHandle(error, 'Libro');
-                    throw error;
-                })
-            );
     }
 
     getBook(bookId: number): Observable<Book> {
@@ -56,50 +41,6 @@ export class BookService extends ErrorHandlerService {
 
     getCharacterOrder(bookId: number): Observable<CharacterOrderSummary[]> {
         return this.http.get<CharacterOrderSummary[]>(`${this.booksUrl}/${bookId}/personajes/orden`);
-    }
-
-    addBook(book: NewBook, imageFile?: File | null): Observable<BookSimple> {
-        return writeCatalogAdmin(this.http, this.coverCache, 'post', this.catalogAdminUrl, this.toCatalogAdminWrite(book), imageFile).pipe(
-            switchMap(created => this.getBook(created.Id))
-        );
-    }
-
-    updateBook(book: NewBook, imageFile?: File | null): Observable<BookSimple> {
-        return writeCatalogAdmin(this.http, this.coverCache, 'patch', `${this.catalogAdminUrl}/${book.Id}`, this.toCatalogAdminWrite(book), imageFile).pipe(
-            switchMap(updated => this.getBook(updated.Id))
-        );
-    }
-
-    addBookLanguages(bookId: number, payload: BookLanguagesWrite): Observable<Book> {
-        return this.getBook(bookId).pipe(
-            map(book => [
-                ...(book.IdiomasDisponibles ?? []).flatMap(language => typeof language === 'string' ? [] : [language.Id]),
-                ...payload.Idiomas.map(language => typeof language === 'number' ? language : language.Id)
-            ]),
-            switchMap(languageIds => this.updateBookLanguages(bookId, { Idiomas: [...new Set(languageIds)] }))
-        );
-    }
-
-    updateBookLanguages(bookId: number, payload: BookLanguagesWrite): Observable<Book> {
-        const languageIds = payload.Idiomas.map(language => typeof language === 'number' ? language : language.Id);
-        return this.http.patch<CatalogAdminEntity>(`${this.catalogAdminUrl}/${bookId}`, { Idiomas: languageIds }).pipe(
-            switchMap(updated => this.getBook(updated.Id))
-        );
-    }
-
-    private toCatalogAdminWrite(book: NewBook): Record<string, unknown> {
-        const sagaId = book.Saga?.Id || null;
-        return {
-            Nombre: book.Nombre,
-            ISBN: book.ISBN ?? undefined,
-            Paginas: book.Paginas ?? undefined,
-            Sinopsis: book.Sinopsis ?? undefined,
-            FechaPublicacion: book.FechaPublicacion ?? undefined,
-            Orden: book.Orden,
-            Autores: book.Autores.map(author => author.Id),
-            Estilos: book.Estilos?.map(style => typeof style === 'number' ? style : style.Id),
-            ...(sagaId ? { SagaId: sagaId } : { UniversoId: book.Universo.Id })
-        };
     }
 
     private normalizeBook(book: Partial<Book>): Book {

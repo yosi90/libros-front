@@ -38,7 +38,6 @@ export class WebNavigationComponent {
     @Input() communityEnabled = false;
     @Input() chatEnabled = false;
     @Input() unreadChatCount = 0;
-    @Input() canAdministrate = false;
     @Output() readonly imageError = new EventEmitter<Event>();
 
     readonly collapsed = signal(this.readCollapsed());

@@ -8,11 +8,6 @@
         <mat-icon>person</mat-icon>
       </a>
       <app-yosiftware-notifications></app-yosiftware-notifications>
-      @if (isUserAdmin) {
-        <a routerLink="/dashboard/adminpanel" matTooltip="Administración" matTooltipClass="tt-accent">
-          <mat-icon>admin_panel_settings</mat-icon>
-        </a>
-      }
       <!-- Las webs del ecosistema y la cuenta de Yosiftware: el avatar abre el panel de cuentas (cambiar, añadir y salir). -->
       <app-yosiftware-webs></app-yosiftware-webs>
       <app-yosiftware-account class="topbar__account"></app-yosiftware-account>

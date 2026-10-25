@@ -23,10 +23,6 @@ import { YosiftwareWebsComponent } from '../yosiftware-webs/yosiftware-webs.comp
 export class NavbarComponent implements OnInit {
     canAccessLibrary: boolean = false;
 
-    get isUserAdmin(): boolean {
-        return this.sessionSrv.isAdmin;
-    }
-
     constructor(private sessionSrv: PlatformSessionService, private loader: LoaderEmmitterService, public router: Router, private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService) { }
 

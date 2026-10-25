@@ -26,7 +26,6 @@ export interface AdaptiveLayoutState {
     hasFinePointer: boolean;
     prefersReducedMotion: boolean;
     isVirtualKeyboardOpen: boolean;
-    canUseDesktopAdministration: boolean;
 }
 
 export const ADAPTIVE_LAYOUT_QUERIES = {
@@ -61,8 +60,7 @@ const DEFAULT_STATE: AdaptiveLayoutState = {
     hasCoarsePointer: false,
     hasFinePointer: true,
     prefersReducedMotion: false,
-    isVirtualKeyboardOpen: false,
-    canUseDesktopAdministration: true
+    isVirtualKeyboardOpen: false
 };
 
 @Injectable({ providedIn: 'root' })
@@ -135,8 +133,7 @@ export class AdaptiveLayoutService {
             hasCoarsePointer,
             hasFinePointer,
             prefersReducedMotion: this.breakpoints.isMatched(ADAPTIVE_LAYOUT_QUERIES.reducedMotion),
-            isVirtualKeyboardOpen: this.nativeKeyboardOpen || keyboardInset >= 120,
-            canUseDesktopAdministration: isDesktop && hasFinePointer
+            isVirtualKeyboardOpen: this.nativeKeyboardOpen || keyboardInset >= 120
         };
 
         this.stateSignal.set(state);

@@ -7,7 +7,6 @@ import { SagaChain } from './saga';
 export type CatalogEntityType = 'autor' | 'universo' | 'saga' | 'libro' | 'antologia' | 'otro';
 export type CatalogRequestAction = 'alta' | 'edicion' | 'comentario';
 export type CatalogRequestStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'devuelta';
-export type CatalogRequestStatusFilter = CatalogRequestStatus | 'todas';
 export type OwnCatalogRequestStatusFilter = CatalogRequestStatus | 'activas' | 'historial' | 'todas';
 export type CatalogItemType = 'libro' | 'antologia';
 
@@ -23,26 +22,6 @@ export interface WorkEditions {
     Tipo: CatalogItemType;
     ObraId: number;
     Ediciones: Edition[];
-}
-
-export interface EditionWrite {
-    ISBN?: string;
-    FechaPublicacion?: string | null;
-    /** Vinculación explícita a otra obra; solo administradores. */
-    VincularEdicionId?: number;
-}
-
-export interface EditionSaved {
-    Id: number;
-    ISBN: string | null;
-    Portada?: string;
-}
-
-export interface CatalogAdminEntity {
-    Id: number;
-    TipoEntidad: CatalogEntityType;
-    /** Nombre de la portada guardada cuando la escritura incluía imagen. */
-    Portada?: string;
 }
 
 export interface CatalogOption {
@@ -221,10 +200,6 @@ export interface GoogleBooksIsbnMetadata {
     Sinopsis?: string | null;
 }
 
-export interface BookLanguagesWrite {
-    Idiomas: Array<number | { Id: number }>;
-}
-
 export interface CollectionItem extends CatalogItem {
     Orden?: number;
     PorcentajeCompletado?: number | null;
@@ -297,7 +272,6 @@ export interface ReviewUpdateResponse extends CollectionWriteResponse {
 
 export type ReportEntityType = 'libro' | 'antologia';
 export type ReportStatus = 'pendiente' | 'aceptado' | 'rechazado';
-export type ReportStatusFilter = ReportStatus | 'todos';
 export type OwnReportStatusFilter = ReportStatus | 'activas' | 'historial' | 'todos';
 
 export interface ReportCreate {
@@ -313,17 +287,6 @@ export interface ReportCreated {
     Id: number;
     GrupoId: number;
     Estado: 'pendiente';
-}
-
-export interface ReportResolve {
-    Estado: Exclude<ReportStatus, 'pendiente'>;
-    Comentario?: string | null;
-}
-
-export interface ReportGroupResolved {
-    success: boolean;
-    Id: number;
-    Estado: Exclude<ReportStatus, 'pendiente'>;
 }
 
 export interface ReportGroup {
@@ -395,21 +358,6 @@ export interface CatalogRequest {
     FechaResolucion?: string | null;
 }
 
-export interface CatalogRequestResolve {
-    Estado: Exclude<CatalogRequestStatus, 'pendiente'>;
-    Comentario?: string | null;
-    Obra?: { ObraId: number; FechaPublicacion?: string | null; VincularEdicionId?: number };
-}
-
 export interface CatalogRequestResponse {
     Payload: Record<string, unknown>;
-}
-
-export interface CatalogRequestResolved {
-    success: boolean;
-    Id: number;
-    Estado: Exclude<CatalogRequestStatus, 'pendiente'>;
-    EntidadId?: number | null;
-    EdicionId?: number | null;
-    ParticipantesResueltos?: number;
 }

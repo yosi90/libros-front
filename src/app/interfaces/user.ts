@@ -63,18 +63,3 @@ export interface ApiUserProfile {
     EstadoCuenta?: Role | null;
     Role: Role;
 }
-
-export interface UserProfileUpdate {
-    name?: string;
-    email?: string;
-    image?: string;
-    username?: string | null;
-    displayName?: string | null;
-    bio?: string | null;
-    paisCodigo?: string | null;
-    paisNombre?: string | null;
-    perfilPublico?: boolean;
-    mostrarEstadisticas?: boolean;
-    mostrarBiblioteca?: boolean;
-    permitirMensajes?: boolean;
-}

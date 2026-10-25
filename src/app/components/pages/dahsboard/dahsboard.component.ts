@@ -52,14 +52,6 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return this.sessionSrv.userObject;
     }
 
-    get isUserAdmin(): boolean {
-        return this.sessionSrv.isAdmin;
-    }
-
-    get canModerateCatalog(): boolean {
-        return this.sessionSrv.canModerateCatalog;
-    }
-
     /** En Wood la instalación vive en la barra lateral en lugar del botón flotante. */
     installApp(): void {
         void this.pwa?.install();
@@ -69,7 +61,6 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get isWebPresentation(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
     get displayName(): string { return this.sessionSrv.userName; }
-    get canUseDesktopAdministration(): boolean { return this.presentation.snapshot.canUseDesktopAdministration; }
 
     /** Avatar de la cuenta de Yosiftware (miniatura del perfil común); vacío pinta la inicial. */
     get profileImageUrl(): string {

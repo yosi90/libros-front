@@ -17,7 +17,6 @@ export interface PresentationState {
     isWoodPresentationActive: boolean;
     isMobilePresentationActive: boolean;
     isNativeMobile: boolean;
-    canUseDesktopAdministration: boolean;
     /** Navegador bajo el modelo Web (flag activa): el tema lo decide WebThemeService. */
     isWebPresentation: boolean;
     webThemeChoice: WebThemeChoice | null;
@@ -83,7 +82,6 @@ const DEFAULT_STATE: PresentationState = {
     isWoodPresentationActive: true,
     isMobilePresentationActive: false,
     isNativeMobile: false,
-    canUseDesktopAdministration: true,
     isWebPresentation: false,
     webThemeChoice: null
 };
@@ -109,7 +107,6 @@ export class PresentationModeService {
             map(([layout, choice]) => this.createState(layout, choice)),
             distinctUntilChanged((previous, current) =>
                 previous.targetMode === current.targetMode
-                && previous.canUseDesktopAdministration === current.canUseDesktopAdministration
                 && previous.webThemeChoice === current.webThemeChoice
                 && previous.activeMode === current.activeMode
             )
@@ -157,7 +154,6 @@ export class PresentationModeService {
             isWoodPresentationActive: activeMode === 'wood',
             isMobilePresentationActive: activeMode === 'mobile' || activeMode === 'native-mobile',
             isNativeMobile: targetMode === 'native-mobile',
-            canUseDesktopAdministration: (isWoodTarget || targetMode === 'web') && layout.isDesktop && layout.hasFinePointer,
             isWebPresentation,
             webThemeChoice: choice
         };

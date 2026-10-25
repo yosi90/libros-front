@@ -1,11 +1,10 @@
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { PlatformSessionService } from '../auth/platform-session.service';
 import { UserService } from './user.service';
 import { environment } from '../../../environment/environment';
 
-describe('UserService administration', () => {
+describe('UserService', () => {
     let service: UserService;
     let http: HttpTestingController;
 
@@ -14,8 +13,7 @@ describe('UserService administration', () => {
             providers: [
                 UserService,
                 provideHttpClient(withXhr()),
-                provideHttpClientTesting(),
-                { provide: PlatformSessionService, useValue: { isAdmin: true, canModerateCatalog: true, userRole: { Nombre: 'administrador' } } }
+                provideHttpClientTesting()
             ]
         });
         service = TestBed.inject(UserService);
@@ -34,25 +32,5 @@ describe('UserService administration', () => {
         const request = http.expectOne(`${environment.apiUrl}usuarios/me`);
         expect(request.request.method).toBe('GET');
         request.flush({ success: true, user: { Id: 7, Nombre: 'lectora', Role: { Id: 1, Nombre: 'usuario' } } });
-    });
-
-    it('envia el cambio de rol con motivo obligatorio en el payload', () => {
-        service.changeAdminUserRole(7, 2, 'Necesidad operativa').subscribe();
-
-        const request = http.expectOne(`${environment.apiUrl}admin/usuarios/7/rol`);
-        expect(request.request.method).toBe('PATCH');
-        expect(request.request.body).toEqual({ RolId: 2, Motivo: 'Necesidad operativa' });
-        request.flush({ success: true });
-    });
-
-    it('envia filtros y cursor de auditoria sin valores vacios', () => {
-        service.getAdminAudit({ modulo: 'cuentas', accion: '', actorId: 3, cursorFecha: '2026-07-01T00:00:00Z', cursorId: 9 }).subscribe();
-
-        const request = http.expectOne(req => req.url === `${environment.apiUrl}admin/auditoria`);
-        expect(request.request.params.get('modulo')).toBe('cuentas');
-        expect(request.request.params.has('accion')).toBeFalse();
-        expect(request.request.params.get('actorId')).toBe('3');
-        expect(request.request.params.get('cursorId')).toBe('9');
-        request.flush({ success: true, Registros: [], SiguienteCursor: null });
     });
 });

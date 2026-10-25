@@ -19,7 +19,7 @@ describe('ObjectManagerComponent editions', () => {
         component = new ObjectManagerComponent(
             unused, unused, universeStore as never,
             { openSnackBar: jasmine.createSpy('openSnackBar'), openApiError: jasmine.createSpy('openApiError') } as never,
-            unused, { canModerateCatalog: false } as PlatformSessionService, catalog, collection
+            unused, {} as PlatformSessionService, catalog, collection
         );
         component.selectedDetailItem = {
             Tipo: 'libro', Id: 9, Nombre: 'Obra', Portada: null, Autores: [], Estados: [],

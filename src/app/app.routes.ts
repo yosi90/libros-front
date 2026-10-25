@@ -14,7 +14,8 @@ export const routes: Routes = [
     // Los enlaces antiguos a esas páginas, también los de correos ya enviados, llevan a la portada.
     ...['login', 'register', 'forgot-password', 'reset-password', 'verify-email', 'verify-email-pending', 'onboarding']
         .map(path => ({ path, redirectTo: 'home', pathMatch: 'full' as const })),
-    { path: 'adminpanel', redirectTo: 'dashboard/adminpanel', pathMatch: 'full' },
+    // La administración es un plugin de la administración de la plataforma (ADHESION_YOSIFTWARE.md): sin página en la web.
+    { path: 'adminpanel', redirectTo: 'dashboard/books', pathMatch: 'full' },
     {
         path: 'book/:id', component: BookComponent, canActivate: [authGuard, bookLoadGuard],
         loadChildren: () => import('./modules/book-router.module').then(m => m.routes)

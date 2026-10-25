@@ -16,12 +16,6 @@ export interface UniverseSimple {
     Nombre: string;
 }
 
-export interface UniverseWrite {
-    Id?: number;
-    Nombre: string;
-    Autores: Pick<Author, 'Id'>[];
-}
-
 export interface UniverseSectionWrite {
     UniversoId: number;
     LibroId: number;

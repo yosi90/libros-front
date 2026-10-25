@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, Subject, distinctUntilChanged, map } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { Role, User } from '../../interfaces/user';
-import { canModerateCatalogRole, isAdminRole } from '../../shared/permissions';
 import {
     CARGADOR_SDK,
     CargadorSdk,
@@ -131,8 +130,6 @@ export class PlatformSessionService implements OnDestroy {
 
     get userIsLogged(): boolean { return this.userIsLogged$.value; }
     get canAccessLibrary(): boolean { return this.userIsLogged; }
-    get isAdmin(): boolean { return isAdminRole(this.userRole); }
-    get canModerateCatalog(): boolean { return canModerateCatalogRole(this.userRole); }
 
     /** Compatibilidad con las pantallas: lo que Libros sabe de la persona. El perfil es de la plataforma. */
     get userObject(): User {
