@@ -1,12 +1,11 @@
-import type { Page, Request } from '@playwright/test';
 import { expect, test } from './fixtures/test';
 import { installLocalVisualSession } from './support/local-visual-session';
+import { localPlatformPerson as yo, watchRetiredCalls } from './support/platform-fixtures';
 import { SDK_DOUBLE_PLATFORM_TOKEN } from './support/yosiftware-sdk-double';
 
 // Hito 3 de la adhesión: lo social es de la plataforma Yosiftware. La cabecera lleva sus webs, su campana y la cuenta;
 // el chat es el de la plataforma con la interfaz de Libros, y la web no llama a nada que la API de Libros retiró.
 
-const yo = { id: '0d0c37aa-0000-4000-8000-000000000037', alias: 'lector_prueba', nombre: 'Lector de prueba', avatar: null };
 const ana = { id: 'cuenta-ana', alias: 'ana', nombre: 'Ana', avatar: null };
 const permisos = { escribir: true, invitar: false, administrar: false, salir: true, borrar: true };
 const mensaje = (id: number, persona: typeof yo, texto: string, extra: Record<string, unknown> = {}) => ({
@@ -26,20 +25,10 @@ const RETIRED = [
     /\/auth\//, /\/image\/set\/photo/, /\/health\/realtime/
 ];
 
-function watchRetiredCalls(page: Page): string[] {
-    const calls: string[] = [];
-    page.on('request', (request: Request) => {
-        const url = new URL(request.url());
-        // Solo la API de Libros: las rutas `/v1/…` son de la plataforma.
-        if (url.pathname.startsWith('/v1/') || url.hostname.includes('cuentas')) return;
-        if (RETIRED.some(pattern => pattern.test(url.pathname + url.search))) calls.push(`${request.method()} ${url.pathname}`);
-    });
-    return calls;
-}
 
 test.describe('Lo social con la plataforma (hito 3)', () => {
     test('Web: las webs, la campana y la cuenta van en la cabecera, una sola vez, en escritorio y en compacta', async ({ page }) => {
-        const retired = watchRetiredCalls(page);
+        const retired = watchRetiredCalls(page, RETIRED);
         await installLocalVisualSession(page, { webPresentation: true });
         await page.setViewportSize({ width: 1440, height: 900 });
         await page.goto('/dashboard/books');
@@ -72,7 +61,7 @@ test.describe('Lo social con la plataforma (hito 3)', () => {
     });
 
     test('Mensajes pinta el chat de la plataforma con la interfaz de Libros y escribe en /v1/chat', async ({ page }) => {
-        const retired = watchRetiredCalls(page);
+        const retired = watchRetiredCalls(page, RETIRED);
         await installLocalVisualSession(page, { webPresentation: true });
         const sent: Array<{ body: Record<string, unknown>; auth: string | undefined }> = [];
         const read: unknown[] = [];
@@ -117,7 +106,7 @@ test.describe('Lo social con la plataforma (hito 3)', () => {
     });
 
     test('Comunidad lleva las personas y las relaciones a la web social con el símbolo del ecosistema', async ({ page }) => {
-        const retired = watchRetiredCalls(page);
+        const retired = watchRetiredCalls(page, RETIRED);
         await installLocalVisualSession(page, { webPresentation: true });
         await page.route('**/comunidad/resumen', route => route.fulfill({ json: { success: true, Parcial: false, BloquesFallidos: [], Resumen: { Clubes: { Activos: 1 } } } }));
         await page.setViewportSize({ width: 1440, height: 900 });
@@ -134,7 +123,7 @@ test.describe('Lo social con la plataforma (hito 3)', () => {
     });
 
     test('Perfil: el de Yosiftware se edita en su vista; Mis peticiones y Mis reportes siguen enlazables', async ({ page }) => {
-        const retired = watchRetiredCalls(page);
+        const retired = watchRetiredCalls(page, RETIRED);
         await installLocalVisualSession(page, { webPresentation: true });
         await page.setViewportSize({ width: 1440, height: 900 });
 
@@ -152,7 +141,7 @@ test.describe('Lo social con la plataforma (hito 3)', () => {
     });
 
     test('Cuenta y seguridad: privacidad y errores con el SDK; normas, moderación, bloqueos y tus datos en la web social', async ({ page }) => {
-        const retired = watchRetiredCalls(page);
+        const retired = watchRetiredCalls(page, RETIRED);
         await installLocalVisualSession(page, { webPresentation: true });
         await page.setViewportSize({ width: 1440, height: 900 });
 

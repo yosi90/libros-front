@@ -1,6 +1,7 @@
-import type { Page, Request, Route } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures/test';
 import { installLocalVisualSession } from './support/local-visual-session';
+import { json, localPlatformPerson as yo, watchRetiredCalls } from './support/platform-fixtures';
 import { SDK_DOUBLE_PLATFORM_TOKEN } from './support/yosiftware-sdk-double';
 
 // Hito 3 de la adhesión, parte de los clubes (fase 4 de la API): cada club es un espacio de la plataforma. Entrar,
@@ -9,7 +10,6 @@ import { SDK_DOUBLE_PLATFORM_TOKEN } from './support/yosiftware-sdk-double';
 // de invitaciones (`data-invitaciones="propias"`) y trata `#yosi-invitacion=` y `#yosi-invitaciones` en su raíz.
 
 const ME = 37;
-const yo = { id: '0d0c37aa-0000-4000-8000-000000000037', alias: 'lector_prueba', nombre: 'Lector de prueba', avatar: null };
 const ada = { id: 'cuenta-ada', alias: 'ada', nombre: 'Ada', avatar: null };
 
 /** Rutas de clubes que la API retiró en la fase 4 (RUTAS_RETIRADAS.md): la web no las pide nunca. */
@@ -17,18 +17,6 @@ const RETIRED = [
     /\/clubes-lectura\/\d+\/(unirse|salir|solicitudes|invitaciones)/, /\/clubes-lectura\/(invitaciones|solicitudes)/,
     /\/bandejas\/clubes\//, /\/chat\/clubes\//, /\/chat\//, /\/ws\/community/
 ];
-
-function watchRetiredCalls(page: Page): string[] {
-    const calls: string[] = [];
-    page.on('request', (request: Request) => {
-        const url = new URL(request.url());
-        if (url.pathname.startsWith('/v1/') || url.hostname.includes('cuentas')) return;
-        if (RETIRED.some(pattern => pattern.test(url.pathname))) calls.push(`${request.method()} ${url.pathname}`);
-    });
-    return calls;
-}
-
-const json = (route: Route, body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
 const clubSummary = { Id: 70, EspacioId: 9, Nombre: 'Club de Dune', DescripcionMarkdown: null, Visibilidad: 'abierto', PropietarioId: 2, Objetivo: null, Miembros: 1, FechaActualizacion: '2026-10-24T10:00:00Z' };
 function clubDetail(member: boolean) {
@@ -97,7 +85,7 @@ async function installClubWorld(page: Page, world: ClubWorld): Promise<void> {
 }
 
 async function setUp(page: Page, member = false, webPresentation = true): Promise<{ world: ClubWorld; retired: string[] }> {
-    const retired = watchRetiredCalls(page);
+    const retired = watchRetiredCalls(page, RETIRED);
     await installLocalVisualSession(page, { webPresentation });
     const world: ClubWorld = { member, platformCalls: [], libraryCalls: [] };
     await installClubWorld(page, world);

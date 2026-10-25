@@ -2,8 +2,8 @@ import type { Page } from '@playwright/test';
 import { installYosiftwareSdkDouble } from './yosiftware-sdk-double';
 
 /** La persona de las regresiones: su cuenta de Yosiftware (doble del SDK) y su usuario local de Libros. */
-const localUser = { Id: 37, Nombre: 'Lector de prueba', Role: { Id: 1, Nombre: 'usuario' } };
-const localAccount = { id: '0d0c37aa-0000-4000-8000-000000000037', alias: 'lector_prueba' };
+export const localUser = { Id: 37, Nombre: 'Lector de prueba', Role: { Id: 1, Nombre: 'usuario' } };
+export const localAccount = { id: '0d0c37aa-0000-4000-8000-000000000037', alias: 'lector_prueba' };
 
 export const visualBook = {
     Id: 73,

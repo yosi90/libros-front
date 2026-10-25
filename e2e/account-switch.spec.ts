@@ -3,6 +3,7 @@ import { expect, test } from './fixtures/test';
 import { environment } from '../src/environment/environment';
 import { installLocalVisualSession, visualBook } from './support/local-visual-session';
 import { installYosiftwareSdkDouble, sdkDoublePlatformToken, sdkDoubleToken } from './support/yosiftware-sdk-double';
+import { json } from './support/platform-fixtures';
 
 // Hito 4 de la adhesión: la limpieza al cambiar de cuenta (ecosistema-kit/CAMBIO_DE_CUENTA.md). Dos cuentas de
 // Yosiftware con datos distintos en Libros; el doble del SDK cambia de una a otra como el de verdad (aviso
@@ -25,7 +26,6 @@ interface World {
     chapterSaves: Array<{ account: string | null; body: Record<string, unknown> }>;
 }
 
-const json = (route: Route, body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 const accountOf = (request: Request): string | null => {
     const auth = request.headers()['authorization'] ?? '';
     return ACCOUNTS.find(account => auth.endsWith(`:${account.id}`))?.id ?? null;
