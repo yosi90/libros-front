@@ -64,9 +64,9 @@ object FrasesDelDragon {
 
     /** El de este arranque de la app. */
     private val DE_ESTA_VEZ = DRAGONES.random()
-    const val BIBLIOTECA = "Recuperando tu biblioteca…"
 
     val ENTRAR = listOf(
+        "El dragón quiere recomendarte un libro...",
         "El dragón está comprobando tus credenciales...",
         "Abriendo el portal de la biblioteca...",
         "Desempolvando tu grimorio personal...",
@@ -147,8 +147,8 @@ object FrasesDelDragon {
 
     /** La frase de cada carga, como `getRandomLoaderMessage`. */
     fun para(contexto: ContextoDeCarga, azar: Random = Random.Default): String = when (contexto) {
-        ContextoDeCarga.BIBLIOTECA -> BIBLIOTECA
-        ContextoDeCarga.ENTRADA -> ENTRAR.random(azar)
+        // Al recuperar la biblioteca (y al arrancar), una divertida: el propietario no quiere el «Recuperando…» soso.
+        ContextoDeCarga.BIBLIOTECA, ContextoDeCarga.ENTRADA -> (ENTRAR + EXTRA).random(azar)
         ContextoDeCarga.LIBRO -> (LIBRO + EXTRA).random(azar)
         ContextoDeCarga.OTRO -> EXTRA.random(azar)
     }

@@ -54,8 +54,11 @@ export class AppComponent implements OnInit {
      */
     dragonLoader = DRAGON_LOADERS[Math.floor(Math.random() * DRAGON_LOADERS.length)];
     loaderMessage = 'Cargando...';
+    /** La frase mientras se restaura la sesión: una divertida al azar, no un «Recuperando tu biblioteca…» soso. */
+    sessionLoaderMessage = '';
     sessionReady = false;
     private loginLoaderMessages = [
+        'El dragón quiere recomendarte un libro...',
         'El dragón está comprobando tus credenciales...',
         'Abriendo el portal de la biblioteca...',
         'Desempolvando tu grimorio personal...',
@@ -153,6 +156,7 @@ export class AppComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.sessionLoaderMessage = this.getRandomLoaderMessage('library');
         void this.adaptiveLayout.snapshot;
         void this.presentationMode.snapshot;
         this.loader.loaderStatus$.subscribe(value => {
@@ -247,7 +251,7 @@ export class AppComponent implements OnInit {
 
     private getRandomLoaderMessage(context: 'default' | 'login' | 'book' | 'library'): string {
         if (context === 'library')
-            return 'Recuperando tu biblioteca…';
+            return this.getRandomFrom([...this.loginLoaderMessages, ...this.extraLoaderMessages]);
         if (context === 'login')
             return this.getRandomFrom(this.loginLoaderMessages);
         if (context === 'book')

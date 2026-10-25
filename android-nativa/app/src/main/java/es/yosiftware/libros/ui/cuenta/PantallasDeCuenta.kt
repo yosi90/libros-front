@@ -128,7 +128,7 @@ fun PantallaDeArranque() {
                 filterQuality = FilterQuality.High,
             )
         }
-        // Si tarda, el dragón de la APK de Capacitor con «Recuperando tu biblioteca…» (`sessionReady` de la web).
+        // Si tarda, el dragón de la APK de Capacitor con una de sus frases (`sessionReady` de la web).
         if (largo) CargadorDelDragon(remember { FrasesDelDragon.abrir(ContextoDeCarga.BIBLIOTECA, null) })
     }
 }

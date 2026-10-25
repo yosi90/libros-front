@@ -10,15 +10,16 @@ import org.junit.Test
 class FrasesDelDragonTest {
     @Test
     fun lasFrasesDeLaWeb() {
-        assertEquals(25, FrasesDelDragon.ENTRAR.size)
+        assertEquals(26, FrasesDelDragon.ENTRAR.size)
+        assertEquals("El dragón quiere recomendarte un libro...", FrasesDelDragon.ENTRAR.first())
         assertEquals(30, FrasesDelDragon.LIBRO.size)
         assertEquals(15, FrasesDelDragon.EXTRA.size)
         assertEquals("El dragón olvidó la contraseña. Otra vez.", FrasesDelDragon.EXTRA.first())
-        assertEquals("Recuperando tu biblioteca…", FrasesDelDragon.para(ContextoDeCarga.BIBLIOTECA))
         repeat(20) {
             val azar = Random(it)
             assertTrue(FrasesDelDragon.para(ContextoDeCarga.LIBRO, azar) in FrasesDelDragon.LIBRO + FrasesDelDragon.EXTRA)
             assertTrue(FrasesDelDragon.para(ContextoDeCarga.OTRO, azar) in FrasesDelDragon.EXTRA)
+            assertTrue(FrasesDelDragon.para(ContextoDeCarga.BIBLIOTECA, azar) in FrasesDelDragon.ENTRAR + FrasesDelDragon.EXTRA)
         }
     }
 
