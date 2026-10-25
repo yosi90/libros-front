@@ -2364,9 +2364,10 @@ components:
     CommunityStatisticsResponse:
       type: object
       additionalProperties: false
-      required: [UmbralPrivacidad, Resumen, EstilosMasLeidos, AutoresMasLeidos, IdiomasMasLeidos, SagasMasLeidas, UniversosMasLeidos, LibrosMasLeidos, MejorValorados, AntologiasMasLeidas, LecturasPorMes, ActividadComunidad30Dias, ClubesMasAmplios, ClubesMasActivos, Catalogo]
+      required: [UmbralPrivacidad, Resumen, EstilosMasLeidos, AutoresMasLeidos, IdiomasMasLeidos, SagasMasLeidas, UniversosMasLeidos, LibrosMasLeidos, MejorValorados, AntologiasMasLeidas, LecturasPorMes, ActividadComunidad30Dias, ClubesMasAmplios, ClubesMasActivos, Catalogo, RitmoComunidad]
       properties:
         UmbralPrivacidad: {type: integer, const: 3}
+        RitmoComunidad: {$ref: '#/components/schemas/ReadingPaceCommunity'}
         Catalogo:
           type: object
           additionalProperties: false
@@ -2463,6 +2464,12 @@ components:
       type: object
       description: Agregados anonimos de usuarios activos/verificados con mostrar_estadisticas = 1.
       properties:
+        RitmoLectores:
+          type: [number, 'null']
+          description: Páginas por día con lectura, de media entre quienes la leen y comparten (solo libros). null con menos de tres.
+        DiasMediosParaTerminar:
+          type: [number, 'null']
+          description: Días medios desde el último «En marcha» hasta «Leído» de quienes comparten. null con menos de tres.
         UsuariosEnBiblioteca:
           type: integer
         PuntuacionMedia:
@@ -3430,11 +3437,85 @@ components:
           oneOf:
           - {$ref: '#/components/schemas/UniverseRecurringCharacter'}
           - {type: 'null'}
+    ReadingPaceBook:
+      type: object
+      additionalProperties: false
+      description: La lectura propia de una obra desde que se guarda cuándo se registra cada capítulo (días de Madrid). Los capítulos sin fecha son el punto de partida, no días de lectura.
+      required: [Desde, DiasActivos, PaginasPorDia, MejorDia, MediaPersonalPorDia, Curva]
+      properties:
+        Desde: {type: string, format: date}
+        DiasActivos: {type: integer, minimum: 1}
+        PaginasPorDia: {type: number, minimum: 0, description: Páginas avanzadas por día con lectura.}
+        MejorDia:
+          type: object
+          required: [Fecha, Paginas]
+          properties:
+            Fecha: {type: string, format: date}
+            Paginas: {type: integer, minimum: 0}
+        MediaPersonalPorDia: {type: [number, 'null'], description: 'La media propia en todas las obras, para comparar.'}
+        Curva:
+          type: array
+          description: La página más alta alcanzada al final de cada día con lectura.
+          items:
+            type: object
+            required: [Fecha, Pagina]
+            properties:
+              Fecha: {type: string, format: date}
+              Pagina: {type: integer, minimum: 0}
+    ReadingPaceUser:
+      type: object
+      additionalProperties: false
+      description: La lectura propia en general desde que se guarda cuándo se registra cada capítulo (días y horas de Madrid).
+      required: [Desde, PaginasPorMes, DiasConLectura, PaginasPorDiaActivo, RachaActual, MejorRacha, PaginasPorDiaSemana, PaginasPorHora, CapitulosPorSemana]
+      properties:
+        Desde: {type: string, format: date}
+        PaginasPorMes:
+          type: array
+          minItems: 12
+          maxItems: 12
+          items:
+            type: object
+            required: [Anio, Mes, Paginas]
+            properties:
+              Anio: {type: integer}
+              Mes: {type: integer, minimum: 1, maximum: 12}
+              Paginas: {type: integer, minimum: 0}
+        DiasConLectura: {type: integer, minimum: 1}
+        PaginasPorDiaActivo: {type: number, minimum: 0}
+        RachaActual: {type: integer, minimum: 0, description: Días seguidos con lectura hasta hoy o ayer.}
+        MejorRacha: {type: integer, minimum: 1}
+        PaginasPorDiaSemana: {type: array, minItems: 7, maxItems: 7, items: {type: integer, minimum: 0}, description: De lunes a domingo.}
+        PaginasPorHora: {type: array, minItems: 24, maxItems: 24, items: {type: integer, minimum: 0}}
+        CapitulosPorSemana: {type: number, minimum: 0}
+    ReadingPaceCommunity:
+      type: object
+      additionalProperties: false
+      description: El ritmo de quienes comparten sus estadísticas. Con menos de tres personas, null (también la fecha).
+      required: [Desde, PaginasPorMes, RitmoMedio, Lectores]
+      properties:
+        Desde: {type: [string, 'null'], format: date}
+        PaginasPorMes:
+          type: array
+          minItems: 12
+          maxItems: 12
+          items:
+            type: object
+            required: [Anio, Mes, Paginas]
+            properties:
+              Anio: {type: integer}
+              Mes: {type: integer, minimum: 1, maximum: 12}
+              Paginas: {type: [integer, 'null'], minimum: 0, description: null si ese mes leyeron una o dos personas; 0 si nadie.}
+        RitmoMedio: {type: [number, 'null'], description: 'Páginas por día con lectura de los últimos 90 días, de media por persona.'}
+        Lectores: {type: [integer, 'null'], minimum: 3}
     UniverseMetricsResponse:
       type: object
       additionalProperties: false
-      required: [Resumen, ComprasUltimosMeses, LibroMasRapido, TopLibrosMasRapidos, LibroMasTiempoPendiente, PersonajeMasRecurrente, PorUniverso]
+      required: [RitmoLectura, Resumen, ComprasUltimosMeses, LibroMasRapido, TopLibrosMasRapidos, LibroMasTiempoPendiente, PersonajeMasRecurrente, PorUniverso]
       properties:
+        RitmoLectura:
+          oneOf:
+          - {$ref: '#/components/schemas/ReadingPaceUser'}
+          - {type: 'null'}
         Resumen: {$ref: '#/components/schemas/UniverseMetricsSummary'}
         ComprasUltimosMeses: {type: array, items: {$ref: '#/components/schemas/UniverseMonthlyPurchases'}}
         LibroMasRapido:
@@ -3652,6 +3733,15 @@ components:
       - type: object
         additionalProperties: true
         properties:
+          Metricas:
+            type: object
+            additionalProperties: true
+            description: Las métricas del libro (lectura, fechas, personajes y capítulos) y su ritmo propio.
+            properties:
+              Ritmo:
+                oneOf:
+                - {$ref: '#/components/schemas/ReadingPaceBook'}
+                - {type: 'null'}
           Ediciones:
             type: array
             items: {$ref: '#/components/schemas/Edition'}

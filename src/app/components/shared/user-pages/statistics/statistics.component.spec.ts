@@ -27,7 +27,8 @@ describe('StatisticsComponent', () => {
                 Estados: [{ Id: 1, EstadoId: 2, Fecha: '2026-01-03' }] },
             { Tipo: 'libro', Id: 2, Nombre: 'Nube', Portada: null, Autores: [], Estados: [{ Id: 2, EstadoId: 0, Fecha: '2025-01-01' }] }
         ],
-        MetricasSolicitadas: 12,
+        RitmoLectura: null,
+        MetricasSolicitadas: 13,
         MetricasNoDisponibles: 0
     };
 
@@ -114,6 +115,24 @@ describe('StatisticsComponent', () => {
         expect(component.communityMonthly.map(month => month.value)).toEqual([null, 5]);
         expect(component.communityMonthlyRows).toEqual([{ label: '9/2026', value: 5 }]);
         expect(component.communityBiggestClubs).toEqual([{ label: 'Club Cosmere', value: 12, detail: '12 miembros' }]);
+    });
+
+    it('reparte el ritmo propio por meses, días y franjas', () => {
+        statistics.getGlobalStatistics.and.returnValue(of({
+            ...snapshot,
+            RitmoLectura: {
+                Desde: '2026-10-25', DiasConLectura: 2, PaginasPorDiaActivo: 25, RachaActual: 2, MejorRacha: 2, CapitulosPorSemana: 3,
+                PaginasPorMes: [{ Anio: 2026, Mes: 10, Paginas: 50 }],
+                PaginasPorDiaSemana: [0, 0, 0, 0, 0, 20, 30],
+                PaginasPorHora: Array.from({ length: 24 }, (_, hour) => hour === 21 ? 50 : 0)
+            }
+        }));
+        fixture.detectChanges();
+        const component = fixture.componentInstance;
+
+        expect(component.paceMonths).toEqual([{ label: '10/2026', value: 50 }]);
+        expect(component.paceWeekdays[6]).toEqual({ label: 'Domingo', value: 30 });
+        expect(component.paceHourBands.map(row => row.value)).toEqual([0, 0, 0, 50]);
     });
 
     it('muestra el catálogo aunque fallen los datos de la comunidad', () => {

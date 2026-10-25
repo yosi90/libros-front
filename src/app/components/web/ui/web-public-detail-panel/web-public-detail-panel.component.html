@@ -83,6 +83,9 @@
             <div><strong>{{stats.UsuariosEnBiblioteca}}</strong><span>bibliotecas</span></div>
             <div><strong>{{stats.TotalLeidos}}</strong><span>lecturas</span></div>
             <div><strong>{{stats.TotalEnMarcha}}</strong><span>en marcha</span></div>
+            @for (row of controller.publicDetailPaceRows(); track row.label) {
+              <div><strong>{{row.value}}</strong><span>{{row.label}}</span></div>
+            }
           </div>
         </section>
       }

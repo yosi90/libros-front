@@ -29,6 +29,22 @@
     <section class="m-stats__panel m-card"><h2><mat-icon>star</mat-icon>Tus puntuaciones</h2><app-stat-rows [rows]="controller.ratings" empty="Aún no has puntuado ningún libro."></app-stat-rows></section>
 
     <section class="m-stats__panel m-card"><h2><mat-icon>shopping_cart</mat-icon>Pendientes de comprar · {{controller.librosPorComprar.length}}</h2>@if (controller.librosPorComprar.length) {<ul>@for (book of controller.librosPorComprar; track book.Id) {<li>{{book.Nombre}}</li>}</ul>} @else {<p class="m-supporting">No tienes libros pendientes.</p>}</section>
+
+    <h2 class="m-stats__section"><mat-icon>speed</mat-icon>Tu ritmo de lectura</h2>
+    <p class="m-supporting m-stats__section-note">Sale de cuándo registras cada capítulo. Se mide desde el {{controller.paceSince}}.</p>
+    @if (controller.readingPace; as pace) {
+    <section class="m-stats__metrics" aria-label="Resumen de tu ritmo">
+        <article class="m-card"><mat-icon>local_fire_department</mat-icon><strong>{{pace.RachaActual}}</strong><span>Días seguidos</span></article>
+        <article class="m-card"><mat-icon>emoji_events</mat-icon><strong>{{pace.MejorRacha}}</strong><span>Mejor racha</span></article>
+        <article class="m-card"><mat-icon>event_available</mat-icon><strong>{{pace.DiasConLectura}}</strong><span>Días con lectura</span></article>
+        <article class="m-card"><mat-icon>auto_stories</mat-icon><strong>{{pace.PaginasPorDiaActivo}}</strong><span>Págs./día leído</span></article>
+    </section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>calendar_month</mat-icon>Páginas por mes</h2><app-stat-rows [rows]="controller.paceMonths" empty="Aún no hay meses con lectura registrada."></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>date_range</mat-icon>Qué días lees</h2><app-stat-rows [rows]="controller.paceWeekdays"></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>schedule</mat-icon>A qué hora lees</h2><app-stat-rows [rows]="controller.paceHourBands"></app-stat-rows></section>
+    } @else {
+    <section class="m-stats__panel m-card m-stats__soon"><h2><mat-icon>schedule</mat-icon>Tu ritmo aparecerá en cuanto registres capítulos</h2><p class="m-supporting">Cada capítulo que anotes desde el {{controller.paceSince}} cuenta: rachas, páginas por día y a qué hora lees.</p></section>
+    }
     }
     } @else {
     @if (controller.generalLoading) {
@@ -53,7 +69,11 @@
     <section class="m-stats__metrics" aria-label="Resumen de la comunidad">
         <article class="m-card"><mat-icon>groups</mat-icon><strong>{{community.Resumen.LectoresActivos ?? '—'}}</strong><span>Lectores</span></article>
         <article class="m-card"><mat-icon>menu_book</mat-icon><strong>{{community.Resumen.LibrosLeidos ?? '—'}}</strong><span>Libros leídos</span></article>
+        <article class="m-card"><mat-icon>speed</mat-icon><strong>{{community.RitmoComunidad?.RitmoMedio ?? '—'}}</strong><span>Págs./día</span></article>
     </section>
+    @if (controller.communityPaceMonths.length) {
+    <section class="m-stats__panel m-card"><h2><mat-icon>auto_stories</mat-icon>Páginas leídas por mes</h2><app-stat-rows [rows]="controller.communityPaceMonths"></app-stat-rows></section>
+    }
     @if (controller.communityMonthlyRows.length) {
     <section class="m-stats__panel m-card"><h2><mat-icon>calendar_month</mat-icon>Lecturas por mes</h2><app-stat-rows [rows]="controller.communityMonthlyRows"></app-stat-rows></section>
     }

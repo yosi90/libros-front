@@ -56,6 +56,22 @@
       </div>
     </div>
 
+    <section class="panel" aria-labelledby="web-book-my-pace">
+      <header><h2 id="web-book-my-pace">Tu ritmo en este libro</h2>@if (c.paceComparison) {<small>{{c.paceComparison}}</small>}</header>
+      @if (c.readingPace; as pace) {
+        <dl class="pace">
+          <div><dt>Páginas por día</dt><dd>{{pace.PaginasPorDia | number:'1.0-1'}}</dd></div>
+          <div><dt>Días de lectura</dt><dd>{{pace.DiasActivos}}</dd></div>
+          <div><dt>Mejor día</dt><dd>{{c.paceBestDay}}</dd></div>
+          <div><dt>Tu media</dt><dd>{{pace.MediaPersonalPorDia === null ? '—' : (pace.MediaPersonalPorDia | number:'1.0-1')}}</dd></div>
+        </dl>
+        @if (paceCurve) {
+          <apx-chart [series]="paceCurve.series" [chart]="paceCurve.chart" [colors]="paceCurve.colors" [stroke]="paceCurve.stroke" [fill]="paceCurve.fill"
+            [markers]="paceCurve.markers" [dataLabels]="paceCurve.dataLabels" [grid]="paceCurve.grid" [xaxis]="paceCurve.xaxis" [yaxis]="paceCurve.yaxis" [tooltip]="paceCurve.tooltip"></apx-chart>
+        }
+      } @else {<p class="muted">Tu ritmo aparecerá en cuanto registres capítulos de este libro: se guarda desde el {{c.paceSince}}.</p>}
+    </section>
+
     <section class="panel" aria-labelledby="web-book-pacing">
       <header><h2 id="web-book-pacing">Ritmo del libro</h2><small>Páginas de cada capítulo, en orden de lectura</small></header>
       @if (pacing) {

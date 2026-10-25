@@ -6,7 +6,7 @@ import { BookStatisticsSnapshot } from '../../../../interfaces/statistics';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import type { BookStatisticsComponent } from '../../../shared/book-pages/book-statistics/book-statistics.component';
 import {
-    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, pacingChart, presenceHeatmap, progressChart, readingProgress
+    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, paceCurveChart, pacingChart, presenceHeatmap, progressChart, readingProgress
 } from '../../../../shared/book-charts';
 
 /**
@@ -32,6 +32,7 @@ export class WebBookStatisticsViewComponent implements DoCheck {
     heatmap: any = null;
     cast: any = null;
     groups: any = null;
+    paceCurve: any = null;
     private builtFor: BookStatisticsSnapshot | null = null;
 
     constructor(presentation: PresentationModeService, private changeDetector: ChangeDetectorRef) {
@@ -54,7 +55,7 @@ export class WebBookStatisticsViewComponent implements DoCheck {
         const snapshot = this.c.snapshot;
         this.builtFor = snapshot;
         if (!snapshot) {
-            this.progress = this.progressOptions = this.pacing = this.heatmap = this.cast = this.groups = null;
+            this.progress = this.progressOptions = this.pacing = this.heatmap = this.cast = this.groups = this.paceCurve = null;
             return;
         }
         const palette = this.readPalette();
@@ -64,6 +65,7 @@ export class WebBookStatisticsViewComponent implements DoCheck {
         this.heatmap = presenceHeatmap(this.c.book, snapshot, palette);
         this.cast = castPerChapterChart(snapshot, palette);
         this.groups = castGroupsChart(this.c.book, palette);
+        this.paceCurve = paceCurveChart(this.c.readingPace, palette);
         this.changeDetector.markForCheck();
     }
 

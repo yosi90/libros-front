@@ -42,6 +42,22 @@
     }
 
     <div class="m-book-stats__charts">
+      <section class="m-book-stats__chart" aria-labelledby="m-my-pace-title">
+        <header><h2 id="m-my-pace-title">Tu ritmo en este libro</h2>@if (c.paceComparison) {<p>{{c.paceComparison}}</p>}</header>
+        @if (c.readingPace; as pace) {
+          <dl class="m-book-stats__pace">
+            <div><dt>Págs. por día</dt><dd>{{pace.PaginasPorDia | number:'1.0-1'}}</dd></div>
+            <div><dt>Días de lectura</dt><dd>{{pace.DiasActivos}}</dd></div>
+            <div><dt>Mejor día</dt><dd>{{c.paceBestDay}}</dd></div>
+            <div><dt>Tu media</dt><dd>{{pace.MediaPersonalPorDia === null ? '—' : (pace.MediaPersonalPorDia | number:'1.0-1')}}</dd></div>
+          </dl>
+          @if (paceCurve) {
+            <apx-chart [series]="paceCurve.series" [chart]="paceCurve.chart" [colors]="paceCurve.colors" [stroke]="paceCurve.stroke" [fill]="paceCurve.fill"
+              [markers]="paceCurve.markers" [dataLabels]="paceCurve.dataLabels" [grid]="paceCurve.grid" [xaxis]="paceCurve.xaxis" [yaxis]="paceCurve.yaxis" [tooltip]="paceCurve.tooltip"></apx-chart>
+          }
+        } @else {<p class="m-book-stats__empty-copy">Tu ritmo aparecerá en cuanto registres capítulos de este libro.</p>}
+      </section>
+
       <section class="m-book-stats__chart" aria-labelledby="m-pacing-title">
         <header><h2 id="m-pacing-title">Ritmo del libro</h2><p>Páginas de cada capítulo</p></header>
         @if (pacing) {

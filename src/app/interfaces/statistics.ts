@@ -4,6 +4,7 @@ import { Chapter } from "./chapter";
 import { SceneCharacterDetail } from "./scene";
 import { ReadingStatusId } from "./read-status";
 import { CollectionItem } from "./catalog";
+import type { ReadingPaceCommunity, ReadingPaceUser } from "../shared/reading-pace";
 
 export type MetricValue = number | string | null;
 export type MetricObject = Record<string, MetricValue>;
@@ -115,6 +116,8 @@ export interface GlobalStatisticsSnapshot {
     DistribucionEstados: ReadingStatusDistribution[];
     /** Colección completa: de ella salen los repartos personales (autores, estilos, puntuaciones, espera). */
     Coleccion: CollectionItem[];
+    /** El ritmo de lectura propio; null sin capítulos registrados desde que se guarda la fecha. */
+    RitmoLectura: ReadingPaceUser | null;
     MetricasSolicitadas: number;
     MetricasNoDisponibles: number;
 }
@@ -287,6 +290,8 @@ export interface CommunityStatistics {
     ClubesMasActivos: CommunityActiveClubRank[];
     /** Lo que entra en el catálogo: obras, no personas (sin umbral). */
     Catalogo?: CommunityCatalogGrowth;
+    /** El ritmo de quienes comparten sus estadísticas, con umbral. */
+    RitmoComunidad?: ReadingPaceCommunity;
 }
 
 export interface CommunityCatalogGrowth {

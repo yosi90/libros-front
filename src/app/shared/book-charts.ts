@@ -1,6 +1,7 @@
 import { Book } from '../interfaces/book';
 import { BookStatisticsSnapshot, ChapterStatistic } from '../interfaces/statistics';
 import { characterGroupRank } from './character-groups';
+import { ReadingPaceBook, paceDayLabel } from './reading-pace';
 
 /** Colores del tema Web leídos de los tokens (ApexCharts necesita valores, no variables). */
 export interface BookChartPalette {
@@ -116,6 +117,31 @@ export function pacingChart(snapshot: BookStatisticsSnapshot, palette: BookChart
             x: { formatter: (_: unknown, options: { dataPointIndex: number }) => `${chapters[options.dataPointIndex].Orden}. ${chapters[options.dataPointIndex].Nombre}` },
             y: { formatter: (value: number) => String(value) }
         }
+    };
+}
+
+/** La página alcanzada al final de cada día con lectura (API `Metricas.Ritmo.Curva`). */
+export function paceCurveChart(pace: ReadingPaceBook | null | undefined, palette: BookChartPalette): Record<string, unknown> | null {
+    const curve = pace?.Curva ?? [];
+    if (!curve.length)
+        return null;
+    return {
+        series: [{ name: 'Página', data: curve.map(point => point.Pagina) }],
+        chart: baseChart(palette, 'area', 240),
+        colors: [palette.primary],
+        stroke: { curve: 'smooth', width: 2 },
+        fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
+        markers: { size: curve.length > 20 ? 0 : 4, strokeColors: palette.primary },
+        dataLabels: { enabled: false },
+        grid: { borderColor: palette.outline, strokeDashArray: 3 },
+        xaxis: {
+            categories: curve.map(point => paceDayLabel(point.Fecha)),
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+            labels: { hideOverlappingLabels: true }
+        },
+        yaxis: { labels: { formatter: (value: number) => String(Math.round(value)) } },
+        tooltip: { y: { formatter: (value: number) => `Página ${value}` } }
     };
 }
 

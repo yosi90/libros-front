@@ -97,6 +97,24 @@
           </p>
         }
       </article>
+      <article class="info-panel">
+        <h2><mat-icon>speed</mat-icon>Tu ritmo en este libro</h2>
+        @if (readingPace; as pace) {
+          <dl>
+            <div><dt>Páginas por día</dt><dd>{{ pace.PaginasPorDia | number:'1.0-1' }}</dd></div>
+            <hr class="info-separator">
+            <div><dt>Días de lectura</dt><dd>{{ pace.DiasActivos }}</dd></div>
+            <hr class="info-separator">
+            <div><dt>Mejor día</dt><dd>{{ paceBestDay }}</dd></div>
+            @if (paceComparison) {
+              <hr class="info-separator">
+              <div><dt>Comparado</dt><dd>{{ paceComparison }}</dd></div>
+            }
+          </dl>
+        } @else {
+          <p>Tu ritmo aparecerá en cuanto registres capítulos de este libro: se guarda desde el {{ paceSince }}.</p>
+        }
+      </article>
     </section>
     <section class="charts-grid">
       <article class="chart-panel">

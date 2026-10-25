@@ -337,6 +337,18 @@ export abstract class PublicDetailHost implements PublicDetailController {
         return this.selectedPublicDetail?.Estadisticas ?? null;
     }
 
+    /** Ritmo de los lectores y días para terminar: la API los deja en null con menos de tres lectores que comparten. */
+    publicDetailPaceRows(): Array<{ label: string; value: string }> {
+        const stats = this.publicDetailStats();
+        const rows: Array<{ label: string; value: string }> = [];
+        const decimal = (value: number) => value.toLocaleString('es-ES', { maximumFractionDigits: 1 });
+        if (stats?.RitmoLectores !== null && stats?.RitmoLectores !== undefined)
+            rows.push({ label: 'págs. por día de lectura', value: decimal(stats.RitmoLectores) });
+        if (stats?.DiasMediosParaTerminar !== null && stats?.DiasMediosParaTerminar !== undefined)
+            rows.push({ label: 'días para terminarlo', value: decimal(stats.DiasMediosParaTerminar) });
+        return rows;
+    }
+
     isDetailInCollection(): boolean {
         const ownCollection = this.selectedPublicDetail?.MiColeccion;
         if (ownCollection)

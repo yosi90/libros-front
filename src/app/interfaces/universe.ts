@@ -2,6 +2,7 @@ import { Antology } from "./antology";
 import { Author } from "./author";
 import { BookSimple } from "./book";
 import { Saga } from "./saga";
+import type { ReadingPaceUser } from "../shared/reading-pace";
 
 export interface Universe {
     Id: number;
@@ -84,6 +85,8 @@ export interface UniverseMetricsBreakdown {
 }
 
 export interface UniverseMetricsResponse extends UniverseMetricsBreakdown {
+    /** El ritmo de lectura propio; null sin capítulos registrados desde que se guarda la fecha. */
+    RitmoLectura?: ReadingPaceUser | null;
     TopLibrosMasRapidos: UniverseFastestBook[];
     PorUniverso: Record<string, UniverseMetricsBreakdown>;
 }

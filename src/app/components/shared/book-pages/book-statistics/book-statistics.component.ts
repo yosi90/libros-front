@@ -33,6 +33,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileBookStatisticsViewComponent } from '../../../mobile/book/mobile-book-statistics-view/mobile-book-statistics-view.component';
 import { WebBookStatisticsViewComponent } from '../../../web/book/web-book-statistics-view/web-book-statistics-view.component';
 import { foldText } from '../../../../shared/text';
+import { READING_PACE_SINCE, ReadingPaceBook, paceComparison, paceDayLabel } from '../../../../shared/reading-pace';
 
 interface BookChartOptions {
     series: ApexAxisChartSeries;
@@ -185,6 +186,22 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
 
         return this.pendingStatusDateLabel(getStatusId(this.getLatestStatusByDate())) ?? 'Sin dato';
     }
+
+    /** El ritmo propio en esta obra: `null` hasta que se registren capítulos con fecha. */
+    get readingPace(): ReadingPaceBook | null {
+        return this.book.Metricas?.Ritmo ?? null;
+    }
+
+    get paceComparison(): string {
+        return paceComparison(this.readingPace);
+    }
+
+    get paceBestDay(): string {
+        const best = this.readingPace?.MejorDia;
+        return best ? `${paceDayLabel(best.Fecha)} · ${best.Paginas} págs.` : '—';
+    }
+
+    readonly paceSince = READING_PACE_SINCE;
 
     get canAddPurchaseDate(): boolean {
         return !!this.book.Id && !this.boughtDate;

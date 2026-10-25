@@ -44,6 +44,10 @@ export class WebStatisticsViewComponent implements DoCheck {
     languages: any = null;
     decades: any = null;
     catalogAdditions: any = null;
+    paceMonths: any = null;
+    paceWeekdays: any = null;
+    paceHours: any = null;
+    communityPace: any = null;
     communityMonthly: any = null;
     communityCards: Array<{ title: string; subtitle: string; chart: any; empty: string }> = [];
     biggestClubs: any = null;
@@ -97,6 +101,10 @@ export class WebStatisticsViewComponent implements DoCheck {
         this.catalogAuthors = this.bars(c.catalogAuthors, palette, palette.accent, 'Títulos', true);
         this.decades = this.bars(c.catalogDecades, palette, palette.status[4], 'Títulos', false);
         this.catalogAdditions = this.bars(c.catalogMonthlyAdditions, palette, palette.accent, 'Obras añadidas', false);
+        this.paceMonths = this.bars(c.paceMonths, palette, palette.primary, 'Páginas', false);
+        this.paceWeekdays = this.bars(c.paceWeekdays, palette, palette.status[2], 'Páginas', false);
+        this.paceHours = this.bars(c.paceHourBands, palette, palette.accent, 'Páginas', false);
+        this.communityPace = this.bars(c.communityPaceMonths, palette, palette.primary, 'Páginas', false);
         // Comunidad: solo se muestran los rankings con datos (la privacidad oculta grupos pequeños).
         const community: Array<[string, string, StatRow[], string, string]> = [
             ['Libros más leídos', 'Por número de lectores', c.communityBooks, palette.primary, 'Lectores'],

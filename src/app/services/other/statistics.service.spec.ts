@@ -46,14 +46,24 @@ describe('StatisticsService', () => {
         flush('libros/por_comprar', [{ Id: 7, Nombre: 'Nimbo' }]);
         flush('libros/historial_leidos', []);
         flush('libros/promedio_compra_lectura', { promedio_dias: 12 });
+        flush('universos/metricas', { RitmoLectura: { Desde: '2026-10-25', DiasConLectura: 3, PaginasPorDiaActivo: 21 } });
 
         expect(snapshot).toBeDefined();
+        expect(snapshot!.RitmoLectura?.PaginasPorDiaActivo).toBe(21);
         expect(snapshot!.LibrosLeidos).toBe(34);
         expect(snapshot!.LibrosNoLeidos).toBe(88);
         expect(snapshot!.SeccionesAntologiaLeidas).toBeNull();
         expect(snapshot!.LibrosPorComprar.length).toBe(1);
         expect(snapshot!.PromedioDiasCompraLectura).toBe(12);
         expect(snapshot!.MetricasNoDisponibles).toBe(1);
-        expect(snapshot!.MetricasSolicitadas).toBe(12);
+        expect(snapshot!.MetricasSolicitadas).toBe(13);
+    });
+
+    it('sin capítulos fechados el ritmo llega como null', () => {
+        let pace: unknown = 'sin respuesta';
+        service.getReadingPace().subscribe(result => pace = result);
+        http.expectOne(`${environment.apiUrl}universos/metricas`).flush({ RitmoLectura: null });
+
+        expect(pace).toBeNull();
     });
 });
