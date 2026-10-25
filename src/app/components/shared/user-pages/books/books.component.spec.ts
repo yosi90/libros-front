@@ -252,3 +252,74 @@ describe('BooksComponent panel expansion', () => {
     });
 });
 
+describe('BooksComponent revelar una obra', () => {
+    function create() {
+        const component = Object.create(BooksComponent.prototype) as any;
+        component.expandedUniverseIds = new Set<number>();
+        component.expandedSagaIds = new Set<number>();
+        component.panelExpansionMode = 'closed';
+        component.pendingLibraryRevealScheduled = false;
+        component.pendingScrollRestore = true;
+        const tarjeta = { scrollIntoView: jasmine.createSpy('scrollIntoView') };
+        component.tarjeta = tarjeta;
+        component.host = { nativeElement: { querySelector: jasmine.createSpy('querySelector').and.returnValue(tarjeta) } };
+        component.universeStore = { hasLoadedUniverses: () => true };
+        let pendiente: any = null;
+        component.catalogViewState = {
+            queuePendingLibraryReveal: (target: any) => pendiente = target,
+            consumePendingLibraryReveal: () => { const t = pendiente; pendiente = null; return t; }
+        };
+        component.librarySearchState = { clear: jasmine.createSpy('clear') };
+        component.storeCollectionView = () => undefined;
+        component.router = { navigate: jasmine.createSpy('navigate').and.resolveTo(true) };
+        component.route = {};
+        const universos = [
+            { Id: 2, Nombre: 'El cosmere', Libros: [], Antologias: [], Sagas: [{ Id: 21, Libros: [{ Id: 5, Estados: [{ Nombre: 'Quiero leer' }] }], Antologias: [] }] },
+            { Id: 3, Nombre: 'Malaz', Libros: [{ Id: 9, Estados: [{ Nombre: 'En marcha' }] }], Antologias: [], Sagas: [] }
+        ];
+        component.getBaseUniversesToShow = () => universos;
+        component.visibleUniverses = universos;
+        component.query = '';
+        component.draftQuery = '';
+        component.availabilityFilter = 'all';
+        spyOn(window, 'requestAnimationFrame').and.callFake((callback: FrameRequestCallback) => { callback(0); return 1; });
+        return component;
+    }
+
+    it('abre el universo y la saga de la obra y no los cierra al recalcular la colección', () => {
+        const component = create();
+        component.catalogViewState.queuePendingLibraryReveal({ type: 'book', id: 5 });
+
+        expect(component.revealPendingLibraryItem()).toBeTrue();
+        component.applyExpansionMode();
+
+        expect([...component.expandedUniverseIds]).toEqual([2]);
+        expect([...component.expandedSagaIds]).toEqual([21]);
+        expect(component.host.nativeElement.querySelector).toHaveBeenCalledWith('[data-library-item="book-5"]');
+        expect(component.tarjeta.scrollIntoView).toHaveBeenCalled();
+    });
+
+    it('espera a tener la colección para saber dónde está la obra', () => {
+        const component = create();
+        component.universeStore = { hasLoadedUniverses: () => false };
+        component.catalogViewState.queuePendingLibraryReveal({ type: 'book', id: 5 });
+
+        expect(component.revealPendingLibraryItem()).toBeFalse();
+        expect(component.catalogViewState.consumePendingLibraryReveal()).toEqual({ type: 'book', id: 5 });
+    });
+
+    it('abre la biblioteca por la obra de ?libro= y quita el parámetro', () => {
+        const component = create();
+
+        component.revealFromRoute({ libro: '5' });
+
+        expect(component.router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { libro: null, antologia: null }, replaceUrl: true }));
+        expect(component.expandedSagaIds.has(21)).toBeTrue();
+    });
+
+    it('al entrar ya no abre los universos con libros en marcha', () => {
+        const component = create();
+        component.applyExpansionMode();
+        expect(component.expandedUniverseIds.size).toBe(0);
+    });
+});

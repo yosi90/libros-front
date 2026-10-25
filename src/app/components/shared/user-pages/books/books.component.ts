@@ -2,7 +2,7 @@ import { WebLibraryViewComponent } from '../../../web/user/web-library-view/web-
 import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { distinctUntilChanged, filter, finalize, forkJoin, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
@@ -32,7 +32,7 @@ import {
 } from '../../../../shared/library-search';
 import { AnthologySection, AnthologySectionCollectionWrite, Antology } from '../../../../interfaces/antology';
 import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
-import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
+import { CatalogViewStateService, LibraryRevealTarget } from '../../../../shared/catalog-view-state.service';
 import { CatalogItem } from '../../../../interfaces/catalog';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import {
@@ -128,7 +128,8 @@ export class BooksComponent implements OnInit {
     private selectedSectionOriginalReview = '';
     expandedUniverseIds = new Set<number>();
     expandedSagaIds = new Set<number>();
-    private panelExpansionMode: 'running' | 'all' | 'closed' | 'manual' = 'running';
+    // Cerrados al entrar: «Continúa leyendo» ya lleva a los libros en marcha. Abrirlos es el botón de la herramienta.
+    private panelExpansionMode: 'running' | 'all' | 'closed' | 'manual' = 'closed';
     private readonly bookLightingCache = new Map<string, Record<string, string>>();
     private controlsUniverseLoader = false;
     private pendingScrollRestore = true;
@@ -273,6 +274,7 @@ export class BooksComponent implements OnInit {
         if (!this.isLoadingUniverses)
             this.loader.deactivateLoader();
         this.route.queryParams.subscribe(params => {
+            this.revealFromRoute(params);
             const authorAdded = params['authorAdded'];
             if (authorAdded && authorAdded === 'true')
                 this.snackBar.openSnackBar('Autor añadido', 'successBar');
@@ -1072,19 +1074,45 @@ export class BooksComponent implements OnInit {
         });
     }
 
+    /**
+     * `/dashboard/books?libro=<id>` o `?antologia=<id>`: abre la biblioteca por esa obra (enlaces internos y externos).
+     * El parámetro se quita de la dirección para que volver atrás no lo repita.
+     */
+    private revealFromRoute(params: Params): void {
+        const bookId = Number(params['libro']);
+        const anthologyId = Number(params['antologia']);
+        const target: LibraryRevealTarget | null = Number.isSafeInteger(bookId) && bookId > 0 ? { type: 'book', id: bookId }
+            : Number.isSafeInteger(anthologyId) && anthologyId > 0 ? { type: 'antology', id: anthologyId } : null;
+        if (!target)
+            return;
+        void this.router.navigate([], { relativeTo: this.route, queryParams: { libro: null, antologia: null }, queryParamsHandling: 'merge', replaceUrl: true });
+        this.catalogViewState.queuePendingLibraryReveal(target);
+        this.revealPendingLibraryItem();
+    }
+
+    /**
+     * Abre la biblioteca por una obra: la vista por universos, sin búsqueda, con su universo y su saga abiertos y la
+     * tarjeta en el centro. Los paneles pasan a «manual»: si no, la próxima vez que se recalcula la colección (al
+     * limpiar la búsqueda o al llegar la colección nueva) volvía a cerrar el universo y no había tarjeta a la que ir.
+     */
     private revealPendingLibraryItem(): boolean {
         if (this.pendingLibraryRevealScheduled)
             return true;
+        // Sin la colección aún no se sabe dónde está: se queda pendiente para cuando llegue.
+        if (!this.universeStore.hasLoadedUniverses())
+            return false;
         const target = this.catalogViewState.consumePendingLibraryReveal();
         if (!target)
             return false;
 
         this.pendingLibraryRevealScheduled = true;
+        this.pendingScrollRestore = false;
         this.collectionView = 'universes';
         this.storeCollectionView('universes');
         this.draftQuery = '';
         this.librarySearchState.clear();
 
+        this.panelExpansionMode = 'manual';
         const location = this.findLibraryItemLocation(target.type, target.id);
         if (location) {
             this.expandedUniverseIds.add(location.universeId);
@@ -1092,12 +1120,23 @@ export class BooksComponent implements OnInit {
                 this.expandedSagaIds.add(location.sagaId);
         }
 
-        window.setTimeout(() => {
-            const selector = `[data-library-item="${target.type}-${target.id}"]`;
-            this.host.nativeElement.querySelector<HTMLElement>(selector)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            this.pendingLibraryRevealScheduled = false;
-        });
+        this.scrollToLibraryItem(`[data-library-item="${target.type}-${target.id}"]`);
         return true;
+    }
+
+    /** Espera a que la tarjeta se pinte (el universo se acaba de abrir) y la centra; lo intenta durante un segundo. */
+    private scrollToLibraryItem(selector: string, attempts = 60): void {
+        requestAnimationFrame(() => {
+            const element = this.host.nativeElement.querySelector<HTMLElement>(selector);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                this.pendingLibraryRevealScheduled = false;
+            } else if (attempts > 1) {
+                this.scrollToLibraryItem(selector, attempts - 1);
+            } else {
+                this.pendingLibraryRevealScheduled = false;
+            }
+        });
     }
 
     private findLibraryItemLocation(type: 'book' | 'antology', id: number): { universeId: number; sagaId: number | null } | null {
@@ -1280,8 +1319,6 @@ export class BooksComponent implements OnInit {
             const savedScrollTop = this.librarySearchState.state.scrollTop;
             if (savedScrollTop > 0)
                 this.host.nativeElement.scrollTop = savedScrollTop;
-            else
-                this.scrollToFirstRunningBook();
             this.pendingScrollRestore = false;
         });
     }
