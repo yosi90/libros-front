@@ -11,11 +11,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import es.yosiftware.libros.BuildConfig
 import es.yosiftware.libros.LibrosApp
+import es.yosiftware.libros.datos.cuenta.AlmacenDelMovil
+import es.yosiftware.libros.ui.biblioteca.BibliotecaViewModel
+import es.yosiftware.libros.ui.biblioteca.CapasDeBiblioteca
+import es.yosiftware.libros.ui.biblioteca.PantallaBiblioteca
+import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
+import es.yosiftware.libros.ui.componentes.Avisos
+import es.yosiftware.libros.ui.componentes.LocalAvisos
+import es.yosiftware.libros.ui.navegacion.Destino
+import es.yosiftware.libros.ui.navegacion.NavegacionViewModel
+import es.yosiftware.libros.ui.navegacion.PantallaVacia
 import es.yosiftware.libros.cuenta.AccesoALaSesion
 import es.yosiftware.libros.cuenta.ServicioDeEntrada
 import es.yosiftware.libros.ui.adaptable.LocalVentana
@@ -62,8 +73,14 @@ fun AppLibros(app: LibrosApp) {
     val perfiles: PerfilesViewModel = viewModel {
         PerfilesViewModel(app.datos.ambito, acceso?.cuentas ?: MutableStateFlow(emptyList()), app.datos.perfiles, app.datos.apiPlataforma)
     }
+    // Los avisos flotantes de toda la app (app-toast-host), y la Biblioteca (hito 8), que es de la cuenta.
+    val avisos = remember { Avisos() }
+    val biblioteca: BibliotecaViewModel = viewModel {
+        BibliotecaViewModel(app.datos.ambito, app.datos.coleccion, app.datos.catalogo, AlmacenDelMovil(app), avisos)
+    }
+    val nav: NavegacionViewModel = viewModel()
     TemaLibros(temaViewModel.tema) {
-        CompositionLocalProvider(LocalVentana provides rememberVentana(), LocalCuenta provides cuenta) {
+        CompositionLocalProvider(LocalVentana provides rememberVentana(), LocalCuenta provides cuenta, LocalAvisos provides avisos) {
             val estado = acceso?.estado?.collectAsStateWithLifecycle()?.value
             val cuentas: List<CuentaGuardada> = acceso?.cuentas?.collectAsStateWithLifecycle()?.value.orEmpty()
             val identidad by app.datos.ambito.identidad.collectAsStateWithLifecycle()
@@ -92,6 +109,21 @@ fun AppLibros(app: LibrosApp) {
                             alAlternarTema = temaViewModel::alternar,
                             avatar = perfiles.avatar(activaId),
                             alAbrirCuentas = { panelAbierto = true },
+                            nav = nav,
+                            contenido = { destino ->
+                                when (destino) {
+                                    Destino.Biblioteca -> PantallaBiblioteca(
+                                        vm = biblioteca,
+                                        // TODO(clon): el libro llega en el hito 9, y el catálogo con sus ediciones, en lo que queda del
+                                        // hito 8.
+                                        alAbrirLibro = { avisos.info("El libro se abre en el hito 9 del clon.", titulo = it.nombre) },
+                                        alAbrirAntologia = biblioteca::abrirAntologia,
+                                        alVerEdiciones = { nav.irA(Destino.Catalogo) },
+                                        alAbrirCatalogo = { nav.irA(Destino.Catalogo) },
+                                    )
+                                    else -> PantallaVacia(destino)
+                                }
+                            },
                             aviso = (estado as? EstadoSesion.SinConexion)?.let { sinConexion ->
                                 {
                                     AvisoSinConexion(
@@ -115,6 +147,17 @@ fun AppLibros(app: LibrosApp) {
                     }
                     else -> PantallaDeLaSesion(estado, cuenta, perfiles, cuentas)
                 }
+
+                // La antología y los editores de la Biblioteca, a pantalla completa, encima del shell.
+                if (conShell) {
+                    CapasDeBiblioteca(
+                        vm = biblioteca,
+                        alAbrirSeccion = { avisos.info("El libro se abre en el hito 9 del clon.", titulo = it.nombre) },
+                        alVerFicha = { biblioteca.cerrarAntologia(); nav.irA(Destino.Catalogo) },
+                        alBuscarSimilares = { biblioteca.cerrarAntologia(); nav.irA(Destino.Catalogo) },
+                    )
+                }
+                AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
 
                 // Las normas que se están leyendo, a pantalla completa, encima de su pantalla.
                 cuenta.normas?.let { normas ->

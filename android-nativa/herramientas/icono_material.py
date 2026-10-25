@@ -4,8 +4,8 @@ Uso: python -I herramientas/icono_material.py <carpeta del paquete> <nombre> [<n
 
 La carpeta es la de `@material-design-icons/svg` (npm pack @material-design-icons/svg@0.14.15 y descomprimir), que trae
 los mismos glifos que la fuente `material-icons` 1.13.14 que usa la APK de Capacitor. Cada icono va a
-`app/src/main/res/drawable/mi_<nombre>.xml`. Solo admite SVG de un único <path> sin transformaciones, como son todos
-los de ese paquete; si encuentra otra cosa, se para.
+`app/src/main/res/drawable/mi_<nombre>.xml`. Solo admite SVG de uno o varios <path> sin transformaciones (los varios
+se juntan en un trazo), como son los de ese paquete; si encuentra otra cosa, se para.
 """
 
 import pathlib
@@ -29,10 +29,12 @@ def convertir(paquete, nombre):
     if raiz.get("viewBox") != "0 0 24 24":
         raise SystemExit(f"{nombre}: caja inesperada {raiz.get('viewBox')}")
     hijos = list(raiz)
-    if len(hijos) != 1 or hijos[0].tag != SVG + "path" or set(hijos[0].attrib) != {"d"}:
-        raise SystemExit(f"{nombre}: no es un único <path> sencillo")
+    # Varios <path> sencillos (collections_bookmark) se juntan en uno: tienen el mismo relleno y cada uno empieza por M.
+    if not hijos or any(h.tag != SVG + "path" or set(h.attrib) != {"d"} for h in hijos):
+        raise SystemExit(f"{nombre}: no son solo <path> sencillos")
     salida = DESTINO / f"mi_{nombre}.xml"
-    salida.write_text(PLANTILLA.format(nombre=nombre, trazo=hijos[0].get("d")), encoding="utf-8", newline="\n")
+    trazo = " ".join(h.get("d") for h in hijos)
+    salida.write_text(PLANTILLA.format(nombre=nombre, trazo=trazo), encoding="utf-8", newline="\n")
     print(salida.name)
 
 

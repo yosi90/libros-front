@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
@@ -39,6 +40,8 @@ fun Chip(
     modifier: Modifier = Modifier,
     estado: EstadoDeChip = EstadoDeChip.Normal,
     @DrawableRes icono: Int? = null,
+    /** El de `mat-icon` (24) salvo que el Sass de la vista lo cambie: la Biblioteca lo deja en 16. */
+    tamanoDelIcono: Dp = 24.dp,
     alPulsar: (() -> Unit)? = null,
 ) {
     val colores = LocalColores.current
@@ -60,9 +63,8 @@ fun Chip(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // TODO(clon): `.m-chip` no fija el tamaño del icono, así que es el de `mat-icon` (24); revisar en cada vista que
-        // lo use si su Sass lo cambia (src/app/components/mobile/**).
-        if (icono != null) Icon(painterResource(icono), contentDescription = null, tint = tinta, modifier = Modifier.size(24.dp))
+        // `.m-chip` no fija el tamaño del icono (el de `mat-icon`, 24); cada vista lo cambia en su Sass si quiere.
+        if (icono != null) Icon(painterResource(icono), contentDescription = null, tint = tinta, modifier = Modifier.size(tamanoDelIcono))
         Text(texto, color = tinta, style = Textos.chip)
     }
 }
