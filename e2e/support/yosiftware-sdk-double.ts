@@ -14,6 +14,10 @@ import type { Page } from '@playwright/test';
  * Los espacios (ESPACIOS.md): `yosiftware.espacios.canal(id, oyente)` registra el canal; la prueba entrega un mensaje
  * con `window.__yosiftwareDoble.canal(id, mensaje)` y ve los abiertos en `window.__yosiftwareDoble.canalesAbiertos()`.
  * Las rutas `/v1/espacios/…` se simulan con `page.route`, como las del chat.
+ *
+ * Cambio de cuenta (CAMBIO_DE_CUENTA.md): con `tokensPorCuenta`, cada cuenta tiene su token (`<token>:<cuenta.id>`), y
+ * `window.__yosiftwareDoble.cambiarA(cuenta | null, motivo?)` hace lo que el SDK: emite `yosiftware:identidad`, confirma
+ * el estado nuevo por `alCambiar` y lo anuncia a las demás pestañas del navegador (que hacen lo mismo).
  */
 export interface SdkDoubleAccount {
     id: string;
@@ -27,7 +31,12 @@ export interface SdkDoubleOptions {
     token?: string;
     /** El bloque de ajustes de Libros de la cuenta (`yosiftware.ajustes`). */
     ajustes?: Record<string, unknown>;
+    /** Un token distinto por cuenta (`<token>:<cuenta.id>`), para distinguir en las rutas quién pregunta. */
+    tokensPorCuenta?: boolean;
 }
+
+export function sdkDoubleToken(accountId: string): string { return `${SDK_DOUBLE_TOKEN}:${accountId}`; }
+export function sdkDoublePlatformToken(accountId: string): string { return `${SDK_DOUBLE_PLATFORM_TOKEN}:${accountId}`; }
 
 export const SDK_DOUBLE_TOKEN = 'token-doble-de-la-plataforma';
 export const SDK_DOUBLE_PLATFORM_TOKEN = 'token-doble-de-la-plataforma-cuentas';
@@ -46,16 +55,18 @@ let ajustes = { version: 0, documento: ${JSON.stringify(options.ajustes ?? {})} 
 const canales = new Map();
 let secuencia = 0;
 const conSesion = () => sdk.estado.tipo === 'con_sesion';
+const porCuenta = ${JSON.stringify(!!options.tokensPorCuenta)};
+const canalDeSesion = typeof BroadcastChannel === 'function' ? new BroadcastChannel('yosiftware-doble-sesion') : null;
 const sdk = {
     version: 'doble-e2e',
     estado: ${JSON.stringify(estado)},
     listo: async () => sdk.estado,
     alCambiar(oyente) { oyentes.add(oyente); oyente(sdk.estado); return () => oyentes.delete(oyente); },
     entrar: async () => false,
-    salir: async () => emitir({ tipo: 'sin_sesion' }),
+    salir: async () => cambiarA(null),
     cambiarCuenta: async () => false,
-    token: async () => conSesion() ? ${JSON.stringify(options.token ?? SDK_DOUBLE_TOKEN)} : null,
-    tokenPlataforma: async () => conSesion() ? ${JSON.stringify(SDK_DOUBLE_PLATFORM_TOKEN)} : null,
+    token: async () => conSesion() ? (porCuenta ? ${JSON.stringify(SDK_DOUBLE_TOKEN)} + ':' + sdk.estado.cuenta.id : ${JSON.stringify(options.token ?? SDK_DOUBLE_TOKEN)}) : null,
+    tokenPlataforma: async () => conSesion() ? (porCuenta ? ${JSON.stringify(SDK_DOUBLE_PLATFORM_TOKEN)} + ':' + sdk.estado.cuenta.id : ${JSON.stringify(SDK_DOUBLE_PLATFORM_TOKEN)}) : null,
     perfil: async () => null,
     editarPerfil: async () => false,
     reportar: async () => false,
@@ -98,8 +109,20 @@ const sdk = {
 function emitir(estado) {
     sdk.estado = estado;
     oyentes.forEach(oyente => oyente(estado));
-    document.querySelectorAll('yosi-acceso').forEach(el => el.pintar && el.pintar());
+    document.querySelectorAll('yosi-acceso, yosi-notificaciones').forEach(el => el.pintar && el.pintar());
 }
+// Como el SDK: avisa antes de confirmar (sin datos personales), confirma y, si se pide, lo anuncia a las demás pestañas.
+function cambiarLocal(cuenta, motivo) {
+    window.dispatchEvent(new Event('yosiftware:identidad'));
+    emitir(cuenta
+        ? { tipo: 'con_sesion', cuenta: { correo: cuenta.alias + '@example.test', correoVerificado: true, estado: 'activa', propietario: false, ...cuenta } }
+        : (motivo ? { tipo: 'sin_sesion', motivo } : { tipo: 'sin_sesion' }));
+}
+function cambiarA(cuenta, motivo) {
+    cambiarLocal(cuenta, motivo);
+    canalDeSesion?.postMessage({ cuenta: cuenta ?? null, motivo: motivo ?? null });
+}
+canalDeSesion?.addEventListener('message', evento => cambiarLocal(evento.data.cuenta, evento.data.motivo));
 function evento(tipo, datos) {
     const ev = { secuencia: ++secuencia, tipo, datos: datos ?? null, fecha: new Date().toISOString() };
     oyentesEvento.forEach(oyente => oyente(ev));
@@ -109,7 +132,7 @@ function canal(id, mensaje) {
     (canales.get(id) ?? new Set()).forEach(oyente => oyente({ espacio: id, ...mensaje }));
 }
 window.__yosiftwareDoble = {
-    emitir, evento, canal, ajustes,
+    emitir, evento, canal, ajustes, cambiarA,
     oyentesDelTiempoReal: () => oyentesEvento.size + oyentesAviso.size,
     canalesAbiertos: () => [...canales.entries()].filter(([, oyentes]) => oyentes.size).map(([id]) => id)
 };
@@ -128,12 +151,15 @@ if (!customElements.get('yosi-acceso')) customElements.define('yosi-acceso', cla
 for (const [etiqueta, nombre] of [['yosi-webs', 'Webs de Yosiftware'], ['yosi-notificaciones', 'Notificaciones'], ['yosi-privacidad', 'Privacidad'], ['yosi-reportar', 'Errores y propuestas']]) {
     if (customElements.get(etiqueta)) continue;
     customElements.define(etiqueta, class extends HTMLElement {
-        connectedCallback() {
+        connectedCallback() { this.pintar(); }
+        pintar() {
             const raiz = this.shadowRoot ?? this.attachShadow({ mode: 'open' });
             const boton = document.createElement('button');
             boton.type = 'button';
             boton.setAttribute('aria-label', nombre);
             boton.textContent = nombre.charAt(0);
+            // La campana es del SDK: enseña los avisos de la sesión vigente (aquí, de quién son).
+            if (etiqueta === 'yosi-notificaciones') this.dataset.cuenta = conSesion() ? sdk.estado.cuenta.id : '';
             raiz.replaceChildren(boton);
         }
     });
