@@ -1,9 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { environment } from '../../../environment/environment';
 import { PlatformSessionService } from '../auth/platform-session.service';
 import { requestWithToken } from '../auth/token-request';
+import { PLATFORM_API_URL } from '../../shared/platform';
 
 type Metodo = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 type Parametros = Record<string, string | number | boolean | null | undefined>;
@@ -22,7 +22,6 @@ export const SIN_SESION_PLATAFORMA = { status: 401, error: { code: 'sin_sesion',
  */
 @Injectable({ providedIn: 'root' })
 export class PlatformApiService {
-    private readonly baseUrl = environment.plataforma.apiUrl.replace(/\/+$/, '');
 
     constructor(private http: HttpClient, private session: PlatformSessionService) { }
 
@@ -34,7 +33,7 @@ export class PlatformApiService {
 
     request<T>(method: Metodo, path: string, body?: unknown, params?: Parametros): Observable<T> {
         const generation = this.session.generation;
-        const url = `${this.baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+        const url = `${PLATFORM_API_URL}${path.startsWith('/') ? path : `/${path}`}`;
         return requestWithToken<T>({
             token: () => this.session.platformToken(),
             // El SDK renueva solo: si aún da el mismo token, no se repite.

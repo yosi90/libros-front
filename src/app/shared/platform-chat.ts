@@ -1,4 +1,3 @@
-import { environment } from '../../environment/environment';
 import {
     ChatConversation,
     ChatConversationDetail,
@@ -14,6 +13,7 @@ import {
     PlataformaMensaje,
     PlataformaPersona
 } from '../interfaces/platform-chat';
+import { platformAssetUrl } from './platform';
 
 // Traduce el contrato del chat de la plataforma (docs/publica/ENDPOINTS.md, «Chat») al modelo que pintan las vistas
 // de Libros. Los textos de los avisos y de la vista previa siguen a los del SDK (`sdk/src/chat/comun.ts`), para que la
@@ -42,16 +42,6 @@ export function sameEmoji(left: string | null | undefined, right: string | null 
 
 export function reactionTypeOf(emoji: string | null | undefined): ChatReactionType | null {
     return REACTION_TYPES.find(type => sameEmoji(CHAT_REACTION_EMOJIS[type], emoji)) ?? null;
-}
-
-/** Las direcciones de los avatares llegan relativas a la API de la plataforma. */
-export function platformAssetUrl(path: string | null | undefined): string | null {
-    if (!path) return null;
-    try {
-        return new URL(path, `${environment.plataforma.apiUrl.replace(/\/+$/, '')}/`).href;
-    } catch {
-        return null;
-    }
 }
 
 export function toChatPerson(persona: PlataformaPersona | null | undefined): ChatPerson | null {
