@@ -81,9 +81,9 @@ class BibliotecaTest {
     }
 
     @Test
-    fun alEntrarSeAbrenLosUniversosYSagasConUnLibroEnMarcha() {
+    fun alEntrarTodoEstaCerradoYLoEnMarchaVaEnContinuaLeyendo() {
         val abiertos = Biblioteca.abiertos(listOf(cosmere, malaz), Abiertos(), aMano = false, conFiltros = false)
-        assertEquals(Abiertos(setOf(5), setOf(2)), abiertos)
+        assertEquals(Abiertos(), abiertos)
         assertEquals(listOf(1), Biblioteca.enMarcha(listOf(cosmere, malaz), 6).map { it.id })
     }
 

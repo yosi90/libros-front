@@ -9,6 +9,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -69,6 +71,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import es.yosiftware.libros.datos.modelos.Obra
+import kotlinx.coroutines.delay
 import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.datos.modelos.Universo
 import es.yosiftware.libros.ui.adaptable.LocalVentana
@@ -115,8 +118,8 @@ fun PantallaBiblioteca(
     }
     val ancha = ventana.anchoDp >= 600
     val abrir: (Obra) -> Unit = { if (it.esAntologia) alAbrirAntologia(it) else alAbrirLibro(it) }
-    // «Ver en biblioteca» desde el catálogo: hasta el universo de la obra, ya abierto.
-    // TODO(clon): la web centra la tarjeta de la obra (`scrollIntoView`); aquí se llega al principio de su universo.
+    // «Ver en biblioteca» desde el catálogo: primero hasta el universo de la obra, ya abierto; después, su tarjeta
+    // se trae a la vista ella sola ([Revelable]).
     LaunchedEffect(vm.porRevelar) {
         val id = vm.porRevelar ?: return@LaunchedEffect
         val posicion = vm.visibles.indexOfFirst { it.id == id }
@@ -149,7 +152,7 @@ fun PantallaBiblioteca(
                     vm.grupoActivo?.let { grupo ->
                         item(key = "rejilla-${grupo.estado}") {
                             Rejilla(grupo.obras, columnas, Modifier.padding(start = Espacios.e3, end = Espacios.e3, top = Espacios.e4)) { obra ->
-                                TarjetaDeObra(obra, { abrir(obra) }, { vm.abrirEditor(obra) }, { alVerEdiciones(obra) })
+                                Revelable(vm, obra) { TarjetaDeObra(obra, { abrir(obra) }, { vm.abrirEditor(obra) }, { alVerEdiciones(obra) }) }
                             }
                         }
                     }
@@ -493,7 +496,7 @@ private fun TarjetaDeUniverso(
                     if (sagas.isNotEmpty()) {
                         Text("HISTORIAS INDEPENDIENTES", style = rotulo.copy(fontSize = rem(0.7), color = colores.tintaSuave), modifier = Modifier.padding(top = Espacios.e2, start = Espacios.e1, end = Espacios.e1))
                     }
-                    Rejilla(sueltas, columnas) { obra -> TarjetaDeObra(obra, { alAbrir(obra) }, { vm.abrirEditor(obra) }, { alVerEdiciones(obra) }) }
+                    Rejilla(sueltas, columnas) { obra -> Revelable(vm, obra) { TarjetaDeObra(obra, { alAbrir(obra) }, { vm.abrirEditor(obra) }, { alVerEdiciones(obra) }) } }
                 }
             }
         }
@@ -575,10 +578,28 @@ private fun FilaDeSaga(
         }
         if (abierta) {
             Rejilla(obras, columnas, Modifier.padding(start = Espacios.e2, end = Espacios.e2, top = Espacios.e1)) { obra ->
-                TarjetaDeObra(obra, { alAbrir(obra) }, { vm.abrirEditor(obra) }, { alVerEdiciones(obra) })
+                Revelable(vm, obra) { TarjetaDeObra(obra, { alAbrir(obra) }, { vm.abrirEditor(obra) }, { alVerEdiciones(obra) }) }
             }
         }
     }
+}
+
+/** La tarjeta a la que lleva «Ver en biblioteca»: cuando se pinta, se trae a la vista (`scrollIntoView`). */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun Revelable(vm: BibliotecaViewModel, obra: Obra, tarjeta: @Composable () -> Unit) {
+    if (vm.obraPorRevelar != "${obra.tipo}-${obra.id}") {
+        tarjeta()
+        return
+    }
+    val traer = remember { BringIntoViewRequester() }
+    LaunchedEffect(Unit) {
+        // Tras el desplazamiento hasta su universo.
+        delay(400)
+        traer.bringIntoView()
+        vm.obraRevelada()
+    }
+    Box(Modifier.bringIntoViewRequester(traer)) { tarjeta() }
 }
 
 /** `.m-library__grid`: una columna, dos desde 600 dp y tres desde 900, con 12 dp entre tarjetas. */

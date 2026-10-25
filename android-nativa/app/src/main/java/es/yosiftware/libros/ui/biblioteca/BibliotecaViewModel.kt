@@ -363,6 +363,9 @@ class BibliotecaViewModel(
     /** El universo que hay que enseñar al volver del catálogo; la pantalla se desplaza hasta él y lo olvida. */
     var porRevelar by mutableStateOf<Int?>(null)
         private set
+    /** La tarjeta a la que se lleva después («libro-5»); la suya la trae a la vista y la olvida. */
+    var obraPorRevelar by mutableStateOf<String?>(null)
+        private set
 
     /** La colección recién leída tras un cambio en otra pantalla (`universeStore.setUniverses`). */
     fun recibirUniversos(nuevos: List<Universo>) {
@@ -384,6 +387,11 @@ class BibliotecaViewModel(
         aMano = true
         abiertos = abiertos.copy(universos = abiertos.universos + universoId, sagas = if (sagaId != null) abiertos.sagas + sagaId else abiertos.sagas)
         porRevelar = universoId
+        obraPorRevelar = "${obra.tipo}-${obra.id}"
+    }
+
+    fun obraRevelada() {
+        obraPorRevelar = null
     }
 
     fun revelado() {
@@ -415,6 +423,7 @@ class BibliotecaViewModel(
         leyendoSeccionId = null
         edicionDeSeccion = null
         porRevelar = null
+        obraPorRevelar = null
         vista = Vista.UNIVERSOS
         cargando = identidad != null
         if (identidad != null) {

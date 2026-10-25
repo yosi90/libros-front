@@ -246,6 +246,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   Diferencias a propósito:
   - **Títulos de las historias independientes:** en la APK de Capacitor salían en mayúsculas, pequeños y grises. Era un fallo de CSS: la regla del rótulo «Historias independientes» (`.m-library__standalone h3`) también alcanzaba al título de cada tarjeta. Aquí van como los de las sagas, igual que hicimos con el modal oscuro.
   - **Si la colección no carga:** la web no tenía pantalla para ese fallo; aquí se avisa y se ofrece «Reintentar».
+  - **Al entrar, todo cerrado** (petición del propietario, 2026-10-25, también en la web `627d3e4`): la APK capturada abría los universos y sagas con libros en marcha porque no tenía «Continúa leyendo». «Ver en biblioteca» abre el universo y la saga de la obra y trae su tarjeta a la vista; en la web, además, `?libro=<id>` y `?antologia=<id>` abren la biblioteca por esa obra (antes el modo «en marcha» volvía a cerrar el universo y no llegaba a la tarjeta).
 
   Pendiente:
   - abrir un libro (hito 9);
@@ -266,7 +267,6 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 
   Pendiente:
   - los desplegables abren un menú de Compose y no la lista nativa de la WebView;
-  - «Ver en biblioteca» llega al principio del universo de la obra, no centra su tarjeta;
   - probar con red en la app de QA, con sesión (añadir, editar ediciones y pedir un libro).
 - [ ] Estadísticas generales.
 - [ ] Comparación con las capturas, en claro y oscuro, plegada y desplegada.

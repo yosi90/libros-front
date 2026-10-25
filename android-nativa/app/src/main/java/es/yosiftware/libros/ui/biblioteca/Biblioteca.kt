@@ -55,8 +55,11 @@ object Biblioteca {
         .take(limite)
 
     /**
-     * Qué se abre (`applyExpansionMode`): con filtros, todo lo que se ve; si la persona ya abrió o cerró algo a mano, lo
-     * suyo, sin lo que ya no se ve; si no, los universos y sagas con un libro en marcha.
+     * Qué se abre (`applyExpansionMode`): con filtros, todo lo que se ve; si la persona ya abrió o cerró algo a mano (o
+     * se llegó por una obra, con «Ver en biblioteca»), lo suyo, sin lo que ya no se ve; si no, nada.
+     *
+     * Cambio pedido por el propietario (2026-10-25): la APK capturada abría los universos y sagas con un libro en marcha,
+     * porque no tenía «Continúa leyendo». Ahora se entra con todo cerrado, como la web.
      */
     fun abiertos(visibles: List<Universo>, actuales: Abiertos, aMano: Boolean, conFiltros: Boolean): Abiertos = when {
         aMano -> Abiertos(
@@ -64,10 +67,7 @@ object Biblioteca {
             sagas = actuales.sagas.intersect(visibles.flatMap { u -> u.sagas.map { it.id } }.toSet()),
         )
         conFiltros -> Abiertos(visibles.map { it.id }.toSet(), visibles.flatMap { u -> u.sagas.map { it.id } }.toSet())
-        else -> Abiertos(
-            universos = visibles.filter { universo -> librosDe(universo).any(::estaEnMarcha) }.map { it.id }.toSet(),
-            sagas = visibles.flatMap { it.sagas }.filter { saga -> saga.libros.any(::estaEnMarcha) }.map { it.id }.toSet(),
-        )
+        else -> Abiertos()
     }
 
     /** Dónde está una obra (para abrir su universo y su saga al volver del catálogo; `findLibraryItemLocation`). */
@@ -83,7 +83,6 @@ object Biblioteca {
         return null
     }
 
-    private fun librosDe(universo: Universo): List<Obra> = universo.libros + universo.sagas.flatMap { it.libros }
 
     private fun ordenar(universos: List<Universo>): List<Universo> = universos.sortedWith(
         compareBy<Universo> { if (esUniversoNeutro(it)) 0 else 1 }.thenComparator { a, b -> comparadorDeNombres.compare(a.nombre, b.nombre) },

@@ -46,7 +46,7 @@ import es.yosiftware.libros.ui.tema.TemaMobile
  *
  * Vistas: `raiz` (al entrar), `saga` (solo «Nacidos de la bruma» abierta), `todo` (El cosmere con sus sagas
  * abiertas), `plegados`, `filtros`, `estados`, `busqueda` (con el chip «autor: san»), `modal` (el editor de la primera
- * obra), `aviso` (un aviso de éxito), `antologia` (sus secciones, del progreso de la colección), `vacia` y `cargando`.
+ * obra), `aviso` (un aviso de éxito), `revelar` («Ver en biblioteca» de «Los jardines de la luna»), `antologia` (sus secciones, del progreso de la colección), `vacia` y `cargando`.
  */
 class MuestrasDeBiblioteca : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,6 +79,7 @@ class MuestrasDeBiblioteca : ComponentActivity() {
             "modal" -> vm.abrirEditor(vm.visibles.first().libros.first { it.ultimoEstadoEs(TipoDeEstado.POR_COMPRAR) })
             "aviso" -> avisos.exito("Biblioteca personal actualizada")
             "antologia" -> vm.abrirAntologia(arcanum)
+            "revelar" -> vm.revelar(coleccion.last().libros.first())
         }
         setContent {
             TemaLibros(tema) {
