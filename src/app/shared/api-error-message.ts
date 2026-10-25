@@ -125,12 +125,14 @@ export function describePlatformRestriction(scopes: readonly string[], until: st
     if (!scopes.length) return null;
     const labels = visible.length ? visible.map(scope => restrictionScopeLabels[scope]) : ['esta acción'];
     const what = labels.length > 1 ? `${labels.slice(0, -1).join(', ')} y ${labels[labels.length - 1]}` : labels[0];
+    // «limitada la comunidad», «limitado el chat»: concuerda con lo primero que se nombra.
+    const limited = what.startsWith('el ') ? 'limitado' : 'limitada';
     const date = until ? new Date(until) : null;
     if (!date || Number.isNaN(date.getTime()))
-        return `Tu cuenta de Yosiftware tiene limitada ${what} sin fecha de fin.`;
+        return `Tu cuenta de Yosiftware tiene ${limited} ${what} sin fecha de fin.`;
     const day = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
     const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-    return `Tu cuenta de Yosiftware tiene limitada ${what} hasta el ${day} a las ${time}.`;
+    return `Tu cuenta de Yosiftware tiene ${limited} ${what} hasta el ${day} a las ${time}.`;
 }
 
 /** `403 platform_restriction_active` (ADHESION_YOSIFTWARE.md): qué y hasta cuándo. `null` si el error es otro. */

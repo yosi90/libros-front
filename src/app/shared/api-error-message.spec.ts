@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { getApiErrorCode, getApiErrorMessage, getPlatformRestrictionMessage, getProductStateMessage, isPolicyAcceptanceBlock } from './api-error-message';
+import { describePlatformRestriction, getApiErrorCode, getApiErrorMessage, getPlatformRestrictionMessage, getProductStateMessage, isPolicyAcceptanceBlock } from './api-error-message';
 
 describe('api error helpers', () => {
     it('reads a stable functional code from an HTTP response body', () => {
@@ -42,6 +42,7 @@ describe('api error helpers', () => {
     it('dice cuándo la restricción no tiene fin y deja pasar los demás errores', () => {
         expect(getPlatformRestrictionMessage({ code: 'platform_restriction_active', details: { Alcance: 'comunidad', Hasta: null } }))
             .toBe('Tu cuenta de Yosiftware tiene limitada la comunidad sin fecha de fin.');
+        expect(describePlatformRestriction(['chat'], null)).toBe('Tu cuenta de Yosiftware tiene limitado el chat sin fecha de fin.');
         expect(getPlatformRestrictionMessage({ code: 'account_sanctioned' })).toBeNull();
     });
 
