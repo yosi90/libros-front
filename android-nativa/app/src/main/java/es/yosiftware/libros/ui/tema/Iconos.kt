@@ -79,6 +79,26 @@ object Iconos {
     @DrawableRes val arrowForward = R.drawable.mi_arrow_forward
     @DrawableRes val hourglassTop = R.drawable.mi_hourglass_top
     @DrawableRes val refresh = R.drawable.mi_refresh
+    @DrawableRes val bookmarkBorder = R.drawable.mi_bookmark_border
+    @DrawableRes val donutLarge = R.drawable.mi_donut_large
+    @DrawableRes val bolt = R.drawable.mi_bolt
+    @DrawableRes val hourglassBottom = R.drawable.mi_hourglass_bottom
+    @DrawableRes val personSearch = R.drawable.mi_person_search
+    @DrawableRes val palette = R.drawable.mi_palette
+    @DrawableRes val shoppingCart = R.drawable.mi_shopping_cart
+    @DrawableRes val groups = R.drawable.mi_groups
+    @DrawableRes val calendarMonth = R.drawable.mi_calendar_month
+    @DrawableRes val lockPerson = R.drawable.mi_lock_person
+    @DrawableRes val diversity3 = R.drawable.mi_diversity_3
+    @DrawableRes val chatBubble = R.drawable.mi_chat_bubble
+    @DrawableRes val favorite = R.drawable.mi_favorite
+    @DrawableRes val howToVote = R.drawable.mi_how_to_vote
+    @DrawableRes val event = R.drawable.mi_event
+    @DrawableRes val groupAdd = R.drawable.mi_group_add
+    @DrawableRes val groups2 = R.drawable.mi_groups_2
+    @DrawableRes val localFireDepartment = R.drawable.mi_local_fire_department
+    @DrawableRes val translate = R.drawable.mi_translate
+    @DrawableRes val historyEdu = R.drawable.mi_history_edu
 
     /** El símbolo del ecosistema (ecosistema-kit/marca/simbolo-trazo.svg), en todo enlace a la web social (MARCA.md). */
     @DrawableRes val simboloYosiftware = R.drawable.simbolo_yosiftware

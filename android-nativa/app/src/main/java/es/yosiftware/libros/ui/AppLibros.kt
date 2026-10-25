@@ -24,6 +24,8 @@ import es.yosiftware.libros.ui.biblioteca.PantallaBiblioteca
 import es.yosiftware.libros.ui.catalogo.CapasDeCatalogo
 import es.yosiftware.libros.ui.catalogo.CatalogoViewModel
 import es.yosiftware.libros.ui.catalogo.PantallaCatalogo
+import es.yosiftware.libros.ui.estadisticas.EstadisticasViewModel
+import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
 import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
 import es.yosiftware.libros.ui.componentes.Avisos
 import es.yosiftware.libros.ui.componentes.LocalAvisos
@@ -85,6 +87,9 @@ fun AppLibros(app: LibrosApp) {
     val catalogo: CatalogoViewModel = viewModel {
         CatalogoViewModel(app.datos.ambito, app.datos.catalogo, app.datos.coleccion, app.datos.peticiones, avisos, biblioteca::recibirUniversos)
     }
+    val estadisticas: EstadisticasViewModel = viewModel {
+        EstadisticasViewModel(app.datos.ambito, app.datos.estadisticas, app.datos.catalogo)
+    }
     catalogo.alVerEnBiblioteca = { obra ->
         nav.irA(Destino.Biblioteca)
         biblioteca.revelar(obra)
@@ -136,6 +141,7 @@ fun AppLibros(app: LibrosApp) {
                                         alAbrirCatalogo = { nav.irA(Destino.Catalogo) },
                                     )
                                     Destino.Catalogo -> PantallaCatalogo(catalogo)
+                                    Destino.Estadisticas -> PantallaEstadisticas(estadisticas)
                                     else -> PantallaVacia(destino)
                                 }
                             },

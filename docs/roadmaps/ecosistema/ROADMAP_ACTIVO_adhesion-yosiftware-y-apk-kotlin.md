@@ -268,8 +268,9 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   Pendiente:
   - los desplegables abren un menú de Compose y no la lista nativa de la WebView;
   - probar con red en la app de QA, con sesión (añadir, editar ediciones y pedir un libro).
-- [ ] Estadísticas generales.
-- [ ] Comparación con las capturas, en claro y oscuro, plegada y desplegada.
+- [x] Estadísticas (2026-10-25): la pantalla entera, con sus pestañas Personal (cifras, estados, lecturas más rápidas, espera, autores, estilos, puntuaciones y pendientes de comprar) y General (la comunidad, con su umbral de privacidad, los clubes y su actividad, y el catálogo en cifras). Lógica en `ui/estadisticas/Estadisticas.kt` con sus pruebas; muestra de depuración `MuestrasDeEstadisticas`. Las novedades de F1 a F3 de la web (ritmo, puntuaciones en el tiempo) llegan en la F4.
+  - **Corregido a propósito:** desde 600 dp, la APK capturada ponía los títulos de sección («Lectura en la comunidad», «Clubes y actividad», «El catálogo») y la nota de privacidad en una sola columna de la rejilla, al lado de paneles que no eran suyos. Aquí van a lo ancho.
+- [ ] Comparación con las capturas, en claro y oscuro, plegada y desplegada: hecha en el Honor desplegado (`referencias-apk-capacitor/_kotlin/catalogo/` y `estadisticas/`); falta el Xiaomi, que estaba bloqueado.
 
 ### Hito 9. APK Kotlin: el libro
 

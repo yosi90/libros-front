@@ -48,6 +48,10 @@ Clonado de `mobile-catalog-view`, `catalog.component.ts` y `catalog-saga` en su 
 - Las pantallas: `PantallaCatalogo`, `PantallaFicha`, `HojaSaga` y `ModalDePeticion`. `CapasDeCatalogo` las pone encima del shell.
 - Solo en depuración, `MuestrasDeCatalogo` pinta el Catálogo con los datos de las capturas: `adb shell am start -n es.yosiftware.libros.qa/es.yosiftware.libros.MuestrasDeCatalogo --es vista lista --es tema oscuro` (las vistas, en su cabecera).
 
+## Las Estadísticas (`ui/estadisticas/`, hito 8)
+
+Clonadas de `mobile-statistics-view`, `statistics.component.ts` y `app-stat-rows` (5dc3120). La lógica, en `Estadisticas.kt` (lo de `library-stats.ts`), con sus pruebas; `EstadisticasViewModel` carga la pestaña Personal al entrar y la General al abrirla; `PantallaEstadisticas` es una columna en el móvil y una rejilla de dos desde 600 dp. Muestra de depuración: `MuestrasDeEstadisticas` (`--es vista personal|general|error`).
+
 ## Compilar
 
 Con el JDK 21 y el SDK de Android (en `local.properties`, `sdk.dir=…`, que no se versiona):
