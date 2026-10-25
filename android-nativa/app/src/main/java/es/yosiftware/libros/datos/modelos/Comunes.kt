@@ -1,6 +1,7 @@
 package es.yosiftware.libros.datos.modelos
 
 import es.yosiftware.libros.datos.json.booleano
+import es.yosiftware.libros.datos.plegar
 import es.yosiftware.libros.datos.json.entero
 import es.yosiftware.libros.datos.json.lista
 import es.yosiftware.libros.datos.json.objeto
@@ -72,12 +73,9 @@ enum class TipoDeEstado(val id: Int, val nombre: String) {
 
         /** Por el nombre, sin mayúsculas ni tildes («Leido» es «Leído»), como `getStatusId` de la web. */
         fun deNombre(nombre: String?): TipoDeEstado? {
-            val buscado = nombre?.let(::plegar) ?: return null
+            val buscado = nombre?.let { plegar(it.trim()) } ?: return null
             return entries.firstOrNull { plegar(it.nombre) == buscado }
         }
-
-        private fun plegar(texto: String): String =
-            java.text.Normalizer.normalize(texto.trim().lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
     }
 }
 
