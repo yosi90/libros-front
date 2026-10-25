@@ -22,3 +22,31 @@
     // La campana (`<yosi-notificaciones>`) con el dorado de la barra, y los avisos emergentes bajo la barra fija del libro.
     --yosi-color-campana: #ead8bc
     --yosi-avisos-arriba: 58px
+
+// Los paneles de la cuenta, las webs y la campana del riel lateral del panel (ESTILOS.md, `::part(panel)`). El SDK los
+// despliega hacia abajo y hacia la izquierda desde su botón: dentro del riel (64 px y `overflow: hidden`) quedaban
+// cortados. Se abren a la derecha del riel, a la altura de su borde superior.
+@mixin yosiftware-paneles
+    .library-sidebar
+        yosi-acceso::part(panel), yosi-webs::part(panel), yosi-notificaciones::part(panel)
+            position: fixed
+            top: 18px
+            right: auto
+            bottom: auto
+            left: calc(46px + 64px + 12px)
+            z-index: 40
+            max-height: calc(100vh - 36px)
+
+    // La barra en píldora del libro (`navbar`), arriba a la izquierda: el panel se alinea con el borde izquierdo de su
+    // botón (si no, salía de la pantalla por la izquierda) y los botones miden como los iconos de la píldora (27 px).
+    .topbar
+        yosi-acceso::part(panel), yosi-webs::part(panel), yosi-notificaciones::part(panel)
+            right: auto
+            left: 0
+
+        yosi-webs::part(boton), yosi-acceso::part(boton), yosi-notificaciones::part(campana)
+            width: 27px
+            height: 27px
+            min-width: 27px
+            min-height: 27px
+            padding: 0

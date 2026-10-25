@@ -34,12 +34,12 @@
   </nav>
 
   <div class="web-nav__footer">
-    <a class="web-nav__profile" routerLink="/dashboard/profile" routerLinkActive="is-active"
+    <!-- El Perfil de Libros (colección, listas y estadísticas). La persona (avatar y nombre) es la cuenta de Yosiftware,
+         justo debajo: el avatar abre su panel. -->
+    <a class="web-nav__item" routerLink="/dashboard/profile" routerLinkActive="is-active"
       matTooltip="Perfil" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right">
-      <span class="web-nav__avatar" aria-hidden="true">
-        @if (imageUrl) { <img [src]="imageUrl" alt="" (error)="imageError.emit($event)"> } @else { {{initial}} }
-      </span>
-      <span class="web-nav__label"><strong>{{userName}}</strong><small>Ver perfil</small></span>
+      <mat-icon aria-hidden="true">person</mat-icon>
+      <span class="web-nav__label">Perfil</span>
     </a>
     <div class="web-nav__actions">
       <app-yosiftware-account class="web-nav__account"></app-yosiftware-account>

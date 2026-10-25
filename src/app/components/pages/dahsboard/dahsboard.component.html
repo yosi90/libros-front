@@ -29,10 +29,8 @@
   } @else if (isWebPresentation) {
     <!-- Diferido: la navegación Web no pesa en la carga inicial mientras la presentación no esté activa. -->
     @defer {
-    <app-web-navigation [userName]="displayName" [imageUrl]="profileImageUrl"
-      [communityEnabled]="communityEnabled" [chatEnabled]="chatEnabled"
-      [unreadChatCount]="(unreadChatCount$ | async) ?? 0"
-      (imageError)="handleProfileImageError($event)"></app-web-navigation>
+    <app-web-navigation [communityEnabled]="communityEnabled" [chatEnabled]="chatEnabled"
+      [unreadChatCount]="(unreadChatCount$ | async) ?? 0"></app-web-navigation>
     <app-web-reading-window></app-web-reading-window>
     }
   } @else {

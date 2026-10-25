@@ -61,7 +61,7 @@ export class SocialShellComponent implements OnInit, OnDestroy {
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
-        this.social.summary().subscribe({ next: summary => this.friendshipsCount = summary.amistades, error: () => void 0 });
+        this.social.summary().subscribe({ next: summary => this.friendshipsCount = summary?.amistades ?? this.friendshipsCount, error: () => void 0 });
         this.chats.initialize();
         this.subscriptions.add(this.chats.state$.subscribe(state => this.unreadCount = state.conversations.reduce((total, item) => total + item.NoLeidos, 0)));
     }
