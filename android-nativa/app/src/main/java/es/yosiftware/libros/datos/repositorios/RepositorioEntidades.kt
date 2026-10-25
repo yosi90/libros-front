@@ -42,31 +42,69 @@ data class EntradaAGuardar(val nombre: String, val descripcion: String) {
  * entradas de cualquiera de ellas. Las ediciones (`PATCH`) devuelven la entidad si la API la manda, o `null` si solo
  * confirma (`EntityWriteResponse`).
  */
-class RepositorioEntidades(private val api: ClienteLibros) {
+/** Lo que escriben y leen las fichas de los elementos narrativos: así su ViewModel se prueba sin red. */
+interface ServidorDeElementos {
+    suspend fun catalogoDeEstadosDePersonaje(): List<Referencia>
+    suspend fun catalogoDeEstadosDeLocalizacion(): List<Referencia>
+    suspend fun crearPersonaje(libroId: Int, apodo: String, sexo: Int, entradas: List<EntradaAGuardar>, idCliente: String? = null): Personaje
+    suspend fun personaje(id: Int, libroId: Int? = null): Personaje
+    suspend fun cambiarSexoDePersonaje(id: Int, sexo: Int): Personaje?
+    suspend fun cambiarEstadoDePersonaje(personajeId: Int, libroId: Int, estadoId: Int): EstadoDePersonaje
+    suspend fun crearRelacion(personajeId: Int, libroId: Int, relacionadoId: Int, parentesco: String, reflejada: Boolean? = null): RelacionDePersonaje
+    suspend fun cambiarRelacion(personajeId: Int, relacionId: Int, libroId: Int? = null, relacionadoId: Int? = null, parentesco: String? = null, reflejada: Boolean? = null): RelacionDePersonaje
+    suspend fun borrarRelacion(personajeId: Int, relacionId: Int): Boolean
+    suspend fun crearApodo(personajeId: Int, libroId: Int, apodo: String): Apodo
+    suspend fun borrarApodo(personajeId: Int, apodoId: Int): Boolean
+    suspend fun cambiarApodoNarrativo(personajeId: Int, libroId: Int, apodo: String): Personaje
+    suspend fun corregirApodo(personajeId: Int, libroId: Int, apodo: String): Personaje
+    suspend fun crearLocalizacion(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>, estadoId: Int? = null): Localizacion
+    suspend fun cambiarLocalizacion(id: Int, libroId: Int, nombre: String, estadoId: Int? = null): Localizacion?
+    suspend fun crearConcepto(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>): Concepto
+    suspend fun cambiarConcepto(id: Int, libroId: Int, nombre: String): Concepto?
+    suspend fun crearOrganizacion(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>): Organizacion
+    suspend fun cambiarOrganizacion(id: Int, libroId: Int, nombre: String): Organizacion?
+    suspend fun personajesDeOrganizacion(id: Int, libroId: Int? = null): List<PersonajeDeOrganizacion>
+    suspend fun anadirPersonajeAOrganizacion(id: Int, libroId: Int, personajeId: Int, descripcion: String): PersonajeDeOrganizacion
+    suspend fun cambiarPersonajeDeOrganizacion(id: Int, personajeId: Int, libroId: Int, descripcion: String): PersonajeDeOrganizacion
+    suspend fun quitarPersonajeDeOrganizacion(id: Int, personajeId: Int): Boolean
+    suspend fun localizacionesDeOrganizacion(id: Int, libroId: Int? = null): List<LocalizacionDeOrganizacion>
+    suspend fun anadirLocalizacionAOrganizacion(id: Int, libroId: Int, localizacionId: Int, descripcion: String): LocalizacionDeOrganizacion
+    suspend fun cambiarLocalizacionDeOrganizacion(id: Int, localizacionId: Int, libroId: Int, descripcion: String): LocalizacionDeOrganizacion
+    suspend fun quitarLocalizacionDeOrganizacion(id: Int, localizacionId: Int): Boolean
+    suspend fun crearEvento(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>, localizacionId: Int, personajesIds: List<Int> = emptyList()): Evento
+    suspend fun cambiarEvento(id: Int, libroId: Int, nombre: String, localizacionId: Int, personajesIds: List<Int>? = null): Evento?
+    suspend fun crearCita(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>, pagina: Int, personajeId: Int): Cita
+    suspend fun cambiarCita(id: Int, libroId: Int, nombre: String, pagina: Int, personajeId: Int): Cita?
+    suspend fun crearEntradas(tipo: TipoDeEntidad, entidadId: Int, libroId: Int, entradas: List<EntradaAGuardar>): List<Entrada>
+    suspend fun cambiarEntrada(id: Int, entrada: EntradaAGuardar): Entrada
+    suspend fun borrarEntrada(id: Int): Boolean
+}
+
+class RepositorioEntidades(private val api: ClienteLibros) : ServidorDeElementos {
 
     // ---------- Personajes ----------
 
     /** Un personaje nuevo en un libro, con su apodo en ese libro, su sexo (como lo guarda la API) y sus entradas. */
-    suspend fun crearPersonaje(libroId: Int, apodo: String, sexo: Int, entradas: List<EntradaAGuardar>): Personaje =
-        api.post("personajes", json("LibroId" to libroId, "Apodo" to apodo, "Sexo" to sexo, "Entradas" to entradasJson(entradas))).objeto(Personaje::de)
+    override suspend fun crearPersonaje(libroId: Int, apodo: String, sexo: Int, entradas: List<EntradaAGuardar>, idCliente: String?): Personaje =
+        api.post("personajes", json("LibroId" to libroId, "Apodo" to apodo, "Sexo" to sexo, "Entradas" to entradasJson(entradas), "IdCliente" to idCliente)).objeto(Personaje::de)
 
     /** Los estados posibles de un personaje (vivo, muerto…). */
-    suspend fun catalogoDeEstadosDePersonaje(): List<Referencia> = api.get("personajes/estados/catalogo").lista(Referencia::de)
+    override suspend fun catalogoDeEstadosDePersonaje(): List<Referencia> = api.get("personajes/estados/catalogo").lista(Referencia::de)
 
-    suspend fun personaje(id: Int, libroId: Int? = null): Personaje = api.get("personajes/$id", mapOf("libroId" to libroId)).objeto(Personaje::de)
+    override suspend fun personaje(id: Int, libroId: Int?): Personaje = api.get("personajes/$id", mapOf("libroId" to libroId)).objeto(Personaje::de)
 
-    suspend fun cambiarSexoDePersonaje(id: Int, sexo: Int): Personaje? = api.patch("personajes/$id", json("Sexo" to sexo)).entidadONula(Personaje::de)
+    override suspend fun cambiarSexoDePersonaje(id: Int, sexo: Int): Personaje? = api.patch("personajes/$id", json("Sexo" to sexo)).entidadONula(Personaje::de)
 
     suspend fun apodos(personajeId: Int, incluirBorrados: Boolean = false): List<Apodo> =
         api.get("personajes/$personajeId/apodos", mapOf("includeDeleted" to incluirBorrados)).lista(Apodo::de)
 
-    suspend fun crearApodo(personajeId: Int, libroId: Int, apodo: String): Apodo =
+    override suspend fun crearApodo(personajeId: Int, libroId: Int, apodo: String): Apodo =
         api.post("personajes/$personajeId/apodos", json("LibroId" to libroId, "Apodo" to apodo)).objeto(Apodo::de)
 
     suspend fun cambiarApodo(personajeId: Int, apodoId: Int, apodo: String): Apodo =
         api.put("personajes/$personajeId/apodos/$apodoId", json("Apodo" to apodo)).objeto(Apodo::de)
 
-    suspend fun borrarApodo(personajeId: Int, apodoId: Int): Boolean = hecho(api.delete("personajes/$personajeId/apodos/$apodoId").objeto())
+    override suspend fun borrarApodo(personajeId: Int, apodoId: Int): Boolean = hecho(api.delete("personajes/$personajeId/apodos/$apodoId").objeto())
 
     suspend fun estadosDePersonaje(personajeId: Int, libroId: Int? = null): List<EstadoDePersonaje> =
         api.get("personajes/$personajeId/estados", mapOf("libroId" to libroId)).lista(EstadoDePersonaje::de)
@@ -74,32 +112,32 @@ class RepositorioEntidades(private val api: ClienteLibros) {
     suspend fun crearEstadoDePersonaje(personajeId: Int, libroId: Int, estadoId: Int): EstadoDePersonaje =
         api.post("personajes/$personajeId/estados", json("LibroId" to libroId, "EstadoId" to estadoId)).objeto(EstadoDePersonaje::de)
 
-    suspend fun cambiarEstadoDePersonaje(personajeId: Int, libroId: Int, estadoId: Int): EstadoDePersonaje =
+    override suspend fun cambiarEstadoDePersonaje(personajeId: Int, libroId: Int, estadoId: Int): EstadoDePersonaje =
         api.put("personajes/$personajeId/estados/libros/$libroId", json("EstadoId" to estadoId)).objeto(EstadoDePersonaje::de)
 
     suspend fun relaciones(personajeId: Int, libroId: Int? = null, incluirBorradas: Boolean = false): List<RelacionDePersonaje> =
         api.get("personajes/$personajeId/relaciones", mapOf("includeDeleted" to incluirBorradas, "libroId" to libroId)).lista(RelacionDePersonaje::de)
 
-    suspend fun crearRelacion(personajeId: Int, libroId: Int, relacionadoId: Int, parentesco: String, reflejada: Boolean? = null): RelacionDePersonaje =
+    override suspend fun crearRelacion(personajeId: Int, libroId: Int, relacionadoId: Int, parentesco: String, reflejada: Boolean?): RelacionDePersonaje =
         api.post(
             "personajes/$personajeId/relaciones",
             json("LibroId" to libroId, "PersonajeRelacionadoId" to relacionadoId, "Parentesco" to parentesco, "Reflejada" to reflejada),
         ).objeto(RelacionDePersonaje::de)
 
     /** Cambia lo que no sea `null` de la relación (`CharacterRelationUpdate`). */
-    suspend fun cambiarRelacion(
+    override suspend fun cambiarRelacion(
         personajeId: Int,
         relacionId: Int,
-        libroId: Int? = null,
-        relacionadoId: Int? = null,
-        parentesco: String? = null,
-        reflejada: Boolean? = null,
+        libroId: Int?,
+        relacionadoId: Int?,
+        parentesco: String?,
+        reflejada: Boolean?,
     ): RelacionDePersonaje = api.put(
         "personajes/$personajeId/relaciones/$relacionId",
         json("LibroId" to libroId, "PersonajeRelacionadoId" to relacionadoId, "Parentesco" to parentesco, "Reflejada" to reflejada),
     ).objeto(RelacionDePersonaje::de)
 
-    suspend fun borrarRelacion(personajeId: Int, relacionId: Int): Boolean = hecho(api.delete("personajes/$personajeId/relaciones/$relacionId").objeto())
+    override suspend fun borrarRelacion(personajeId: Int, relacionId: Int): Boolean = hecho(api.delete("personajes/$personajeId/relaciones/$relacionId").objeto())
 
     /** Añade un personaje que ya existe a otro libro, con su apodo en él. */
     suspend fun anadirPersonajeALibro(personajeId: Int, libroId: Int, apodo: String): Personaje =
@@ -108,83 +146,83 @@ class RepositorioEntidades(private val api: ClienteLibros) {
     suspend fun quitarPersonajeDeLibro(personajeId: Int, libroId: Int): Boolean = hecho(api.delete("personajes/$personajeId/libros/$libroId").objeto())
 
     /** El personaje pasa a llamarse [apodo] desde este libro (un apodo nuevo en la narrativa). */
-    suspend fun cambiarApodoNarrativo(personajeId: Int, libroId: Int, apodo: String): Personaje =
+    override suspend fun cambiarApodoNarrativo(personajeId: Int, libroId: Int, apodo: String): Personaje =
         api.patch("personajes/$personajeId/libros/$libroId/apodo", json("Apodo" to apodo)).objeto(Personaje::de)
 
     /** Corrige el apodo del personaje en este libro (una errata, no un cambio en la narrativa). */
-    suspend fun corregirApodo(personajeId: Int, libroId: Int, apodo: String): Personaje =
+    override suspend fun corregirApodo(personajeId: Int, libroId: Int, apodo: String): Personaje =
         api.put("personajes/$personajeId/libros/$libroId/apodo", json("Apodo" to apodo)).objeto(Personaje::de)
 
     // ---------- Localizaciones ----------
 
-    suspend fun crearLocalizacion(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>, estadoId: Int? = null): Localizacion =
+    override suspend fun crearLocalizacion(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>, estadoId: Int?): Localizacion =
         api.post("localizaciones", nueva(libroId, nombre, entradas).apply { if (estadoId != null) put("EstadoId", estadoId) }).objeto(Localizacion::de)
 
     /**
      * Los estados posibles de una localización: una lista, o un objeto con `Estados` o `Items` (`toLocationStates`).
      * TODO(contrato): el OpenAPI no dice la forma de la respuesta de `/estado_localizacion/catalogo`.
      */
-    suspend fun catalogoDeEstadosDeLocalizacion(): List<Referencia> {
+    override suspend fun catalogoDeEstadosDeLocalizacion(): List<Referencia> {
         val respuesta = api.get("estado_localizacion/catalogo")
         return if (respuesta.cuerpo.trim().startsWith("[")) respuesta.lista(Referencia::de)
         else respuesta.objeto().listaDe("Estados", "Items", leer = Referencia::de)
     }
 
-    suspend fun cambiarLocalizacion(id: Int, libroId: Int, nombre: String, estadoId: Int? = null): Localizacion? =
+    override suspend fun cambiarLocalizacion(id: Int, libroId: Int, nombre: String, estadoId: Int?): Localizacion? =
         api.patch("localizaciones/$id", json("LibroId" to libroId, "Nombre" to nombre, "EstadoId" to estadoId)).entidadONula(Localizacion::de)
 
     suspend fun quitarLocalizacionDeLibro(id: Int, libroId: Int): Boolean = hecho(api.delete("localizaciones/$id/libros/$libroId").objeto())
 
     // ---------- Conceptos ----------
 
-    suspend fun crearConcepto(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>): Concepto =
+    override suspend fun crearConcepto(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>): Concepto =
         api.post("conceptos", nueva(libroId, nombre, entradas)).objeto(Concepto::de)
 
-    suspend fun cambiarConcepto(id: Int, libroId: Int, nombre: String): Concepto? =
+    override suspend fun cambiarConcepto(id: Int, libroId: Int, nombre: String): Concepto? =
         api.patch("conceptos/$id", json("LibroId" to libroId, "Nombre" to nombre)).entidadONula(Concepto::de)
 
     suspend fun quitarConceptoDeLibro(id: Int, libroId: Int): Boolean = hecho(api.delete("conceptos/$id/libros/$libroId").objeto())
 
     // ---------- Organizaciones ----------
 
-    suspend fun crearOrganizacion(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>): Organizacion =
+    override suspend fun crearOrganizacion(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>): Organizacion =
         api.post("organizaciones", nueva(libroId, nombre, entradas)).objeto(Organizacion::de)
 
-    suspend fun cambiarOrganizacion(id: Int, libroId: Int, nombre: String): Organizacion? =
+    override suspend fun cambiarOrganizacion(id: Int, libroId: Int, nombre: String): Organizacion? =
         api.patch("organizaciones/$id", json("LibroId" to libroId, "Nombre" to nombre)).entidadONula(Organizacion::de)
 
     suspend fun quitarOrganizacionDeLibro(id: Int, libroId: Int): Boolean = hecho(api.delete("organizaciones/$id/libros/$libroId").objeto())
 
-    suspend fun personajesDeOrganizacion(id: Int, libroId: Int? = null): List<PersonajeDeOrganizacion> =
+    override suspend fun personajesDeOrganizacion(id: Int, libroId: Int?): List<PersonajeDeOrganizacion> =
         api.get("organizaciones/$id/personajes", mapOf("libroId" to libroId)).lista(PersonajeDeOrganizacion::de)
 
-    suspend fun anadirPersonajeAOrganizacion(id: Int, libroId: Int, personajeId: Int, descripcion: String): PersonajeDeOrganizacion =
+    override suspend fun anadirPersonajeAOrganizacion(id: Int, libroId: Int, personajeId: Int, descripcion: String): PersonajeDeOrganizacion =
         api.post("organizaciones/$id/personajes", json("LibroId" to libroId, "PersonajeId" to personajeId, "Descripcion" to descripcion)).objeto(PersonajeDeOrganizacion::de)
 
-    suspend fun cambiarPersonajeDeOrganizacion(id: Int, personajeId: Int, libroId: Int, descripcion: String): PersonajeDeOrganizacion =
+    override suspend fun cambiarPersonajeDeOrganizacion(id: Int, personajeId: Int, libroId: Int, descripcion: String): PersonajeDeOrganizacion =
         api.put("organizaciones/$id/personajes/$personajeId", json("LibroId" to libroId, "Descripcion" to descripcion)).objeto(PersonajeDeOrganizacion::de)
 
-    suspend fun quitarPersonajeDeOrganizacion(id: Int, personajeId: Int): Boolean = hecho(api.delete("organizaciones/$id/personajes/$personajeId").objeto())
+    override suspend fun quitarPersonajeDeOrganizacion(id: Int, personajeId: Int): Boolean = hecho(api.delete("organizaciones/$id/personajes/$personajeId").objeto())
 
-    suspend fun localizacionesDeOrganizacion(id: Int, libroId: Int? = null): List<LocalizacionDeOrganizacion> =
+    override suspend fun localizacionesDeOrganizacion(id: Int, libroId: Int?): List<LocalizacionDeOrganizacion> =
         api.get("organizaciones/$id/localizaciones", mapOf("libroId" to libroId)).lista(LocalizacionDeOrganizacion::de)
 
-    suspend fun anadirLocalizacionAOrganizacion(id: Int, libroId: Int, localizacionId: Int, descripcion: String): LocalizacionDeOrganizacion =
+    override suspend fun anadirLocalizacionAOrganizacion(id: Int, libroId: Int, localizacionId: Int, descripcion: String): LocalizacionDeOrganizacion =
         api.post("organizaciones/$id/localizaciones", json("LibroId" to libroId, "LocalizacionId" to localizacionId, "Descripcion" to descripcion))
             .objeto(LocalizacionDeOrganizacion::de)
 
-    suspend fun cambiarLocalizacionDeOrganizacion(id: Int, localizacionId: Int, libroId: Int, descripcion: String): LocalizacionDeOrganizacion =
+    override suspend fun cambiarLocalizacionDeOrganizacion(id: Int, localizacionId: Int, libroId: Int, descripcion: String): LocalizacionDeOrganizacion =
         api.put("organizaciones/$id/localizaciones/$localizacionId", json("LibroId" to libroId, "Descripcion" to descripcion)).objeto(LocalizacionDeOrganizacion::de)
 
-    suspend fun quitarLocalizacionDeOrganizacion(id: Int, localizacionId: Int): Boolean =
+    override suspend fun quitarLocalizacionDeOrganizacion(id: Int, localizacionId: Int): Boolean =
         hecho(api.delete("organizaciones/$id/localizaciones/$localizacionId").objeto())
 
     // ---------- Eventos ----------
 
-    suspend fun crearEvento(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>, localizacionId: Int, personajesIds: List<Int> = emptyList()): Evento =
+    override suspend fun crearEvento(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>, localizacionId: Int, personajesIds: List<Int>): Evento =
         api.post("eventos", nueva(libroId, nombre, entradas).put("Id_Localizacion", localizacionId).put("Personajes", JSONArray(personajesIds))).objeto(Evento::de)
 
-    suspend fun cambiarEvento(id: Int, libroId: Int, nombre: String, localizacionId: Int, personajesIds: List<Int>? = null): Evento? =
+    override suspend fun cambiarEvento(id: Int, libroId: Int, nombre: String, localizacionId: Int, personajesIds: List<Int>?): Evento? =
         api.patch("eventos/$id", json("LibroId" to libroId, "Nombre" to nombre, "Id_Localizacion" to localizacionId, "Personajes" to personajesIds))
             .entidadONula(Evento::de)
 
@@ -192,10 +230,10 @@ class RepositorioEntidades(private val api: ClienteLibros) {
 
     // ---------- Citas ----------
 
-    suspend fun crearCita(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>, pagina: Int, personajeId: Int): Cita =
+    override suspend fun crearCita(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>, pagina: Int, personajeId: Int): Cita =
         api.post("citas", nueva(libroId, nombre, entradas).put("Pagina", pagina).put("PersonajeId", personajeId)).objeto(Cita::de)
 
-    suspend fun cambiarCita(id: Int, libroId: Int, nombre: String, pagina: Int, personajeId: Int): Cita? =
+    override suspend fun cambiarCita(id: Int, libroId: Int, nombre: String, pagina: Int, personajeId: Int): Cita? =
         api.patch("citas/$id", json("LibroId" to libroId, "Nombre" to nombre, "Pagina" to pagina, "PersonajeId" to personajeId)).entidadONula(Cita::de)
 
     suspend fun quitarCitaDeLibro(id: Int, libroId: Int): Boolean = hecho(api.delete("citas/$id/libros/$libroId").objeto())
@@ -205,12 +243,12 @@ class RepositorioEntidades(private val api: ClienteLibros) {
     suspend fun entradas(tipo: TipoDeEntidad, entidadId: Int, libroId: Int? = null): List<Entrada> =
         api.get("entradas/${tipo.ruta}/$entidadId", mapOf("libroId" to libroId)).lista(Entrada::de)
 
-    suspend fun crearEntradas(tipo: TipoDeEntidad, entidadId: Int, libroId: Int, entradas: List<EntradaAGuardar>): List<Entrada> =
+    override suspend fun crearEntradas(tipo: TipoDeEntidad, entidadId: Int, libroId: Int, entradas: List<EntradaAGuardar>): List<Entrada> =
         api.post("entradas/${tipo.ruta}/$entidadId", json("LibroId" to libroId, "Entradas" to entradasJson(entradas))).lista(Entrada::de)
 
-    suspend fun cambiarEntrada(id: Int, entrada: EntradaAGuardar): Entrada = api.put("entradas/$id", entrada.comoJson()).objeto(Entrada::de)
+    override suspend fun cambiarEntrada(id: Int, entrada: EntradaAGuardar): Entrada = api.put("entradas/$id", entrada.comoJson()).objeto(Entrada::de)
 
-    suspend fun borrarEntrada(id: Int): Boolean = hecho(api.delete("entradas/$id").objeto())
+    override suspend fun borrarEntrada(id: Int): Boolean = hecho(api.delete("entradas/$id").objeto())
 
     private fun nueva(libroId: Int, nombre: String, entradas: List<EntradaAGuardar>): JSONObject =
         json("LibroId" to libroId, "Nombre" to nombre, "Entradas" to entradasJson(entradas))
