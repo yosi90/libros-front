@@ -16,7 +16,10 @@ const ACCOUNTS = [ana, bruno];
 const LOCAL_USERS: Record<string, { Id: number; Nombre: string }> = { [ana.id]: { Id: 37, Nombre: 'Ana' }, [bruno.id]: { Id: 38, Nombre: 'Bruno' } };
 const scope = (account: Account) => `${environment.environmentName}:${account.id}`;
 
-interface ApiCall { method: string; path: string; account: string | null; at: number }
+interface ApiCall { method: string; path: string; account: string | null }
+/** Una petición como salió del navegador, con el tramo (los cambios hechos con `switchTo`) en el que salió. */
+interface SentCall extends ApiCall { tramo: number }
+interface PageRequestLog { tramo: number; enviadas: Array<{ tramo: number; method: string; url: string; auth: string }> }
 interface World {
     calls: ApiCall[];
     /** Cuánto tarda la próxima lectura de la biblioteca de cada cuenta (y con qué libro responde entonces). */
@@ -26,10 +29,8 @@ interface World {
     chapterSaves: Array<{ account: string | null; body: Record<string, unknown> }>;
 }
 
-const accountOf = (request: Request): string | null => {
-    const auth = request.headers()['authorization'] ?? '';
-    return ACCOUNTS.find(account => auth.endsWith(`:${account.id}`))?.id ?? null;
-};
+const accountOfAuth = (auth: string): string | null => ACCOUNTS.find(account => auth.endsWith(`:${account.id}`))?.id ?? null;
+const accountOf = (request: Request): string | null => accountOfAuth(request.headers()['authorization'] ?? '');
 const book = (name: string) => ({
     Id: name.length + 200, Nombre: name, Autores: [{ Id: 1, Nombre: 'Autora' }], Orden: 1, Portada: 'missing.png', PorcentajeCompletado: 10,
     Estados: [{ EstadoId: 1, Nombre: 'En marcha', Fecha: '2026-10-20T10:00:00' }]
@@ -44,11 +45,12 @@ const LIBRARY: Record<string, { book: string; universe: string }> = {
 async function installTwoAccounts(page: Page, world: World, options: { webPresentation?: boolean } = {}): Promise<void> {
     await installLocalVisualSession(page, { webPresentation: options.webPresentation ?? true });
     await installYosiftwareSdkDouble(page, { cuenta: ana, tokensPorCuenta: true });
+    await recordRequestsInPage(page);
     page.on('request', request => {
         const url = new URL(request.url());
         const isLibros = request.url().startsWith(environment.apiUrl);
         const isPlatform = request.url().startsWith(environment.plataforma.apiUrl);
-        if (isLibros || isPlatform) world.calls.push({ method: request.method(), path: url.pathname, account: accountOf(request), at: Date.now() });
+        if (isLibros || isPlatform) world.calls.push({ method: request.method(), path: url.pathname, account: accountOf(request) });
     });
     await page.route('**/usuarios/me', route => {
         const account = accountOf(route.request());
@@ -86,10 +88,65 @@ function conversation(id: number, titulo: string) {
 
 function newWorld(): World { return { calls: [], slowLibrary: {}, chapterSaveDelayMs: 0, chapterSaves: [] }; }
 
-async function switchTo(page: Page, account: Account | null, motivo?: string): Promise<void> {
-    await page.evaluate(([cuenta, razon]) => (window as unknown as {
-        __yosiftwareDoble: { cambiarA(cuenta: unknown, motivo?: string): void }
-    }).__yosiftwareDoble.cambiarA(cuenta, razon ?? undefined), [account, motivo ?? null] as const);
+/**
+ * Qué peticiones a Libros y a la plataforma salen del navegador, con qué cuenta y en qué tramo. El orden lo da el propio
+ * navegador: el evento `request` de Playwright llega a la prueba con un retraso variable (sale del proceso de red, no
+ * de la página), así que, mirado con el reloj de la prueba, una petición enviada justo antes de un cambio de cuenta
+ * puede parecer posterior a él.
+ */
+async function recordRequestsInPage(page: Page): Promise<void> {
+    await page.addInitScript(([libros, plataforma]) => {
+        const log: PageRequestLog = { tramo: 0, enviadas: [] };
+        (window as unknown as { __pruebaPeticiones: PageRequestLog }).__pruebaPeticiones = log;
+        const note = (method: string, url: string, auth: string | null) => {
+            const absolute = new URL(url, location.href).href;
+            if (absolute.startsWith(libros) || absolute.startsWith(plataforma))
+                log.enviadas.push({ tramo: log.tramo, method, url: absolute, auth: auth ?? '' });
+        };
+        const pending = new WeakMap<XMLHttpRequest, { method: string; url: string; auth: string | null }>();
+        const open = XMLHttpRequest.prototype.open as (this: XMLHttpRequest, ...args: unknown[]) => void;
+        XMLHttpRequest.prototype.open = function (this: XMLHttpRequest, method: string, url: string | URL, ...rest: unknown[]) {
+            pending.set(this, { method, url: String(url), auth: null });
+            return open.call(this, method, url, ...rest);
+        } as typeof XMLHttpRequest.prototype.open;
+        const setRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
+        XMLHttpRequest.prototype.setRequestHeader = function (this: XMLHttpRequest, name: string, value: string) {
+            const request = pending.get(this);
+            if (request && name.toLowerCase() === 'authorization') request.auth = value;
+            return setRequestHeader.call(this, name, value);
+        };
+        const send = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, body?: Document | XMLHttpRequestBodyInit | null) {
+            const request = pending.get(this);
+            if (request) note(request.method, request.url, request.auth);
+            return send.call(this, body);
+        };
+        const originalFetch = window.fetch;
+        window.fetch = function (input: RequestInfo | URL, init?: RequestInit) {
+            const base = input instanceof Request ? input : null;
+            const headers = new Headers(init?.headers ?? base?.headers);
+            note(init?.method ?? base?.method ?? 'GET', base ? base.url : String(input), headers.get('authorization'));
+            return originalFetch.call(window, input, init);
+        };
+    }, [environment.apiUrl, environment.plataforma.apiUrl] as const);
+}
+
+async function sentFromPage(page: Page): Promise<SentCall[]> {
+    const sent = await page.evaluate(() => (window as unknown as { __pruebaPeticiones: PageRequestLog }).__pruebaPeticiones.enviadas);
+    return sent.map(({ tramo, method, url, auth }) => ({ tramo, method, path: new URL(url).pathname, account: accountOfAuth(auth) }));
+}
+
+/** Cambia de cuenta como el SDK y devuelve el tramo que empieza, marcado en el navegador justo antes del aviso. */
+async function switchTo(page: Page, account: Account | null, motivo?: string): Promise<number> {
+    return page.evaluate(([cuenta, razon]) => {
+        const target = window as unknown as {
+            __yosiftwareDoble: { cambiarA(cuenta: unknown, motivo?: string): void };
+            __pruebaPeticiones: PageRequestLog;
+        };
+        const tramo = ++target.__pruebaPeticiones.tramo;
+        target.__yosiftwareDoble.cambiarA(cuenta, razon ?? undefined);
+        return tramo;
+    }, [account, motivo ?? null] as const);
 }
 
 async function doble<T>(page: Page, expression: 'canalesAbiertos' | 'oyentesDelTiempoReal'): Promise<T> {
@@ -130,8 +187,7 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await expect(statusesButton).toHaveAttribute('aria-pressed', 'true');
         await expect(page.locator('yosi-notificaciones')).toHaveAttribute('data-cuenta', ana.id);
 
-        const beforeB = Date.now();
-        await switchTo(page, bruno);
+        const asBruno = await switchTo(page, bruno);
         await expect(libraryView.getByText('Libro de Bruno').first()).toBeVisible();
         await expect(libraryView.getByText('Libro de Ana')).toHaveCount(0);
         await expect(libraryView.getByText('Universo de Ana')).toHaveCount(0);
@@ -141,17 +197,16 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await statusesButton.click();
         await libraryView.getByRole('button', { name: 'Universos', exact: true }).click();
 
-        const beforeA = Date.now();
-        await switchTo(page, ana);
+        const asAna = await switchTo(page, ana);
         await expect(libraryView.getByText('Libro de Ana').first()).toBeVisible();
         await expect(libraryView.getByText('Libro de Bruno')).toHaveCount(0);
         await expect(statusesButton).toHaveAttribute('aria-pressed', 'true');
 
         // Desde cada cambio, las llamadas van con la cuenta vigente; ninguna de la anterior se repite con la nueva.
-        const libros = world.calls.filter(call => call.path.endsWith('/usuarios/me') || call.path.endsWith('/coleccion/universos'));
-        expect(libros.filter(call => call.at >= beforeB && call.at < beforeA).every(call => call.account === bruno.id)).toBe(true);
-        expect(libros.filter(call => call.at >= beforeA).every(call => call.account === ana.id)).toBe(true);
-        expect(libros.filter(call => call.at >= beforeA).length).toBeGreaterThan(0);
+        const libros = (await sentFromPage(page)).filter(call => call.path.endsWith('/usuarios/me') || call.path.endsWith('/coleccion/universos'));
+        expect(libros.filter(call => call.tramo === asBruno).every(call => call.account === bruno.id)).toBe(true);
+        expect(libros.filter(call => call.tramo >= asAna).every(call => call.account === ana.id)).toBe(true);
+        expect(libros.filter(call => call.tramo >= asAna).length).toBeGreaterThan(0);
 
         const stored = await page.evaluate(() => ({ ...localStorage }));
         expect(stored[`library-collection-view:${scope(ana)}`]).toBe('statuses');
@@ -201,11 +256,12 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await expect(page).toHaveURL(/\/dashboard\/books/);
         await navigateInApp(page, '/dashboard/community/messages');
         await expect(page.locator('.inbox__list .thread').first()).toContainText('Charla de Ana', { timeout: 15_000 });
-        const revokedAt = Date.now();
-        await switchTo(page, null, 'revocada');
+        // Lo que salió antes de la revocación (el resumen social de Comunidad puede salir unos milisegundos antes) se
+        // descarta al llegar; lo que se comprueba es que, desde el aviso, nada sale ya con la cuenta de Ana.
+        const revoked = await switchTo(page, null, 'revocada');
         await expect(page).toHaveURL(/\/home(?:\?.*)?$/);
         await page.waitForTimeout(1500);
-        expect(world.calls.filter(call => call.at > revokedAt && call.account !== null)).toEqual([]);
+        expect((await sentFromPage(page)).filter(call => call.tramo >= revoked && call.account !== null)).toEqual([]);
         expect(await doble<number>(page, 'oyentesDelTiempoReal')).toBe(0);
         expect(await page.evaluate(() => localStorage.getItem('yosiftadisticas:excluir'))).toBe('1');
     });
