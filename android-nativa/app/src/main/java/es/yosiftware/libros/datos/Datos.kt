@@ -11,6 +11,7 @@ import es.yosiftware.libros.datos.red.EstadoDeRed
 import es.yosiftware.libros.datos.red.TokensDeLaSesion
 import es.yosiftware.libros.datos.repositorios.RepositorioCatalogo
 import es.yosiftware.libros.datos.repositorios.RepositorioClubes
+import es.yosiftware.libros.datos.repositorios.RepositorioChat
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 import es.yosiftware.libros.datos.repositorios.LlamadaDePlataforma
 import es.yosiftware.libros.datos.repositorios.RepositorioEntidades
@@ -66,4 +67,7 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
 
     /** La Actividad de Comunidad: el feed de novedades de Libros en la plataforma. */
     val novedades = RepositorioNovedades(llamadaDePlataforma)
+
+    /** El chat de la plataforma: la bandeja, las conversaciones y el ticket del tiempo real. */
+    val chat = RepositorioChat(llamadaDePlataforma)
 }
