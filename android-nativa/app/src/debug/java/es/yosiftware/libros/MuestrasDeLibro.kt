@@ -18,7 +18,9 @@ import es.yosiftware.libros.ui.adaptable.rememberVentana
 import es.yosiftware.libros.ui.componentes.Avisador
 import es.yosiftware.libros.ui.libro.ContenidoDelLibro
 import es.yosiftware.libros.ui.libro.BusquedaViewModel
+import es.yosiftware.libros.ui.elementos.ElementosViewModel
 import es.yosiftware.libros.ui.libro.CapituloViewModel
+import es.yosiftware.libros.ui.libro.Elemento
 import es.yosiftware.libros.ui.libro.IslaDelLector
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.NotasViewModel
@@ -43,7 +45,8 @@ import org.json.JSONObject
  * las cifras se parecen, no son las mismas), `notas-vacias`, `notas-con-notas` (las dos de «El ritmo de la guerra» de
  * la captura y dos más, con el buscador), `nota-nueva` (el formulario con los avisos), `nota-borrar` (la confirmación),
  * `busqueda-vacia`, `busqueda-sin-resultados` («Vin» en «El imperio final», como la captura), `busqueda-con-resultados`
- * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 1 de «Siega», con sus escenas), `capitulo-nuevo` y `minimizado` (la isla del lector).
+ * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 1 de «Siega», con sus escenas), `capitulo-nuevo`, `minimizado` (la isla del lector), `elementos-lista` (los personajes de «Siega»), `elementos-ficha`
+ * (la de Citra) y `elementos-alta` (una organización nueva).
  */
 class MuestrasDeLibro : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,8 +60,9 @@ class MuestrasDeLibro : ComponentActivity() {
         val busqueda = BusquedaViewModel(AmbitoDeCuenta("muestra", lifecycleScope))
         // Sin cuenta no hay carpeta de borradores ni red: el capítulo se ve y se edita, pero no se guarda.
         val capitulo = CapituloViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, Avisador.Mudo, cacheDir)
+        val elementos = ElementosViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.entidades, Avisador.Mudo, cacheDir, cargarLibro = { error("sin red") })
         val conPartes = vista == "indice-partes-interludios" || vista == "estructura"
-        val conDatos = vista == "resumen-con-datos" || vista == "busqueda-con-resultados" || vista == "busqueda-aproximada" || vista.startsWith("capitulo")
+        val conDatos = vista == "resumen-con-datos" || vista == "busqueda-con-resultados" || vista == "busqueda-aproximada" || vista.startsWith("capitulo") || vista.startsWith("elementos")
         vm.mostrarMuestra(if (conDatos) siega() else if (conPartes) camino else imperio)
         when (vista) {
             "indice-abierto", "indice-partes-interludios" -> vm.alternarIndice()
@@ -69,6 +73,9 @@ class MuestrasDeLibro : ComponentActivity() {
             "capitulo" -> vm.ir(VistaDelLibro.DeCapitulo(1))
             "capitulo-nuevo" -> vm.ir(VistaDelLibro.NuevoCapitulo)
             "minimizado" -> vm.minimizar()
+            "elementos-lista" -> vm.ir(VistaDelLibro.DeElemento(Elemento.PERSONAJES))
+            "elementos-ficha" -> vm.ir(VistaDelLibro.DeElemento(Elemento.PERSONAJES, seleccionado = 2))
+            "elementos-alta" -> vm.ir(VistaDelLibro.DeElemento(Elemento.ORGANIZACIONES, crear = true))
         }
         if (vista.startsWith("busqueda")) {
             vm.ir(VistaDelLibro.Busqueda)
@@ -92,7 +99,7 @@ class MuestrasDeLibro : ComponentActivity() {
             TemaLibros(tema) {
                 CompositionLocalProvider(LocalVentana provides rememberVentana()) {
                     Box(Modifier.fillMaxSize()) {
-                        PantallaLibro(vm) { ContenidoDelLibro(vm, notas, busqueda, { capitulo }, it) }
+                        PantallaLibro(vm) { ContenidoDelLibro(vm, notas, busqueda, { capitulo }, { elementos }, it) }
                         IslaDelLector(vm)
                     }
                 }

@@ -306,6 +306,13 @@ class LibroViewModel(
         avisarDeGuardado()
     }
 
+    /** El libro tras guardar un elemento: entra en el abierto (si sigue siendo ese) y la barra enseña la nube. */
+    fun recibirLibro(nuevo: Libro) {
+        if (abierto?.id != nuevo.id) return
+        ponerLibro(nuevo)
+        avisarDeGuardado()
+    }
+
     fun avisarDeGuardado() {
         recienGuardado = true
         nube?.cancel()

@@ -33,6 +33,8 @@ import es.yosiftware.libros.ui.libro.VistaDelLibro
 import java.io.File
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.NotasViewModel
+import es.yosiftware.libros.ui.elementos.ElementosViewModel
+import es.yosiftware.libros.ui.libro.Elemento
 import es.yosiftware.libros.ui.libro.IslaDelLector
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
@@ -120,6 +122,13 @@ fun AppLibros(app: LibrosApp) {
             else -> "nuevo-${libro.visitaDeNuevo}"
         }
         viewModel(key = "$cuenta-${libro.abierto?.id}-$sitio") { CapituloViewModel(app.datos.ambito, app.datos.libro, avisos, File(app.filesDir, "borradores")) }
+    }
+    // Un ViewModel por tipo de elemento, libro y cuenta: la ficha a medias se queda al ir a otra vista.
+    val elementosPara: @Composable (Elemento) -> ElementosViewModel = { tipo ->
+        val cuenta = app.datos.ambito.clave("elementos") ?: "sin-cuenta"
+        viewModel(key = "$cuenta-${libro.abierto?.id}-${tipo.name}") {
+            ElementosViewModel(app.datos.ambito, app.datos.entidades, avisos, File(app.filesDir, "borradores"), cargarLibro = { id -> app.datos.libro.libro(id) })
+        }
     }
     val abrirLibro: (Obra) -> Unit = libro::abrir
     TemaLibros(temaViewModel.tema) {
@@ -216,7 +225,7 @@ fun AppLibros(app: LibrosApp) {
                         },
                     )
                     CapasDeCatalogo(catalogo, alAbrirLectura = abrirLibro)
-                    PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, notas, busqueda, capituloPara, vista) }
+                    PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, notas, busqueda, capituloPara, elementosPara, vista) }
                     // El libro minimizado, en su isla sobre la navegación (`app-native-reader-island`).
                     IslaDelLector(libro)
                 }

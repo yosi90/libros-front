@@ -600,9 +600,11 @@ fun ContenidoDelLibro(
     notas: NotasViewModel,
     busqueda: BusquedaViewModel,
     capitulo: @Composable (VistaDelLibro) -> CapituloViewModel,
+    elementos: @Composable (Elemento) -> es.yosiftware.libros.ui.elementos.ElementosViewModel,
     vista: VistaDelLibro,
 ) {
     when (vista) {
+        is VistaDelLibro.DeElemento -> es.yosiftware.libros.ui.elementos.PantallaElementos(vm, vista, elementos(vista.elemento))
         is VistaDelLibro.DeCapitulo, VistaDelLibro.NuevoCapitulo, is VistaDelLibro.NuevoCapituloDeInterludio -> PantallaCapitulo(vm, vista, capitulo(vista))
         VistaDelLibro.Estadisticas -> PantallaResumenDelLibro(vm)
         VistaDelLibro.Notas -> PantallaNotasDelLibro(vm.abierto?.id ?: 0, notas)

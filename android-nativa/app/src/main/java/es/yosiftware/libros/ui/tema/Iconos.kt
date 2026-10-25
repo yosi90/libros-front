@@ -119,6 +119,16 @@ object Iconos {
     @DrawableRes val calendarToday = R.drawable.mi_calendar_today
     @DrawableRes val analytics = R.drawable.mi_analytics
     @DrawableRes val delete = R.drawable.mi_delete
+    @DrawableRes val notes = R.drawable.mi_notes
+    @DrawableRes val badge = R.drawable.mi_badge
+    @DrawableRes val hub = R.drawable.mi_hub
+    @DrawableRes val group = R.drawable.mi_group
+    @DrawableRes val radioButtonUnchecked = R.drawable.mi_radio_button_unchecked
+    @DrawableRes val addLocationAlt = R.drawable.mi_add_location_alt
+    @DrawableRes val syncAlt = R.drawable.mi_sync_alt
+    @DrawableRes val wrongLocation = R.drawable.mi_wrong_location
+    @DrawableRes val history = R.drawable.mi_history
+    @DrawableRes val personOutline = R.drawable.mi_person_outline
     @DrawableRes val keyboardArrowUp = R.drawable.mi_keyboard_arrow_up
     @DrawableRes val unfoldMore = R.drawable.mi_unfold_more
     @DrawableRes val alternateEmail = R.drawable.mi_alternate_email

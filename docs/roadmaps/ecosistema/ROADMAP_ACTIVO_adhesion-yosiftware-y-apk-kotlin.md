@@ -332,6 +332,12 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - [ ] Conversor RTF en Kotlin con las fixtures en verde (si se elige nativo).
 - [ ] Editor y enlaces a entidades.
 
+- [ ] Los seis elementos (código hecho, 2026-10-25; falta verlo en el Honor). Especificación de la web en `ESPECIFICACION_elementos-narrativos.md`.
+  - `ListaDeElementos` (la lista «Por libro» y «Mezclados», el orden, el detalle de cada fila, los grupos de personajes y los iconos), `FichaEditable` (el alta y la ficha de los seis tipos, sus valores por defecto, pistas y borrador) y `ElementosViewModel` (uno por tipo, libro y cuenta), con sus pruebas; `PantallaElementos` y los campos con contorno de Material. Muestras `elementos-lista`, `elementos-ficha` y `elementos-alta`.
+  - **Corregido en la web** (`1296886`): las relaciones de personaje se guardaban por el id del personaje relacionado (404 y guardado bloqueado) y quitar el apodo del nombre actual daba 409.
+  - **Corregido a propósito en el clon:** los iconos por estado de los personajes (nunca salían); los avisos concuerdan («Organización creada»); el nombre se recorta; un apodo se añade de una vez; el apodo del nombre no se ofrece para quitar; las relaciones de organización piden sus 15 caracteres (en la web, crear con una corta duplicaba la organización) y, si una falla, la organización pasa a su ficha sin duplicarse; solo se envía lo que cambia; `?selected=` abre la ficha una sola vez (en la web la reabría y reiniciaba lo escrito); el alta también tiene borrador; las listas para elegir alternan; la tarjeta de detalle (inaccesible en la web) no se clona.
+- [x] El editor RTF: hecho en el hito 9 (capítulos y escenas).
+
 ### Hito 11. APK Kotlin: Comunidad propia, clubes, perfil y preferencias
 
 - **Descripción:**
