@@ -327,10 +327,10 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - Propuesta del agente: portar el conversor de `rtf-text.ts` a Kotlin con las mismas fixtures (`npm run qa:rtf:fixtures` y el corpus de 1.317 RTF) y un editor Compose propio.
   - Alternativa: un WebView aislado solo para el editor, con el código actual.
 
-- [ ] Decisión sobre el editor RTF.
-- [ ] Pantallas de las seis entidades.
-- [ ] Conversor RTF en Kotlin con las fixtures en verde (si se elige nativo).
-- [ ] Editor y enlaces a entidades.
+- [x] Decisión sobre el editor RTF (2026-10-25): nativo, con el `EditText` de Android (ver el hito 9).
+- [x] Pantallas de las seis entidades: ver «Los seis elementos», más abajo.
+- [x] Conversor RTF en Kotlin con paridad con la web en los 4.137 textos de QA (hito 9).
+- [x] Editor y enlaces a entidades (hito 9).
 
 - [ ] Los seis elementos (código hecho, 2026-10-25; falta verlo en el Honor). Especificación de la web en `ESPECIFICACION_elementos-narrativos.md`.
   - `ListaDeElementos` (la lista «Por libro» y «Mezclados», el orden, el detalle de cada fila, los grupos de personajes y los iconos), `FichaEditable` (el alta y la ficha de los seis tipos, sus valores por defecto, pistas y borrador) y `ElementosViewModel` (uno por tipo, libro y cuenta), con sus pruebas; `PantallaElementos` y los campos con contorno de Material. Muestras `elementos-lista`, `elementos-ficha` y `elementos-alta`.
