@@ -52,6 +52,19 @@ import es.yosiftware.libros.ui.comunidad.SeccionDeComunidad
 import es.yosiftware.libros.ui.mensajes.MensajesViewModel
 import es.yosiftware.libros.ui.mensajes.PantallaMensajes
 import es.yosiftware.libros.ui.mensajes.ConversacionViewModel
+import es.yosiftware.libros.push.AperturaDeAviso
+import es.yosiftware.libros.push.DestinoDeEnlace
+import es.yosiftware.libros.push.DestinoDelAviso
+import es.yosiftware.libros.push.PushLibros
+import es.yosiftware.libros.push.mismaCuenta
+import es.yosiftware.libros.ui.componentes.AccionDeAviso
+import es.yosiftware.libros.ui.comunidad.DireccionDeAcceso
+import es.yosiftware.libros.ui.comunidad.PestanaDeClubes
+import es.yosiftware.libros.ui.comunidad.TipoDeAcceso
+import es.yosiftware.libros.ui.perfil.SeccionDelPerfil
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import es.yosiftware.libros.ui.mensajes.PantallaConversacion
 import kotlinx.coroutines.flow.emptyFlow
 import es.yosiftware.libros.ui.perfil.FuenteDelPerfil
@@ -116,6 +129,12 @@ fun AppLibros(app: LibrosApp) {
     }
     // Los avisos flotantes de toda la app (app-toast-host), y la Biblioteca y el Catálogo (hito 8), que son de la cuenta.
     val avisos = remember { Avisos() }
+    // Un push de la cuenta activa con la app delante: un aviso flotante con «Abrir» en vez del aviso del sistema (D4).
+    LaunchedEffect(Unit) {
+        app.avisoRecibido.collect { push ->
+            avisos.exitoConAccion(push.cuerpo ?: push.titulo, AccionDeAviso("Abrir") { app.aperturas.value = AperturaDeAviso.de(push) }, titulo = push.titulo)
+        }
+    }
     val biblioteca: BibliotecaViewModel = viewModel {
         BibliotecaViewModel(app.datos.ambito, app.datos.coleccion, app.datos.catalogo, AlmacenDelMovil(app), avisos)
     }
@@ -145,6 +164,59 @@ fun AppLibros(app: LibrosApp) {
         comunidad.abrir(SeccionDeComunidad.MENSAJES)
         if (id != null) mensajes.abrir(id) else mensajes.cerrar()
         nav.irA(Destino.Comunidad)
+    }
+
+    // La pantalla de un aviso (la tabla de destinos de push/DestinoDelAviso.kt).
+    val contextoDeLaApp = LocalContext.current
+    val irAlAviso: (DestinoDelAviso) -> Unit = { destino ->
+        val accesoA: (TipoDeAcceso) -> Unit = { tipo ->
+            comunidad.abrir(SeccionDeComunidad.CLUBES)
+            clubes.elegir(PestanaDeClubes.ACCESO)
+            centroDeAcceso.ir(tipo, DireccionDeAcceso.RECIBIDAS)
+            nav.irA(Destino.Comunidad)
+        }
+        when (destino) {
+            DestinoDelAviso.Peticiones, DestinoDelAviso.Reportes -> {
+                perfil.abrir(if (destino == DestinoDelAviso.Peticiones) SeccionDelPerfil.PETICIONES else SeccionDelPerfil.REPORTES)
+                nav.irA(Destino.Perfil)
+            }
+            DestinoDelAviso.Clubes, DestinoDelAviso.MisClubes -> {
+                comunidad.abrir(SeccionDeComunidad.CLUBES)
+                if (destino == DestinoDelAviso.MisClubes) clubes.elegir(PestanaDeClubes.MIS_CLUBES)
+                nav.irA(Destino.Comunidad)
+            }
+            is DestinoDelAviso.Club -> {
+                comunidad.abrirClub(destino.id)
+                nav.irA(Destino.Comunidad)
+            }
+            DestinoDelAviso.InvitacionesRecibidas -> accesoA(TipoDeAcceso.INVITACIONES)
+            DestinoDelAviso.SolicitudesRecibidas -> accesoA(TipoDeAcceso.SOLICITUDES)
+            // TODO(hito 12): la ficha del libro de `addBook` y el filtro «Nuevos» del catálogo.
+            is DestinoDelAviso.Catalogo -> nav.irA(Destino.Catalogo)
+            DestinoDelAviso.Biblioteca -> nav.irA(Destino.Biblioteca)
+            DestinoDelAviso.Estadisticas -> nav.irA(Destino.Estadisticas)
+            DestinoDelAviso.Comunidad -> nav.irA(Destino.Comunidad)
+            is DestinoDelAviso.Conversacion -> abrirMensajes(destino.id)
+            is DestinoDelAviso.Navegador -> Enlaces.abrir(contextoDeLaApp, destino.direccion)
+            is DestinoDelAviso.Fuera -> Enlaces.abrir(contextoDeLaApp, destino.direccion)
+        }
+    }
+    // Un aviso del push pulsado. Se vuelve a mirar la cuenta, que pudo cambiar entre recibirlo y pulsarlo: si es de otra
+    // cuenta guardada con sesión, se cambia a ella (D2); si ya no está o no se puede, se abre Libros sin su contenido.
+    // Después, el acuse (lo da por leído) y su pantalla.
+    val apertura by app.aperturas.collectAsStateWithLifecycle()
+    LaunchedEffect(apertura) {
+        val aviso = apertura ?: return@LaunchedEffect
+        app.aperturas.value = null
+        val sesion = app.sesion ?: return@LaunchedEffect
+        val cuentaDelAviso = aviso.cuenta ?: return@LaunchedEffect
+        if (!mismaCuenta(cuentaDelAviso, app.datos.ambito.identidad.value?.cuentaId)) {
+            val otra = sesion.cuentas.value.firstOrNull { mismaCuenta(it.id, cuentaDelAviso) && !it.caducada } ?: return@LaunchedEffect
+            if (runCatching { sesion.elegirCuenta(otra.id) }.isFailure) return@LaunchedEffect
+            withTimeoutOrNull(10_000) { app.datos.ambito.identidad.first { mismaCuenta(it?.cuentaId, otra.id) } } ?: return@LaunchedEffect
+        }
+        aviso.acuse?.let { firma -> launch { runCatching { app.datos.dispositivos.acuse(firma) } } }
+        irAlAviso(DestinoDeEnlace.de(aviso.comoMensaje, PushLibros.origenesDeLibros))
     }
     clubes.alCrear = comunidad::abrirClub
     centroDeAcceso.alCambiarElAcceso = clubes::refrescar
@@ -281,7 +353,10 @@ fun AppLibros(app: LibrosApp) {
                                     }
                                     Destino.Preferencias -> {
                                         val contexto = LocalContext.current
-                                        PantallaPreferencias(alAbrirPrivacidad = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("privacidad")) } })
+                                        PantallaPreferencias(
+                                            alAbrirPrivacidad = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("privacidad")) } },
+                                            alElegirAvisos = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("ajustes-notificaciones")) } },
+                                        )
                                     }
                                     Destino.Perfil -> {
                                         val contexto = LocalContext.current

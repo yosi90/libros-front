@@ -4,4 +4,6 @@
     <color name="ic_launcher_background">#F4E7CF</color>
     <!-- Solo para la ventana antes de que pinte Compose: el lienzo claro y oscuro de los tokens (ui/tema). -->
     <color name="lienzo">#F5F2EA</color>
+    <!-- El primario claro de los tokens (ui/tema/Colores.kt): el color de los avisos del push. -->
+    <color name="primario">#006B5D</color>
 </resources>

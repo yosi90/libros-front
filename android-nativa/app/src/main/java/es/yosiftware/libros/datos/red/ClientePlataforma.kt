@@ -53,6 +53,23 @@ class ClientePlataforma(
 
     suspend fun objeto(ruta: String): JSONObject = JSONObject(llamar("GET", ruta))
 
+    /**
+     * Una llamada sin token ni `Origin`: el acuse del push (`POST /v1/notificaciones/acuse`), que se firma solo. Lanza
+     * los mismos errores que [llamar].
+     */
+    suspend fun sinToken(metodo: String, ruta: String, cuerpo: JSONObject? = null): String {
+        val enviado: RequestBody? = cuerpo?.toString()?.toRequestBody(JSON)
+            ?: if (metodo == "GET" || metodo == "DELETE") null else ByteArray(0).toRequestBody(null)
+        val solicitud = Request.Builder().url(base + ruta).method(metodo, enviado).header("Accept", "application/json").build()
+        val respuesta = try {
+            Red.enviar(http, solicitud)
+        } catch (e: IOException) {
+            throw ErrorSesion.sinConexion(e)
+        }
+        if (!respuesta.correcta) throw ErrorSesion.deLaPlataforma(respuesta.estado, respuesta.cuerpo)
+        return respuesta.cuerpo
+    }
+
     private companion object {
         val JSON = "application/json; charset=utf-8".toMediaType()
     }

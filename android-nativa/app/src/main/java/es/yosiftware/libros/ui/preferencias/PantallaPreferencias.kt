@@ -1,5 +1,10 @@
 package es.yosiftware.libros.ui.preferencias
 
+import es.yosiftware.libros.LibrosApp
+import es.yosiftware.libros.push.EstadoDelPush
+import es.yosiftware.sesion.EstadoSesion
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import es.yosiftware.libros.ui.componentes.BotonDeTexto
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -67,7 +72,7 @@ import es.yosiftware.libros.ui.tema.rem
 
 /** [alAbrirPrivacidad] abre la privacidad de la cuenta de Yosiftware en la web social. */
 @Composable
-fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit) {
+fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Unit = {}) {
     val colores = LocalColores.current
     var pestana by rememberSaveable { mutableStateOf(PestanaDePreferencias.PRIVACIDAD) }
     Column(Modifier.fillMaxSize().background(colores.lienzo)) {
@@ -100,7 +105,7 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit) {
             ) {
                 when (pestana) {
                     PestanaDePreferencias.PRIVACIDAD -> Privacidad(alAbrirPrivacidad)
-                    PestanaDePreferencias.PERMISOS -> Permisos()
+                    PestanaDePreferencias.PERMISOS -> Permisos(alElegirAvisos)
                 }
             }
         }
@@ -120,7 +125,7 @@ private fun Privacidad(alAbrir: () -> Unit) {
 
 /** «Permisos del móvil» (`mobile-app-permissions`), solo con las notificaciones, que se vuelven a mirar al volver a la app. */
 @Composable
-private fun Permisos() {
+private fun Permisos(alElegirAvisos: () -> Unit) {
     val colores = LocalColores.current
     val contexto = LocalContext.current
     val actividad = LocalActivity.current
@@ -142,6 +147,7 @@ private fun Permisos() {
         preferencias.edit { putBoolean(CLAVE_PEDIDO, true) }
         solicitando = false
         estado = leer()
+        if (estado == EstadoDePermiso.CONCEDIDO) LibrosApp.datos(contexto).push.alConcederPermiso()
     }
 
     Column {
@@ -177,6 +183,7 @@ private fun Permisos() {
                 },
                 habilitado = !solicitando && estado != EstadoDePermiso.CONCEDIDO,
             )
+            AvisosEnEsteMovil(alElegirAvisos)
         }
         HorizontalDivider(thickness = 1.dp, color = mezclar(colores.contorno, 0.55f))
     }
@@ -202,4 +209,31 @@ private fun abrir(contexto: Context, intento: Intent) {
 @Composable
 private fun Pista(texto: String, modifier: Modifier = Modifier) {
     Text(texto, modifier, color = LocalColores.current.tintaSuave, style = Textos.cuerpo)
+}
+
+/**
+ * «Avisos en este móvil» (decisión D5): si la cuenta activa recibe el push aquí, con «Activar» o «Desactivar», y el
+ * enlace a la web social para elegir qué llega (el kit pide enlazar sus preferencias, no rehacerlas).
+ */
+@Composable
+private fun AvisosEnEsteMovil(alElegirAvisos: () -> Unit) {
+    val colores = LocalColores.current
+    val contexto = LocalContext.current
+    val push = remember(contexto) { LibrosApp.datos(contexto).push }
+    val estado by push.estado.collectAsStateWithLifecycle()
+    val alias = (LibrosApp.sesion(contexto)?.estado?.collectAsStateWithLifecycle()?.value as? EstadoSesion.ConSesion)?.cuenta?.alias
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { push.recalcular() }
+    val texto = when (estado) {
+        EstadoDelPush.NO_DISPONIBLE -> "Los avisos en el móvil aún no están disponibles en esta versión."
+        EstadoDelPush.SIN_PERMISO -> "Avisos en este móvil: necesitan el permiso de notificaciones."
+        EstadoDelPush.DESACTIVADO -> "Avisos en este móvil: desactivados"
+        EstadoDelPush.ACTIVADO -> "Avisos en este móvil: activados" + (alias?.let { " para @$it" } ?: "")
+    }
+    Text(texto, Modifier.padding(top = Espacios.e2).semantics { liveRegion = LiveRegionMode.Polite }, color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.76)))
+    when (estado) {
+        EstadoDelPush.ACTIVADO -> Boton("Desactivar", push::desactivar, variante = VarianteDeBoton.Contorno)
+        EstadoDelPush.DESACTIVADO -> Boton("Activar", push::activar)
+        else -> Unit
+    }
+    if (estado != EstadoDelPush.NO_DISPONIBLE) BotonDeTexto("Elegir qué te llega", alElegirAvisos)
 }

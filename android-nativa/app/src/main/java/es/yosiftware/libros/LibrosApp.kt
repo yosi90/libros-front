@@ -15,6 +15,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import es.yosiftware.libros.push.AperturaDeAviso
+import es.yosiftware.libros.push.MensajeDePush
+import es.yosiftware.libros.push.PushLibros
 import kotlinx.coroutines.launch
 
 /**
@@ -32,13 +37,31 @@ class LibrosApp : Application(), SingletonImageLoader.Factory {
 
     private val alcance = MainScope()
 
+    /** Si la app está a la vista: con ella delante, el push de la cuenta activa lo enseña la app (D4). */
+    @Volatile
+    var aLaVista = false
+        private set
+
+    /** Un push de la cuenta activa con la app delante: lo enseña la app como aviso flotante. */
+    val avisoRecibido = MutableSharedFlow<MensajeDePush>(extraBufferCapacity = 8)
+
+    /** El aviso pulsado (`MainActivity`), hasta que la app lo atiende. */
+    val aperturas = MutableStateFlow<AperturaDeAviso?>(null)
+
     override fun onCreate() {
         super.onCreate()
         sesion = crearSesion()
+        PushLibros.iniciar(this)
         // El ámbito de la cuenta escucha la sesión antes de iniciarla, para no perderse el primer estado.
         datos = Datos(this, sesion, alcance)
         sesion?.let { alcance.launch { it.iniciar() } }
-        registerActivityLifecycleCallbacks(PrimerPlano(alcance) { datos.bandeja.alVerse(it) })
+        registerActivityLifecycleCallbacks(
+            PrimerPlano(alcance) { visible ->
+                aLaVista = visible
+                datos.bandeja.alVerse(visible)
+                datos.push.alVerse(visible)
+            },
+        )
     }
 
     /** Las portadas (`AsyncImage`) se cargan con el cliente de la app y su caché en disco (datos/portadas/). */

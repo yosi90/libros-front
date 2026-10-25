@@ -1,8 +1,11 @@
 # Versiones exactas, las mismas que 3.5 Companion y Yosircana, que ya compilan con ellas en este servidor. Ninguna
-# librería envía datos fuera del móvil: no hay analítica, publicidad ni informes de fallos. OkHttp solo hace las
-# llamadas de la app (la API de Libros, la plataforma y las portadas) y Coil solo descarga y guarda las portadas.
+# librería envía datos fuera del móvil salvo la mensajería de Firebase (FCM), que recibe el push de la plataforma: no
+# hay analítica, publicidad ni informes de fallos. OkHttp solo hace las llamadas de la app (la API de Libros, la
+# plataforma y las portadas) y Coil solo descarga y guarda las portadas.
 
 [versions]
+# El push (hito 12): solo la mensajería de Firebase, la misma versión que la app Yosiftware.
+firebaseBom = "34.19.0"
 agp = "9.3.2"
 kotlin = "2.3.21"
 composeBom = "2026.09.00"
@@ -18,6 +21,9 @@ coil = "3.3.0"
 orgJson = "20260814"
 
 [libraries]
+# FCM: la mensajería (y lo que necesita, la instalación de Firebase). Sin analítica ni el plugin de `google-services`.
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }

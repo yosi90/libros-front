@@ -8,6 +8,9 @@
   - Fuera los permisos de huella que trae Credential Manager para las llaves de acceso, que la app no usa.
   - Sin copias de seguridad ni transferencia entre dispositivos: la sesión cifrada no debe salir del móvil.
   - Sin orientación ni proporción fijas, por los móviles plegables (ecosistema-kit/APK.md, «Móviles plegables»).
+  - El push central de la plataforma (hito 12, push/): el servicio de FCM y la configuración de Firebase como la app
+    Yosiftware. Por FID (`installation_id_enabled`), sin registro automático ni analítica. `singleTop`, para que el
+    toque en un aviso llegue a `onNewIntent` con la app abierta.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
@@ -16,7 +19,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <!-- Preferencias › Permisos del móvil; el push que lo usa llega en el hito 12. -->
+    <!-- Los avisos del push (push/ServicioPush.kt); se pide en Preferencias › Permisos del móvil. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove" />
@@ -37,6 +40,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/launcher_name"
+            android:launchMode="singleTop"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -49,6 +53,22 @@
             android:name=".cuenta.ServicioDeEntrada"
             android:exported="false"
             android:foregroundServiceType="shortService|dataSync" />
+
+        <service
+            android:name=".push.ServicioPush"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data android:name="firebase_messaging_installation_id_enabled" android:value="true" />
+        <meta-data android:name="firebase_messaging_auto_init_enabled" android:value="false" />
+        <meta-data android:name="firebase_analytics_collection_deactivated" android:value="true" />
+        <meta-data android:name="delivery_metrics_exported_to_big_query_enabled" android:value="false" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="avisos" />
     </application>
 
 </manifest>

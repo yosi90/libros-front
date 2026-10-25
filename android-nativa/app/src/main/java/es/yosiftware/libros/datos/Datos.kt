@@ -15,6 +15,7 @@ import es.yosiftware.libros.datos.repositorios.RepositorioClubes
 import es.yosiftware.libros.datos.repositorios.RepositorioChat
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 import es.yosiftware.libros.datos.repositorios.LlamadaDePlataforma
+import es.yosiftware.libros.datos.repositorios.RepositorioDispositivos
 import es.yosiftware.libros.datos.repositorios.RepositorioEntidades
 import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
 import es.yosiftware.libros.datos.repositorios.RepositorioEstadisticas
@@ -23,6 +24,7 @@ import es.yosiftware.libros.datos.repositorios.RepositorioNovedades
 import es.yosiftware.libros.datos.repositorios.RepositorioPeticiones
 import es.yosiftware.libros.datos.repositorios.RepositorioReportes
 import es.yosiftware.libros.datos.repositorios.RepositorioUsuario
+import es.yosiftware.libros.push.PushDeLaCuenta
 import es.yosiftware.libros.ui.mensajes.BandejaDeChat
 import es.yosiftware.sesion.SesionYosiftware
 import kotlinx.coroutines.CoroutineScope
@@ -33,8 +35,11 @@ import kotlinx.coroutines.CoroutineScope
  * `google-services.json`), las llamadas a la API fallan con `sin_sesion` y no hay cliente de la plataforma.
  */
 class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScope) {
+    /** `qa` o `produccion`. */
+    val entorno = if (BuildConfig.PLATAFORMA_QA) "qa" else "produccion"
+
     val ambito = AmbitoDeCuenta(
-        entorno = if (BuildConfig.PLATAFORMA_QA) "qa" else "produccion",
+        entorno = entorno,
         padre = alcance,
         cuentaActivaGuardada = { sesion?.cuentas?.value?.firstOrNull { it.activa }?.id },
     ).also { ambito -> sesion?.let { ambito.escuchar(it.estado) } }
@@ -73,9 +78,17 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
     /** El chat de la plataforma: la bandeja, las conversaciones y el ticket del tiempo real. */
     val chat = RepositorioChat(llamadaDePlataforma)
 
+    /** Este móvil en el push de la cuenta, y el acuse de los avisos. */
+    val dispositivos = RepositorioDispositivos(llamadaDePlataforma) { metodo, ruta, cuerpo ->
+        plataforma?.sinToken(metodo, ruta, cuerpo) ?: throw ErrorDeLibros.sinSesion()
+    }
+
     /** El socket del tiempo real de la plataforma (chat y canales de los clubes); sin sesión, no hay. */
     val tiempoReal: TiempoReal? = plataforma?.let { TiempoReal({ chat.ticket() }, alcance) }
 
     /** La bandeja del chat de la cuenta, de la que salen los contadores de mensajes sin leer. */
     val bandeja = BandejaDeChat(chat.takeIf { plataforma != null }, tiempoReal, ambito, alcance)
+
+    /** El push de las cuentas en este móvil (push/). */
+    val push = PushDeLaCuenta(contexto, sesion, ambito, dispositivos, entorno)
 }

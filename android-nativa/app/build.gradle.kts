@@ -10,23 +10,45 @@ plugins {
 }
 
 /**
- * Lo que la librería de la sesión necesita del `google-services.json` de cada entorno: la clave de API de Firebase y el
- * cliente web de Google (`client_type` 3). El archivo de la plataforma trae varias apps, así que se coge la de
- * [paquete]. No son secretos, pero dicen a qué proyecto entra la app: el archivo se queda fuera de Git, en
- * `.runtime/plataforma/` (ecosistema-kit/APK.md). Si falta, la app compila igual y la sesión no está disponible.
+ * Lo que la app necesita del `google-services.json` de cada entorno: para la sesión, la clave de API de Firebase y el
+ * cliente web de Google (`client_type` 3); para el push (FCM), el id de la app, el proyecto y el número del remitente,
+ * con los que se inicia Firebase a mano (sin el plugin de `google-services`, como la app Yosiftware). El archivo de la
+ * plataforma trae varias apps, así que se coge la de [paquete]. No son secretos, pero dicen a qué proyecto entra la
+ * app: el archivo se queda fuera de Git, en `.runtime/plataforma/` (ecosistema-kit/APK.md). Si falta, la app compila
+ * igual: la sesión no está disponible y no hay push.
  */
+data class DatosDeFirebase(
+    val clave: String = "",
+    val web: String = "",
+    val app: String = "",
+    val proyecto: String = "",
+    val remitente: String = "",
+)
+
 @Suppress("UNCHECKED_CAST")
-fun datosDeFirebase(archivo: String, paquete: String): Pair<String, String> {
+fun datosDeFirebase(archivo: String, paquete: String): DatosDeFirebase {
     val json = rootProject.file(".runtime/plataforma/$archivo")
-    if (!json.exists()) return "" to ""
-    val clientes = (JsonSlurper().parse(json) as Map<String, Any?>)["client"] as List<Map<String, Any?>>
+    if (!json.exists()) return DatosDeFirebase()
+    val raiz = JsonSlurper().parse(json) as Map<String, Any?>
+    val clientes = raiz["client"] as List<Map<String, Any?>>
     val cliente = clientes.firstOrNull {
         val info = it["client_info"] as Map<String, Any?>
         (info["android_client_info"] as Map<String, Any?>)["package_name"] == paquete
-    } ?: return "" to ""
+    } ?: return DatosDeFirebase()
     val clave = (cliente["api_key"] as List<Map<String, Any?>>).first()["current_key"] as String
     val web = (cliente["oauth_client"] as List<Map<String, Any?>>).firstOrNull { it["client_type"] == 3 }?.get("client_id") as String?
-    return clave to web.orEmpty()
+    val proyecto = raiz["project_info"] as Map<String, Any?>
+    val app = (cliente["client_info"] as Map<String, Any?>)["mobilesdk_app_id"] as String
+    return DatosDeFirebase(clave, web.orEmpty(), app, proyecto["project_id"] as String, proyecto["project_number"] as String)
+}
+
+/** Los datos de Firebase de un entorno, como campos de `BuildConfig`. */
+fun com.android.build.api.dsl.ApplicationProductFlavor.conFirebase(datos: DatosDeFirebase) {
+    buildConfigField("String", "FIREBASE_CLAVE_API", "\"${datos.clave}\"")
+    buildConfigField("String", "GOOGLE_CLIENTE_WEB", "\"${datos.web}\"")
+    buildConfigField("String", "FIREBASE_APP", "\"${datos.app}\"")
+    buildConfigField("String", "FIREBASE_PROYECTO", "\"${datos.proyecto}\"")
+    buildConfigField("String", "FIREBASE_REMITENTE", "\"${datos.remitente}\"")
 }
 
 /**
@@ -77,9 +99,7 @@ android {
             dimension = "entorno"
             applicationIdSuffix = ".qa"
             versionNameSuffix = "-qa"
-            val (clave, web) = datosDeFirebase("google-services.qa.json", "$paquete.qa")
-            buildConfigField("String", "FIREBASE_CLAVE_API", "\"$clave\"")
-            buildConfigField("String", "GOOGLE_CLIENTE_WEB", "\"$web\"")
+            conFirebase(datosDeFirebase("google-services.qa.json", "$paquete.qa"))
             buildConfigField("String", "API_LIBROS", "\"https://qa-api.yosiftware.es/\"")
             // La web de Libros, para «Errores y propuestas» (`?reportar`, ecosistema-kit/APK.md).
             buildConfigField("String", "WEB_LIBROS", "\"https://qa-libros.yosiftware.es/\"")
@@ -88,9 +108,7 @@ android {
         create("produccion") {
             dimension = "entorno"
             // Sin las huellas de la clave de publicación dadas de alta, Google no deja entrar (sí con contraseña).
-            val (clave, web) = datosDeFirebase("google-services.produccion.json", paquete)
-            buildConfigField("String", "FIREBASE_CLAVE_API", "\"$clave\"")
-            buildConfigField("String", "GOOGLE_CLIENTE_WEB", "\"$web\"")
+            conFirebase(datosDeFirebase("google-services.produccion.json", paquete))
             buildConfigField("String", "API_LIBROS", "\"https://libros-api.yosiftware.es/\"")
             buildConfigField("String", "WEB_LIBROS", "\"https://libros.yosiftware.es/\"")
             buildConfigField("boolean", "PLATAFORMA_QA", "false")
@@ -142,6 +160,9 @@ dependencies {
     implementation(libs.coroutines.android)
     // La red de los datos (datos/red/): la API de Libros, la plataforma con su token y las portadas.
     implementation(libs.okhttp)
+    // El push central de la plataforma: solo la mensajería de Firebase, iniciada a mano (push/PushLibros.kt).
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
     implementation(libs.coil.compose)
     implementation(libs.coil.network)
 
