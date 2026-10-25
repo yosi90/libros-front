@@ -138,14 +138,22 @@ private fun ElementoDeSeccion(@DrawableRes icono: Int, etiqueta: String, activo:
         verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
     ) {
         val alfa = if (disponible) 1f else 0.45f
-        Box(
-            Modifier.size(if (ancha) 34.dp else 32.dp).clip(CircleShape).background(if (ancha) colores.superficieContenedor else Color.Transparent),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(painterResource(icono), contentDescription = null, tint = colores.primario.copy(alpha = alfa))
+        Box {
+            Box(
+                Modifier.size(if (ancha) 34.dp else 32.dp).clip(CircleShape).background(if (ancha) colores.superficieContenedor else Color.Transparent),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(painterResource(icono), contentDescription = null, tint = colores.primario.copy(alpha = alfa))
+            }
+            // En el rail de 88 dp, el símbolo delante de la etiqueta la cortaba («Perso…»): va sobre el icono.
+            if (simbolo && ancha) {
+                Box(Modifier.align(Alignment.BottomEnd).size(16.dp).clip(CircleShape).background(colores.lienzo), contentAlignment = Alignment.Center) {
+                    Icon(painterResource(Iconos.simboloYosiftware), contentDescription = null, tint = colores.tinta, modifier = Modifier.size(12.dp))
+                }
+            }
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-            if (simbolo) Icon(painterResource(Iconos.simboloYosiftware), contentDescription = null, tint = colores.tinta, modifier = Modifier.size(15.dp))
+            if (simbolo && !ancha) Icon(painterResource(Iconos.simboloYosiftware), contentDescription = null, tint = colores.tinta, modifier = Modifier.size(15.dp))
             Text(etiqueta, color = colores.tinta.copy(alpha = alfa), style = Textos.cuerpo.copy(fontSize = rem(0.82), fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }

@@ -432,7 +432,7 @@ private fun TarjetaDePeticion(vm: PerfilViewModel, peticion: PeticionDeCatalogo)
         if (peticion.estado == "devuelta") {
             val enviando = peticion.id in vm.reenviando
             AreaDeTexto(vm.respuestas[peticion.id].orEmpty(), { vm.escribirRespuesta(peticion.id, it) }, "Tu respuesta")
-            Boton("Reenviar", { vm.reenviar(peticion) }, Modifier.alpha(if (enviando) 0.45f else 1f), habilitado = !enviando)
+            Boton("Reenviar", { vm.reenviar(peticion) }, Modifier.fillMaxWidth().alpha(if (enviando) 0.45f else 1f), habilitado = !enviando)
         }
     }
 }
