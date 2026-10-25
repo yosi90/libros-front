@@ -139,10 +139,19 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
     - Hosting desplegado en verde (ejecución `40180912280`, con `qa:ci`).
     - Etiqueta `apk-capacitor-final` subida.
     - `libros.yosiftware.es` sirve el paquete con `<yosi-acceso>` y sin Firebase Auth.
+  - **Hecho después (2026-10-25):**
+    - El propietario entró en producción. Instaló los dos plugins y apagó los proveedores de Authentication.
+    - Las reglas de Firestore y de RTDB están en `false`.
+    - La novedad de Yosiftware está publicada (id 34).
+    - En su humo encontró tres fallos, corregidos y publicados en `6e7e188` (`../Libros API/docs/roadmaps/ACTIVO_adhesion-yosiftware/bugs.md`):
+      - las recargas volvían a la biblioteca;
+      - los paneles del SDK quedaban cortados en las navegaciones laterales;
+      - el perfil aparecía duplicado.
+    - Los worktrees están quitados.
   - **Falta:**
-    - que el propietario entre en producción (prefirió producción a `libros.dev`) y pruebe con cuentas reales el chat, los clubes y el cambio de cuenta;
+    - probar con cuentas reales el chat, los clubes y el cambio de cuenta;
     - regenerar las referencias visuales de Linux con Docker;
-    - de lo marcado «En el corte» en la checklist, los dos plugins (los instala el propietario), la novedad de Yosiftware (cuando entre) y apagar los proveedores de Authentication. Las reglas de Firestore y de RTDB ya están en `false`.
+    - la mejora no urgente de la CSP que señaló la plataforma: `'unsafe-inline'` en `script-src` (`docs/peticiones/migrar-libros-a-la-plataforma.md`, «Revisión de la plataforma»).
 
 ### Hito 5. APK Kotlin: base del proyecto y referencia visual
 

@@ -118,9 +118,14 @@ Aceptada y en producción: la API y la web solo aceptan la cuenta de Yosiftware 
   - No usa Firebase Authentication, Firestore ni RTDB.
   - La limpieza al cambiar de cuenta está probada (A → B → A con el doble del SDK, 6/6).
   - Antes de unir la rama, el revisor de duplicados la revisó en modo `corregir`.
-- **Plugins** (`Qué necesitamos`, 4): los dos ZIP se entregaron al propietario. Los instala él:
-  - el de la administración, `libros` 1.0.0;
-  - el de Notificapp, `libros-api` 1.1.0, sin `books_appeal`.
+- **Plugins** (`Qué necesitamos`, 4): el propietario instaló los dos el 2026-10-25:
+  - el de la administración, `libros` 1.0.0, ya activo y con su credencial;
+  - el de Notificapp, `libros-api` 1.1.0, sin `books_appeal` y con las actualizaciones remotas activadas de nuevo.
+- **La novedad del corte**, publicada en cuanto el propietario entró (id 34, `2026-adhesion-cuenta-yosiftware`).
+- **El humo del propietario en producción:** encontró tres fallos de la web, corregidos y publicados el mismo día:
+  - las recargas volvían a la biblioteca;
+  - los paneles del SDK quedaban cortados en las navegaciones laterales;
+  - el perfil aparecía duplicado junto a la cuenta.
 - **Normas propias** (`Qué necesitamos`, 5): publicadas por la plataforma el 2026-10-24 (versión 1; id 4 en QA y 5 en producción).
 - **Clubes:** no había ninguno en producción. Cada club nuevo nace con su espacio y su conversación.
 - **Prueba contra QA** (`Qué necesitamos`, 6):
@@ -136,7 +141,6 @@ Aceptada y en producción: la API y la web solo aceptan la cuenta de Yosiftware 
   - Faltan del 8 al 13 (pantallas, push, chat, plegables y la publicación con `publicar_apk.py`) y su ficha de app.
 - **`cuenta.estado` `borrada`:** aún falta el alcance completo de la decisión 22 del roadmap. Hoy se anonimiza el usuario local.
 - **El post-corte** (`02`, que borra las cinco tablas de mecanismo): cuando el propietario dé el corte por bueno.
-- **La novedad de Yosiftware del corte** (`2026-adhesion-cuenta-yosiftware`): preparada y simulada; se publica cuando el propietario haya entrado.
 - **Las referencias visuales de Linux:** pendientes de Docker.
 
 **Consolas** (2026-10-25)
@@ -144,6 +148,15 @@ Aceptada y en producción: la API y la web solo aceptan la cuenta de Yosiftware 
 - **`yosiftware-libros`:**
   - Las reglas de Firestore y de RTDB (`yosiftware-libros-default-rtdb`) están en `false` para todo, desplegadas con la CLI desde `Libros API/firebase.json`.
   - El Hosting sigue en uso.
-  - Authentication: el propietario apaga los proveedores (contraseña, Google y teléfono).
+  - Authentication: el propietario apagó los proveedores (contraseña, Google y teléfono) el 2026-10-25.
 - **`libros-qa`:** las reglas de Firestore y de RTDB (`libros-qa-default-rtdb`) también están en `false`.
 - **Google Cloud:** el propietario borró los clientes OAuth Android antiguos el 2026-10-24.
+
+### Revisión de la plataforma (2026-10-25)
+
+La web publicada cumple el kit, con una mejora: el `script-src` de su CSP (en `firebase.json` y en `angular.json`) lleva `'unsafe-inline'`, que el SDK no necesita (`ecosistema-kit/ACCESO.md`, «No hace falta `'unsafe-inline'` ni en scripts ni en estilos»). En la página publicada lo piden dos cosas:
+
+- el `onload="this.media='all'"` con que Angular carga en línea el CSS crítico; se quita con `"optimization": { "styles": { "inlineCritical": false } }` en la configuración de producción de `angular.json`;
+- un `<script>` en línea de `index.html`, que puede pasar a un archivo propio.
+
+Sin las dos, se puede quitar `'unsafe-inline'` de `script-src`: así un HTML inyectado no podría ejecutar nada. No es urgente.
