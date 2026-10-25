@@ -28,6 +28,7 @@ describe('StatisticsComponent', () => {
             { Tipo: 'libro', Id: 2, Nombre: 'Nube', Portada: null, Autores: [], Estados: [{ Id: 2, EstadoId: 0, Fecha: '2025-01-01' }] }
         ],
         RitmoLectura: null,
+        Valoraciones: null,
         MetricasSolicitadas: 13,
         MetricasNoDisponibles: 0
     };
@@ -130,9 +131,28 @@ describe('StatisticsComponent', () => {
         fixture.detectChanges();
         const component = fixture.componentInstance;
 
-        expect(component.paceMonths).toEqual([{ label: '10/2026', value: 50 }]);
+        expect(component.paceMonths).toEqual([{ label: 'oct 2026', value: 50 }]);
         expect(component.paceWeekdays[6]).toEqual({ label: 'Domingo', value: 30 });
         expect(component.paceHourBands.map(row => row.value)).toEqual([0, 0, 0, 50]);
+    });
+
+    it('reparte mis puntuaciones por meses sin contar los vacíos', () => {
+        statistics.getGlobalStatistics.and.returnValue(of({
+            ...snapshot,
+            Valoraciones: {
+                Desde: '2026-10-26', NotaMedia: 4,
+                PorMes: [
+                    { Anio: 2026, Mes: 9, Puntuaciones: 0, Resenas: 0, NotaMedia: null },
+                    { Anio: 2026, Mes: 10, Puntuaciones: 2, Resenas: 1, NotaMedia: 4 }
+                ]
+            }
+        }));
+        fixture.detectChanges();
+        const component = fixture.componentInstance;
+
+        expect(component.ratingMonths).toEqual([{ label: 'oct 2026', value: 2 }]);
+        expect(component.ratingAverages).toEqual([{ label: 'oct 2026', value: 4 }]);
+        expect(component.ratingReviews).toBe(1);
     });
 
     it('muestra el catálogo aunque fallen los datos de la comunidad', () => {

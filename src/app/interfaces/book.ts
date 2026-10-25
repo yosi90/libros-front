@@ -13,6 +13,7 @@ import { SagaSimple } from "./saga";
 import { UniverseSimple } from "./universe";
 import type { Edition } from "./catalog";
 import type { ReadingPaceBook } from "../shared/reading-pace";
+import type { RatingOwn } from "../shared/rating-history";
 
 export interface Book {
     Id: number;
@@ -25,7 +26,7 @@ export interface Book {
     Personajes: Character[];
     MetricasPersonajes?: CharacterBookMetrics;
     /** De la API; aquí solo se lee el ritmo propio en la obra (null sin capítulos fechados). */
-    Metricas?: { Ritmo?: ReadingPaceBook | null };
+    Metricas?: { Ritmo?: ReadingPaceBook | null; Valoracion?: RatingOwn | null };
     Localizaciones: Location[];
     Conceptos: Concept[];
     Organizaciones: Organization[];

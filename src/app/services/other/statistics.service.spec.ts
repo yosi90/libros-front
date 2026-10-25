@@ -46,10 +46,11 @@ describe('StatisticsService', () => {
         flush('libros/por_comprar', [{ Id: 7, Nombre: 'Nimbo' }]);
         flush('libros/historial_leidos', []);
         flush('libros/promedio_compra_lectura', { promedio_dias: 12 });
-        flush('universos/metricas', { RitmoLectura: { Desde: '2026-10-25', DiasConLectura: 3, PaginasPorDiaActivo: 21 } });
+        flush('universos/metricas', { RitmoLectura: { Desde: '2026-10-25', DiasConLectura: 3, PaginasPorDiaActivo: 21 }, Valoraciones: { Desde: '2026-10-26', PorMes: [], NotaMedia: 4.5 } });
 
         expect(snapshot).toBeDefined();
         expect(snapshot!.RitmoLectura?.PaginasPorDiaActivo).toBe(21);
+        expect(snapshot!.Valoraciones?.NotaMedia).toBe(4.5);
         expect(snapshot!.LibrosLeidos).toBe(34);
         expect(snapshot!.LibrosNoLeidos).toBe(88);
         expect(snapshot!.SeccionesAntologiaLeidas).toBeNull();
@@ -59,11 +60,11 @@ describe('StatisticsService', () => {
         expect(snapshot!.MetricasSolicitadas).toBe(13);
     });
 
-    it('sin capítulos fechados el ritmo llega como null', () => {
-        let pace: unknown = 'sin respuesta';
-        service.getReadingPace().subscribe(result => pace = result);
+    it('sin nada fechado el ritmo y las puntuaciones llegan como null, también con una API anterior', () => {
+        let trends: unknown = 'sin respuesta';
+        service.getPersonalTrends().subscribe(result => trends = result);
         http.expectOne(`${environment.apiUrl}universos/metricas`).flush({ RitmoLectura: null });
 
-        expect(pace).toBeNull();
+        expect(trends).toEqual({ RitmoLectura: null, Valoraciones: null });
     });
 });

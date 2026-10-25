@@ -3,6 +3,7 @@ import { AnthologySectionProgress, Antology } from './antology';
 import { BookSimple } from './book';
 import { ReadingState, ReadingStatusId } from './read-status';
 import { SagaChain } from './saga';
+import type { RatingEvolutionMonth } from '../shared/rating-history';
 
 export type CatalogEntityType = 'autor' | 'universo' | 'saga' | 'libro' | 'antologia' | 'otro';
 export type CatalogRequestAction = 'alta' | 'edicion' | 'comentario';
@@ -147,6 +148,8 @@ export interface CatalogPublicStats {
     RitmoLectores?: number | null;
     /** Días medios desde el último «En marcha» hasta «Leído»; null con menos de tres lectores que comparten. */
     DiasMediosParaTerminar?: number | null;
+    /** La nota media al final de cada mes (doce meses), con umbral; null si ninguna puntuación tiene fecha. */
+    EvolucionNota?: RatingEvolutionMonth[] | null;
     UsuariosEnBiblioteca: number;
     PuntuacionMedia: number | null;
     TotalPuntuaciones: number;
