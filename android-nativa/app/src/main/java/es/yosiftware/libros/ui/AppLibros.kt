@@ -39,6 +39,7 @@ import es.yosiftware.libros.ui.libro.IslaDelLector
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
 import es.yosiftware.libros.ui.comunidad.AccionesDeComunidad
+import es.yosiftware.libros.ui.comunidad.ActividadViewModel
 import es.yosiftware.libros.ui.comunidad.CentroDeAccesoViewModel
 import es.yosiftware.libros.ui.comunidad.ClubesViewModel
 import es.yosiftware.libros.ui.comunidad.ComunidadViewModel
@@ -130,6 +131,7 @@ fun AppLibros(app: LibrosApp) {
     val comunidad: ComunidadViewModel = viewModel { ComunidadViewModel(app.datos.ambito, app.datos.clubes, app.datos.espacios) }
     val clubes: ClubesViewModel = viewModel { ClubesViewModel(app.datos.ambito, app.datos.clubes) }
     val centroDeAcceso: CentroDeAccesoViewModel = viewModel { CentroDeAccesoViewModel(app.datos.ambito, app.datos.espacios) }
+    val actividad: ActividadViewModel = viewModel { ActividadViewModel(app.datos.ambito, app.datos.novedades) }
     clubes.alCrear = comunidad::abrirClub
     centroDeAcceso.alCambiarElAcceso = clubes::refrescar
     catalogo.alVerEnBiblioteca = { obra ->
@@ -210,12 +212,14 @@ fun AppLibros(app: LibrosApp) {
                                     Destino.Comunidad -> {
                                         val contexto = LocalContext.current
                                         PantallaComunidad(
-                                            comunidad, clubes, centroDeAcceso,
+                                            comunidad, clubes, centroDeAcceso, actividad,
                                             AccionesDeComunidad(
                                                 abrirWebSocial = { vista -> acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial(vista)) } },
                                                 abrirMensajes = { nav.irA(Destino.Mensajes) },
                                                 cambiarDeCuenta = { panelAbierto = true },
                                                 tieneObras = { CreacionDeClub.tieneObras(biblioteca.universos) },
+                                                abrirEnlace = { direccion -> Enlaces.abrir(contexto, direccion) },
+                                                avatar = { ruta -> ruta?.let { r -> if (r.startsWith("http")) r else app.datos.apiPlataforma?.let { it.trimEnd('/') + "/" + r.trimStart('/') } } },
                                                 detalleDelClub = { id ->
                                                     // Un ViewModel por club y cuenta: lo escrito en sus formularios se queda al ir a otra pestaña.
                                                     val clave = app.datos.ambito.clave("club") ?: "sin-cuenta"

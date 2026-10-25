@@ -142,6 +142,9 @@ object Iconos {
     @DrawableRes val personRemove = R.drawable.mi_person_remove
     @DrawableRes val inventory2 = R.drawable.mi_inventory_2
     @DrawableRes val bookmark = R.drawable.mi_bookmark
+    @DrawableRes val dynamicFeed = R.drawable.mi_dynamic_feed
+    @DrawableRes val favoriteBorder = R.drawable.mi_favorite_border
+    @DrawableRes val chatBubbleOutline = R.drawable.mi_chat_bubble_outline
     @DrawableRes val hub = R.drawable.mi_hub
     @DrawableRes val group = R.drawable.mi_group
     @DrawableRes val radioButtonUnchecked = R.drawable.mi_radio_button_unchecked

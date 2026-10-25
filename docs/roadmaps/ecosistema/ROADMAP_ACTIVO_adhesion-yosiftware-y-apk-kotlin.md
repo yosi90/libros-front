@@ -351,7 +351,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** el Markdown con spoilers y el realtime de comunidad dependen de decisiones de las fases 3 y 4.
 
-- [ ] Clubes con espacios. Hecho, pendiente de verlo en el Honor con la cuenta de QA (no hay muestras de depuración: depende de datos reales).
+- [ ] Clubes con espacios. Hecho. En el Honor, con la cuenta de QA, se han visto el Resumen, Clubes y Acceso; falta ver el detalle de un club, porque la cuenta no tiene ninguno.
   - Comunidad: la tira de secciones (el rail desde 600 dp), con Resumen, Clubes (según la capacidad `clubes`) y Mensajes, más Personas, Amistades y Bloqueos en la web social.
   - Resumen: las tarjetas de la plataforma (`/v1/social/resumen`) y de Libros, y las invitaciones a clubes. «Mensajes sin leer» llega con el chat (hito 12).
   - Clubes: Descubrir (populares, búsqueda, cargar más y crear), Mis clubes, Eventos y el centro de acceso (invitaciones y solicitudes, recibidas y enviadas).
@@ -374,12 +374,16 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
     - el canal de tiempo real del espacio, que compartirá el socket con el chat (mientras, se relee tras cada acción);
     - abrir el chat del club.
   - Sin filtro local de restricciones: la librería Kotlin no las expone, así que lo hace la API, que responde con su frase.
-- [ ] Actividad (según decisión). No hay pantalla que clonar: la web no tiene actividad desde la adhesión; las novedades se ven en la web social. Leer `/v1/novedades` en la app queda a decisión del propietario.
-- [ ] Perfil, Mis peticiones y Mis reportes. Hecho, pendiente de compararlo en el Honor con las capturas (`MuestrasDePerfil`: `resumen`, `perfil`, `peticiones`, `reportes` y sus vacías).
+- [x] Actividad, por decisión del propietario (25/10/2026): la sección «Actividad» de Comunidad lee el feed de novedades de Libros en la plataforma (`GET /v1/novedades`, NOVEDADES.md «Enseñar el feed en tu web»).
+  - Incluye «Cargar más», «Descubrir» con el feed vacío, «me gusta» al momento, comentarios (leer, escribir y borrar) y «Qué compartes» en la web social.
+  - Web en producción (`3d87a9e`), con 4 pruebas.
+  - APK con `RepositorioNovedades` y `ActividadViewModel`, con 4 pruebas.
+  - Pendiente de verla en el Honor: se bloqueó antes de capturarla.
+- [x] Perfil, Mis peticiones y Mis reportes. Visto en el Honor el 25/10/2026 (muestras (`MuestrasDePerfil`: `resumen`, `perfil`, `peticiones`, `reportes` y sus vacías).
   - El perfil de Yosiftware (nombre, alias y avatar) se edita en la web social (`?vista=perfil`), como ofrece el kit: la librería no tiene `editarPerfil()` y una pantalla propia con `/v1/perfil` duplicaría la de la plataforma. Al volver a la app se relee el perfil. Así queda resuelto el punto del hito 6 sobre `/v1/perfil` y el avatar.
   - Fallos de la web corregidos en los dos (front `7958a9e`): reenviar las peticiones «otro» (la API solo admite `Texto` y `Titulo`), el doble envío de «Reenviar» y las antologías de «Actividad reciente», que llevaban a una ruta inexistente; en la APK, una antología se abre en la Biblioteca.
   - Mejora sobre la web: un fallo de carga se dice como tal, no como «Aún no has enviado peticiones.».
-- [ ] Preferencias y permisos. Hecho, pendiente de verlo en el Honor (`MuestrasDePerfil --es vista preferencias`).
+- [x] Preferencias y permisos. Visto en el Honor el 25/10/2026.
   - Dos pestañas: Privacidad (la de la cuenta de Yosiftware, en la web social) y «Permisos del móvil», recuperada de la APK de Capacitor.
   - Permisos: solo las notificaciones (`POST_NOTIFICATIONS`, declarado ya; el push que lo usa llega en el hito 12). Fotos, cámara y micrófono no están, porque la APK no los usa. Si Android ya no pregunta, el botón abre sus ajustes de notificaciones.
   - Chat no está: solo gobierna las ventanas flotantes del escritorio. El tema sigue en la hoja «Más», como en la web móvil.

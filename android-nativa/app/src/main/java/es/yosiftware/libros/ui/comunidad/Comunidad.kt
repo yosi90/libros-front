@@ -12,6 +12,8 @@ import es.yosiftware.libros.ui.tema.Iconos
  */
 enum class SeccionDeComunidad(val etiqueta: String, @param:DrawableRes val icono: Int) {
     RESUMEN("Resumen", Iconos.dashboard),
+    /** Lo que comparten desde Libros las amistades y los seguidos (el feed de novedades de la plataforma). */
+    ACTIVIDAD("Actividad", Iconos.dynamicFeed),
     CLUBES("Clubes", Iconos.groups3),
     MENSAJES("Mensajes", Iconos.forum),
 }

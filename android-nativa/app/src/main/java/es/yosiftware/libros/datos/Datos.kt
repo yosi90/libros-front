@@ -17,6 +17,7 @@ import es.yosiftware.libros.datos.repositorios.RepositorioEntidades
 import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
 import es.yosiftware.libros.datos.repositorios.RepositorioEstadisticas
 import es.yosiftware.libros.datos.repositorios.RepositorioLibro
+import es.yosiftware.libros.datos.repositorios.RepositorioNovedades
 import es.yosiftware.libros.datos.repositorios.RepositorioPeticiones
 import es.yosiftware.libros.datos.repositorios.RepositorioReportes
 import es.yosiftware.libros.datos.repositorios.RepositorioUsuario
@@ -55,8 +56,14 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
     val clubes = RepositorioClubes(api)
     val usuario = RepositorioUsuario(api)
 
-    /** La pertenencia a los clubes (los espacios) y el resumen social, en la plataforma. Sin sesión, `sin_sesion`. */
-    val espacios = RepositorioEspacios(LlamadaDePlataforma { metodo, ruta, cuerpo ->
+    /** Una llamada a la API de la plataforma con la cuenta activa. Sin sesión, `sin_sesion`. */
+    private val llamadaDePlataforma = LlamadaDePlataforma { metodo, ruta, cuerpo ->
         plataforma?.llamar(metodo, ruta, cuerpo) ?: throw ErrorDeLibros.sinSesion()
-    })
+    }
+
+    /** La pertenencia a los clubes (los espacios) y el resumen social, en la plataforma. */
+    val espacios = RepositorioEspacios(llamadaDePlataforma)
+
+    /** La Actividad de Comunidad: el feed de novedades de Libros en la plataforma. */
+    val novedades = RepositorioNovedades(llamadaDePlataforma)
 }

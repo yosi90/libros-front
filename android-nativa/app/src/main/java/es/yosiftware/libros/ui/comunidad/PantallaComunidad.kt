@@ -69,10 +69,14 @@ class AccionesDeComunidad(
     val tieneObras: () -> Boolean,
     /** El detalle del club abierto. */
     val detalleDelClub: @Composable (Int) -> Unit,
+    /** Una dirección en el navegador (el enlace de una novedad). */
+    val abrirEnlace: (String) -> Unit = {},
+    /** Una imagen de la plataforma (avatar o cabecera), completa: la ruta es relativa a su API. */
+    val avatar: (String?) -> String? = { it },
 )
 
 @Composable
-fun PantallaComunidad(comunidad: ComunidadViewModel, clubes: ClubesViewModel, acceso: CentroDeAccesoViewModel, acciones: AccionesDeComunidad) {
+fun PantallaComunidad(comunidad: ComunidadViewModel, clubes: ClubesViewModel, acceso: CentroDeAccesoViewModel, actividad: ActividadViewModel, acciones: AccionesDeComunidad) {
     val colores = LocalColores.current
     val ancha = LocalVentana.current.anchoDp >= 600
     LaunchedEffect(Unit) { comunidad.alEntrar() }
@@ -81,6 +85,7 @@ fun PantallaComunidad(comunidad: ComunidadViewModel, clubes: ClubesViewModel, ac
         Box(Modifier.fillMaxSize()) {
             when (comunidad.seccion) {
                 SeccionDeComunidad.CLUBES -> comunidad.clubAbierto?.let { acciones.detalleDelClub(it) } ?: PantallaClubes(comunidad, clubes, acceso, acciones)
+                SeccionDeComunidad.ACTIVIDAD -> PantallaActividad(actividad, acciones)
                 else -> PantallaResumen(comunidad, clubes, acceso, acciones)
             }
         }
