@@ -31,6 +31,43 @@ describe('NarrativeRtfEditorComponent', () => {
         window.getSelection()?.removeAllRanges();
     });
 
+    describe('la barra sigue la fuente y el tamaño del texto (escenas de distintas épocas del escritorio)', () => {
+        const fuentes = String.raw`{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang3082{\fonttbl{\f0\fnil\fcharset0 Microsoft Sans Serif;}{\f1\fnil Georgia;}{\f2\fnil Courier New;}{\f3\fnil Segoe UI;}}\viewkind4\uc1\pard\f1\fs32 Georgia a 16 puntos.\par \f2\fs21 Courier New a 10,5 puntos.\par \f3\fs18 Segoe UI a 9 puntos.\par \f0\fs24 Microsoft Sans Serif a 12.\par}`;
+
+        function cursorEnElParrafo(root: HTMLElement, indice: number): void {
+            const parrafo = root.querySelectorAll('p')[indice];
+            const walker = document.createTreeWalker(parrafo, NodeFilter.SHOW_TEXT);
+            const texto = walker.nextNode() as Text;
+            const rango = document.createRange();
+            rango.setStart(texto, 3);
+            rango.collapse(true);
+            window.getSelection()?.removeAllRanges();
+            window.getSelection()?.addRange(rango);
+        }
+
+        it('al abrir, la del principio del texto; con el cursor, la de cada párrafo; y siempre están en las listas', async () => {
+            const component = new NarrativeRtfEditorComponent();
+            const root = document.createElement('div');
+            root.contentEditable = 'true';
+            document.body.appendChild(root);
+            component.writeValue(fuentes);
+            component.editor = new ElementRef(root);
+            component.ngAfterViewInit();
+            await Promise.resolve();
+
+            expect([component.selectedFont, component.selectedFontSize]).toEqual(['Georgia', 16]);
+            const esperados: Array<[string, number]> = [['Courier New', 10.5], ['Segoe UI', 9], ['Microsoft Sans Serif', 12], ['Georgia', 16]];
+            [1, 2, 3, 0].forEach((indice, i) => {
+                cursorEnElParrafo(root, indice);
+                component.handleSelectionChange();
+                expect([component.selectedFont, component.selectedFontSize]).withContext(`párrafo ${indice}`).toEqual(esperados[i]);
+                // El desplegable solo enseña un valor que esté entre sus opciones.
+                expect(component.availableSystemFonts.concat(component.googleFonts)).withContext(`fuente del párrafo ${indice}`).toContain(component.selectedFont);
+                expect(component.fontSizeOptions).withContext(`tamaño del párrafo ${indice}`).toContain(component.selectedFontSize);
+            });
+        });
+    });
+
     it('uses 10 points as the default editor font size', () => {
         const component = new NarrativeRtfEditorComponent();
 

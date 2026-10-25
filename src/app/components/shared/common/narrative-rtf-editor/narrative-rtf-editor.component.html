@@ -23,7 +23,7 @@
         <mat-select class="rtf-font-select rtf-size-select" aria-label="Tamaños habituales"
           [value]="selectedFontSize" [disabled]="disabled" panelClass="rtf-size-select-panel"
           (selectionChange)="applyFontSize($event.value)">
-          @for (size of fontSizes; track size) {
+          @for (size of fontSizeOptions; track size) {
             <mat-option [value]="size">{{ size }}</mat-option>
           }
         </mat-select>

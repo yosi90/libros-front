@@ -59,6 +59,16 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     readonly systemFonts: string[] = [...NARRATIVE_EDITOR_SYSTEM_FONTS];
     readonly googleFonts: string[] = [...NARRATIVE_EDITOR_GOOGLE_FONTS];
     readonly fontSizes = [6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 72, 96];
+
+    /**
+     * Los tamaños del desplegable con el del texto, aunque no sea habitual (RichEdit guarda a menudo 10,5 pt): el
+     * desplegable solo enseña un valor que esté entre sus opciones, y si no, se queda en blanco.
+     */
+    get fontSizeOptions(): number[] {
+        return this.fontSizes.includes(this.selectedFontSize)
+            ? this.fontSizes
+            : [...this.fontSizes, this.selectedFontSize].sort((left, right) => left - right);
+    }
     readonly baseColors = ['#F6E6C9', '#F5DEB3', '#FFFFFF', '#D9A956', '#4F9D8D', '#5E8FC4', '#B85C5C', '#000000'];
     availableSystemFonts: string[] = [...this.systemFonts];
     availableColors = [...this.baseColors];
@@ -157,6 +167,19 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
         this.captureEditorSelection();
         menu.open = !menu.open;
         this.handleMenuToggle({ target: menu } as unknown as Event);
+    }
+
+    /**
+     * La barra sigue al cursor también al tocar en el móvil y al moverse con el teclado o por programa: `keyup` y
+     * `mouseup` no llegan siempre (en la APK, la barra se quedaba con los valores por defecto).
+     */
+    @HostListener('document:selectionchange')
+    handleSelectionChange(): void {
+        const selection = window.getSelection();
+        const root = this.editor?.nativeElement;
+        if (!root || !selection?.rangeCount || !root.contains(selection.getRangeAt(0).startContainer))
+            return;
+        this.refreshActiveFormats();
     }
 
     @HostListener('document:pointerdown', ['$event'])
