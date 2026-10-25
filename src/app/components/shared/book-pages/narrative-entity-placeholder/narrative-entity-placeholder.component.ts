@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, forkJoin, map, Observable, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
+import { catchError, EMPTY, finalize, forkJoin, map, Observable, of, Subject, switchMap, takeUntil, tap, timeout, TimeoutError } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,10 +24,11 @@ import { EntryService, NarrativeEntityKind } from '../../../../services/entities
 import { NarrativeEntry, NarrativeEntryCreate } from '../../../../interfaces/api-contract';
 import { OrganizationCharacterRelation, OrganizationLocationRelation } from '../../../../interfaces/organization';
 import { LocationStatus } from '../../../../interfaces/location';
-import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
+import { narrativeEntityDisplayName } from '../../../../shared/narrative-entity-names';
 import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -37,6 +38,16 @@ import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indi
 import { foldText } from '../../../../shared/text';
 import { CharacterGroup, characterGroupRank, groupCharactersByGroup } from '../../../../shared/character-groups';
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
+import { createClientRequestId } from '../../../../shared/client-request-id';
+
+/** Espera máxima de cada petición del alta de un personaje antes de dar el paso por fallido. */
+const CHARACTER_CREATE_STEP_TIMEOUT_MS = 30_000;
+
+interface CharacterCreationResult {
+    character: Character;
+    /** Datos del formulario que no se pudieron guardar tras crear el personaje. */
+    failedDetails: string[];
+}
 
 interface CreateEntryDraft {
     id?: number;
@@ -114,6 +125,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     narrativeEntityLinks: NarrativeEntityLink[] = [];
     isCharacterAliasFormOpen = false;
     characterAliasDraft = new FormControl('', [Validators.minLength(3), Validators.maxLength(100)]);
+    /** Alta en curso: bloquea un segundo envío del formulario mientras la API responde. */
+    isSubmittingEntity = false;
+    /** IdCliente del alta de personaje en curso; se conserva en los reintentos hasta confirmarla. */
+    private characterCreateClientId: string | null = null;
+    private isDestroyed = false;
 
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
     entryTitle = new FormControl('Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
@@ -244,7 +260,10 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             .pipe(takeUntil(this.destroy$))
             .subscribe(book => {
                 if (book.Id !== 0) {
+                    const isAnotherBook = book.Id !== this.book.Id;
                     this.book = book;
+                    if (isAnotherBook)
+                        this.syncCharacterListWithApi();
                     this.narrativeEntityLinks = buildNarrativeEntityLinks(book);
                     this.characterOrderRefreshing$ = this.characterOrderRefreshSrv.isRefreshing$(book.Id);
                     this.mergeLocationStatesFromBook();
@@ -257,6 +276,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     ngOnDestroy(): void {
         this.stopPendingWork();
+        // Salir de la pantalla no cancela el alta (su resultado sigue llegando a la lista),
+        // pero el loader global no puede quedarse tapando la pantalla siguiente.
+        if (this.isSubmittingEntity)
+            this.loader.deactivateLoader();
+        this.isDestroyed = true;
         this.destroy$.next();
         this.destroy$.complete();
     }
@@ -914,6 +938,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     createEntity(): void {
+        if (this.isSubmittingEntity)
+            return;
         if (!this.canSubmit()) {
             this.snackBar.openSnackBar('Completa los campos obligatorios', 'errorBar');
             return;
@@ -921,29 +947,33 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
         const basePayload = this.buildBasePayload();
         const listPath = this.getListPath();
+        if (listPath === 'characters') {
+            this.createCharacter(basePayload);
+            return;
+        }
+
         const request = listPath === 'locations'
             ? this.narrativeSrv.createLocation(this.buildLocationCreatePayload(basePayload))
-            : listPath === 'characters'
-                ? this.createCharacterWithDetails(basePayload)
-                : listPath === 'concepts'
-                    ? this.narrativeSrv.createConcept(basePayload)
-                    : listPath === 'organizations'
-                        ? this.createOrganizationWithRelations(basePayload)
-                        : listPath === 'events'
-                            ? this.narrativeSrv.createEvent({
-                            ...basePayload,
-                            Id_Localizacion: Number(this.locationId.value),
-                            Personajes: this.selectedCharacterIds
-                        })
-                            : this.narrativeSrv.createQuote({
-                            ...basePayload,
-                            Pagina: Number(this.page.value),
-                            PersonajeId: Number(this.characterId.value)
-                        });
+            : listPath === 'concepts'
+                ? this.narrativeSrv.createConcept(basePayload)
+                : listPath === 'organizations'
+                    ? this.createOrganizationWithRelations(basePayload)
+                    : listPath === 'events'
+                        ? this.narrativeSrv.createEvent({
+                        ...basePayload,
+                        Id_Localizacion: Number(this.locationId.value),
+                        Personajes: this.selectedCharacterIds
+                    })
+                        : this.narrativeSrv.createQuote({
+                        ...basePayload,
+                        Pagina: Number(this.page.value),
+                        PersonajeId: Number(this.characterId.value)
+                    });
 
-        this.loader.activateLoader();
+        this.beginEntitySubmit();
         request.pipe(
-            switchMap(() => this.bookSrv.getBook(this.book.Id))
+            switchMap(() => this.bookSrv.getBook(this.book.Id)),
+            finalize(() => this.endEntitySubmit())
         ).subscribe({
             next: book => {
                 this.bookStore.setBook(book);
@@ -952,35 +982,114 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.resetCreateForm();
                 this.selectedCharacterIds = [];
                 this.snackBar.openSnackBar(`${this.capitalize(this.getConfig().singular)} creado`, 'successBar');
-                this.loader.deactivateLoader();
-                this.navigateToList();
+                if (!this.isDestroyed)
+                    this.navigateToList();
             },
             error: errorData => {
                 this.markBackendField(errorData);
                 this.snackBar.openApiError(errorData, 'Error al crear entidad narrativa');
-                this.loader.deactivateLoader();
             }
         });
     }
 
+    /**
+     * Alta de personaje. El loader cubre solo lo que guarda el formulario; la lista se
+     * actualiza con la respuesta del alta en cuanto llega, sin esperar a recargar el libro,
+     * y un reintento del mismo formulario reutiliza su IdCliente para no duplicar.
+     */
+    private createCharacter(basePayload: NarrativeEntityCreate): void {
+        const name = (this.name.value ?? '').trim();
+        const sameName = this.findCharacterNamed(name);
+        if (sameName && !window.confirm(`Ya hay un personaje llamado «${sameName.Nombre}» en este libro. ¿Quieres crear otro con el mismo nombre?`))
+            return;
+
+        const bookId = this.book.Id;
+        const accountScope = this.pendingWork.scope;
+        this.characterCreateClientId ??= createClientRequestId();
+        this.beginEntitySubmit();
+        this.createCharacterWithDetails(basePayload, accountScope).pipe(
+            finalize(() => this.endEntitySubmit())
+        ).subscribe({
+            next: result => {
+                this.characterCreateClientId = null;
+                this.saveIndicator.notifySaved(bookId);
+                this.resetCreateForm();
+                if (result.failedDetails.length)
+                    this.snackBar.openSnackBar(
+                        `Personaje creado, pero no se ha podido guardar ${this.joinLabels(result.failedDetails)}. Revísalo en su ficha.`,
+                        'errorBar'
+                    );
+                else
+                    this.snackBar.openSnackBar('Personaje creado', 'successBar');
+                // Si la persona ya salió (por ejemplo, a escribir), no se la devuelve a la lista.
+                if (!this.isDestroyed)
+                    this.navigateToList();
+            },
+            error: errorData => {
+                this.markBackendField(errorData);
+                const code = getApiErrorCode(errorData);
+                if (code === 'invalid_client_request_id' || code === 'character_client_request_conflict')
+                    this.characterCreateClientId = null;
+                if (errorData instanceof TimeoutError)
+                    this.snackBar.openSnackBar(
+                        'La API no ha respondido a tiempo. Si el personaje se ha creado aparecerá en la lista; si vuelves a guardar este formulario no se duplicará.',
+                        'errorBar'
+                    );
+                else
+                    this.snackBar.openApiError(errorData, 'Error al crear el personaje');
+                // Si el alta llegó a guardarse, la lista lo muestra aunque su respuesta se perdiera.
+                if (this.isSameAccount(accountScope))
+                    this.characterOrderRefreshSrv.refresh(bookId);
+            }
+        });
+    }
+
+    private beginEntitySubmit(): void {
+        this.isSubmittingEntity = true;
+        this.loader.activateLoader();
+    }
+
+    private endEntitySubmit(): void {
+        // Si la pantalla ya se cerró, el loader se retiró entonces y el que haya ahora es de otra.
+        const ownsLoader = this.isSubmittingEntity && !this.isDestroyed;
+        this.isSubmittingEntity = false;
+        if (ownsLoader)
+            this.loader.deactivateLoader();
+    }
+
+    private findCharacterNamed(name: string): Character | undefined {
+        const target = foldText(name).trim();
+        if (!target)
+            return undefined;
+        return (this.book.Personajes ?? []).find(character => foldText(character.Nombre ?? '').trim() === target);
+    }
+
+    private joinLabels(labels: string[]): string {
+        return labels.length > 1
+            ? `${labels.slice(0, -1).join(', ')} ni ${labels[labels.length - 1]}`
+            : labels[0];
+    }
+
     updateEntityFromForm(): void {
+        if (this.isSubmittingEntity)
+            return;
         if (!this.canSubmit() || !this.selectedItem) {
             this.entityForm.markAllAsTouched();
             this.snackBar.openSnackBar('Revisa los datos de la entidad', 'errorBar');
             return;
         }
 
-        this.loader.activateLoader();
-        this.persistCurrentEntityUpdate().subscribe({
+        this.beginEntitySubmit();
+        this.persistCurrentEntityUpdate().pipe(
+            finalize(() => this.endEntitySubmit())
+        ).subscribe({
             next: book => {
                 this.snackBar.openSnackBar(`${this.capitalize(this.getConfig().singular)} actualizado`, 'successBar');
-                this.loader.deactivateLoader();
                 this.closeUpdateForm();
             },
             error: errorData => {
                 this.markBackendField(errorData);
                 this.snackBar.openApiError(errorData, 'Error al actualizar entidad narrativa');
-                this.loader.deactivateLoader();
             }
         });
     }
@@ -1444,19 +1553,22 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         });
     }
 
-    getCharacterName(characterId: number): string {
-        return this.book.Personajes.find(character => character.Id === characterId)?.Nombre ?? `Personaje ${characterId}`;
+    getCharacterName(characterId: number, rowName?: string | null): string {
+        return narrativeEntityDisplayName(this.book.Personajes, characterId, rowName, `Personaje ${characterId}`);
     }
 
-    getLocationName(locationId: number): string {
-        return this.book.Localizaciones.find(location => location.Id === locationId)?.Nombre ?? `Localización ${locationId}`;
+    getLocationName(locationId: number, rowName?: string | null): string {
+        return narrativeEntityDisplayName(this.book.Localizaciones, locationId, rowName, `Localización ${locationId}`);
+    }
+
+    getOrganizationCharacterRelationName(relation: OrganizationCharacterRelation): string {
+        return this.getCharacterName(relation.PersonajeId, relation.Nombre);
     }
 
     getOrganizationLocationRelationName(relation: OrganizationLocationRelation): string {
         return relation.Localizacion?.Nombre
             ?? relation.LocalizacionNombre
-            ?? relation.Nombre
-            ?? this.getLocationName(relation.LocalizacionId);
+            ?? this.getLocationName(relation.LocalizacionId, relation.Nombre);
     }
 
     private loadSelectedItemDetails(showLoader = true): void {
@@ -1520,7 +1632,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     /** Marca en rojo el control que corresponde al campo que rechaza el backend. */
     private markBackendField(error: unknown): void {
         markBackendFieldError({
-            Nombre: this.name, EstadoId: this.locationStatusId, Id_Localizacion: this.locationId,
+            Nombre: this.name, Apodo: this.name, EstadoId: this.locationStatusId, Id_Localizacion: this.locationId,
             Pagina: this.page, PersonajeId: this.characterId
         }, error);
     }
@@ -1564,33 +1676,87 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         );
     }
 
-    private createCharacterWithDetails(basePayload: NarrativeEntityCreate): Observable<unknown> {
+    /**
+     * Crea el personaje y, después, lo que el alta no admite (estado elegido, relaciones y
+     * apodos). Un fallo de esos pasos no deshace el alta: se informa en `failedDetails`.
+     * El personaje entra en la lista local en cuanto la API confirma el alta.
+     */
+    private createCharacterWithDetails(basePayload: NarrativeEntityCreate, accountScope: string | null = this.pendingWork.scope): Observable<CharacterCreationResult> {
+        const bookId = this.book.Id;
+        const statusId = Number(this.characterStatusId.value);
+        const relations = this.createCharacterRelations.map(relation => ({ id: relation.id, value: relation.relation.value ?? '' }));
+        const aliases = [...this.characterAliases];
         return this.characterSrv.create({
-            LibroId: this.book.Id,
+            LibroId: bookId,
             Apodo: basePayload.Nombre,
             Sexo: Number(this.characterSex.value),
-            Entradas: basePayload.Entradas
+            Entradas: basePayload.Entradas,
+            ...(this.characterCreateClientId ? { IdCliente: this.characterCreateClientId } : {})
         }).pipe(
+            timeout({ first: CHARACTER_CREATE_STEP_TIMEOUT_MS }),
+            tap(character => this.bookStore.upsertCharacter(bookId, character)),
             switchMap(character => {
-                const requests: Observable<unknown>[] = [
-                    this.characterSrv.updateBookState(character.Id, this.book.Id, {
-                        EstadoId: Number(this.characterStatusId.value)
-                    }),
-                    ...this.createCharacterRelations.map(relation => this.characterSrv.createRelation(character.Id, {
-                        LibroId: this.book.Id,
+                // El alta sigue aunque se salga de la pantalla, pero no con otra cuenta: lo que falta
+                // (estado, relaciones y apodos) no se envía con el token de la nueva (CAMBIO_DE_CUENTA.md).
+                if (!this.isSameAccount(accountScope))
+                    return EMPTY;
+                const steps: Observable<string | null>[] = [
+                    ...(this.hasBookState(character, bookId, statusId) ? [] : [
+                        this.characterCreateStep('el estado', this.characterSrv.updateBookState(character.Id, bookId, { EstadoId: statusId }))
+                    ]),
+                    ...relations.map(relation => this.characterCreateStep('las relaciones', this.characterSrv.createRelation(character.Id, {
+                        LibroId: bookId,
                         PersonajeRelacionadoId: relation.id,
-                        Parentesco: relation.relation.value ?? '',
+                        Parentesco: relation.value,
                         Reflejada: false
-                    })),
-                    ...this.characterAliases.map(alias => this.characterSrv.createAlias(character.Id, {
-                        LibroId: this.book.Id,
+                    }))),
+                    ...aliases.map(alias => this.characterCreateStep('los apodos', this.characterSrv.createAlias(character.Id, {
+                        LibroId: bookId,
                         Apodo: alias
-                    }))
+                    })))
                 ];
-
-                return forkJoin(requests);
+                const details$ = steps.length ? forkJoin(steps) : of([] as (string | null)[]);
+                return details$.pipe(
+                    map(failures => [...new Set(failures.filter((label): label is string => !!label))]),
+                    // Ficha del personaje con lo guardado después del alta; si no llega, vale la del alta.
+                    switchMap(failedDetails => (steps.length
+                        ? this.characterSrv.get(character.Id, bookId).pipe(
+                            timeout({ first: CHARACTER_CREATE_STEP_TIMEOUT_MS }),
+                            catchError(() => of(character))
+                        )
+                        : of(character)
+                    ).pipe(map(saved => ({ character: saved, failedDetails })))),
+                    tap(result => {
+                        this.bookStore.upsertCharacter(bookId, result.character);
+                        // Grupo y posición en la lista sin recargar el libro entero.
+                        if (this.isSameAccount(accountScope))
+                            this.characterOrderRefreshSrv.refresh(bookId);
+                    })
+                );
             })
         );
+    }
+
+    /** La cuenta con la que empezó una operación sigue presentada (la ficha puede estar ya cerrada). */
+    private isSameAccount(accountScope: string | null): boolean {
+        return !this.abandoned && this.pendingWork.scope === accountScope;
+    }
+
+    private characterCreateStep(label: string, request: Observable<unknown>): Observable<string | null> {
+        return request.pipe(
+            timeout({ first: CHARACTER_CREATE_STEP_TIMEOUT_MS }),
+            map(() => null),
+            catchError(() => of(label))
+        );
+    }
+
+    /** El alta ya deja un estado para el libro (Vivo por defecto); solo hace falta otro si se eligió uno distinto. */
+    private hasBookState(character: Character, bookId: number, statusId: number): boolean {
+        return (character.Estados ?? []).some(state => {
+            const raw = state as unknown as Record<string, any>;
+            const stateId = raw['EstadoId'] ?? raw['Estado']?.Id ?? raw['Id'];
+            return Number(raw['Origen']) === bookId && Number(stateId) === statusId;
+        });
     }
 
     private configureCharacterValidation(): void {
@@ -1642,10 +1808,12 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     private mergeLocationStates(currentStates: LocationStatus[], nextStates: LocationStatus[]): LocationStatus[] {
+        // Los ids se comparan como números: hasta el 24/10/2026 la API los devolvía como texto.
         const statesById = new Map<number, LocationStatus>();
         [...currentStates, ...nextStates].forEach(state => {
-            if (state?.Id && state?.Nombre)
-                statesById.set(state.Id, state);
+            const id = Number(state?.Id);
+            if (id && state?.Nombre)
+                statesById.set(id, { ...state, Id: id });
         });
         return [...statesById.values()].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
     }
@@ -1731,6 +1899,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     private resetCreateForm(): void {
+        this.characterCreateClientId = null;
         this.entityForm.reset();
         this.eventLocationSearch.reset('');
         this.quoteCharacterSearch.reset('');
@@ -1751,7 +1920,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     private populateEditForm(item: any): void {
         const quoteCharacterId = this.getQuoteCharacterId(item);
         this.editName.setValue(item.Nombre ?? '');
-        this.editEstadoId.setValue(item.Id_Estado ?? null);
+        this.editEstadoId.setValue(item.Id_Estado ? Number(item.Id_Estado) : null);
         this.editLocationId.setValue(item.Id_Localizacion ?? null);
         this.editPage.setValue(item.Pagina ?? null);
         this.editCharacterId.setValue(quoteCharacterId);
@@ -1803,7 +1972,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             ...characterRelations.map(relation => ({
                 kind: 'character' as const,
                 id: relation.PersonajeId,
-                name: this.getCharacterName(relation.PersonajeId),
+                name: this.getOrganizationCharacterRelationName(relation),
                 description: new FormControl(relation.Descripcion ?? '')
             })),
             ...locationRelations.map(relation => ({
@@ -1822,7 +1991,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 return {
                     relationId: relation.Id,
                     id: characterId,
-                    name: relation.Relativo?.Nombre ?? this.getCharacterName(characterId),
+                    name: relation.Relativo?.Nombre ?? this.getCharacterName(characterId, relation.Nombre),
                     relation: new FormControl(relation.Parentesco ?? '', [Validators.required, Validators.minLength(2), Validators.maxLength(100)])
                 };
             })
@@ -2100,6 +2269,17 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         this.selectDefaultEventLocation();
         this.selectDefaultCharacterStatus();
         this.openPendingSelectedItem();
+        this.syncCharacterListWithApi();
+    }
+
+    /**
+     * Al entrar en la lista de personajes se contrasta con la API (petición ligera de orden):
+     * un alta cuya respuesta no llegó aparece aunque el libro venga de la caché de la sesión.
+     */
+    private syncCharacterListWithApi(): void {
+        if (this.routePath !== 'characters' || !this.book.Id)
+            return;
+        this.characterOrderRefreshSrv.refresh(this.book.Id);
     }
 
     private openPendingSelectedItem(): void {
@@ -2115,7 +2295,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     private getItemLocationStatusId(item: any): number | null {
         if (item.Id_Estado ?? item.EstadoId)
-            return item.Id_Estado ?? item.EstadoId;
+            return Number(item.Id_Estado ?? item.EstadoId);
         const statusName = item.Estado;
         if (statusName) {
             const status = this.locationStates.find(state => foldText(state.Nombre).trim() === foldText(statusName).trim());

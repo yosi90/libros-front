@@ -35,6 +35,8 @@ export interface CharacterSimple {
 export interface CharacterOrderSummary {
     Id: number;
     Nombre: string;
+    Grupo?: Character['Grupo'];
+    OrdenGrupo?: number | null;
 }
 export interface CharacterStatus {
     Id: number;
@@ -49,6 +51,8 @@ export interface CharacterRelation {
     Id: number;
     Relativo?: CharacterSimple;
     PersonajeRelacionadoId?: number;
+    /** Nombre del personaje relacionado resuelto por la API en el libro consultado. */
+    Nombre?: string;
     Parentesco: string;
     Origen: number;
     Orden: number | null;

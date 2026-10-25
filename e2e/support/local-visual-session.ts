@@ -127,6 +127,12 @@ export async function installLocalVisualSession(page: Page, options: { webPresen
             contentType: 'application/json',
             body: JSON.stringify(visualBook)
         }));
+        // Al entrar en la lista de personajes se comprueba con la API su orden y sus grupos (arreglo del alta, `9d98454`).
+        await page.route('**/libros/73/personajes/orden', route => route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(visualBook.Personajes.map(({ Id, Nombre, Grupo, OrdenGrupo }) => ({ Id, Nombre, Grupo, OrdenGrupo })))
+        }));
         await page.route('**/personajes/estados/catalogo', route => route.fulfill({
             status: 200,
             contentType: 'application/json',

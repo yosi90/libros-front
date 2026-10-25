@@ -9,7 +9,7 @@ Afecta a: la identidad y las cuentas, y todo lo que hoy duplica a la plataforma 
 
 Es la petición de migración que pide `ecosistema-kit/MIGRACION.md` y la respuesta a la vuestra, `administracion yosiftware/docs/peticiones/respondidas/ACEPTADA_preparar-la-migracion-de-libros.md`. Sustituye a las de congelación del 2026-10-07 y del 2026-10-09: se cierran con esta.
 
-Antes de decidir revisamos vuestro código y vuestros datos, en solo lectura, el 2026-10-24. Lo que cambia respecto a la tabla «Punto de partida» de vuestro roadmap maestro está marcado como **corrección**. El detalle de la revisión está en el roadmap de la plataforma: `administracion yosiftware/docs/roadmaps/ACTIVO_migracion-libros/`.
+Antes de decidir revisamos vuestro código y vuestros datos, en solo lectura, el 2026-10-24. Lo que cambia respecto a la tabla «Punto de partida» de vuestro roadmap maestro está marcado como **corrección**. El detalle de la revisión está en el roadmap de la plataforma: `administracion yosiftware/docs/roadmaps/`, en la carpeta `…_migracion-libros` (su prefijo cambia con el estado del roadmap).
 
 Usad el kit más reciente (hoy, el 1.53), como decidió el propietario. Las guías de cada servicio: `ACCESO.md`, `VALIDAR_TOKENS.md`, `FEED_DE_CAMBIOS.md`, `SOCIAL.md`, `CHAT.md`, `NOTIFICACIONES.md`, `NOVEDADES.md`, `MODERACION.md`, `ESPACIOS.md`, `PLUGIN_ADMINISTRACION.md`, `APK.md` y `LISTA_DE_COMPROBACION.md`.
 

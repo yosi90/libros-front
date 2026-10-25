@@ -42,7 +42,7 @@
           [matTooltip]="canSubmit() ? (isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular : getCreateSubmitHint()"
           matTooltipClass="tt-accent">
           <button class="header-create-submit" mat-raised-button type="submit" form="narrative-create-form"
-            [disabled]="!canSubmit()" [attr.aria-label]="(isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular">
+            [disabled]="!canSubmit() || isSubmittingEntity" [attr.aria-label]="(isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular">
             <mat-icon>save</mat-icon>
           </button>
         </span>
@@ -713,7 +713,7 @@
                     <article>
                       @if (editingOrganizationCharacterId !== relation.PersonajeId) {
                         <div class="assignment-chip assignment-chip--relation">
-                          <span>{{ getCharacterName(relation.PersonajeId) }}</span>
+                          <span>{{ getOrganizationCharacterRelationName(relation) }}</span>
                           <small>{{ relation.Descripcion || 'Sin descripción.' }}</small>
                         </div>
                         <div class="relation-actions">
@@ -725,7 +725,7 @@
                           </button>
                         </div>
                       } @else {
-                        <strong>{{ getCharacterName(relation.PersonajeId) }}</strong>
+                        <strong>{{ getOrganizationCharacterRelationName(relation) }}</strong>
                         <input class="relation-inline-input" type="text" [formControl]="relationEditDescription"
                           maxlength="250" placeholder="Descripción" aria-label="Descripción">
                         <div class="relation-actions">

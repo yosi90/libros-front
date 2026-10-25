@@ -234,7 +234,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** perder texto con el autoguardado o al cambiar de configuración. El estado va en el `ViewModel` y el guardado pendiente se fuerza al salir.
 
-- [ ] Shell, índice, Elementos, y partes e interludios.
+- [ ] Shell, índice, Elementos, y partes e interludios. Al abrir un libro, la primera pantalla son sus estadísticas, como en la APK actual (confirmado por el propietario, 2026-10-24).
 - [ ] Notas, búsqueda avanzada y estadísticas del libro.
 - [ ] Capítulos y escenas, con autoguardado y cambios pendientes.
 - [ ] Lector persistente.
@@ -289,13 +289,13 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 
 - [ ] Push central y avisos.
 - [ ] Chat con la interfaz actual sobre la plataforma.
-- [ ] App Links y aviso de versión nueva.
+- [ ] App Links y aviso de versión nueva. Desde el kit 1.57, la versión disponible la da la plataforma (`GET /v1/webs`, `app.version`, con su enlace de instalación), no GitHub Releases como `AndroidReleaseUpdateService` de la APK actual.
 
 ### Hito 13. APK Kotlin: plegables, QA y publicación
 
 - **Descripción:**
   - La lista «App Android» del kit entera.
-  - Pruebas en los emuladores de plegable (de libro y de concha), en el redimensionable y en el Honor Magic V3.
+  - Pruebas en el Honor Magic V3 (plegado y desplegado) y en el Xiaomi 15 Ultra, por ADB. **Sin emuladores**: sobrecargan el servidor (decisión del propietario, 2026-10-24).
   - QA del propietario con el flavor `qa`.
   - Publicación con el mismo paquete y la misma firma, encima de la de Capacitor.
   - La ficha de la app: icono de 512 × 512 e imagen de 1600 × 900.
@@ -308,7 +308,10 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 
 - [ ] Lista «App Android» con su evidencia.
 - [ ] Plegables y QA del propietario.
-- [ ] Publicada, con su ficha y su novedad.
+- [ ] Publicada, con su ficha y su novedad. Desde el kit 1.57 (petición `Libros API/docs/peticiones/publicar-tu-apk-con-tu-credencial-kit-1-57.md`):
+  - la primera versión la revisa el propietario, que activa las actualizaciones remotas de `libros`;
+  - después, la credencial de publicación se copia, sin abrirla, de `C:\Users\Yosi\yosiftware-cuentas\produccion\.runtime\publicacion-apk\libros.token` a `android-nativa/.runtime/publicacion-apk-produccion.token` (ignorada por Git);
+  - cada versión sube con `python ecosistema-kit/herramientas/publicar_apk.py --entorno produccion --credencial android-nativa/.runtime/publicacion-apk-produccion.token <APK firmada>`, con el `versionCode` subido y probada en un móvil. Nada de copiar la APK a mano.
 - Publicación (anotado en el hito 4, al retirar Capacitor): `.github/workflows/android-release-manual.yml` se retiró de la web con `android/`; su última versión está en la etiqueta `apk-capacitor-final` (`4f1fecd`). Sirve de base para la APK Kotlin casi tal cual: la firma con los mismos secretos (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEY_ALIAS`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD`, la misma clave, para instalar encima), `google-services.json` por entorno desde `ANDROID_GOOGLE_SERVICES_QA_BASE64` y `…_PRODUCTION_BASE64` (en la Kotlin, los de la plataforma, en `app/src/qa` y `app/src/produccion`), `apksigner verify`, el `.sha256` y la GitHub Release `android-vX.Y.Z` solo de producción con el `versionCode` creciente comprobado contra la anterior. Lo que cambia: sin `npm ci` ni `build:native:*` (no hay web dentro), `working-directory: android-nativa`, las tareas `testQaDebugUnitTest`/`assembleQaRelease` y `assembleProduccionRelease`, y la ruta de salida del flavor `produccion`. Antes de recuperarlo, decidir con el kit 1.57 (`APK.md`, «Publicar una versión de tu APK»): si la plataforma sirve la APK, se publica con `herramientas/publicar_apk.py` y su credencial, y la Release de GitHub sobra.
 
 ### Hito 14. Auditoría completa de duplicados de la APK Kotlin (fase 9)
@@ -330,3 +333,10 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros del cambio:** mezclarlas con el clon haría imposible comparar con las capturas.
 
 - [ ] Abrir su roadmap o sus entradas en `bugs.md` cuando se cierre el hito 14.
+- Lista del propietario (2026-10-24, vista en el móvil desplegado), para cuando termine el clon:
+  - [ ] La inserción de personajes está mal diseñada, y en general la de todas las entradas.
+  - [ ] Espacio desperdiciado en los capítulos.
+  - [ ] Espacio desperdiciado en las estadísticas personales del libro.
+  - [ ] Función nueva: el campo `titulo` del libro pasa a `usuario_libros`, propio de cada persona, y se puede generar con IA por la pasarela de la plataforma (Anthropic primero, kit 1.54).
+  - [ ] Función nueva: dictado por voz a los editores RTF de escenas y entradas, con la transcripción de la pasarela y una clave de IA para un modelo mejor.
+  - El fallo al crear personajes (loader que no termina, personaje que no aparece y duplicado) no espera: se corrige ya en producción (`narrative-entities/bugs.md`).
