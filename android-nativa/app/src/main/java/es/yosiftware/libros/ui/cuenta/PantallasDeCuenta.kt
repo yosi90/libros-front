@@ -1,5 +1,8 @@
 package es.yosiftware.libros.ui.cuenta
 
+import es.yosiftware.libros.ui.componentes.FrasesDelDragon
+import es.yosiftware.libros.ui.componentes.ContextoDeCarga
+import es.yosiftware.libros.ui.componentes.CargadorDelDragon
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
@@ -100,7 +103,7 @@ fun PantallaDeLaSesion(estado: EstadoSesion, vm: CuentaViewModel, perfiles: Perf
  * La APK de Capacitor enseñaba aquí el splash de Android 12 (referencias-apk-capacitor/arranque/, `splash`): el icono de
  * la app en el centro, sobre el fondo de la ventana. Se pinta igual que el del sistema, para que el paso de uno a otro no
  * se note: la capa de delante del icono adaptable a 240 dp, recortada en un círculo de 160 dp sobre su fondo. Si tarda
- * más de un segundo y medio (sin red, al cambiar de cuenta), aparece debajo el indicador de progreso.
+ * más de un segundo y medio (sin red, al cambiar de cuenta), aparece encima el cargador de los dragones.
  */
 @Composable
 fun PantallaDeArranque() {
@@ -125,13 +128,8 @@ fun PantallaDeArranque() {
                 filterQuality = FilterQuality.High,
             )
         }
-        if (largo) {
-            CircularProgressIndicator(
-                color = colores.primario,
-                strokeWidth = 3.dp,
-                modifier = Modifier.padding(top = 160.dp + Espacios.e8 * 2).size(28.dp),
-            )
-        }
+        // Si tarda, el dragón de la APK de Capacitor con «Recuperando tu biblioteca…» (`sessionReady` de la web).
+        if (largo) CargadorDelDragon(remember { FrasesDelDragon.abrir(ContextoDeCarga.BIBLIOTECA, null) })
     }
 }
 

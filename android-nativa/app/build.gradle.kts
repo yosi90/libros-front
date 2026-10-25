@@ -165,6 +165,7 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.coil.compose)
     implementation(libs.coil.network)
+    implementation(libs.coil.gif)
 
     debugImplementation(libs.compose.ui.tooling)
 

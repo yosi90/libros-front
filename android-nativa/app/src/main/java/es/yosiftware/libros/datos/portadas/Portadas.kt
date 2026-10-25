@@ -1,6 +1,9 @@
 package es.yosiftware.libros.datos.portadas
 
 import android.content.Context
+import android.os.Build
+import coil3.gif.AnimatedImageDecoder
+import coil3.gif.GifDecoder
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
@@ -43,7 +46,11 @@ object Portadas {
 
     /** El cargador de imágenes de la app (`LibrosApp` es su `SingletonImageLoader.Factory`), con el cliente de [Red]. */
     fun cargador(contexto: Context, cliente: OkHttpClient = Red.cliente): ImageLoader = ImageLoader.Builder(contexto)
-        .components { add(OkHttpNetworkFetcherFactory(callFactory = { cliente })) }
+        .components {
+            add(OkHttpNetworkFetcherFactory(callFactory = { cliente }))
+            // Los GIF de los dragones del cargador: con el decodificador del sistema desde Android 9.
+            add(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) AnimatedImageDecoder.Factory() else GifDecoder.Factory())
+        }
         .diskCache {
             DiskCache.Builder()
                 .directory(contexto.cacheDir.resolve(CARPETA).toOkioPath())

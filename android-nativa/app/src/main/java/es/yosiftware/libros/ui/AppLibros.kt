@@ -76,6 +76,9 @@ import es.yosiftware.libros.ui.preferencias.PantallaPreferencias
 import es.yosiftware.libros.cuenta.Enlaces
 import androidx.compose.ui.platform.LocalContext
 import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
+import es.yosiftware.libros.ui.componentes.CargadorDelDragon
+import es.yosiftware.libros.ui.componentes.ContextoDeCarga
+import es.yosiftware.libros.ui.componentes.FrasesDelDragon
 import es.yosiftware.libros.ui.componentes.Avisos
 import es.yosiftware.libros.ui.componentes.LocalAvisos
 import es.yosiftware.libros.ui.navegacion.Destino
@@ -441,6 +444,16 @@ fun AppLibros(app: LibrosApp) {
                     PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, notas, busqueda, capituloPara, elementosPara, vista) }
                     // El libro minimizado, en su isla sobre la navegación (`app-native-reader-island`).
                     IslaDelLector(libro)
+                    // El cargador de los dragones, encima de todo: al recuperar la biblioteca y al abrir un libro, como
+                    // la APK de Capacitor (`restoreLibrary` y `book-load.guard`). Se elige al abrirse y no cambia hasta
+                    // cerrarse, aunque se pase de una carga a otra.
+                    val contextoDeCarga = when {
+                        biblioteca.cargando && biblioteca.universos.isEmpty() && biblioteca.errorDeCarga == null -> ContextoDeCarga.BIBLIOTECA
+                        libro.abierto != null && libro.libro == null && !libro.minimizado -> ContextoDeCarga.LIBRO
+                        else -> null
+                    }
+                    val carga = remember(identidad?.generacion, contextoDeCarga != null) { contextoDeCarga?.let { FrasesDelDragon.abrir(it, null) } }
+                    carga?.let { CargadorDelDragon(it) }
                 }
                 AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
 
