@@ -117,9 +117,11 @@ private val ArrastreParaCerrar = 72.dp
 @Composable
 fun PantallaLibro(vm: LibroViewModel, contenido: @Composable (VistaDelLibro) -> Unit) {
     val obra = vm.abierto ?: return
+    // Minimizado, el libro se queda en la isla (`IslaDelLector`): su contenido no se pinta, pero lo de cada vista sigue.
+    if (vm.minimizado) return
     val colores = LocalColores.current
     val ancha = LocalVentana.current.anchoDp >= 600
-    BackHandler(onBack = vm::cerrar)
+    BackHandler(onBack = vm::atras)
 
     Column(Modifier.fillMaxSize().background(colores.lienzo).clickable(enabled = false) {}) {
         Barra(vm, obra.nombre, obra.portada)
@@ -173,8 +175,7 @@ private fun Barra(vm: LibroViewModel, nombre: String, portada: String?) {
         horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
         verticalAlignment = Alignment.Bottom,
     ) {
-        // TODO(clon): en la APK, la flecha minimiza el libro (`native-reader-island`); llega con el lector persistente.
-        BotonDeIcono(Iconos.keyboardArrowDown, "Minimizar libro", vm::cerrar)
+        BotonDeIcono(Iconos.keyboardArrowDown, "Minimizar libro", vm::minimizar)
         Row(
             Modifier.weight(1f).heightIn(min = 48.dp),
             horizontalArrangement = Arrangement.spacedBy(Espacios.e2),

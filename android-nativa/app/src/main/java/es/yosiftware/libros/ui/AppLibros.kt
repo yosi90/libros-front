@@ -33,6 +33,7 @@ import es.yosiftware.libros.ui.libro.VistaDelLibro
 import java.io.File
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.NotasViewModel
+import es.yosiftware.libros.ui.libro.IslaDelLector
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
 import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
@@ -105,7 +106,7 @@ fun AppLibros(app: LibrosApp) {
     }
     // El libro abierto (hito 9), a pantalla completa por encima de todo.
     val libro: LibroViewModel = viewModel {
-        LibroViewModel(app.datos.ambito, app.datos.libro, app.datos.coleccion, avisos)
+        LibroViewModel(app.datos.ambito, app.datos.libro, app.datos.coleccion, avisos, AlmacenDelMovil(app))
     }
     val notas: NotasViewModel = viewModel { NotasViewModel(app.datos.ambito, app.datos.libro, avisos) }
     val busqueda: BusquedaViewModel = viewModel { BusquedaViewModel(app.datos.ambito) }
@@ -216,6 +217,8 @@ fun AppLibros(app: LibrosApp) {
                     )
                     CapasDeCatalogo(catalogo, alAbrirLectura = abrirLibro)
                     PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, notas, busqueda, capituloPara, vista) }
+                    // El libro minimizado, en su isla sobre la navegación (`app-native-reader-island`).
+                    IslaDelLector(libro)
                 }
                 AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
 

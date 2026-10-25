@@ -311,7 +311,9 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - [x] El capítulo con autoguardado (2026-10-25): `CapituloEditable` (el formulario, las reglas y los mensajes de la web, el lote por enviar y el borrador en JSON, con sus pruebas), `BorradoresLocales` (un fichero por capítulo en la carpeta de la cuenta, escrito de golpe) y `CapituloViewModel` (uno por capítulo y cuenta): el borrador a los 0,4 s, el servidor a los 1,8 s, en el acto al pasar a segundo plano o salir de la vista, y lo que no llegó se recupera al volver. `CapituloViewModelTest` prueba el caso del propietario: cerrar la app antes de enviar no pierde nada.
     - **Corregido a propósito:** en la web, una escena incompleta (sin personaje o sin localización) bloquea el guardado de todo el capítulo. Aquí se envían el capítulo y las escenas completas, y las incompletas esperan en el borrador («Cambios incompletos»). Con la cabecera mal escrita (por ejemplo, el título vacío a medias), las escenas se guardan igual.
   - [ ] La pantalla del capítulo (`PantallaCapitulo`, código hecho, 2026-10-25): falta compararla con las capturas en el Honor (estaba desconectado) y probar en él matar la app a mitad de escritura.
-- [ ] Lector persistente.
+- [ ] Lector persistente (código hecho, 2026-10-25; falta verlo en el Honor).
+  - `LibroViewModel` es también el lector: la flecha de la barra minimiza el libro a la isla (`IslaDelLector`: restaurar, portada y nombre, cerrar), que se restaura tal como estaba (los ViewModels de cada vista siguen vivos). Atrás cierra lo que haya encima, vuelve por las vistas y, en la primera, minimiza. Abrir el libro minimizado lo restaura; otro libro ocupa su sitio. El libro y su vista se recuerdan por cuenta: al volver a entrar, vuelve minimizado; sin conexión se queda en la isla y se carga al restaurarlo; si ya no está, «Lector cerrado». Pruebas en `LectorPersistenteTest`; muestra `--es vista minimizado`.
+  - Al minimizar o salir de un capítulo, lo escrito se guarda en el acto (`CapituloViewModel.guardarAhora`).
 
 ### Hito 10. APK Kotlin: entidades narrativas y editor RTF
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import es.yosiftware.libros.datos.cuenta.AlmacenEnMemoria
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.modelos.Nota
@@ -18,6 +19,7 @@ import es.yosiftware.libros.ui.componentes.Avisador
 import es.yosiftware.libros.ui.libro.ContenidoDelLibro
 import es.yosiftware.libros.ui.libro.BusquedaViewModel
 import es.yosiftware.libros.ui.libro.CapituloViewModel
+import es.yosiftware.libros.ui.libro.IslaDelLector
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.NotasViewModel
 import es.yosiftware.libros.ui.libro.VistaDelLibro
@@ -41,7 +43,7 @@ import org.json.JSONObject
  * las cifras se parecen, no son las mismas), `notas-vacias`, `notas-con-notas` (las dos de «El ritmo de la guerra» de
  * la captura y dos más, con el buscador), `nota-nueva` (el formulario con los avisos), `nota-borrar` (la confirmación),
  * `busqueda-vacia`, `busqueda-sin-resultados` («Vin» en «El imperio final», como la captura), `busqueda-con-resultados`
- * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 1 de «Siega», con sus escenas) y `capitulo-nuevo`.
+ * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 1 de «Siega», con sus escenas), `capitulo-nuevo` y `minimizado` (la isla del lector).
  */
 class MuestrasDeLibro : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +52,7 @@ class MuestrasDeLibro : ComponentActivity() {
         val vista = intent.getStringExtra("vista") ?: "indice-abierto"
         val tema = if (intent.getStringExtra("tema") == "oscuro") TemaMobile.Oscuro else TemaMobile.Claro
         val app = application as LibrosApp
-        val vm = LibroViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, app.datos.coleccion, Avisador.Mudo)
+        val vm = LibroViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, app.datos.coleccion, Avisador.Mudo, AlmacenEnMemoria())
         val notas = NotasViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, Avisador.Mudo)
         val busqueda = BusquedaViewModel(AmbitoDeCuenta("muestra", lifecycleScope))
         // Sin cuenta no hay carpeta de borradores ni red: el capítulo se ve y se edita, pero no se guarda.
@@ -66,6 +68,7 @@ class MuestrasDeLibro : ComponentActivity() {
         when (vista) {
             "capitulo" -> vm.ir(VistaDelLibro.DeCapitulo(1))
             "capitulo-nuevo" -> vm.ir(VistaDelLibro.NuevoCapitulo)
+            "minimizado" -> vm.minimizar()
         }
         if (vista.startsWith("busqueda")) {
             vm.ir(VistaDelLibro.Busqueda)
@@ -88,7 +91,10 @@ class MuestrasDeLibro : ComponentActivity() {
         setContent {
             TemaLibros(tema) {
                 CompositionLocalProvider(LocalVentana provides rememberVentana()) {
-                    Box(Modifier.fillMaxSize()) { PantallaLibro(vm) { ContenidoDelLibro(vm, notas, busqueda, { capitulo }, it) } }
+                    Box(Modifier.fillMaxSize()) {
+                        PantallaLibro(vm) { ContenidoDelLibro(vm, notas, busqueda, { capitulo }, it) }
+                        IslaDelLector(vm)
+                    }
                 }
             }
         }
