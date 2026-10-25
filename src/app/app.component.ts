@@ -21,6 +21,13 @@ import { PresentationModeService } from './services/ui/presentation-mode.service
 import { CommandPaletteService } from './services/ui/command-palette.service';
 import { WebCommandPaletteComponent } from './components/web/ui/web-command-palette/web-command-palette.component';
 
+/** Los tres dragones del cargador. */
+const DRAGON_LOADERS = [
+    'assets/media/img/dragon1-unscreen.gif',
+    'assets/media/img/dragon2-unscreen.gif',
+    'assets/media/img/dragon3-unscreen.gif'
+];
+
 @Component({
     standalone: true,
     selector:  'app-root',
@@ -41,7 +48,11 @@ export class AppComponent implements OnInit {
     readonly commandPalette = inject(CommandPaletteService);
     title = 'Memoria bibliográfica';
     building: boolean = true;
-    dragonLoader = 'assets/media/img/dragon1-unscreen.gif';
+    /**
+     * Uno de los tres dragones, al azar en cada carga de la página y el mismo en todas sus cargas: así no cambia al pasar
+     * de la sesión a la biblioteca (por eso se dejó uno fijo en septiembre de 2026, y se perdieron los otros dos).
+     */
+    dragonLoader = DRAGON_LOADERS[Math.floor(Math.random() * DRAGON_LOADERS.length)];
     loaderMessage = 'Cargando...';
     sessionReady = false;
     private loginLoaderMessages = [
