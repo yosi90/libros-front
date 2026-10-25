@@ -1,5 +1,6 @@
 import { MensajeDelCanal } from '../interfaces/platform-spaces';
 import { getApiErrorCode } from './api-error-message';
+import { SIN_SESION_PLATAFORMA } from './platform';
 
 // Lo común de los clubes en los espacios de la plataforma (ADHESION_YOSIFTWARE.md, «Los clubes»; ESPACIOS.md).
 
@@ -51,7 +52,7 @@ export function spaceErrorMessage(error: unknown, fallback: string): string {
         case 'sin_permiso_en_el_espacio': return 'Tu papel en el club no te deja hacer esto.';
         case 'espacio_no_encontrado': return 'Este club ya no está disponible para tu cuenta.';
         case 'busqueda_no_valida': return 'Escribe entre 2 y 60 caracteres para buscar.';
-        case 'sin_sesion': return 'Entra con tu cuenta de Yosiftware.';
+        case 'sin_sesion': return SIN_SESION_PLATAFORMA.error.error;
         default: return fallback;
     }
 }

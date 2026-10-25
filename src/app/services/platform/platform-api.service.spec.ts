@@ -3,7 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { environment } from '../../../environment/environment';
 import { PlatformSessionService } from '../auth/platform-session.service';
-import { PlatformApiService, SIN_SESION_PLATAFORMA } from './platform-api.service';
+import { SIN_SESION_PLATAFORMA } from '../../shared/platform';
+import { PlatformApiService } from './platform-api.service';
 
 describe('PlatformApiService', () => {
     const base = environment.plataforma.apiUrl.replace(/\/+$/, '');

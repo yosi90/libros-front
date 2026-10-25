@@ -3,6 +3,8 @@ import { Observable, defer, from } from 'rxjs';
 import { ChatFloatingPreferences, ChatFloatingPreferencesPatch, ChatFloatWindow } from '../../interfaces/chat';
 import { PlatformSessionService } from '../auth/platform-session.service';
 import { AjustesPlataforma } from '../auth/yosiftware-sdk';
+import { getApiErrorCode } from '../../shared/api-error-message';
+import { SIN_SESION_PLATAFORMA } from '../../shared/platform';
 
 /** La clave del bloque de ajustes de Libros en la que viven las ventanas flotantes del chat. */
 export const CHAT_FLOATING_SETTINGS_KEY = 'chatFlotante';
@@ -10,7 +12,7 @@ const MAX_WINDOWS = 5;
 
 /** El SDK rechaza el `guardar` con versión si otro dispositivo guardó entre medias. */
 function isSettingsConflict(error: unknown): boolean {
-    return (error as { code?: unknown } | null)?.code === 'ajustes_desactualizados';
+    return getApiErrorCode(error) === 'ajustes_desactualizados';
 }
 
 export function defaultChatFloatingPreferences(version = 0): ChatFloatingPreferences {
@@ -117,7 +119,7 @@ export class ChatFloatingSettingsService {
     }
 
     private fromBlock(block: AjustesPlataforma | null): ChatFloatingPreferences {
-        if (!block) throw { code: 'sin_sesion' };
+        if (!block) throw SIN_SESION_PLATAFORMA;
         return normalizeChatFloatingPreferences(block.documento?.[CHAT_FLOATING_SETTINGS_KEY], block.version ?? 0);
     }
 

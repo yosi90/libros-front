@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { fakeAsync, tick } from '@angular/core/testing';
 import { MensajeDelCanal } from '../interfaces/platform-spaces';
 import { ClubChannelReconciler, ClubChannelSection, FEED_RETRY_DELAYS_MS, clubIdFromSpace, clubPersonName, spaceErrorMessage } from './club-spaces';
+import { SIN_SESION_PLATAFORMA } from './platform';
 
 describe('Los clubes en los espacios', () => {
     const message = (secuencia: number, tipo: string, extra: Record<string, unknown> = {}): MensajeDelCanal =>
@@ -35,6 +36,8 @@ describe('Los clubes en los espacios', () => {
         expect(spaceErrorMessage(error('invitacion_no_encontrada'), 'x')).toContain('caducó');
         expect(spaceErrorMessage(error('expulsado_del_espacio'), 'x')).toContain('invitación');
         expect(spaceErrorMessage(error('otro'), 'Texto de la pantalla')).toBe('Texto de la pantalla');
+        // Sin sesión, PlatformApiService no llama: el mismo error se explica igual.
+        expect(spaceErrorMessage(SIN_SESION_PLATAFORMA, 'x')).toBe('Entra con tu cuenta de Yosiftware.');
     });
 
     it('la espera del feed está acotada (unos cinco minutos) y no es infinita', () => {

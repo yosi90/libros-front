@@ -3,13 +3,10 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { PlatformSessionService } from '../auth/platform-session.service';
 import { requestWithToken } from '../auth/token-request';
-import { PLATFORM_API_URL } from '../../shared/platform';
+import { PLATFORM_API_URL, SIN_SESION_PLATAFORMA } from '../../shared/platform';
 
 type Metodo = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 type Parametros = Record<string, string | number | boolean | null | undefined>;
-
-/** Lo que responde una ruta de la plataforma sin sesión: no hay a quién preguntar. */
-export const SIN_SESION_PLATAFORMA = { status: 401, error: { code: 'sin_sesion', error: 'Entra con tu cuenta de Yosiftware.' } };
 
 /**
  * Las rutas de la API de la plataforma (`environment.plataforma.apiUrl`: el chat, las amistades…) con el token de la
