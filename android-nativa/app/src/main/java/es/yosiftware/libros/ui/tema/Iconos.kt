@@ -119,6 +119,20 @@ object Iconos {
     @DrawableRes val calendarToday = R.drawable.mi_calendar_today
     @DrawableRes val analytics = R.drawable.mi_analytics
     @DrawableRes val delete = R.drawable.mi_delete
+    @DrawableRes val formatBold = R.drawable.mi_format_bold
+    @DrawableRes val formatItalic = R.drawable.mi_format_italic
+    @DrawableRes val formatUnderlined = R.drawable.mi_format_underlined
+    @DrawableRes val strikethroughS = R.drawable.mi_strikethrough_s
+    @DrawableRes val formatColorText = R.drawable.mi_format_color_text
+    @DrawableRes val formatColorFill = R.drawable.mi_format_color_fill
+    @DrawableRes val formatAlignLeft = R.drawable.mi_format_align_left
+    @DrawableRes val formatAlignCenter = R.drawable.mi_format_align_center
+    @DrawableRes val formatAlignRight = R.drawable.mi_format_align_right
+    @DrawableRes val formatAlignJustify = R.drawable.mi_format_align_justify
+    @DrawableRes val formatIndentDecrease = R.drawable.mi_format_indent_decrease
+    @DrawableRes val formatIndentIncrease = R.drawable.mi_format_indent_increase
+    @DrawableRes val formatLineSpacing = R.drawable.mi_format_line_spacing
+    @DrawableRes val arrowDropDown = R.drawable.mi_arrow_drop_down
 
     /** El símbolo del ecosistema (ecosistema-kit/marca/simbolo-trazo.svg), en todo enlace a la web social (MARCA.md). */
     @DrawableRes val simboloYosiftware = R.drawable.simbolo_yosiftware
