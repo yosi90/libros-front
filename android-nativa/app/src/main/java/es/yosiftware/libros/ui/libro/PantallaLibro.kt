@@ -562,7 +562,7 @@ private fun SelectorDeParte(vm: LibroViewModel, editor: EditorDeEstructura, modi
 /**
  * Lo que enseña el contenido mientras no está clonado: el nombre de la vista y en qué paso llega.
  *
- * TODO(clon): la búsqueda y los capítulos llegan en los pasos siguientes del hito 9, y los
+ * TODO(clon): los capítulos llegan en los pasos siguientes del hito 9, y los
  * elementos, en el hito 10.
  */
 @Composable
@@ -584,10 +584,11 @@ fun ContenidoPendiente(vista: VistaDelLibro) {
 
 /** Lo que enseña el contenido del libro en cada vista (`app-book-router`). */
 @Composable
-fun ContenidoDelLibro(vm: LibroViewModel, notas: NotasViewModel, vista: VistaDelLibro) {
+fun ContenidoDelLibro(vm: LibroViewModel, notas: NotasViewModel, busqueda: BusquedaViewModel, vista: VistaDelLibro) {
     when (vista) {
         VistaDelLibro.Estadisticas -> PantallaResumenDelLibro(vm)
         VistaDelLibro.Notas -> PantallaNotasDelLibro(vm.abierto?.id ?: 0, notas)
+        VistaDelLibro.Busqueda -> PantallaBusquedaDelLibro(vm, busqueda)
         else -> ContenidoPendiente(vista)
     }
 }

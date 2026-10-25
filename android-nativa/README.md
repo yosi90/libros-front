@@ -52,6 +52,14 @@ Clonado de `mobile-catalog-view`, `catalog.component.ts` y `catalog-saga` en su 
 
 Clonadas de `mobile-statistics-view`, `statistics.component.ts` y `app-stat-rows` (5dc3120). La lógica, en `Estadisticas.kt` (lo de `library-stats.ts`), con sus pruebas; `EstadisticasViewModel` carga la pestaña Personal al entrar y la General al abrirla; `PantallaEstadisticas` es una columna en el móvil y una rejilla de dos desde 600 dp. Muestra de depuración: `MuestrasDeEstadisticas` (`--es vista personal|general|error`).
 
+## El libro (`ui/libro/`, hito 9)
+
+- `LibroViewModel` y `PantallaLibro`: la barra, el índice (`IndiceDelLibro`), la navegación de abajo, la hoja de Elementos y el editor de partes e interludios. `ContenidoDelLibro` elige la vista.
+- Estadísticas: `ResumenDelLibro` (las cuentas), `GraficosDelLibro` (los gráficos en Compose) y `PantallaResumenDelLibro`.
+- Notas: `NotasDelLibro` (con `NotasViewModel`) y `PantallaNotasDelLibro`. Las notas antiguas en RTF pasan por `datos/Rtf.kt`.
+- Búsqueda: `BusquedaEnElLibro` (con `BusquedaViewModel`), que busca en el libro ya cargado, y `PantallaBusquedaDelLibro`.
+- Muestras de depuración: `MuestrasDeLibro` (la lista de vistas está en su documentación).
+
 ## Compilar
 
 Con el JDK 21 y el SDK de Android (en `local.properties`, `sdk.dir=…`, que no se versiona):

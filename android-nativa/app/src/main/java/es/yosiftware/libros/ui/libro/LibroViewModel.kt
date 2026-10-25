@@ -26,7 +26,8 @@ sealed interface VistaDelLibro {
     data class DeCapitulo(val id: Int, val deInterludio: Boolean = false) : VistaDelLibro
     data object NuevoCapitulo : VistaDelLibro
     data class NuevoCapituloDeInterludio(val interludioId: Int) : VistaDelLibro
-    data class DeElemento(val elemento: Elemento, val crear: Boolean = false) : VistaDelLibro
+    /** [seleccionado]: el que se abre en la lista (el `?selected=` de la web), como desde la búsqueda. */
+    data class DeElemento(val elemento: Elemento, val crear: Boolean = false, val seleccionado: Int? = null) : VistaDelLibro
 }
 
 /** El formulario de una parte o un interludio (`structureForm`), con los números como texto, como se escriben. */

@@ -289,7 +289,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - Lógica en `ui/libro/IndiceDelLibro.kt` con sus pruebas; muestra de depuración `MuestrasDeLibro`; comparada con las capturas en el Honor desplegado.
   - Se abre desde la Biblioteca, las secciones de una antología y «Abrir lectura» del Catálogo. El contenido de cada vista (estadísticas, notas, búsqueda, capítulos) llega en los pasos siguientes; la flecha de minimizar cierra el libro hasta el lector persistente.
   - **Corregido a propósito:** el índice de la web sacaba con `splice(-1, 1)` el último capítulo cuando faltaba un orden; aquí cada capítulo se busca por su orden (el orden visible es el mismo; un interludio podía colgarse de otro capítulo).
-- [ ] Notas, búsqueda avanzada y estadísticas del libro.
+- [x] Notas, búsqueda avanzada y estadísticas del libro (2026-10-25).
   - [x] Estadísticas del libro (2026-10-25): «Tu lectura» (medidor o página, fechas y «Establecer fecha» de compra), las cifras, los destacados y los cuatro gráficos en Compose (ritmo, mapa de presencia, reparto y grupos), en dos columnas desde 900 dp.
     - Lógica en `ui/libro/ResumenDelLibro.kt` con sus pruebas, y gráficos en `GraficosDelLibro.kt`. Muestra `resumen-con-datos`; comparada con las capturas en el Honor desplegado.
     - Sin pulir de más a propósito: el propietario quiere rediseñarla tras el clon (hito 15).
@@ -297,7 +297,8 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
     - Lógica en `ui/libro/NotasDelLibro.kt` con sus pruebas. Muestras `notas-vacias`, `notas-con-notas`, `nota-nueva` y `nota-borrar`; comparada con la captura real en el Honor desplegado.
     - **Corregido a propósito:** en la APK actual, el botón de la vista activa de la barra no llevaba el `is-active` del Sass (salía el gris del `:hover` que se queda pegado). Aquí lleva el del Sass.
     - **Pendiente, en todas las pantallas:** el texto del cuerpo sale entre un 4 y un 7 % más ancho que en la WebView del Honor (escala de letra 1,0). La web pide Inter, que no viene en el paquete, y cae en `system-ui`; Compose usa la letra del sistema. Hay que ver qué letra pinta la WebView y usar esa.
-  - [ ] Búsqueda avanzada.
+  - [x] Búsqueda avanzada (2026-10-25): en el libro ya cargado y fuera del hilo principal, primero las coincidencias exactas y si no las aproximadas (Levenshtein, dos por categoría); las siete categorías, los grupos plegables (dos columnas desde 600 dp) y, al tocar un resultado, su capítulo o su elemento (con `seleccionado`, el `?selected=` de la web).
+    - Lógica en `ui/libro/BusquedaEnElLibro.kt` con sus pruebas. Muestras `busqueda-vacia`, `busqueda-sin-resultados`, `busqueda-con-resultados` y `busqueda-aproximada`; comparada con las capturas en el Honor desplegado (no hay captura con resultados: esos, según el Sass).
 - [ ] Capítulos y escenas, con autoguardado y cambios pendientes.
 - [ ] Lector persistente.
 

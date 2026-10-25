@@ -16,6 +16,7 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.rememberVentana
 import es.yosiftware.libros.ui.componentes.Avisador
 import es.yosiftware.libros.ui.libro.ContenidoDelLibro
+import es.yosiftware.libros.ui.libro.BusquedaViewModel
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.NotasViewModel
 import es.yosiftware.libros.ui.libro.VistaDelLibro
@@ -37,7 +38,9 @@ import org.json.JSONObject
  * `indice-partes-interludios` («El camino de los reyes», en marcha, con partes e interludios), `estructura` (el
  * editor de una parte), `resumen-con-datos` (un libro como «Siega» de la captura, con capítulos, escenas y personajes;
  * las cifras se parecen, no son las mismas), `notas-vacias`, `notas-con-notas` (las dos de «El ritmo de la guerra» de
- * la captura y dos más, con el buscador), `nota-nueva` (el formulario con los avisos) y `nota-borrar` (la confirmación).
+ * la captura y dos más, con el buscador), `nota-nueva` (el formulario con los avisos), `nota-borrar` (la confirmación),
+ * `busqueda-vacia`, `busqueda-sin-resultados` («Vin» en «El imperio final», como la captura), `busqueda-con-resultados`
+ * («citra» en «Siega») y `busqueda-aproximada` («citrra»).
  */
 class MuestrasDeLibro : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,12 +51,24 @@ class MuestrasDeLibro : ComponentActivity() {
         val app = application as LibrosApp
         val vm = LibroViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, app.datos.coleccion, Avisador.Mudo)
         val notas = NotasViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, Avisador.Mudo)
+        val busqueda = BusquedaViewModel(AmbitoDeCuenta("muestra", lifecycleScope))
         val conPartes = vista == "indice-partes-interludios" || vista == "estructura"
-        vm.mostrarMuestra(if (vista == "resumen-con-datos") siega() else if (conPartes) camino else imperio)
+        val conDatos = vista == "resumen-con-datos" || vista == "busqueda-con-resultados" || vista == "busqueda-aproximada"
+        vm.mostrarMuestra(if (conDatos) siega() else if (conPartes) camino else imperio)
         when (vista) {
             "indice-abierto", "indice-partes-interludios" -> vm.alternarIndice()
             "hoja-elementos" -> vm.alternarElementos()
             "estructura" -> vm.abrirEstructura(TipoDeGrupo.PARTE, 1)
+        }
+        if (vista.startsWith("busqueda")) {
+            vm.ir(VistaDelLibro.Busqueda)
+            val consulta = when (vista) {
+                "busqueda-sin-resultados" -> "Vin"
+                "busqueda-con-resultados" -> "citra"
+                "busqueda-aproximada" -> "citrra"
+                else -> ""
+            }
+            busqueda.mostrarMuestra(vm.libro!!, consulta)
         }
         if (vista.startsWith("nota")) {
             vm.ir(VistaDelLibro.Notas)
@@ -66,7 +81,7 @@ class MuestrasDeLibro : ComponentActivity() {
         setContent {
             TemaLibros(tema) {
                 CompositionLocalProvider(LocalVentana provides rememberVentana()) {
-                    Box(Modifier.fillMaxSize()) { PantallaLibro(vm) { ContenidoDelLibro(vm, notas, it) } }
+                    Box(Modifier.fillMaxSize()) { PantallaLibro(vm) { ContenidoDelLibro(vm, notas, busqueda, it) } }
                 }
             }
         }
