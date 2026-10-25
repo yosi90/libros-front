@@ -336,7 +336,7 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         // Ana vuelve tras reiniciar el navegador (el doble arranca con Ana): recupera su borrador y se guarda con ella.
         await page.reload();
         await expect(title).toHaveValue('La puerta que solo Ana ha escrito', { timeout: 15_000 });
-        await expect(page.getByText('Hemos recuperado los cambios que no se guardaron en este capítulo')).toBeVisible();
+        await expect(page.getByText('Hemos recuperado los cambios de este capítulo que no llegaron a guardarse')).toBeVisible();
         await expect.poll(() => world.chapterSaves.length, { timeout: 10_000 }).toBe(2);
         expect(world.chapterSaves[1]).toEqual({ account: ana.id, body: expect.objectContaining({ Nombre: 'La puerta que solo Ana ha escrito' }) });
         expect(await page.evaluate(key => localStorage.getItem(key), pendingKey(ana))).toBeNull();
