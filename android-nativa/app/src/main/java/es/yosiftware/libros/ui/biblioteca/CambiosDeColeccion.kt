@@ -28,3 +28,32 @@ fun cambiosDeColeccion(nuevo: ValoresDeColeccion, original: ValoresDeColeccion):
     }
     return Result.success(cambios)
 }
+
+/** Lo que se manda de una sección de antología (`AnthologySectionCollectionWrite`): solo los campos que cambian. */
+data class CambioDeSeccion(
+    val estado: TipoDeEstado? = null,
+    val puntuacion: Int? = null,
+    val borrarPuntuacion: Boolean = false,
+    val resena: String? = null,
+    val borrarResena: Boolean = false,
+)
+
+/**
+ * Lo que hay que mandar para guardar el editor de una sección (`saveAnthologySectionState`), o `null` si nada cambia.
+ * Aquí sí se puede quitar la puntuación, y entonces la reseña se borra con ella.
+ */
+fun cambiosDeSeccion(nuevo: ValoresDeColeccion, original: ValoresDeColeccion): CambioDeSeccion? {
+    val estado = nuevo.estado?.takeIf { it != original.estado }
+    val puntuacionCambia = nuevo.puntuacion != original.puntuacion
+    val resena = nuevo.resena.trim()
+    val resenaCambia = resena != original.resena.trim()
+    val borrarResena = (resenaCambia && resena.isEmpty()) || (nuevo.puntuacion == null && original.puntuacion != null)
+    val cambio = CambioDeSeccion(
+        estado = estado,
+        puntuacion = if (puntuacionCambia) nuevo.puntuacion else null,
+        borrarPuntuacion = puntuacionCambia && nuevo.puntuacion == null,
+        resena = if (resenaCambia && resena.isNotEmpty() && !borrarResena) resena else null,
+        borrarResena = borrarResena,
+    )
+    return cambio.takeIf { it != CambioDeSeccion() }
+}

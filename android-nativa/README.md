@@ -29,6 +29,16 @@ Las pruebas JVM (`app/src/test/.../datos/`) no salen a la red: usan MockWebServe
 - Entrar con Google enciende `cuenta/ServicioDeEntrada` (servicio en primer plano corto), como 3.5 Companion, para que MagicOS no congele la app.
 - Solo en depuración, `MuestrasDeCuenta` (`app/src/debug/`) pinta cada pantalla con una sesión de muestra para capturarla por ADB sin entrar: `adb shell am start -n es.yosiftware.libros.qa/es.yosiftware.libros.MuestrasDeCuenta --es vista entrar --es tema oscuro` (las vistas, en su cabecera). Con `--es vista google` lanza «Entrar con Google» de verdad, para ver que sale el selector de cuentas.
 
+## La Biblioteca (`ui/biblioteca/`, hito 8)
+
+Clonada de `mobile-library-view` y `books.component.ts` **en su versión de la APK de Capacitor** (5dc3120, la de las capturas): el corte quitó de la web las reglas `native-mobile` del Sass, que son las que valen aquí.
+
+- La lógica, pura y con sus pruebas JVM: la búsqueda con ámbitos (`Busqueda.kt`), la agrupación, las sagas encadenadas y los estados (`Agrupacion.kt`), lo que se ve y lo que se abre (`Biblioteca.kt`) y lo que se guarda del editor (`CambiosDeColeccion.kt`).
+- `BibliotecaViewModel` (de la cuenta): la colección, los filtros, «Organizar por» (guardado por cuenta en `Almacen`), el editor de estado y la antología abierta con sus secciones.
+- Las pantallas: `PantallaBiblioteca`, `TarjetaDeObra`, `PantallaAntologia` y `EditorDeEstado` (a pantalla completa; su cuerpo usa `ColumnaEstirada`, que reparte el alto que sobra como la rejilla de CSS). `CapasDeBiblioteca` las pone encima del shell.
+- Los avisos de toda la app (`ui/componentes/Avisos.kt` y `ColaDeAvisos.kt`, como `app-toast`): en `LocalAvisos`, y los ViewModels los usan como `Avisador`.
+- Solo en depuración, `MuestrasDeBiblioteca` pinta la Biblioteca con la colección de las capturas: `adb shell am start -n es.yosiftware.libros.qa/es.yosiftware.libros.MuestrasDeBiblioteca --es vista raiz --es tema oscuro` (las vistas, en su cabecera). En el Honor, la captura es de la pantalla interior: `screencap -p -d 4630946846403687043`.
+
 ## Compilar
 
 Con el JDK 21 y el SDK de Android (en `local.properties`, `sdk.dir=…`, que no se versiona):

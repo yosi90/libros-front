@@ -42,6 +42,35 @@ object Iconos {
     @DrawableRes val article = R.drawable.mi_article
     @DrawableRes val eventBusy = R.drawable.mi_event_busy
 
+    // Los avisos (app-toast-host).
+    @DrawableRes val checkCircle = R.drawable.mi_check_circle
+    @DrawableRes val errorOutline = R.drawable.mi_error_outline
+    @DrawableRes val notificationsActive = R.drawable.mi_notifications_active
+    @DrawableRes val helpOutline = R.drawable.mi_help_outline
+
+    // La Biblioteca y el editor de estado (hito 8).
+    @DrawableRes val search = R.drawable.mi_search
+    @DrawableRes val tune = R.drawable.mi_tune
+    @DrawableRes val public = R.drawable.mi_public
+    @DrawableRes val expandLess = R.drawable.mi_expand_less
+    @DrawableRes val expandMore = R.drawable.mi_expand_more
+    @DrawableRes val collectionsBookmark = R.drawable.mi_collections_bookmark
+    @DrawableRes val link = R.drawable.mi_link
+    @DrawableRes val star = R.drawable.mi_star
+    @DrawableRes val starBorder = R.drawable.mi_star_border
+    @DrawableRes val searchOff = R.drawable.mi_search_off
+    @DrawableRes val cloudOff = R.drawable.mi_cloud_off
+    @DrawableRes val edit = R.drawable.mi_edit
+    @DrawableRes val autoAwesome = R.drawable.mi_auto_awesome
+    @DrawableRes val check = R.drawable.mi_check
+
+    // Los estados de lectura (readingStatusOptions).
+    @DrawableRes val schedule = R.drawable.mi_schedule
+    @DrawableRes val doneAll = R.drawable.mi_done_all
+    @DrawableRes val addShoppingCart = R.drawable.mi_add_shopping_cart
+    @DrawableRes val bookmarkAdd = R.drawable.mi_bookmark_add
+    @DrawableRes val block = R.drawable.mi_block
+
     /** El símbolo del ecosistema (ecosistema-kit/marca/simbolo-trazo.svg), en todo enlace a la web social (MARCA.md). */
     @DrawableRes val simboloYosiftware = R.drawable.simbolo_yosiftware
 

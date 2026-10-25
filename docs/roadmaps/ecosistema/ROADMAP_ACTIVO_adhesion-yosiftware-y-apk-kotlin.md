@@ -235,7 +235,21 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** las reglas de dominio repartidas en helpers (ediciones poseídas, «Ver ediciones» solo con varias, secciones excluidas del catálogo) son fáciles de perder. Se portan con sus pruebas.
 
-- [ ] Biblioteca y modal de estado.
+- [x] Biblioteca y modal de estado (2026-10-25, rama `apk/hito-8-biblioteca`):
+  - la búsqueda con ámbitos y chips, los filtros (organizar por universos o estados, y la disponibilidad), «Continúa leyendo», los universos con sus sagas encadenadas, las historias independientes, la vista por estados y los estados vacíos;
+  - el editor de estado, puntuación y reseña a pantalla completa, también el de cada sección de una antología;
+  - la antología con sus secciones, su progreso y sus acciones;
+  - los avisos flotantes de toda la app.
+
+  Comparada con las capturas en el Xiaomi y en el Honor desplegado, en claro y en oscuro (`referencias-apk-capacitor/_kotlin/biblioteca/`, con la muestra de depuración). Las medidas salen del Sass de la APK de Capacitor (5dc3120), no del de la web de hoy, que perdió las reglas `native-mobile` en el corte.
+
+  Diferencias a propósito:
+  - **Títulos de las historias independientes:** en la APK de Capacitor salían en mayúsculas, pequeños y grises. Era un fallo de CSS: la regla del rótulo «Historias independientes» (`.m-library__standalone h3`) también alcanzaba al título de cada tarjeta. Aquí van como los de las sagas, igual que hicimos con el modal oscuro.
+  - **Si la colección no carga:** la web no tenía pantalla para ese fallo; aquí se avisa y se ofrece «Reintentar».
+
+  Pendiente:
+  - abrir un libro (hito 9) y la ficha, las ediciones y «Similares» (el Catálogo, en este hito);
+  - la letra del sistema del Xiaomi pinta la negrita (700) más fina que la WebView; es de la tipografía del hito 5, no de la Biblioteca.
 - [ ] Catálogo, hoja de saga, ediciones y petición de catálogo.
 - [ ] Estadísticas generales.
 - [ ] Comparación con las capturas, en claro y oscuro, plegada y desplegada.

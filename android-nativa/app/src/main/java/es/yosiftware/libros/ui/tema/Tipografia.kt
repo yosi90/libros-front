@@ -20,7 +20,7 @@ object Fuentes {
 private val comoCss = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
 
 /** 1rem son 16 px, que en la WebView de la APK son 16 dp; aquí, sp, para respetar el tamaño de letra del sistema. */
-private fun rem(valor: Double) = (valor * 16).sp
+internal fun rem(valor: Double) = (valor * 16).sp
 
 /**
  * Los textos de `_primitives.sass` y de los componentes Mobile, con sus tamaños, pesos, interlineados y espaciados. El

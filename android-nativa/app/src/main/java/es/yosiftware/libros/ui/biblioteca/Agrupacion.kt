@@ -134,3 +134,26 @@ fun progresoDeSeccion(seccion: Obra): Double = (seccion.porcentajeCompletado ?: 
 
 /** Un número como lo escribe la web (JavaScript): «34.95», «1», sin ceros de más. */
 fun numero(valor: Double): String = if (valor % 1.0 == 0.0) valor.toLong().toString() else valor.toBigDecimal().stripTrailingZeros().toPlainString()
+
+/** Las secciones por su orden y, a igual orden, por nombre; sin orden, al final (`sortAnthologySections`). */
+fun ordenarSecciones(secciones: List<Obra>): List<Obra> =
+    secciones.sortedWith(compareBy<Obra> { it.orden ?: Double.MAX_VALUE }.thenComparator { a, b -> comparadorDeNombres.compare(a.nombre, b.nombre) })
+
+/** Las secciones de una antología a partir de su progreso en la colección, mientras llega su ficha (`progressSectionsAsBooks`). */
+fun seccionesDelProgreso(antologia: Obra): List<Obra> = antologia.seccionesProgreso.mapIndexed { indice, progreso ->
+    val inicio = progreso.paginaInicio
+    val fin = progreso.paginaFinal
+    Obra(
+        tipo = Obra.LIBRO,
+        id = progreso.libroId,
+        nombre = progreso.nombre,
+        portada = progreso.portada.orEmpty(),
+        autores = antologia.autores,
+        estados = emptyList(),
+        orden = (indice + 1).toDouble(),
+        porcentajeCompletado = progreso.porcentajeCompletado,
+        paginas = if (inicio != null && fin != null && inicio != 0.0 && fin != 0.0) (fin - inicio + 1).toInt() else null,
+        paginaInicio = inicio,
+        paginaFinal = fin,
+    )
+}

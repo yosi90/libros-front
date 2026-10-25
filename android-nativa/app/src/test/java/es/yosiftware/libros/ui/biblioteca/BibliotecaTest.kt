@@ -199,4 +199,19 @@ class BibliotecaTest {
         val resultado = cambiosDeColeccion(original.copy(puntuacion = null, resena = ""), original)
         assertEquals("La reseña necesita una puntuación", resultado.exceptionOrNull()?.message)
     }
+
+    // --- Guardar el editor de una sección (`saveAnthologySectionState`). ---
+
+    @Test
+    fun enUnaSeccionSoloVaLoQueCambiaYSePuedeQuitarLaPuntuacion() {
+        val original = ValoresDeColeccion(TipoDeEstado.EN_MARCHA, 4, "Buena")
+        assertNull(cambiosDeSeccion(original, original))
+        assertEquals(CambioDeSeccion(estado = TipoDeEstado.LEIDO), cambiosDeSeccion(original.copy(estado = TipoDeEstado.LEIDO), original))
+        assertEquals(CambioDeSeccion(resena = "Muy buena"), cambiosDeSeccion(original.copy(resena = " Muy buena "), original))
+        assertEquals(
+            CambioDeSeccion(borrarPuntuacion = true, borrarResena = true),
+            cambiosDeSeccion(original.copy(puntuacion = null, resena = ""), original),
+        )
+        assertEquals(CambioDeSeccion(borrarResena = true), cambiosDeSeccion(original.copy(resena = ""), original))
+    }
 }
