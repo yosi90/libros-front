@@ -100,6 +100,8 @@ android {
             applicationIdSuffix = ".qa"
             versionNameSuffix = "-qa"
             conFirebase(datosDeFirebase("google-services.qa.json", "$paquete.qa"))
+            // Los App Links: la web de Libros de QA (su `assetlinks.json` trae el paquete `.qa`).
+            manifestPlaceholders["webLibros"] = "qa-libros.yosiftware.es"
             buildConfigField("String", "API_LIBROS", "\"https://qa-api.yosiftware.es/\"")
             // La web de Libros, para «Errores y propuestas» (`?reportar`, ecosistema-kit/APK.md).
             buildConfigField("String", "WEB_LIBROS", "\"https://qa-libros.yosiftware.es/\"")
@@ -109,6 +111,7 @@ android {
             dimension = "entorno"
             // Sin las huellas de la clave de publicación dadas de alta, Google no deja entrar (sí con contraseña).
             conFirebase(datosDeFirebase("google-services.produccion.json", paquete))
+            manifestPlaceholders["webLibros"] = "libros.yosiftware.es"
             buildConfigField("String", "API_LIBROS", "\"https://libros-api.yosiftware.es/\"")
             buildConfigField("String", "WEB_LIBROS", "\"https://libros.yosiftware.es/\"")
             buildConfigField("boolean", "PLATAFORMA_QA", "false")

@@ -55,6 +55,12 @@ import es.yosiftware.libros.ui.mensajes.ConversacionViewModel
 import es.yosiftware.libros.push.AperturaDeAviso
 import es.yosiftware.libros.push.FiltroDePush as PushFiltro
 import es.yosiftware.libros.ui.avisos.AccionesDelPanel
+import es.yosiftware.libros.ui.comunidad.AccionesDeInvitacion
+import es.yosiftware.libros.ui.comunidad.DialogoDeInvitacion
+import es.yosiftware.libros.ui.comunidad.InvitacionPorCodigoViewModel
+import es.yosiftware.sesion.EspaciosYosiftware
+import es.yosiftware.libros.datos.ComprobacionDeVersion
+import android.content.Context
 import es.yosiftware.libros.ui.avisos.CentroDeAvisosViewModel
 import es.yosiftware.libros.ui.avisos.PanelDeAvisos
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -183,6 +189,28 @@ fun AppLibros(app: LibrosApp) {
             }
         }
     }
+    // El aviso de versión nueva (D6: una vez por versión): al arrancar y al volver a la app si han pasado 12 horas. No
+    // depende de la sesión; si falla, nada.
+    val contextoDeVersion = LocalContext.current
+    LaunchedEffect(cicloDeLaApp) {
+        var ultimaComprobacion = 0L
+        cicloDeLaApp.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            if (System.currentTimeMillis() - ultimaComprobacion < 12 * 60 * 60 * 1000L) return@repeatOnLifecycle
+            ultimaComprobacion = System.currentTimeMillis()
+            val respuesta = runCatching { app.datos.plataforma?.sinToken("GET", "/v1/webs") }.getOrNull() ?: return@repeatOnLifecycle
+            val nueva = ComprobacionDeVersion.nueva(respuesta, BuildConfig.APPLICATION_ID, BuildConfig.VERSION_CODE)
+            val preferencias = app.getSharedPreferences("version", Context.MODE_PRIVATE)
+            if (nueva != null && ComprobacionDeVersion.hayQueAvisar(nueva, preferencias.getInt("avisada", 0))) {
+                preferencias.edit().putInt("avisada", nueva.codigo).apply()
+                avisos.exitoConAccion(
+                    "La versión ${nueva.version} está disponible para Android.",
+                    AccionDeAviso("Descargar") { Enlaces.abrir(contextoDeVersion, nueva.instalacion) },
+                    titulo = "Actualización disponible",
+                    duracionMs = 30_000,
+                )
+            }
+        }
+    }
     // Y al llegar un push con la app delante.
     LaunchedEffect(Unit) { app.avisoRecibido.collect { centroDeAvisos.alCambiarEnLaPlataforma() } }
     val sinLeer by app.datos.bandeja.sinLeer.collectAsStateWithLifecycle()
@@ -244,6 +272,20 @@ fun AppLibros(app: LibrosApp) {
         }
         aviso.acuse?.let { firma -> launch { runCatching { app.datos.dispositivos.acuse(firma) } } }
         irAlAviso(DestinoDeEnlace.de(aviso.comoMensaje, PushLibros.origenesDeLibros))
+    }
+
+    // Un enlace de la web de Libros abierto con la app (App Links): espera a que haya una cuenta (sin sesión, la
+    // pantalla de entrar), y entonces la invitación por código de un correo o la pantalla de su ruta.
+    val invitacion: InvitacionPorCodigoViewModel = viewModel { InvitacionPorCodigoViewModel(app.datos.ambito, app.datos.espacios, avisos) }
+    invitacion.alEntrar = { clubId -> irAlAviso(clubId?.let { DestinoDelAviso.Club(it) } ?: DestinoDelAviso.MisClubes) }
+    val enlace by app.enlaces.collectAsStateWithLifecycle()
+    val identidadDelEnlace by app.datos.ambito.identidad.collectAsStateWithLifecycle()
+    LaunchedEffect(enlace, identidadDelEnlace) {
+        val direccion = enlace ?: return@LaunchedEffect
+        if (identidadDelEnlace == null) return@LaunchedEffect
+        app.enlaces.value = null
+        val codigo = EspaciosYosiftware.codigoDeInvitacion(direccion)
+        if (codigo != null) invitacion.abrir(codigo) else irAlAviso(DestinoDeEnlace.de(direccion, null, PushLibros.origenesDeLibros))
     }
     clubes.alCrear = comunidad::abrirClub
     centroDeAcceso.alCambiarElAcceso = clubes::refrescar
@@ -500,6 +542,18 @@ fun AppLibros(app: LibrosApp) {
                     }
                     val carga = remember(identidad?.generacion, contextoDeCarga != null) { contextoDeCarga?.let { FrasesDelDragon.abrir(it, null) } }
                     carga?.let { CargadorDelDragon(it) }
+                    val contextoDeLaInvitacion = LocalContext.current
+                    DialogoDeInvitacion(
+                        invitacion,
+                        AccionesDeInvitacion(
+                            entrarConOtraCuenta = {
+                                invitacion.cerrar()
+                                panelAbierto = true
+                            },
+                            activarDosPasos = { acceso?.let { Enlaces.abrir(contextoDeLaInvitacion, it.direccionWebSocial("seguridad")) } },
+                            verMisInvitaciones = { irAlAviso(DestinoDelAviso.InvitacionesRecibidas) },
+                        ),
+                    )
                 }
                 AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
 

@@ -48,6 +48,9 @@ class LibrosApp : Application(), SingletonImageLoader.Factory {
     /** El aviso pulsado (`MainActivity`), hasta que la app lo atiende. */
     val aperturas = MutableStateFlow<AperturaDeAviso?>(null)
 
+    /** Un enlace de la web de Libros abierto con la app (App Links), hasta que la app lo atiende con una cuenta. */
+    val enlaces = MutableStateFlow<String?>(null)
+
     override fun onCreate() {
         super.onCreate()
         sesion = crearSesion()

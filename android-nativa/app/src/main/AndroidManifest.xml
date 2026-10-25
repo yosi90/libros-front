@@ -11,6 +11,9 @@
   - El push central de la plataforma (hito 12, push/): el servicio de FCM y la configuración de Firebase como la app
     Yosiftware. Por FID (`installation_id_enabled`), sin registro automático ni analítica. `singleTop`, para que el
     toque en un aviso llegue a `onNewIntent` con la app abierta.
+  - Los App Links (hito 12): la raíz de la web de Libros de cada entorno (para `#yosi-invitacion=`), `/dashboard…` y
+    `/book…`, verificados con el `assetlinks.json` que publica su hosting. Y la consulta del navegador por defecto, para
+    abrir en él lo de la web de Libros sin volver a la app (cuenta/Enlaces.kt).
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
@@ -23,6 +26,14 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
 
     <application
         android:name=".LibrosApp"
@@ -46,6 +57,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="${webLibros}" />
+                <data android:path="/" />
+                <data android:pathPrefix="/dashboard" />
+                <data android:pathPrefix="/book" />
             </intent-filter>
         </activity>
 

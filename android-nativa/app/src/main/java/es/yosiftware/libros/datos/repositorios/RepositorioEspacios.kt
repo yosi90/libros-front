@@ -95,4 +95,11 @@ class RepositorioEspacios(private val plataforma: LlamadaDePlataforma) {
     suspend fun rechazar(invitacionId: Long) {
         leer("POST", "/v1/espacios/invitaciones/$invitacionId/rechazar", JSONObject())
     }
+
+    /** La invitación de un enlace de correo (`#yosi-invitacion=<código>`), sin aceptarla todavía. */
+    suspend fun porCodigo(codigo: String): InvitacionRecibida =
+        InvitacionRecibida.de(leer("POST", "/v1/espacios/invitaciones/por-codigo", JSONObject().put("codigo", codigo)))
+
+    suspend fun aceptarPorCodigo(codigo: String): Espacio =
+        Espacio.de(leer("POST", "/v1/espacios/invitaciones/por-codigo/aceptar", JSONObject().put("codigo", codigo)))
 }

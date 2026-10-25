@@ -17,14 +17,24 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         // Un aviso del push pulsado con la app cerrada; al recrearla (girar, plegar) no se repite.
-        if (savedInstanceState == null) AperturaDeAviso.de(intent)?.let { (application as LibrosApp).aperturas.value = it }
+        if (savedInstanceState == null) atender(intent)
         setContent { AppLibros(application as LibrosApp) }
     }
 
     /** Un aviso pulsado con la app abierta (`singleTop`). */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        AperturaDeAviso.de(intent)?.let { (application as LibrosApp).aperturas.value = it }
+        atender(intent)
+    }
+
+    /** Un aviso del push o un enlace de la web de Libros (App Links). El enlace se quita: al recrear no se repite. */
+    private fun atender(intent: Intent) {
+        val app = application as LibrosApp
+        AperturaDeAviso.de(intent)?.let { app.aperturas.value = it }
+        if (intent.action == Intent.ACTION_VIEW) {
+            intent.dataString?.let { app.enlaces.value = it }
+            intent.data = null
+        }
     }
 
     override fun onStart() {
