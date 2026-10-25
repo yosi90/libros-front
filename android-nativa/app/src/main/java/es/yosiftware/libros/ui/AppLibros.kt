@@ -21,6 +21,9 @@ import es.yosiftware.libros.datos.cuenta.AlmacenDelMovil
 import es.yosiftware.libros.ui.biblioteca.BibliotecaViewModel
 import es.yosiftware.libros.ui.biblioteca.CapasDeBiblioteca
 import es.yosiftware.libros.ui.biblioteca.PantallaBiblioteca
+import es.yosiftware.libros.ui.catalogo.CapasDeCatalogo
+import es.yosiftware.libros.ui.catalogo.CatalogoViewModel
+import es.yosiftware.libros.ui.catalogo.PantallaCatalogo
 import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
 import es.yosiftware.libros.ui.componentes.Avisos
 import es.yosiftware.libros.ui.componentes.LocalAvisos
@@ -73,12 +76,21 @@ fun AppLibros(app: LibrosApp) {
     val perfiles: PerfilesViewModel = viewModel {
         PerfilesViewModel(app.datos.ambito, acceso?.cuentas ?: MutableStateFlow(emptyList()), app.datos.perfiles, app.datos.apiPlataforma)
     }
-    // Los avisos flotantes de toda la app (app-toast-host), y la Biblioteca (hito 8), que es de la cuenta.
+    // Los avisos flotantes de toda la app (app-toast-host), y la Biblioteca y el Catálogo (hito 8), que son de la cuenta.
     val avisos = remember { Avisos() }
     val biblioteca: BibliotecaViewModel = viewModel {
         BibliotecaViewModel(app.datos.ambito, app.datos.coleccion, app.datos.catalogo, AlmacenDelMovil(app), avisos)
     }
     val nav: NavegacionViewModel = viewModel()
+    val catalogo: CatalogoViewModel = viewModel {
+        CatalogoViewModel(app.datos.ambito, app.datos.catalogo, app.datos.coleccion, app.datos.peticiones, avisos, biblioteca::recibirUniversos)
+    }
+    catalogo.alVerEnBiblioteca = { obra ->
+        nav.irA(Destino.Biblioteca)
+        biblioteca.revelar(obra)
+    }
+    // TODO(clon): el libro llega en el hito 9.
+    val abrirLibro: (String) -> Unit = { nombre -> avisos.info("El libro se abre en el hito 9 del clon.", titulo = nombre) }
     TemaLibros(temaViewModel.tema) {
         CompositionLocalProvider(LocalVentana provides rememberVentana(), LocalCuenta provides cuenta, LocalAvisos provides avisos) {
             val estado = acceso?.estado?.collectAsStateWithLifecycle()?.value
@@ -114,13 +126,16 @@ fun AppLibros(app: LibrosApp) {
                                 when (destino) {
                                     Destino.Biblioteca -> PantallaBiblioteca(
                                         vm = biblioteca,
-                                        // TODO(clon): el libro llega en el hito 9, y el catálogo con sus ediciones, en lo que queda del
-                                        // hito 8.
-                                        alAbrirLibro = { avisos.info("El libro se abre en el hito 9 del clon.", titulo = it.nombre) },
+                                        alAbrirLibro = { abrirLibro(it.nombre) },
                                         alAbrirAntologia = biblioteca::abrirAntologia,
-                                        alVerEdiciones = { nav.irA(Destino.Catalogo) },
+                                        // «Ver ediciones»: la ficha de la obra en el catálogo; al cerrarla, de vuelta a la biblioteca.
+                                        alVerEdiciones = { obra ->
+                                            catalogo.abrirFicha(obra, volver = { nav.irA(Destino.Biblioteca) })
+                                            nav.irA(Destino.Catalogo)
+                                        },
                                         alAbrirCatalogo = { nav.irA(Destino.Catalogo) },
                                     )
+                                    Destino.Catalogo -> PantallaCatalogo(catalogo)
                                     else -> PantallaVacia(destino)
                                 }
                             },
@@ -148,14 +163,27 @@ fun AppLibros(app: LibrosApp) {
                     else -> PantallaDeLaSesion(estado, cuenta, perfiles, cuentas)
                 }
 
-                // La antología y los editores de la Biblioteca, a pantalla completa, encima del shell.
+                // La antología, la ficha, la saga, los editores y las peticiones, a pantalla completa, encima del shell.
                 if (conShell) {
                     CapasDeBiblioteca(
                         vm = biblioteca,
-                        alAbrirSeccion = { avisos.info("El libro se abre en el hito 9 del clon.", titulo = it.nombre) },
-                        alVerFicha = { biblioteca.cerrarAntologia(); nav.irA(Destino.Catalogo) },
-                        alBuscarSimilares = { biblioteca.cerrarAntologia(); nav.irA(Destino.Catalogo) },
+                        alAbrirSeccion = { abrirLibro(it.nombre) },
+                        // La ficha de la antología en el catálogo; al cerrarla, de vuelta a la antología.
+                        alVerFicha = { antologia ->
+                            biblioteca.cerrarAntologia()
+                            catalogo.abrirFicha(antologia, volver = {
+                                nav.irA(Destino.Biblioteca)
+                                biblioteca.abrirAntologia(antologia)
+                            })
+                            nav.irA(Destino.Catalogo)
+                        },
+                        alBuscarSimilares = { antologia ->
+                            biblioteca.cerrarAntologia()
+                            catalogo.buscarSimilares(antologia)
+                            nav.irA(Destino.Catalogo)
+                        },
                     )
+                    CapasDeCatalogo(catalogo, alAbrirLectura = { abrirLibro(it.nombre) })
                 }
                 AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
 

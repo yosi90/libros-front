@@ -97,6 +97,9 @@ class Avisos : Avisador {
 
     override fun error(mensaje: String) = error(mensaje, titulo = null)
 
+    override fun exitoConAccion(mensaje: String, accion: AccionDeAviso, titulo: String?, clave: String?, duracionMs: Long?) =
+        mostrar(TipoDeAviso.EXITO, mensaje, titulo, clave, accion = accion, duracionMs = duracionMs)
+
     /** Un error de la API: el título es el texto de la pantalla y el mensaje, el del servidor. Las normas pendientes no avisan. */
     override fun deError(error: ErrorDeLibros, generico: String) {
         if (error.bloqueoPorNormas) return
@@ -121,8 +124,16 @@ class Avisos : Avisador {
         version++
     }
 
-    private fun mostrar(tipo: TipoDeAviso, mensaje: String, titulo: String?, clave: String?, @DrawableRes icono: Int? = null, accion: AccionDeAviso? = null) {
-        if (cola.mostrar(tipo, mensaje, SystemClock.elapsedRealtime(), titulo, clave, icono, accion) != null) version++
+    private fun mostrar(
+        tipo: TipoDeAviso,
+        mensaje: String,
+        titulo: String?,
+        clave: String?,
+        @DrawableRes icono: Int? = null,
+        accion: AccionDeAviso? = null,
+        duracionMs: Long? = null,
+    ) {
+        if (cola.mostrar(tipo, mensaje, SystemClock.elapsedRealtime(), titulo, clave, icono, accion, duracionMs) != null) version++
     }
 }
 

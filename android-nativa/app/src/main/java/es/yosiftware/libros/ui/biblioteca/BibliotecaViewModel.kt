@@ -358,6 +358,38 @@ class BibliotecaViewModel(
         edicionDeSeccion = edicionDeSeccion?.let(cambio)
     }
 
+    // --- Lo que llega del Catálogo. ---
+
+    /** El universo que hay que enseñar al volver del catálogo; la pantalla se desplaza hasta él y lo olvida. */
+    var porRevelar by mutableStateOf<Int?>(null)
+        private set
+
+    /** La colección recién leída tras un cambio en otra pantalla (`universeStore.setUniverses`). */
+    fun recibirUniversos(nuevos: List<Universo>) {
+        cargando = false
+        errorDeCarga = null
+        ponerUniversos(nuevos)
+    }
+
+    /**
+     * «Ver en biblioteca»: la vista por universos, sin búsqueda, con el universo y la saga de la obra abiertos
+     * (`revealPendingLibraryItem`).
+     */
+    fun revelar(obra: Obra) {
+        elegirVista(Vista.UNIVERSOS)
+        borrador = ""
+        consulta = ""
+        refrescar()
+        val (universoId, sagaId) = Biblioteca.ubicacion(universos, obra.esAntologia, obra.id) ?: return
+        aMano = true
+        abiertos = abiertos.copy(universos = abiertos.universos + universoId, sagas = if (sagaId != null) abiertos.sagas + sagaId else abiertos.sagas)
+        porRevelar = universoId
+    }
+
+    fun revelado() {
+        porRevelar = null
+    }
+
     /** Solo para las muestras de depuración: la colección de muestra, sin red ni cuenta. */
     internal fun mostrarMuestra(muestra: List<Universo>) {
         cargando = false
@@ -382,6 +414,7 @@ class BibliotecaViewModel(
         cerrarAntologia()
         leyendoSeccionId = null
         edicionDeSeccion = null
+        porRevelar = null
         vista = Vista.UNIVERSOS
         cargando = identidad != null
         if (identidad != null) {

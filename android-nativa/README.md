@@ -39,6 +39,15 @@ Clonada de `mobile-library-view` y `books.component.ts` **en su versión de la A
 - Los avisos de toda la app (`ui/componentes/Avisos.kt` y `ColaDeAvisos.kt`, como `app-toast`): en `LocalAvisos`, y los ViewModels los usan como `Avisador`.
 - Solo en depuración, `MuestrasDeBiblioteca` pinta la Biblioteca con la colección de las capturas: `adb shell am start -n es.yosiftware.libros.qa/es.yosiftware.libros.MuestrasDeBiblioteca --es vista raiz --es tema oscuro` (las vistas, en su cabecera). En el Honor, la captura es de la pantalla interior: `screencap -p -d 4630946846403687043`.
 
+## El Catálogo (`ui/catalogo/`, hito 8)
+
+Clonado de `mobile-catalog-view`, `catalog.component.ts` y `catalog-saga` en su versión de la APK de Capacitor (5dc3120).
+
+- La lógica, pura y con sus pruebas JVM: la búsqueda, las ediciones, la ficha y sus reseñas (`Catalogo.kt`) y las peticiones con su validación (`Peticiones.kt`).
+- `CatalogoViewModel` (de la cuenta): las obras con los filtros, las sagas que coinciden y su hoja, la ficha pública, las ediciones, el editor de estado y las peticiones. Después de cada cambio pasa la colección a la Biblioteca (`BibliotecaViewModel.recibirUniversos`).
+- Las pantallas: `PantallaCatalogo`, `PantallaFicha`, `HojaSaga` y `ModalDePeticion`. `CapasDeCatalogo` las pone encima del shell.
+- Solo en depuración, `MuestrasDeCatalogo` pinta el Catálogo con los datos de las capturas: `adb shell am start -n es.yosiftware.libros.qa/es.yosiftware.libros.MuestrasDeCatalogo --es vista lista --es tema oscuro` (las vistas, en su cabecera).
+
 ## Compilar
 
 Con el JDK 21 y el SDK de Android (en `local.properties`, `sdk.dir=…`, que no se versiona):
