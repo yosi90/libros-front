@@ -35,7 +35,7 @@ La plataforma ya lo tiene preparado (kit 1.59, `NOVEDADES.md`, «Las novedades d
 
 ## Calendario y dependencias
 
-Sin fecha fija. Depende de que la plataforma publique el kit 1.59 en QA y en producción, que irá anotado aquí.
+Sin fecha fija. **El kit 1.59 ya está en QA y en producción (`9a159d0`, 2026-10-25)**: el tipo `contenido` se acepta en los dos entornos, y la web social y la app 0.2.6 dejan apagar los anuncios por servicio.
 
 ## Fuera de alcance
 
@@ -62,4 +62,4 @@ Aceptada y en producción. Kit 1.59 adoptado. Roadmap: `docs/roadmaps/ACTIVO_est
 4. **El frontend:** el catálogo tiene un filtro «Nuevos» (24 horas, semana y mes) en Web, Wood y Mobile, y `?nuevos=` lo aplica al abrir. Las estadísticas generales muestran los nuevos y las obras añadidas cada mes.
 5. **La cabecera con el mosaico:** queda para más adelante. Cuando el propietario la encienda para los anuncios de Libros, la añadimos.
 
-**Hasta que la plataforma publique el kit 1.59 en producción**, el tipo `contenido` responde 400. El trabajo lo registra y no publica nada, y empezará a funcionar solo en cuanto esté publicado. Hoy, de todas formas, no hay altas nuevas.
+La plataforma publicó el kit 1.59 en QA y en producción (`9a159d0`) ese mismo día: el anuncio sale con la primera alta del catálogo. Hoy no hay altas nuevas (simulado en producción: «No hay obras nuevas»).
