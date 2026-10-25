@@ -15,7 +15,7 @@ describe('SocialSummaryComponent', () => {
     let social: jasmine.SpyObj<PlatformSocialService>;
     let spaces: jasmine.SpyObj<PlatformSpacesService>;
     const invitation = (idExterno: string) => ({ id: 1, espacio: { id: 9, idExterno, nombre: 'Club', dosPasos: false }, de: { cuenta: 'a', nombre: 'Ana' }, rol: 'miembro', caduca: '2026-11-08T00:00:00Z' });
-    const summary: SocialSummary = { Parcial: false, BloquesFallidos: [], Resumen: { Clubes: { Activos: 2, InvitacionesPendientes: 0 } } };
+    const summary: SocialSummary = { Parcial: false, BloquesFallidos: [], Resumen: { Clubes: { Activos: 2 } } };
     const relationships = { solicitudesRecibidas: 1, solicitudesEnviadas: 0, amistades: 3, seguidos: 5, seguidores: 4, bloqueos: 0 };
     const chatState = new BehaviorSubject({ accountId: 'cuenta-a', conversations: [{ NoLeidos: 2 }, { NoLeidos: 1 }], loading: false, initialized: true, error: '' });
 
@@ -68,6 +68,14 @@ describe('SocialSummaryComponent', () => {
 
         expect(fixture.componentInstance.partial).toBeTrue();
         expect(fixture.componentInstance.cards.map(card => card.label)).toEqual(['Clubes activos', 'Invitaciones a clubes', 'Mensajes sin leer']);
+    });
+
+    it('sin respuesta de los espacios no inventa la cifra de invitaciones y avisa de que el resumen es parcial', () => {
+        spaces.myInvitations.and.returnValue(throwError(() => ({ status: 503 })));
+        fixture.detectChanges();
+
+        expect(fixture.componentInstance.partial).toBeTrue();
+        expect(fixture.componentInstance.cards.map(card => card.label)).toEqual(['Amistades', 'Solicitudes de amistad', 'Seguidores', 'Siguiendo', 'Clubes activos', 'Mensajes sin leer']);
     });
 
     it('ignora recargas concurrentes mientras hay una petición activa', () => {

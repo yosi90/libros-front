@@ -33,7 +33,7 @@ export interface SummaryCard { label: string; value: number; icon: string; path?
 export class SocialSummaryComponent implements OnInit, OnDestroy {
     summary: SocialSummary | null = null;
     relationships: PlatformSocialSummary | null = null;
-    /** Parte del resumen (los clubes o las relaciones) no ha llegado. */
+    /** Parte del resumen (los clubes, las invitaciones o las relaciones) no ha llegado. */
     partial = false;
     cards: SummaryCard[] = [];
     loading = false;
@@ -69,7 +69,7 @@ export class SocialSummaryComponent implements OnInit, OnDestroy {
         forkJoin({
             clubs: this.community.socialSummary().pipe(map(value => ({ value, failed: null })), catchError(error => of({ value: null, failed: error as unknown }))),
             relationships: this.social.summary().pipe(map(value => ({ value, failed: null })), catchError(error => of({ value: null, failed: error as unknown }))),
-            // Las invitaciones son de los espacios (fase 4): el contador de la API sale de sus tablas archivadas.
+            // Las invitaciones son de los espacios (fase 4): `GET /v1/espacios/invitaciones`, solo las de clubes.
             invitations: this.spaces.myInvitations().pipe(map(items => items.filter(item => clubIdFromSpace(item.espacio.idExterno) !== null).length), catchError(() => of(null)))
         }).subscribe(({ clubs, relationships, invitations }) => {
             this.loading = false;
@@ -81,7 +81,7 @@ export class SocialSummaryComponent implements OnInit, OnDestroy {
                 this.error = getApiErrorMessage(clubs.failed, 'No se ha podido cargar el resumen social.');
                 return;
             }
-            this.partial = !clubs.value || !relationships.value || clubs.value.Parcial;
+            this.partial = !clubs.value || !relationships.value || invitations === null || clubs.value.Parcial;
             this.cards = this.buildCards();
         });
     }
@@ -96,10 +96,10 @@ export class SocialSummaryComponent implements OnInit, OnDestroy {
             { label: 'Siguiendo', value: relationships.seguidos, icon: 'person_search', href: this.session.socialUrl('seguidos') }
         );
         const clubs = this.summary?.Resumen.Clubes;
-        if (clubs) cards.push(
-            { label: 'Clubes activos', value: clubs.Activos, icon: 'groups_3', path: '../clubs' },
-            { label: 'Invitaciones a clubes', value: this.clubInvitations ?? clubs.InvitacionesPendientes, icon: 'mark_email_unread', path: '../clubs', accent: (this.clubInvitations ?? clubs.InvitacionesPendientes) > 0 }
-        );
+        if (clubs) cards.push({ label: 'Clubes activos', value: clubs.Activos, icon: 'groups_3', path: '../clubs' });
+        // Las invitaciones solo las cuenta la plataforma (la API ya no da `InvitacionesPendientes`): sin su respuesta, no hay tarjeta.
+        const invitations = this.clubInvitations;
+        if (invitations !== null) cards.push({ label: 'Invitaciones a clubes', value: invitations, icon: 'mark_email_unread', path: '../clubs', accent: invitations > 0 });
         cards.push({ label: 'Mensajes sin leer', value: this.unreadMessages, icon: 'forum', path: '../messages', accent: this.unreadMessages > 0 });
         return cards;
     }

@@ -119,7 +119,7 @@ test.describe('Lo social con la plataforma (hito 3)', () => {
     test('Comunidad lleva las personas y las relaciones a la web social con el símbolo del ecosistema', async ({ page }) => {
         const retired = watchRetiredCalls(page);
         await installLocalVisualSession(page, { webPresentation: true });
-        await page.route('**/comunidad/resumen', route => route.fulfill({ json: { success: true, Parcial: false, BloquesFallidos: [], Resumen: { Clubes: { Activos: 1, InvitacionesPendientes: 0 } } } }));
+        await page.route('**/comunidad/resumen', route => route.fulfill({ json: { success: true, Parcial: false, BloquesFallidos: [], Resumen: { Clubes: { Activos: 1 } } } }));
         await page.setViewportSize({ width: 1440, height: 900 });
         await page.goto('/dashboard/community/summary');
 

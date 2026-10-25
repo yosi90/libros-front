@@ -34,7 +34,7 @@ describe('CommunityService resumen social', () => {
         expect(request.request.method).toBe('GET');
         // La API solo trae ya los clubes (ADHESION_YOSIFTWARE.md): las relaciones y los mensajes son de la plataforma.
         request.flush({ success: true, Parcial: true, BloquesFallidos: ['Clubes'], Resumen: {
-            Clubes: { Activos: 0, InvitacionesPendientes: 0 }
+            Clubes: { Activos: 0 }
         } });
     });
 

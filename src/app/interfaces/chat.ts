@@ -150,7 +150,8 @@ export interface SocialSummary {
     Parcial: boolean;
     BloquesFallidos: string[];
     Resumen: {
-        Clubes: { Activos: number; InvitacionesPendientes: number };
+        /** Solo los clubes activos: las invitaciones pendientes las cuenta la plataforma (`GET /v1/espacios/invitaciones`). */
+        Clubes: { Activos: number };
     };
 }
 
