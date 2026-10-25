@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { fakeAsync, tick } from '@angular/core/testing';
 import { MensajeDelCanal } from '../interfaces/platform-spaces';
-import { ClubChannelReconciler, ClubChannelSection, FEED_RETRY_DELAYS_MS, clubIdFromSpace, spaceErrorMessage } from './club-spaces';
+import { ClubChannelReconciler, ClubChannelSection, FEED_RETRY_DELAYS_MS, clubIdFromSpace, clubPersonName, spaceErrorMessage } from './club-spaces';
 
 describe('Los clubes en los espacios', () => {
     const message = (secuencia: number, tipo: string, extra: Record<string, unknown> = {}): MensajeDelCanal =>
@@ -16,6 +16,11 @@ describe('Los clubes en los espacios', () => {
         }, 100);
         return { instance, batches, closed };
     }
+
+    it('nombra a una persona por su nombre o, sin él, por @alias', () => {
+        expect(clubPersonName({ nombre: 'Ana', alias: 'ana' })).toBe('Ana');
+        expect(clubPersonName({ nombre: null, alias: 'ana' })).toBe('@ana');
+    });
 
     it('saca el club de Libros del idExterno del espacio', () => {
         expect(clubIdFromSpace('club-42')).toBe(42);

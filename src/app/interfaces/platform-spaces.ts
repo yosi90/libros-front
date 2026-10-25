@@ -64,16 +64,6 @@ export interface SolicitudDeEntrada {
     creada: string;
 }
 
-/** Una persona de la plataforma en la búsqueda (`GET /v1/personas?q=`). */
-export interface PersonaBuscada {
-    id: string;
-    alias: string;
-    nombre: string | null;
-    privado?: boolean;
-    avatar: { url: string; miniatura: string; version?: number } | null;
-    borrada?: boolean;
-}
-
 /** Los roles del espacio de un club que se pueden dar al invitar (los declara la API de Libros). */
 export type RolDeInvitacion = 'miembro' | 'moderacion';
 

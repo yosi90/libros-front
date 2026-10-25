@@ -1,5 +1,6 @@
 import { StatisticsService } from '../../../../services/other/statistics.service';
 import { StatRow, communityReadingRows } from '../../../../shared/library-stats';
+import { platformAssetUrl } from '../../../../shared/platform';
 import { StatRowsComponent } from '../../common/stat-rows/stat-rows.component';
 import { WebClubDetailViewComponent } from '../../../web/social/web-club-detail-view/web-club-detail-view.component';
 import { DatePipe } from '@angular/common';
@@ -9,10 +10,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ClubCalendarEvent, ClubDebate, ClubDebateDetail, ClubDetail, ClubMember, ClubMilestone, ClubPoll, ClubProgress, ClubPublication, ClubPublicationCursor, ClubReading } from '../../../../interfaces/community';
-import { EspacioPlataforma, InvitacionEnviada, PersonaBuscada, RolDeInvitacion, SolicitudDeEntrada } from '../../../../interfaces/platform-spaces';
+import { EspacioPlataforma, InvitacionEnviada, RolDeInvitacion, SolicitudDeEntrada } from '../../../../interfaces/platform-spaces';
+import { PlataformaPersona } from '../../../../interfaces/platform-person';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
-import { ClubChannelReconciler, ClubChannelSection, FEED_RETRY_DELAYS_MS, SOCIAL_SECURITY_VIEW, spaceErrorMessage } from '../../../../shared/club-spaces';
+import { ClubChannelReconciler, ClubChannelSection, FEED_RETRY_DELAYS_MS, SOCIAL_SECURITY_VIEW, clubPersonName, spaceErrorMessage } from '../../../../shared/club-spaces';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { PlatformSpacesService, SpaceChannelHandle } from '../../../../services/platform/platform-spaces.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
@@ -103,7 +105,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     joinRequests: SolicitudDeEntrada[] = [];
     joinRequestActionIds = new Set<number>();
     peopleQuery = '';
-    people: PersonaBuscada[] = [];
+    people: PlataformaPersona[] = [];
     isSearchingPeople = false;
     peopleSearched = false;
     invitationEmail = '';
@@ -712,7 +714,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
                 this.joinRequestActionIds.delete(request.id);
                 this.joinRequests = this.joinRequests.filter(item => item.id !== request.id);
                 this.actionMessage = decision === 'aprobar'
-                    ? `Solicitud aprobada: ${requestName(request)} aparecerá entre los miembros en cuanto Libros lo sepa.`
+                    ? `Solicitud aprobada: ${clubPersonName(request)} aparecerá entre los miembros en cuanto Libros lo sepa.`
                     : 'Solicitud rechazada.';
             },
             error: error => {
@@ -723,7 +725,6 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         });
     }
 
-    requestName(request: SolicitudDeEntrada): string { return requestName(request); }
 
     loadSentInvitations(): void {
         const spaceId = this.club?.EspacioId;
@@ -753,9 +754,13 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         });
     }
 
-    personName(person: PersonaBuscada): string { return person.nombre || `@${person.alias}`; }
+    /** El nombre de una persona de la búsqueda o de una solicitud. */
+    personName(person: { nombre: string | null; alias: string }): string { return clubPersonName(person); }
 
-    invitePerson(person: PersonaBuscada): void {
+    /** La miniatura del avatar de una persona de la plataforma (llega relativa a su API). */
+    personAvatar(person: PlataformaPersona): string | null { return platformAssetUrl(person.avatar?.miniatura); }
+
+    invitePerson(person: PlataformaPersona): void {
         this.sendInvitation(`cuenta:${person.id}`, { cuenta: person.id }, `Invitación enviada a ${this.personName(person)}.`);
     }
 
@@ -953,5 +958,3 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         });
     }
 }
-
-function requestName(request: SolicitudDeEntrada): string { return request.nombre || `@${request.alias}`; }

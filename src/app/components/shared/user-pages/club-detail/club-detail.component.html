@@ -162,8 +162,8 @@
 <section class="club-detail__invite-search"><form (submit)="$event.preventDefault(); searchPeople()"><label><mat-icon>person_search</mat-icon><input type="search" [(ngModel)]="peopleQuery" name="peopleQuery" maxlength="60" placeholder="Buscar una persona de Yosiftware para invitar" aria-label="Buscar una persona para invitar"></label><button type="submit" [disabled]="isSearchingPeople">{{isSearchingPeople ? 'Buscando…' : 'Buscar'}}</button></form>@if (canChooseInvitationRole) {
 <label class="club-detail__invite-role">Invitar como<select [(ngModel)]="invitationRole" name="invitationRole" aria-label="Rol de la invitación"><option value="miembro">Miembro</option><option value="moderacion">Moderación</option></select></label>
 }@for (person of people; track person.id) {
-<article><span class="club-detail__avatar">@if (person.avatar) {
-  <img [src]="person.avatar.miniatura" alt="">
+<article><span class="club-detail__avatar">@if (personAvatar(person); as avatar) {
+  <img [src]="avatar" alt="">
 } @else {
   <mat-icon>person</mat-icon>
   }</span><span><strong>{{personName(person)}}</strong><small>&#64;{{person.alias}}</small></span><button type="button" (click)="invitePerson(person)" [disabled]="invitingKeys.has('cuenta:' + person.id)">{{invitingKeys.has('cuenta:' + person.id) ? 'Enviando…' : 'Invitar'}}</button></article>
@@ -176,7 +176,7 @@
 }</section>
 }@if (joinRequests.length) {
 <div class="club-detail__requests"><strong>Solicitudes pendientes</strong>@for (request of joinRequests; track request.id) {
-<article><span><b>{{requestName(request)}}</b>@if (request.mensaje) {
+<article><span><b>{{personName(request)}}</b>@if (request.mensaje) {
 <small>{{request.mensaje}}</small>
 }</span><div><button type="button" (click)="resolveJoinRequest(request, 'aprobar')" [disabled]="joinRequestActionIds.has(request.id)">Aprobar</button><button type="button" (click)="resolveJoinRequest(request, 'rechazar')" [disabled]="joinRequestActionIds.has(request.id)">Rechazar</button></div></article>
 }</div>

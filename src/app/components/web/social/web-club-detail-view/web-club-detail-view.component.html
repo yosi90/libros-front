@@ -272,7 +272,7 @@
                 @for (request of c.joinRequests; track request.id) {
                   <article class="item">
                     <mat-icon aria-hidden="true">person_add</mat-icon>
-                    <span><strong>{{c.requestName(request)}}</strong>@if (request.mensaje) {<small>«{{request.mensaje}}»</small>}</span>
+                    <span><strong>{{c.personName(request)}}</strong>@if (request.mensaje) {<small>«{{request.mensaje}}»</small>}</span>
                     <span class="item__actions">
                       <button class="web-button web-button--small" type="button" (click)="c.resolveJoinRequest(request, 'rechazar')" [disabled]="c.joinRequestActionIds.has(request.id)">Rechazar</button>
                       <button class="web-button web-button--small web-button--primary" type="button" (click)="c.resolveJoinRequest(request, 'aprobar')" [disabled]="c.joinRequestActionIds.has(request.id)">Aprobar</button>
@@ -305,7 +305,7 @@
                   }
                   @for (person of c.people; track person.id) {
                     <article class="item">
-                      <span class="avatar" aria-hidden="true">@if (person.avatar) {<img [src]="person.avatar.miniatura" alt="">} @else { {{initial(person.nombre || person.alias)}} }</span>
+                      <span class="avatar" aria-hidden="true">@if (c.personAvatar(person); as avatar) {<img [src]="avatar" alt="">} @else { {{initial(person.nombre || person.alias)}} }</span>
                       <span><strong>{{c.personName(person)}}</strong><small>&#64;{{person.alias}}</small></span>
                       <button class="web-button web-button--small" type="button" (click)="c.invitePerson(person)" [disabled]="c.invitingKeys.has('cuenta:' + person.id)">{{c.invitingKeys.has('cuenta:' + person.id) ? 'Enviando…' : 'Invitar'}}</button>
                     </article>

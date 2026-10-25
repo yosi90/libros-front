@@ -10,9 +10,9 @@ import {
 import {
     PlataformaConversacion,
     PlataformaConversacionDetalle,
-    PlataformaMensaje,
-    PlataformaPersona
+    PlataformaMensaje
 } from '../interfaces/platform-chat';
+import { PlataformaPersona } from '../interfaces/platform-person';
 import { platformAssetUrl } from './platform';
 
 // Traduce el contrato del chat de la plataforma (docs/publica/ENDPOINTS.md, «Chat») al modelo que pintan las vistas

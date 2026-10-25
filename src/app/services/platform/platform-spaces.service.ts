@@ -6,10 +6,10 @@ import {
     InvitacionEnviada,
     InvitacionRecibida,
     MensajeDelCanal,
-    PersonaBuscada,
     RolDeInvitacion,
     SolicitudDeEntrada
 } from '../../interfaces/platform-spaces';
+import { PlataformaPersona } from '../../interfaces/platform-person';
 import { RECENT_ENTRY_MS } from '../../shared/club-spaces';
 import { PlatformSessionService } from '../auth/platform-session.service';
 import { ModerationAccessService } from '../stores/moderation-access.service';
@@ -96,8 +96,8 @@ export class PlatformSpacesService {
     // ---- Invitaciones ----
 
     /** Buscar personas para invitar (`GET /v1/personas?q=`, de 2 a 60 caracteres; nunca una misma ni un bloqueo). */
-    searchPeople(query: string): Observable<PersonaBuscada[]> {
-        return this.api.get<{ personas: PersonaBuscada[] }>('/v1/personas', { q: query.trim() }).pipe(map(response => response?.personas ?? []));
+    searchPeople(query: string): Observable<PlataformaPersona[]> {
+        return this.api.get<{ personas: PlataformaPersona[] }>('/v1/personas', { q: query.trim() }).pipe(map(response => response?.personas ?? []));
     }
 
     invite(spaceId: number, target: { cuenta: string } | { correo: string }, role?: RolDeInvitacion): Observable<InvitacionEnviada> {

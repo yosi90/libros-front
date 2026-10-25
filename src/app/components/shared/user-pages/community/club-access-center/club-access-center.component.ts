@@ -11,7 +11,7 @@ import { ClubAccessClub, ClubAccessInbox, ClubAccessService } from '../../../../
 import { PlatformSpacesService } from '../../../../../services/platform/platform-spaces.service';
 import { PlatformSessionService } from '../../../../../services/auth/platform-session.service';
 import { getApiErrorCode } from '../../../../../shared/api-error-message';
-import { SOCIAL_SECURITY_VIEW, spaceErrorMessage } from '../../../../../shared/club-spaces';
+import { SOCIAL_SECURITY_VIEW, clubPersonName, spaceErrorMessage } from '../../../../../shared/club-spaces';
 import { PresentationModeService } from '../../../../../services/ui/presentation-mode.service';
 import { MobileClubAccessCenterViewComponent } from '../../../../mobile/social/mobile-club-access-center-view/mobile-club-access-center-view.component';
 
@@ -113,7 +113,7 @@ export class ClubAccessCenterComponent implements OnInit, OnChanges, OnDestroy {
             }));
         if (this.direction === 'recibidas')
             return inbox.requestsReceived.map(({ club, request }) => ({
-                Key: `sr-${club.EspacioId}-${request.id}`, Id: request.id, Club: club, Persona: request.nombre || `@${request.alias}`,
+                Key: `sr-${club.EspacioId}-${request.id}`, Id: request.id, Club: club, Persona: clubPersonName(request),
                 Detalle: request.nombre ? `@${request.alias}` : null, Mensaje: request.mensaje, FechaCreacion: request.creada, Caduca: null
             }));
         return inbox.requestsSent.map(({ club, creada, mensaje }) => ({

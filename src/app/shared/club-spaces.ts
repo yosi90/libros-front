@@ -20,6 +20,11 @@ export const FEED_RETRY_DELAYS_MS: readonly number[] = [3_000, 5_000, 10_000, 20
 /** Cuánto vale una entrada reciente para no dar el club por inaccesible (la suma de las esperas, con margen). */
 export const RECENT_ENTRY_MS = 10 * 60_000;
 
+/** Cómo se nombra en los clubes a una persona de la plataforma (búsqueda, solicitudes): su nombre o, sin él, `@alias`. */
+export function clubPersonName(person: { nombre: string | null; alias: string }): string {
+    return person.nombre || `@${person.alias}`;
+}
+
 /** La web social, para lo que la plataforma pide arreglar allí (la verificación en dos pasos). */
 export const SOCIAL_SECURITY_VIEW = 'seguridad';
 

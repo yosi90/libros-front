@@ -1,5 +1,6 @@
 import { environment } from '../../environment/environment';
-import { PlataformaConversacion, PlataformaMensaje, PlataformaPersona } from '../interfaces/platform-chat';
+import { PlataformaConversacion, PlataformaMensaje } from '../interfaces/platform-chat';
+import { PlataformaPersona } from '../interfaces/platform-person';
 import {
     CHAT_EDIT_WINDOW_MS,
     avisoText,

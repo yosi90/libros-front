@@ -1,16 +1,7 @@
 // El chat de la plataforma tal como lo cuenta su contrato (administracion yosiftware: docs/publica/ENDPOINTS.md,
 // «Chat», y asyncapi.yaml). Libros lo traduce a su propio modelo (`interfaces/chat.ts`) para pintarlo con su interfaz.
 
-export interface PlataformaAvatar { url: string; miniatura: string; version?: number }
-
-export interface PlataformaPersona {
-    id: string;
-    alias: string;
-    nombre: string | null;
-    privado?: boolean;
-    avatar: PlataformaAvatar | null;
-    borrada?: boolean;
-}
+import { PlataformaPersona } from './platform-person';
 
 export interface PlataformaRespuesta {
     id: number;

@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { PLATFORM_API_URL } from '../../../../shared/platform';
 import { discardPeriodicTasks, fakeAsync, flush, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { ClubDetail } from '../../../../interfaces/community';
@@ -185,6 +186,14 @@ describe('ClubDetailComponent (club en un espacio de la plataforma)', () => {
         component.inviteEmail();
         expect(spaces.invite).toHaveBeenCalledWith(9, { correo: 'ana@ejemplo.es' }, undefined);
         expect(component.invitationEmail).toBe('');
+    });
+
+    it('pinta el avatar de una persona de la plataforma con la dirección completa de su API', () => {
+        const { component } = create(member());
+        const avatar = { url: '/v1/perfiles/cuenta-ana/avatar?v=2', miniatura: '/v1/perfiles/cuenta-ana/avatar/miniatura?v=2' };
+
+        expect(component.personAvatar({ id: 'cuenta-ana', alias: 'ana', nombre: 'Ana', avatar })).toBe(`${PLATFORM_API_URL}/v1/perfiles/cuenta-ana/avatar/miniatura?v=2`);
+        expect(component.personAvatar({ id: 'cuenta-ana', alias: 'ana', nombre: 'Ana', avatar: null })).toBeNull();
     });
 
     it('solo la propiedad invita con el rol de moderación', () => {
