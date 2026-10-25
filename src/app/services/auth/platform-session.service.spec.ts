@@ -68,6 +68,21 @@ describe('PlatformSessionService', () => {
         expect(session.storageScope).toBeNull();
     }));
 
+    it('al quedar lista, quien escucha access$ ya ve la persona dentro (las guardas lo leen en el acto)', fakeAsync(() => {
+        const session = create();
+        sdk.estado = conSesion('cuenta-a');
+        const seen: Array<[string, boolean]> = [];
+        session.access$.subscribe(access => seen.push([access, session.userIsLogged]));
+
+        session.start();
+        flushMicrotasks();
+        answerLocalUser(1);
+        flushMicrotasks();
+
+        expect(seen).toContain(['lista', true]);
+        expect(seen).not.toContain(['lista', false]);
+    }));
+
     it('con sesión pide su usuario local con la generación de esa cuenta y presenta la cuenta', fakeAsync(() => {
         const session = create();
         sdk.estado = conSesion('cuenta-a');

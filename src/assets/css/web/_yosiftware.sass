@@ -23,3 +23,35 @@
     // superior compacta, que es fija (NOTIFICACIONES.md).
     --yosi-color-campana: var(--web-color-ink-subtle)
     --yosi-avisos-arriba: calc(64px + var(--app-safe-top, 0px))
+
+// Los paneles de la cuenta, las webs y la campana del pie de la navegación lateral (ESTILOS.md, `::part(panel)`). El SDK
+// los despliega hacia abajo desde su botón: al pie de la navegación se salían de la pantalla y la estiraban. Se abren a
+// la derecha de la navegación, apoyados abajo y fuera de su desplazamiento.
+@mixin yosiftware-paneles
+    .web-nav
+        yosi-acceso::part(panel), yosi-webs::part(panel), yosi-notificaciones::part(panel)
+            position: fixed
+            top: auto
+            right: auto
+            bottom: var(--web-space-3)
+            left: calc(var(--web-sidebar-width) + var(--web-space-3))
+            z-index: 40
+            max-height: calc(100vh - 2 * var(--web-space-3))
+
+    .web-nav.is-collapsed
+        yosi-acceso::part(panel), yosi-webs::part(panel), yosi-notificaciones::part(panel)
+            left: calc(var(--web-sidebar-collapsed) + var(--web-space-3))
+
+    // Medium: rail de iconos.
+    @media (max-width: 1050px)
+        .web-nav
+            yosi-acceso::part(panel), yosi-webs::part(panel), yosi-notificaciones::part(panel)
+                left: calc(var(--web-sidebar-collapsed) + var(--web-space-3))
+
+    // Compact: el cajón ocupa casi todo el ancho; el panel se apoya sobre él, dentro de la pantalla.
+    @media (max-width: 599px)
+        .web-nav
+            yosi-acceso::part(panel), yosi-webs::part(panel), yosi-notificaciones::part(panel)
+                right: var(--web-space-3)
+                left: var(--web-space-3)
+                max-width: calc(100vw - 2 * var(--web-space-3))

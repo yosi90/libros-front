@@ -363,8 +363,10 @@ export class PlatformSessionService implements OnDestroy {
                 this.userId = user.Id;
                 this.userName = user.Nombre || this.cuenta?.alias || '';
                 this.userRole = user.Role ?? SIN_ROL;
-                this.accessSubject.next('lista');
+                // Antes que `lista`: las guardas reaccionan a `access$` en el acto y leen `userIsLogged`. Al revés, una
+                // recarga o un enlace a una página con sesión acababa en la portada y de ahí en la biblioteca.
                 this.userIsLogged$.next(true);
+                this.accessSubject.next('lista');
                 this.sessionInitializedSubject.next(true);
                 void this.loadProfile(generation);
             },

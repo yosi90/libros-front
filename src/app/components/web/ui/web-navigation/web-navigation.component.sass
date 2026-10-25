@@ -26,7 +26,7 @@
         .web-nav__brand-text, .web-nav__label, .web-nav__badge
             display: none
 
-        .web-nav__item, .web-nav__profile, .web-nav__brand
+        .web-nav__item, .web-nav__brand
             justify-content: center
             padding-inline: 0
 
@@ -64,7 +64,7 @@
     padding-top: var(--web-space-3)
     border-top: 1px solid var(--web-color-outline)
 
-.web-nav__item, .web-nav__profile
+.web-nav__item
     display: flex
     align-items: center
     gap: var(--web-space-3)
@@ -91,42 +91,6 @@
         color: var(--web-color-primary)
         font-weight: 600
         background: var(--web-color-primary-soft)
-
-.web-nav__profile
-    min-height: 52px
-    margin-top: var(--web-space-2)
-
-    .web-nav__label
-        display: grid
-        min-width: 0
-
-    strong
-        overflow: hidden
-        color: var(--web-color-ink)
-        text-overflow: ellipsis
-        white-space: nowrap
-
-    small
-        color: var(--web-color-ink-subtle)
-        font-size: 12px
-        font-weight: 400
-
-.web-nav__avatar
-    display: grid
-    flex: none
-    place-items: center
-    width: 32px
-    height: 32px
-    overflow: hidden
-    border-radius: 50%
-    color: var(--web-color-accent)
-    font: 700 15px/1 var(--web-font-reading)
-    background: var(--web-color-accent-soft)
-
-    img
-        width: 100%
-        height: 100%
-        object-fit: cover
 
 .web-nav__badge
     min-width: 20px
@@ -179,7 +143,7 @@
         .web-nav__brand-text, .web-nav__label, .web-nav__badge, .web-nav__collapse
             display: none
 
-        .web-nav__item, .web-nav__profile, .web-nav__brand
+        .web-nav__item, .web-nav__brand
             justify-content: center
             padding-inline: 0
 
@@ -227,10 +191,7 @@
         .web-nav__brand-text, .web-nav__label, .web-nav__badge
             display: initial
 
-        .web-nav__profile .web-nav__label
-            display: grid
-
-        .web-nav__item, .web-nav__profile, .web-nav__brand
+        .web-nav__item, .web-nav__brand
             justify-content: flex-start
             padding-inline: var(--web-space-3)
 

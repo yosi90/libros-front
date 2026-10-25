@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Input, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -33,12 +33,9 @@ const COMPACT_QUERY = '(max-width: 599px)';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WebNavigationComponent {
-    @Input() userName = '';
-    @Input() imageUrl = '';
     @Input() communityEnabled = false;
     @Input() chatEnabled = false;
     @Input() unreadChatCount = 0;
-    @Output() readonly imageError = new EventEmitter<Event>();
 
     readonly collapsed = signal(this.readCollapsed());
     readonly drawerOpen = signal(false);
@@ -86,10 +83,6 @@ export class WebNavigationComponent {
             items.push({ route: '/dashboard/community/messages', icon: 'forum', label: 'Mensajes', badge: this.unreadChatCount || undefined });
         items.push({ route: '/dashboard/statistics', icon: 'insights', label: 'Estadísticas' });
         return items;
-    }
-
-    get initial(): string {
-        return (this.userName || '?').trim().charAt(0).toLocaleUpperCase();
     }
 
     toggleCollapsed(): void {
