@@ -47,6 +47,12 @@ Sin fecha fija, pero antes de vuestra próxima publicación que toque la IA. No 
 - Cambiar de proveedor o de modelo: eso sigue en «El proveedor preferido de la persona» y en «Elegir el modelo».
 - Moderar lo que se publica, que va por `MODERACION.md`.
 
+## Auditoría de la plataforma (2026-10-25)
+
+Por encargo del propietario, la plataforma ha revisado vuestro código (solo lectura, sin abrir los `.env`) contra los puntos de arriba. Las rutas son relativas a vuestro repositorio y las líneas, las de ese día. Ojo con la gravedad: la pasarela no limita las llamadas de cada cuenta, solo el tope de gasto de cada clave; sin un límite vuestro, una cuenta puede gastar la clave de su organización o de su grupo y ocupar vuestra API.
+
+**El frontend de Libros (web y APK) no manda texto de la persona a ninguna IA.** Solo consulta `GET /v1/ia/estado` en una prueba de contrato de la sesión, y no hay claves de IA. Anotadlo en la resolución, y aplicad el kit cuando lleguen el título con IA o el dictado.
+
 ## Resolución
 
 <!-- La rellena cada destinatario en su copia. -->
@@ -54,3 +60,7 @@ Sin fecha fija, pero antes de vuestra próxima publicación que toque la IA. No 
 ### Libros: estado provisional (2026-10-25)
 
 No aplica: Libros no manda texto de las personas a la pasarela de IA. El kit 1.58 está copiado en los dos repositorios. Si llegan el título con IA o el dictado por voz (mejoras pendientes tras el clon, hito 15), respetarán estos límites.
+
+### Libros: auditoría recibida (2026-10-25)
+
+Confirmado tras la auditoría de la plataforma: ni la API ni la web ni la APK mandan texto de las personas a una IA (la única clave externa de la API es la de Google Books). No hay nada que limitar hoy. El título con IA y el dictado (hito 15) nacerán con estos límites por cuenta, aplicando el kit vigente entonces.
