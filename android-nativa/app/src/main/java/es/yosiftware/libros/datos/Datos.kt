@@ -19,6 +19,7 @@ import es.yosiftware.libros.datos.repositorios.RepositorioEstadisticas
 import es.yosiftware.libros.datos.repositorios.RepositorioLibro
 import es.yosiftware.libros.datos.repositorios.RepositorioPeticiones
 import es.yosiftware.libros.datos.repositorios.RepositorioReportes
+import es.yosiftware.libros.datos.repositorios.RepositorioUsuario
 import es.yosiftware.sesion.SesionYosiftware
 import kotlinx.coroutines.CoroutineScope
 
@@ -52,6 +53,7 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
     val peticiones = RepositorioPeticiones(api)
     val reportes = RepositorioReportes(api)
     val clubes = RepositorioClubes(api)
+    val usuario = RepositorioUsuario(api)
 
     /** La pertenencia a los clubes (los espacios) y el resumen social, en la plataforma. Sin sesión, `sin_sesion`. */
     val espacios = RepositorioEspacios(LlamadaDePlataforma { metodo, ruta, cuerpo ->

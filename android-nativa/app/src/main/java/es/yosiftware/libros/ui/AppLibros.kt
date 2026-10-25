@@ -43,7 +43,9 @@ import es.yosiftware.libros.ui.comunidad.CentroDeAccesoViewModel
 import es.yosiftware.libros.ui.comunidad.ClubesViewModel
 import es.yosiftware.libros.ui.comunidad.ComunidadViewModel
 import es.yosiftware.libros.ui.comunidad.CreacionDeClub
-import es.yosiftware.libros.ui.comunidad.DetalleDeClubPendiente
+import es.yosiftware.libros.ui.comunidad.AccionesDelClub
+import es.yosiftware.libros.ui.comunidad.ClubViewModel
+import es.yosiftware.libros.ui.comunidad.PantallaClub
 import es.yosiftware.libros.ui.comunidad.PantallaComunidad
 import es.yosiftware.libros.ui.perfil.FuenteDelPerfil
 import es.yosiftware.libros.ui.perfil.IdentidadDelPerfil
@@ -214,7 +216,30 @@ fun AppLibros(app: LibrosApp) {
                                                 abrirMensajes = { nav.irA(Destino.Mensajes) },
                                                 cambiarDeCuenta = { panelAbierto = true },
                                                 tieneObras = { CreacionDeClub.tieneObras(biblioteca.universos) },
-                                                detalleDelClub = { id -> DetalleDeClubPendiente(id, comunidad::cerrarClub) },
+                                                detalleDelClub = { id ->
+                                                    // Un ViewModel por club y cuenta: lo escrito en sus formularios se queda al ir a otra pestaña.
+                                                    val clave = app.datos.ambito.clave("club") ?: "sin-cuenta"
+                                                    val club: ClubViewModel = viewModel(key = "$clave-club-$id") {
+                                                        ClubViewModel(
+                                                            app.datos.ambito, id, app.datos.clubes, app.datos.espacios, app.datos.estadisticas, centroDeAcceso,
+                                                            miId = { app.datos.usuario.miId() }, universos = { biblioteca.universos },
+                                                        )
+                                                    }
+                                                    club.alSalir = { aviso ->
+                                                        comunidad.cerrarClub()
+                                                        clubes.refrescar()
+                                                        aviso?.let(avisos::error)
+                                                    }
+                                                    PantallaClub(
+                                                        club,
+                                                        AccionesDelClub(
+                                                            volver = comunidad::cerrarClub,
+                                                            abrirWebSocial = { vista -> acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial(vista)) } },
+                                                            abrirChat = { nav.irA(Destino.Mensajes) },
+                                                            avatar = { ruta -> ruta?.let { r -> app.datos.apiPlataforma?.let { it.trimEnd('/') + "/" + r.trimStart('/') } } },
+                                                        ),
+                                                    )
+                                                },
                                             ),
                                         )
                                     }

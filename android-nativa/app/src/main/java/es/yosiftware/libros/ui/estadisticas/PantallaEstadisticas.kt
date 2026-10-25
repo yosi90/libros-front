@@ -356,7 +356,7 @@ private fun Panel(@DrawableRes icono: Int, titulo: String, discontinuo: Boolean 
 
 /** `app-stat-rows`: una barra por fila, con su puesto si es un ranking. */
 @Composable
-private fun FilasDeEstadistica(filas: List<FilaDeEstadistica>, ordenadas: Boolean = false, vacio: String = "Sin datos suficientes.") {
+internal fun FilasDeEstadistica(filas: List<FilaDeEstadistica>, ordenadas: Boolean = false, vacio: String = "Sin datos suficientes.") {
     val colores = LocalColores.current
     if (filas.isEmpty()) {
         Text(vacio, style = Textos.cuerpo.copy(color = colores.tintaSuave))

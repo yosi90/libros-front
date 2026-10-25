@@ -437,14 +437,3 @@ private fun Pendiente(modifier: Modifier = Modifier) {
     )
 }
 
-/** TODO(clon): el detalle del club llega en la fase siguiente del hito 11; mientras, la vuelta a Clubes. */
-@Composable
-fun DetalleDeClubPendiente(id: Int, alVolver: () -> Unit) {
-    Column(Modifier.fillMaxSize().padding(Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-        Row(Modifier.clickable(role = Role.Button, onClick = alVolver), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-            Icon(painterResource(Iconos.arrowBack), contentDescription = null, tint = LocalColores.current.primario)
-            Text("Clubes", color = LocalColores.current.primario, style = Textos.filaPrincipal)
-        }
-        EstadoDePantalla(Iconos.groups3, "El detalle del club $id llega en la siguiente fase del clon.")
-    }
-}

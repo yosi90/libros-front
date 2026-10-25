@@ -351,8 +351,30 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** el Markdown con spoilers y el realtime de comunidad dependen de decisiones de las fases 3 y 4.
 
-- [ ] Clubes con espacios.
-- [ ] Actividad (según decisión).
+- [ ] Clubes con espacios. Hecho, pendiente de verlo en el Honor con la cuenta de QA (no hay muestras de depuración: depende de datos reales).
+  - Comunidad: la tira de secciones (el rail desde 600 dp), con Resumen, Clubes (según la capacidad `clubes`) y Mensajes, más Personas, Amistades y Bloqueos en la web social.
+  - Resumen: las tarjetas de la plataforma (`/v1/social/resumen`) y de Libros, y las invitaciones a clubes. «Mensajes sin leer» llega con el chat (hito 12).
+  - Clubes: Descubrir (populares, búsqueda, cargar más y crear), Mis clubes, Eventos y el centro de acceso (invitaciones y solicitudes, recibidas y enviadas).
+  - El detalle: cabecera con unirse, solicitar, retirar, chat y denunciar; la espera al feed; métricas; autores más leídos; y las secciones plegables (lecturas, mi progreso, hitos, calendario, chat, publicaciones, debates, encuestas y miembros, con invitar, solicitudes, rol, expulsar, abandonar, eliminar y restaurar).
+  - La pertenencia va por `RepositorioEspacios` sobre `ClientePlataforma`. El id propio de Libros, por `GET /usuarios/me`.
+  - Fallos de la web corregidos en la APK (y anotados en `docs/roadmaps/common/bugs.md`):
+    - Mis clubes y Eventos, enteros;
+    - etiquetas en vez de valores crudos;
+    - «Invitaciones a clubes» lleva al centro de acceso;
+    - las antologías cuentan para crear un club;
+    - volver del club lleva a Clubes;
+    - a quien no es miembro no se le piden las secciones privadas ni se le ofrecen sus formularios;
+    - perder el acceso se avisa;
+    - no hay doble envío en debates y comentarios;
+    - las métricas van en dos columnas;
+    - «1 voto»;
+    - se conservan los saltos de línea;
+    - el icono `outgoing_mail`, que no existía.
+  - Quedan para el hito 12:
+    - el canal de tiempo real del espacio, que compartirá el socket con el chat (mientras, se relee tras cada acción);
+    - abrir el chat del club.
+  - Sin filtro local de restricciones: la librería Kotlin no las expone, así que lo hace la API, que responde con su frase.
+- [ ] Actividad (según decisión). No hay pantalla que clonar: la web no tiene actividad desde la adhesión; las novedades se ven en la web social. Leer `/v1/novedades` en la app queda a decisión del propietario.
 - [ ] Perfil, Mis peticiones y Mis reportes. Hecho, pendiente de compararlo en el Honor con las capturas (`MuestrasDePerfil`: `resumen`, `perfil`, `peticiones`, `reportes` y sus vacías).
   - El perfil de Yosiftware (nombre, alias y avatar) se edita en la web social (`?vista=perfil`), como ofrece el kit: la librería no tiene `editarPerfil()` y una pantalla propia con `/v1/perfil` duplicaría la de la plataforma. Al volver a la app se relee el perfil. Así queda resuelto el punto del hito 6 sobre `/v1/perfil` y el avatar.
   - Fallos de la web corregidos en los dos (front `7958a9e`): reenviar las peticiones «otro» (la API solo admite `Texto` y `Titulo`), el doble envío de «Reenviar» y las antologías de «Actividad reciente», que llevaban a una ruta inexistente; en la APK, una antología se abre en la Biblioteca.
