@@ -31,6 +31,7 @@ import { CatalogItem } from '../../../../interfaces/catalog';
 import { CommunityActivity30Days, CommunityCatalogGrowth, CommunityStatistics } from '../../../../interfaces/statistics';
 import { catchError, forkJoin, of } from 'rxjs';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
+import { READING_PACE_SINCE, ReadingPaceUser, paceHourBandRows, paceMonthRows, paceWeekdayRows } from '../../../../shared/reading-pace';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 export type StatisticsTab = 'personal' | 'general';
@@ -97,6 +98,20 @@ export class StatisticsComponent implements OnInit {
     communityMonthly: Array<{ label: string; value: number | null }> = [];
     communityBiggestClubs: StatRow[] = [];
     communityActiveClubs: StatRow[] = [];
+    /** El ritmo de lectura propio; null hasta registrar capítulos desde que se guarda la fecha. */
+    readingPace: ReadingPaceUser | null = null;
+    readonly paceSince = READING_PACE_SINCE;
+
+    get paceMonths(): StatRow[] { return this.readingPace ? paceMonthRows(this.readingPace.PaginasPorMes) : []; }
+    get paceWeekdays(): StatRow[] { return this.readingPace ? paceWeekdayRows(this.readingPace.PaginasPorDiaSemana) : []; }
+    get paceHourBands(): StatRow[] { return this.readingPace ? paceHourBandRows(this.readingPace.PaginasPorHora) : []; }
+
+    /** El ritmo de la comunidad (con umbral): las filas de los meses con dato. */
+    get communityPaceMonths(): StatRow[] {
+        const months = this.community?.RitmoComunidad?.PaginasPorMes ?? [];
+        return months.some(month => (month.Paginas ?? 0) > 0) ? paceMonthRows(months) : [];
+    }
+
     /** Obras (libros y antologías) con alta exacta en 24 horas, 7 días y 30 días; null sin datos del servidor. */
     catalogNew: CommunityCatalogGrowth['Nuevos'] | null = null;
     /** Libros y antologías añadidos al catálogo cada mes (doce meses). */
@@ -304,6 +319,7 @@ export class StatisticsComponent implements OnInit {
             this.readAuthors = topReadAuthors(results.Coleccion);
             this.stylesRead = readStyles(results.Coleccion);
             this.ratings = ratingDistribution(results.Coleccion);
+            this.readingPace = results.RitmoLectura ?? null;
 
             this.actualizarChart(results.DistribucionEstados);
             this.configurarFastestBooksChart(results.TopLibrosMasRapidos);

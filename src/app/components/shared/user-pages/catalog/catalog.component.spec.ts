@@ -311,6 +311,19 @@ describe('CatalogComponent', () => {
         expect(catalogSrv.getBookPublicDetail).toHaveBeenCalledWith(7);
     });
 
+    it('enseña el ritmo de los lectores solo cuando la API lo da (tres lectores que comparten)', () => {
+        const { component } = createComponent();
+        const stats = { UsuariosEnBiblioteca: 4, PuntuacionMedia: null, TotalPuntuaciones: 0, TotalLeidos: 3, TotalEnMarcha: 0, TotalQuieroLeer: 0, TotalPorComprar: 0, TotalDescartados: 0, DistribucionEstados: [] };
+        component.selectedPublicDetail = { ...book, Estadisticas: { ...stats, RitmoLectores: 31.25, DiasMediosParaTerminar: 12 } } as any;
+        expect(component.publicDetailPaceRows()).toEqual([
+            { label: 'págs. por día de lectura', value: '31,3' },
+            { label: 'días para terminarlo', value: '12' }
+        ]);
+
+        component.selectedPublicDetail = { ...book, Estadisticas: { ...stats, RitmoLectores: null, DiasMediosParaTerminar: null } } as any;
+        expect(component.publicDetailPaceRows()).toEqual([]);
+    });
+
     it('uses EstadoActual from public detail when the personal status history is empty', () => {
         const { component, catalogSrv } = createComponent();
         component.items = [book];

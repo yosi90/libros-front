@@ -48,6 +48,7 @@
               normal:
                 summary: Coleccion con historial y desglose por universo
                 value:
+                  RitmoLectura: null
                   Resumen:
                     Libros: {Total: 6, Comprados: 4, Leidos: 1, Pendientes: 1, EnMarcha: 1, PorComprar: 1, QuieroLeer: 1, Descartados: 1, SinEstado: 0}
                     Antologias: {Total: 1, Comprados: 1, Leidos: 0, Pendientes: 1, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0}
@@ -75,6 +76,7 @@
               empty:
                 summary: Usuario sin coleccion privada
                 value:
+                  RitmoLectura: null
                   Resumen:
                     Libros: &emptyState {Total: 0, Comprados: 0, Leidos: 0, Pendientes: 0, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0}
                     Antologias: *emptyState
@@ -91,6 +93,7 @@
               extreme:
                 summary: Metricas grandes sin truncamiento contractual
                 value:
+                  RitmoLectura: null
                   Resumen:
                     Libros: {Total: 2147483647, Comprados: 2147483647, Leidos: 2147483647, Pendientes: 2147483647, EnMarcha: 2147483647, PorComprar: 2147483647, QuieroLeer: 2147483647, Descartados: 2147483647, SinEstado: 2147483647}
                     Antologias: {Total: 2147483647, Comprados: 2147483647, Leidos: 2147483647, Pendientes: 2147483647, EnMarcha: 2147483647, PorComprar: 2147483647, QuieroLeer: 2147483647, Descartados: 2147483647, SinEstado: 2147483647}

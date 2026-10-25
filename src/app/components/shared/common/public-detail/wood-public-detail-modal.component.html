@@ -175,8 +175,19 @@
               }
             </article>
           }
-          @if (stats.Popularidad || stats.ActividadAgregada) {
+          @if (stats.Popularidad || stats.ActividadAgregada || controller.publicDetailPaceRows().length > 0) {
             <div class="public-detail-insights__stack">
+              @if (controller.publicDetailPaceRows().length > 0) {
+                <article>
+                  <h4><mat-icon>speed</mat-icon>Ritmo de los lectores</h4>
+                  @for (row of controller.publicDetailPaceRows(); track row.label) {
+                    <div class="distribution-row">
+                      <span>{{row.label}}</span>
+                      <strong>{{row.value}}</strong>
+                    </div>
+                  }
+                </article>
+              }
               @if (stats.Popularidad) {
                 <article>
                   <h4><mat-icon>leaderboard</mat-icon>Popularidad</h4>

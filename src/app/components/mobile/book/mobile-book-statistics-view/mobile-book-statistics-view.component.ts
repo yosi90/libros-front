@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { BookStatisticsSnapshot } from '../../../../interfaces/statistics';
 import {
-    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, orderedChapters, pacingChart, presenceHeatmap, progressChart, readingProgress
+    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, orderedChapters, paceCurveChart, pacingChart, presenceHeatmap, progressChart, readingProgress
 } from '../../../../shared/book-charts';
 import type { BookStatisticsComponent } from '../../../shared/book-pages/book-statistics/book-statistics.component';
 
@@ -32,6 +32,7 @@ export class MobileBookStatisticsViewComponent implements OnInit, DoCheck, OnDes
     heatmap: any = null;
     cast: any = null;
     groups: any = null;
+    paceCurve: any = null;
     chartMinWidth = 0;
     private builtFor: BookStatisticsSnapshot | null = null;
     private themeObserver: MutationObserver | null = null;
@@ -62,7 +63,7 @@ export class MobileBookStatisticsViewComponent implements OnInit, DoCheck, OnDes
         const snapshot = this.c.snapshot;
         this.builtFor = snapshot;
         if (!snapshot) {
-            this.progress = this.progressOptions = this.pacing = this.heatmap = this.cast = this.groups = null;
+            this.progress = this.progressOptions = this.pacing = this.heatmap = this.cast = this.groups = this.paceCurve = null;
             return;
         }
         const palette = this.readPalette();
@@ -73,6 +74,7 @@ export class MobileBookStatisticsViewComponent implements OnInit, DoCheck, OnDes
         this.heatmap = presenceHeatmap(this.c.book, snapshot, palette);
         this.cast = compact(castPerChapterChart(snapshot, palette), 220);
         this.groups = compact(castGroupsChart(this.c.book, palette), 240);
+        this.paceCurve = compact(paceCurveChart(this.c.readingPace, palette), 200);
         this.chartMinWidth = orderedChapters(snapshot).length * CHAPTER_COLUMN_PX;
         this.changeDetector.markForCheck();
     }

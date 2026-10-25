@@ -273,6 +273,25 @@
         .m-book-stats__empty-copy
             padding-inline: var(--mobile-space-4)
 
+    &__pace
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: var(--mobile-space-3)
+        margin: 0
+        padding: 0 var(--mobile-space-4) var(--mobile-space-3)
+
+        dt
+            color: var(--mobile-color-ink-muted)
+            font-size: .67rem
+            font-weight: 750
+            text-transform: uppercase
+
+        dd
+            margin: 2px 0 0
+            font-family: var(--mobile-font-display)
+            font-size: 1.05rem
+            font-variant-numeric: tabular-nums
+
     &__scroll
         overflow-x: auto
         overscroll-behavior-inline: contain

@@ -143,6 +143,10 @@ export interface CatalogMetadataPopularity {
 }
 
 export interface CatalogPublicStats {
+    /** Páginas por día de lectura, de media entre sus lectores que comparten (solo libros); null con menos de tres. */
+    RitmoLectores?: number | null;
+    /** Días medios desde el último «En marcha» hasta «Leído»; null con menos de tres lectores que comparten. */
+    DiasMediosParaTerminar?: number | null;
     UsuariosEnBiblioteca: number;
     PuntuacionMedia: number | null;
     TotalPuntuaciones: number;

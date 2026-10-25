@@ -134,6 +134,26 @@
         }
       </article>
     </section>
+    <h2 class="stats-section"><mat-icon>speed</mat-icon>Tu ritmo de lectura</h2>
+    <p class="stats-section-note">Sale de cuándo registras cada capítulo. Se mide desde el {{ paceSince }}.</p>
+    @if (readingPace; as pace) {
+      <section class="metric-grid" aria-label="Resumen de tu ritmo">
+        <article class="metric-tile"><mat-icon>local_fire_department</mat-icon><strong>{{ pace.RachaActual }}</strong><span>Días seguidos ahora</span></article>
+        <article class="metric-tile"><mat-icon>emoji_events</mat-icon><strong>{{ pace.MejorRacha }}</strong><span>Tu mejor racha</span></article>
+        <article class="metric-tile"><mat-icon>event_available</mat-icon><strong>{{ pace.DiasConLectura }}</strong><span>Días con lectura</span></article>
+        <article class="metric-tile"><mat-icon>auto_stories</mat-icon><strong>{{ pace.PaginasPorDiaActivo }}</strong><span>Páginas por día leído</span></article>
+        <article class="metric-tile"><mat-icon>bookmarks</mat-icon><strong>{{ pace.CapitulosPorSemana }}</strong><span>Capítulos por semana</span></article>
+      </section>
+      <section class="details-grid">
+        <article class="detail-panel"><h2><mat-icon>calendar_month</mat-icon>Páginas por mes</h2><app-stat-rows [rows]="paceMonths" empty="Aún no hay meses con lectura registrada."></app-stat-rows></article>
+        <article class="detail-panel"><h2><mat-icon>date_range</mat-icon>Qué días lees</h2><app-stat-rows [rows]="paceWeekdays"></app-stat-rows></article>
+        <article class="detail-panel"><h2><mat-icon>schedule</mat-icon>A qué hora lees</h2><app-stat-rows [rows]="paceHourBands"></app-stat-rows></article>
+      </section>
+    } @else {
+      <section class="details-grid">
+        <article class="detail-panel"><h2><mat-icon>schedule</mat-icon>Tu ritmo aparecerá en cuanto registres capítulos</h2><p>Cada capítulo que anotes desde el {{ paceSince }} cuenta: rachas, páginas por día y a qué hora lees.</p></article>
+      </section>
+    }
     } @else {
       @if (generalLoading) {
         <div class="empty-state" role="status">Cargando el catálogo…</div>
@@ -160,8 +180,12 @@
             <article class="metric-tile"><mat-icon>groups</mat-icon><strong>{{ communityData.Resumen.LectoresActivos ?? '—' }}</strong><span>Lectores que comparten</span></article>
             <article class="metric-tile"><mat-icon>menu_book</mat-icon><strong>{{ communityData.Resumen.LibrosLeidos ?? '—' }}</strong><span>Libros leídos</span></article>
             <article class="metric-tile"><mat-icon>functions</mat-icon><strong>{{ communityData.Resumen.MediaLibrosPorLector ?? '—' }}</strong><span>Libros por lector</span></article>
+            <article class="metric-tile"><mat-icon>speed</mat-icon><strong>{{ communityData.RitmoComunidad?.RitmoMedio ?? '—' }}</strong><span>Páginas por día de lectura</span></article>
           </section>
           <section class="details-grid">
+            @if (communityPaceMonths.length) {
+              <article class="detail-panel"><h2><mat-icon>auto_stories</mat-icon>Páginas leídas por mes</h2><app-stat-rows [rows]="communityPaceMonths"></app-stat-rows></article>
+            }
             @if (communityMonthlyRows.length) {
               <article class="detail-panel"><h2><mat-icon>calendar_month</mat-icon>Lecturas por mes</h2><app-stat-rows [rows]="communityMonthlyRows"></app-stat-rows></article>
             }

@@ -42,6 +42,7 @@ export interface PublicDetailController {
     publicDetailPersonalRating(): number | null;
     publicDetailPersonalReview(): string;
     publicDetailStats(): CatalogPublicStats | null;
+    publicDetailPaceRows(): Array<{ label: string; value: string }>;
     pagedPublicReviewRows(): CatalogPublicReview[];
     publicReviewRows(): CatalogPublicReview[];
     publicReviewAuthorHandle(review: CatalogPublicReview): string;

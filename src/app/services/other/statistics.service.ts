@@ -25,6 +25,8 @@ import { Book } from '../../interfaces/book';
 import { CollectionService } from '../entities/collection.service';
 import { getLatestStatusId, readingStatusOptions } from '../../shared/reading-status';
 import { CollectionItem } from '../../interfaces/catalog';
+import { UniverseMetricsResponse } from '../../interfaces/universe';
+import { ReadingPaceUser } from '../../shared/reading-pace';
 
 @Injectable({ providedIn: 'root' })
 export class StatisticsService {
@@ -73,7 +75,8 @@ export class StatisticsService {
                 librosPorComprar: tolerant(this.getBooksPendingPurchase(), [] as IdNameMetric[]),
                 historialLectura: tolerant(this.getReadingHistory(), [] as MonthlyCount[]),
                 promedioDiasCompraLectura: tolerant(this.getAverageReadingTime().pipe(map(metric => metric.promedio_dias)), null),
-                collectionItems: tolerant(this.collectionSrv.getItems(), [] as CollectionItem[])
+                collectionItems: tolerant(this.collectionSrv.getItems(), [] as CollectionItem[]),
+                ritmoLectura: tolerant(this.getReadingPace(), null as ReadingPaceUser | null)
             };
 
             return forkJoin(requests).pipe(
@@ -91,6 +94,7 @@ export class StatisticsService {
                     PromedioDiasCompraLectura: results.promedioDiasCompraLectura,
                     DistribucionEstados: this.getReadingStatusDistribution(results.collectionItems),
                     Coleccion: results.collectionItems,
+                    RitmoLectura: results.ritmoLectura,
                     MetricasSolicitadas: Object.keys(requests).length,
                     MetricasNoDisponibles: failed
                 }))
@@ -146,6 +150,11 @@ export class StatisticsService {
 
     getReadingHistory() {
         return this.http.get<MonthlyCount[]>(`${this.baseUrl}libros/historial_leidos`);
+    }
+
+    /** El ritmo de lectura propio (`RitmoLectura` de las métricas de la colección). */
+    getReadingPace(): Observable<ReadingPaceUser | null> {
+        return this.http.get<UniverseMetricsResponse>(`${this.baseUrl}universos/metricas`).pipe(map(metrics => metrics.RitmoLectura ?? null));
     }
 
     getAverageReadingTime() {
