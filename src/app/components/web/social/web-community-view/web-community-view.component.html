@@ -6,6 +6,7 @@
   } @else {
     <!-- ---------- Clubes ---------- -->
     <section class="clubs">
+      @if (c.clubAccessNotice) { <p class="clubs__notice" role="status">{{ c.clubAccessNotice }}</p> }
       <div class="clubs__toolbar">
         <div class="web-segmented" role="group" aria-label="Secciones de clubes">
           <button type="button" [class.is-selected]="c.clubTab === 'discover'" (click)="c.selectClubTab('discover')">Descubrir</button>

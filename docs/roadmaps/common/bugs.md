@@ -4,7 +4,7 @@
 
 ## Pendiente
 
-- [ ] Clubes en la vista móvil de la web (25/10/2026, al especificar el clon Kotlin; corregidos ya en la APK). Fallos:
+- [x] Clubes en la vista móvil de la web (25/10/2026, al especificar el clon Kotlin). Corregidos en la web y en la APK, con 613 unitarias. Fallos:
   - «Mis clubes» se queda en los 3 del resumen, y «Eventos», en 5 y sin «Cargar más».
   - Se enseñan valores crudos (`disponible`, `propietario`, `abierto`, `pagina`), y «1 votos».
   - La tarjeta «Invitaciones a clubes» lleva a Descubrir, no al centro de acceso.
@@ -15,6 +15,7 @@
   - Las descripciones y los debates pierden los saltos de línea.
   - Crear club exige un libro, aunque la API acepta antologías.
   - El icono `outgoing_mail` no existe en la fuente y sale como texto.
+  - Arreglo en la web: las etiquetas están en `shared/club-labels.ts`; Mis clubes y Eventos se leen al abrir su pestaña; a quien no es miembro solo se le piden los autores más leídos; perder el acceso vuelve a Clubes con el aviso; volver y abandonar llevan a Clubes; `pre-line` en los textos; métricas en dos columnas; `forward_to_inbox`.
 
 - [x] Perfil, «Mis peticiones» y «Actividad reciente» (25/10/2026, al especificar el clon Kotlin). Tres fallos corregidos:
   - Una petición devuelta de tipo «Otra petición» no se podía reenviar: la respuesta iba en `Payload.Comentario` y la API solo admite `Texto` y `Titulo` en esas peticiones, así que respondía siempre `400 invalid_other_request_payload`. Ahora la respuesta se añade al texto (`catalogRequestResponsePayload`, con su prueba).

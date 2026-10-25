@@ -5,12 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import type { ClubDetailComponent } from '../../../shared/user-pages/club-detail/club-detail.component';
-import { clubRoleLabels } from '../web-community-view/web-community-view.component';
+import { clubMilestoneTypeLabel, clubRoleLabel } from '../../../../shared/club-labels';
 import { ChatConversationComponent } from '../../../shared/user-pages/chat-conversation/chat-conversation.component';
 
 type ClubTab = 'readings' | 'chat' | 'debates' | 'publications' | 'polls' | 'calendar' | 'members';
 
-const milestoneTypeLabels: Record<string, string> = { pagina: 'Página', capitulo: 'Capítulo', evento: 'Evento' };
 
 /** Vista Web del club: cabecera, secciones en pestañas (con el chat del espacio) y columna con cifras y mi progreso. */
 @Component({
@@ -42,10 +41,10 @@ export class WebClubDetailViewComponent {
     }
 
     roleLabel(role: string): string {
-        return clubRoleLabels[role] ?? role;
+        return clubRoleLabel(role);
     }
 
     milestoneTypeLabel(type: string): string {
-        return milestoneTypeLabels[type] ?? type;
+        return clubMilestoneTypeLabel(type);
     }
 }

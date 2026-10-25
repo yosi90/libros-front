@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+import { clubMilestoneTypeLabel, clubRoleLabel, clubVisibilityLabel, clubVotesLabel } from '../../../../shared/club-labels';
 import type { ClubDetailComponent } from '../../../shared/user-pages/club-detail/club-detail.component';
 
 @Component({
@@ -17,4 +18,8 @@ import type { ClubDetailComponent } from '../../../shared/user-pages/club-detail
 export class MobileClubDetailViewComponent {
     @Input({ required: true }) controller!: ClubDetailComponent;
     get c(): ClubDetailComponent { return this.controller; }
+    readonly roleLabel = clubRoleLabel;
+    readonly visibilityLabel = clubVisibilityLabel;
+    readonly milestoneTypeLabel = clubMilestoneTypeLabel;
+    readonly votesLabel = clubVotesLabel;
 }

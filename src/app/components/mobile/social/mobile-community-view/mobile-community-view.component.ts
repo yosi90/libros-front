@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { ClubAccessCenterComponent } from '../../../shared/user-pages/community/club-access-center/club-access-center.component';
+import { clubMembershipLabel, clubRoleLabel } from '../../../../shared/club-labels';
 import type { CommunityComponent } from '../../../shared/user-pages/community/community.component';
 
 @Component({
@@ -17,4 +18,6 @@ import type { CommunityComponent } from '../../../shared/user-pages/community/co
 export class MobileCommunityViewComponent {
     @Input({ required: true }) controller!: CommunityComponent;
     get c(): CommunityComponent { return this.controller; }
+    readonly membershipLabel = clubMembershipLabel;
+    readonly roleLabel = clubRoleLabel;
 }

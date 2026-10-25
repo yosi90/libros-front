@@ -66,6 +66,8 @@
 
         .m-supporting
             margin-top: var(--mobile-space-3)
+            // El texto de la descripción conserva sus saltos de línea.
+            white-space: pre-line
 
     &__hero-actions
         display: flex
@@ -94,7 +96,8 @@
 
     &__metrics
         display: grid
-        grid-template-columns: repeat(3, minmax(0, 1fr))
+        // Dos métricas (Miembros y Publicaciones): con tres columnas quedaba un hueco.
+        grid-template-columns: repeat(2, minmax(0, 1fr))
         gap: var(--mobile-space-2)
 
         article
@@ -202,6 +205,7 @@
         margin: var(--mobile-space-2) 0 0
         color: var(--mobile-color-ink-muted)
         line-height: 1.5
+        white-space: pre-line
 
 .m-club-form
     min-width: 0
@@ -276,6 +280,9 @@
     h3,
     p
         margin: 0
+
+    p
+        white-space: pre-line
 
     > small
         color: var(--mobile-color-ink-muted)

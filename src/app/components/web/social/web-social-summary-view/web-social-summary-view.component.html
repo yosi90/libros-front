@@ -21,7 +21,7 @@
             <span><app-yosiftware-mark></app-yosiftware-mark> {{card.label}}</span>
           </a>
         } @else {
-          <a class="summary__card" [routerLink]="card.path" [class.is-pending]="card.accent">
+          <a class="summary__card" [routerLink]="card.path" [queryParams]="card.query" [class.is-pending]="card.accent">
             <span class="summary__icon"><mat-icon aria-hidden="true">{{card.icon}}</mat-icon></span>
             <strong>{{card.value}}</strong>
             <span>{{card.label}}</span>

@@ -116,13 +116,13 @@ describe('ClubDetailComponent (club en un espacio de la plataforma)', () => {
         flush();
     }));
 
-    it('sin entrada reciente, un 404 del club lleva a Comunidad', () => {
+    it('sin entrada reciente, un 404 del club lleva a Clubes avisando', () => {
         const { component, community, router } = create();
         community.club.and.returnValue(throwError(() => new HttpErrorResponse({ status: 404, error: { code: 'club_access_unavailable' } })));
 
         component.ngOnInit();
 
-        expect(router.navigate).toHaveBeenCalledWith(['/dashboard/community'], { state: { clubAccessRevoked: true } });
+        expect(router.navigate).toHaveBeenCalledWith(['/dashboard/community/clubs'], { state: { clubAccessRevoked: true } });
     });
 
     it('expulsado del espacio: lo explica y no espera al feed', () => {
@@ -161,7 +161,7 @@ describe('ClubDetailComponent (club en un espacio de la plataforma)', () => {
 
         expect(spaces.leave).toHaveBeenCalledOnceWith(9, 4);
         expect(channel.close).toHaveBeenCalled();
-        expect(router.navigate).toHaveBeenCalledWith(['/dashboard/community']);
+        expect(router.navigate).toHaveBeenCalledWith(['/dashboard/community/clubs']);
     });
 
     it('quien puede invitar busca personas, invita a una cuenta o a un correo y ve las pendientes', () => {

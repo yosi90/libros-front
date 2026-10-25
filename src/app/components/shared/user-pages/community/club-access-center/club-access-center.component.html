@@ -9,7 +9,7 @@
     <button type="button" role="tab" [attr.aria-selected]="kind === 'invitaciones'" [class.is-active]="kind === 'invitaciones'" (click)="selectKind('invitaciones')"><mat-icon>mark_email_unread</mat-icon>Invitaciones @if (counters.Invitaciones.EnviadasPendientes + counters.Invitaciones.RecibidasPendientes) {
       <b>{{counters.Invitaciones.EnviadasPendientes + counters.Invitaciones.RecibidasPendientes}}</b>
     }</button>
-    <button type="button" role="tab" [attr.aria-selected]="kind === 'solicitudes'" [class.is-active]="kind === 'solicitudes'" (click)="selectKind('solicitudes')"><mat-icon>outgoing_mail</mat-icon>Solicitudes @if (counters.Solicitudes.EnviadasPendientes + counters.Solicitudes.RecibidasPendientes) {
+    <button type="button" role="tab" [attr.aria-selected]="kind === 'solicitudes'" [class.is-active]="kind === 'solicitudes'" (click)="selectKind('solicitudes')"><mat-icon>forward_to_inbox</mat-icon>Solicitudes @if (counters.Solicitudes.EnviadasPendientes + counters.Solicitudes.RecibidasPendientes) {
       <b>{{counters.Solicitudes.EnviadasPendientes + counters.Solicitudes.RecibidasPendientes}}</b>
     }</button>
   </div>

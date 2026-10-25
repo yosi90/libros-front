@@ -65,13 +65,19 @@ export class CommunityComponent implements OnInit, OnDestroy {
     get mobileController(): this { return this; }
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
+    /** Al perder el acceso a un club, el detalle vuelve aquí y lo dice (antes volvía sin explicación). */
+    clubAccessNotice = '';
+
     ngOnInit(): void {
+        if ((globalThis.history?.state as { clubAccessRevoked?: boolean } | null)?.clubAccessRevoked) this.clubAccessNotice = 'Este club ya no está disponible para tu cuenta.';
         const requestedClubTab = this.route.snapshot.queryParamMap.get('clubTab');
         if (requestedClubTab === 'discover' || requestedClubTab === 'mine' || requestedClubTab === 'events' || requestedClubTab === 'access') this.clubTab = requestedClubTab;
         this.access.refresh().subscribe();
         this.subscriptions.add(this.clubAccess.counters$.subscribe(counters => this.clubAccessCounters = counters));
         this.load();
         this.loadClubHome();
+        if (this.clubTab === 'mine') this.loadMyClubs();
+        if (this.clubTab === 'events') this.loadUpcomingClubEvents();
         // El centro de acceso las carga él mismo cuando está a la vista.
         if (this.clubTab !== 'access') this.clubAccess.refresh().subscribe({ error: () => undefined });
     }
@@ -91,10 +97,11 @@ export class CommunityComponent implements OnInit, OnDestroy {
     get pageTitle(): string { return 'Lecturas compartidas'; }
     get pageDescription(): string { return 'Encuentra comunidades alrededor de libros, sagas y universos.'; }
 
-    get hasBooksInCollection(): boolean { return this.universeStore.getAllBooks().length > 0; }
+    /** Libros o antologías: la API acepta las dos para crear un club (antes solo contaban los libros). */
+    get hasBooksInCollection(): boolean { return this.universeStore.getAllBooks().length > 0 || this.universeStore.getAllAnthologies().length > 0; }
     get canCreateClub(): boolean { return this.access.canUse('clubes', true) && this.hasBooksInCollection; }
     get publishRestriction(): string | null { return this.access.restrictionMessage('publicacion', true); }
-    get createClubDisabledReason(): string | null { return this.access.restrictionMessage('clubes', true) ?? (this.hasBooksInCollection ? null : 'Añade al menos un libro a tu colección antes de crear un club.'); }
+    get createClubDisabledReason(): string | null { return this.access.restrictionMessage('clubes', true) ?? (this.hasBooksInCollection ? null : 'Añade al menos un libro o una antología a tu colección antes de crear un club.'); }
     get clubCreationDisabledReason(): string | null {
         if (!this.canCreateClub) return this.createClubDisabledReason;
         if (this.isCreatingClub) return 'La creación del club está en curso.';
@@ -113,16 +120,16 @@ export class CommunityComponent implements OnInit, OnDestroy {
             queryParamsHandling: 'merge',
             replaceUrl: true
         });
-        if (tab === 'mine' && !this.myClubs.length) this.loadMyClubs();
-        if (tab === 'events' && !this.upcomingClubEvents.length) this.loadUpcomingClubEvents();
+        // Enteros, al abrirlos: el resumen solo trae 3 clubes y 5 eventos.
+        if (tab === 'mine') this.loadMyClubs();
+        if (tab === 'events') this.loadUpcomingClubEvents();
     }
 
     loadClubHome(): void {
         this.community.clubSocialSummary().subscribe({
             next: summary => {
                 this.hasMyClubs = summary.TieneClubes;
-                this.myClubs = summary.ClubesPropios;
-                this.upcomingClubEvents = summary.ProximosEventos;
+                // Mis clubes y Eventos no salen de aquí (3 y 5 como mucho): se leen enteros al abrir su pestaña.
                 this.popularClubs = summary.ClubesPublicosActivos;
                 if (!summary.TieneClubes && (this.clubTab === 'mine' || this.clubTab === 'events')) this.selectClubTab('discover');
             }

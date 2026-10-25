@@ -19,7 +19,7 @@
             <mat-icon>open_in_new</mat-icon>
           </a>
         } @else {
-          <a class="m-list-item" [routerLink]="card.path" [class.has-pending]="card.accent">
+          <a class="m-list-item" [routerLink]="card.path" [queryParams]="card.query" [class.has-pending]="card.accent">
             <span class="m-list-item__icon"><mat-icon>{{ card.icon }}</mat-icon></span>
             <span class="m-list-item__body"><strong>{{ card.value }}</strong><span>{{ card.label }}</span></span>
             <mat-icon>chevron_right</mat-icon>

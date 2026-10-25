@@ -208,7 +208,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
                         return;
                     }
                     this.closeChannel();
-                    void this.router.navigate(['/dashboard/community'], { state: { clubAccessRevoked: true } });
+                    void this.router.navigate(['/dashboard/community/clubs'], { state: { clubAccessRevoked: true } });
                     return;
                 }
                 this.error = getProductStateMessage(error, 'No se ha podido cargar este club.');
@@ -238,13 +238,16 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
 
     private loadSections(): void {
         this.loadClubReadingAuthors();
+        // Lo privado, solo a quien es miembro: a los demás la API responde `club_access_unavailable`, que pintaba un
+        // error de sección y, al actuar, sacaba a la persona del club.
+        if (!this.isMember) return;
         this.loadReadings();
         this.loadProgress();
         this.loadMilestones();
         this.loadCalendar();
         this.loadDebates();
         this.loadPolls();
-        if (this.isMember) this.loadPublications();
+        this.loadPublications();
     }
 
     /** Lo de la persona en el espacio (`yo`): su rol y si puede invitar, gestionar o chatear. */
@@ -448,7 +451,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.spaces.leave(club.EspacioId, club.Id).subscribe({
             next: () => {
                 this.closeChannel();
-                void this.router.navigate(['/dashboard/community']);
+                void this.router.navigate(['/dashboard/community/clubs']);
             },
             error: error => { this.actionMessage = spaceErrorMessage(error, getProductStateMessage(error, 'No se ha podido abandonar el club.')); this.isLeaving = false; }
         });
@@ -857,19 +860,25 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         });
     }
 
+    /** Crear un debate y comentar no se mandan dos veces mientras va el primero. */
+    isCreatingDebate = false;
+    isCommentingDebate = false;
+
     loadDebates(): void { this.community.clubDebates(this.clubId, this.revealDebateSpoilers).subscribe({ next: debates => this.debates = debates, error: () => { this.debates = []; this.setSectionError('debates'); } }); }
     openDebate(debate: ClubDebate): void { this.community.clubDebate(this.clubId, debate.Id, this.revealDebateSpoilers).subscribe({ next: detail => this.selectedDebate = detail, error: error => this.debateError = this.clubMessage(error, 'No se ha podido abrir el debate.') }); }
     revealSpoilersInDebates(): void { this.revealDebateSpoilers = true; this.loadDebates(); if (this.selectedDebate) this.openDebate(this.selectedDebate.Debate); }
     createDebate(): void {
         const title = this.debateTitle.trim(), content = this.debateContent.trim();
-        if (!title || !content) return;
+        if (!title || !content || this.isCreatingDebate) return;
+        this.isCreatingDebate = true;
         this.debateError = '';
-        this.community.createClubDebate(this.clubId, { Titulo: title, ContenidoMarkdown: content, ...(this.debateReadingId ? { LecturaId: this.debateReadingId } : {}), ...(this.debateSpoilerStart || this.debateSpoilerEnd ? { Spoiler: { PaginaInicio: this.debateSpoilerStart, PaginaFin: this.debateSpoilerEnd } } : {}) }).subscribe({ next: () => { this.debateTitle = ''; this.debateContent = ''; this.debateReadingId = null; this.debateSpoilerStart = null; this.debateSpoilerEnd = null; this.loadDebates(); }, error: error => this.debateError = this.clubMessage(error, 'No se ha podido crear el debate.') });
+        this.community.createClubDebate(this.clubId, { Titulo: title, ContenidoMarkdown: content, ...(this.debateReadingId ? { LecturaId: this.debateReadingId } : {}), ...(this.debateSpoilerStart || this.debateSpoilerEnd ? { Spoiler: { PaginaInicio: this.debateSpoilerStart, PaginaFin: this.debateSpoilerEnd } } : {}) }).subscribe({ next: () => { this.isCreatingDebate = false; this.debateTitle = ''; this.debateContent = ''; this.debateReadingId = null; this.debateSpoilerStart = null; this.debateSpoilerEnd = null; this.loadDebates(); }, error: error => { this.isCreatingDebate = false; this.debateError = this.clubMessage(error, 'No se ha podido crear el debate.'); } });
     }
     commentDebate(): void {
         const content = this.debateComment.trim();
-        if (!content || !this.selectedDebate) return;
-        this.community.commentClubDebate(this.clubId, this.selectedDebate.Debate.Id, content).subscribe({ next: () => { this.debateComment = ''; this.openDebate(this.selectedDebate!.Debate); }, error: error => this.debateError = this.clubMessage(error, 'No se ha podido comentar el debate.') });
+        if (!content || !this.selectedDebate || this.isCommentingDebate) return;
+        this.isCommentingDebate = true;
+        this.community.commentClubDebate(this.clubId, this.selectedDebate.Debate.Id, content).subscribe({ next: () => { this.isCommentingDebate = false; this.debateComment = ''; this.openDebate(this.selectedDebate!.Debate); }, error: error => { this.isCommentingDebate = false; this.debateError = this.clubMessage(error, 'No se ha podido comentar el debate.'); } });
     }
 
     loadPolls(): void { this.community.clubPolls(this.clubId).subscribe({ next: polls => this.polls = polls, error: () => { this.polls = []; this.setSectionError('encuestas'); } }); }
@@ -906,7 +915,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
                 return 'Libros aún está terminando de darte acceso a este club.';
             }
             this.closeChannel();
-            void this.router.navigate(['/dashboard/community'], { state: { clubAccessRevoked: true } });
+            void this.router.navigate(['/dashboard/community/clubs'], { state: { clubAccessRevoked: true } });
             return 'Este club ya no está disponible para tu cuenta.';
         }
         if (['club_reading_not_found', 'club_milestone_not_found', 'club_event_not_found', 'club_member_not_found'].includes(code || ''))

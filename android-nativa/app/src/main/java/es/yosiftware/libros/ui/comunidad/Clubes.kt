@@ -78,7 +78,7 @@ object FechasDeClubes {
 
 /** Crear un club (`CommunityComponent`): por qué no se puede, por orden. */
 object CreacionDeClub {
-    const val SIN_LIBROS = "Añade al menos un libro a tu colección antes de crear un club."
+    const val SIN_LIBROS = "Añade al menos un libro o una antología a tu colección antes de crear un club."
     const val EN_CURSO = "La creación del club está en curso."
     const val NOMBRE_CORTO = "Escribe un nombre de al menos dos caracteres para crear el club."
     const val ERROR = "No se ha podido crear el club."

@@ -16,7 +16,7 @@ import { MobileSocialSummaryViewComponent } from '../../../mobile/social/mobile-
 import { YosiftwareMarkComponent } from '../../common/yosiftware-mark/yosiftware-mark.component';
 
 /** Una tarjeta del resumen: lleva a una sección de Libros (`path`) o a la web social (`href`, con el símbolo). */
-export interface SummaryCard { label: string; value: number; icon: string; path?: string; href?: string; accent?: boolean }
+export interface SummaryCard { label: string; value: number; icon: string; path?: string; query?: Record<string, string>; href?: string; accent?: boolean }
 
 /**
  * El resumen de Comunidad: los clubes (de Libros), los mensajes sin leer (del chat de la plataforma) y las relaciones
@@ -99,7 +99,7 @@ export class SocialSummaryComponent implements OnInit, OnDestroy {
         if (clubs) cards.push({ label: 'Clubes activos', value: clubs.Activos, icon: 'groups_3', path: '../clubs' });
         // Las invitaciones solo las cuenta la plataforma (la API ya no da `InvitacionesPendientes`): sin su respuesta, no hay tarjeta.
         const invitations = this.clubInvitations;
-        if (invitations !== null) cards.push({ label: 'Invitaciones a clubes', value: invitations, icon: 'mark_email_unread', path: '../clubs', accent: invitations > 0 });
+        if (invitations !== null) cards.push({ label: 'Invitaciones a clubes', value: invitations, icon: 'mark_email_unread', path: '../clubs', query: { clubTab: 'access', accessType: 'invitaciones', direction: 'recibidas' }, accent: invitations > 0 });
         cards.push({ label: 'Mensajes sin leer', value: this.unreadMessages, icon: 'forum', path: '../messages', accent: this.unreadMessages > 0 });
         return cards;
     }

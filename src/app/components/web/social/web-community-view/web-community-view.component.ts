@@ -4,19 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { ClubAccessCenterComponent } from '../../../shared/user-pages/community/club-access-center/club-access-center.component';
+import { clubMembershipLabel, clubRoleLabel } from '../../../../shared/club-labels';
 import type { CommunityComponent } from '../../../shared/user-pages/community/community.component';
 
-// Las solicitudes pendientes son de la plataforma: `EstadoMembresia` ya no vale `solicitud_pendiente` (fase 4).
-const membershipLabels: Record<string, string> = {
-    disponible: 'puedes unirte',
-    miembro: 'ya eres miembro'
-};
-
-export const clubRoleLabels: Record<string, string> = {
-    propietario: 'Propietario',
-    moderador: 'Moderador',
-    miembro: 'Miembro'
-};
+export { clubRoleLabels } from '../../../../shared/club-labels';
 
 /**
  * Vista Web de los clubes de Comunidad. Consume el mismo controlador que Mobile. Las personas y el muro general se
@@ -39,10 +30,10 @@ export class WebCommunityViewComponent {
     }
 
     membershipLabel(state: string): string {
-        return membershipLabels[state] ?? state;
+        return clubMembershipLabel(state);
     }
 
     roleLabel(role: string): string {
-        return clubRoleLabels[role] ?? role;
+        return clubRoleLabel(role);
     }
 }
