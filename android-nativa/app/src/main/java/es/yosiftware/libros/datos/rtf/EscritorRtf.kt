@@ -40,6 +40,14 @@ object EscritorRtf {
             "\\viewkind4\\uc1\\pard\\f0\\fs24 ${cuerpo.toString().replace(parrafosAlFinal, "")}\\par}"
     }
 
+    /**
+     * Un texto plano como RTF, tal cual lo hace la web (`plainTextToRtf`): sin párrafos propios (los saltos son `\line`),
+     * con la fuente por defecto y sin colores. Es el de las entradas por defecto («Descripción del personaje»).
+     */
+    fun deTextoPlano(texto: String): String =
+        "{\\rtf1\\ansi\\ansicpg1252\\deff0\\nouicompat\\deflang3082{\\fonttbl{\\f0\\fnil\\fcharset0 ${escapar(FUENTE_POR_DEFECTO)};}}{\\colortbl ;}" +
+            "\\viewkind4\\uc1\\pard\\f0\\fs24 ${escapar(texto)}\\par}"
+
     /** `htmlParagraphControls`: la alineación siempre; las sangrías y los espacios, si no son 0; el interlineado, con su modo. */
     private fun controlesDeParrafo(estilo: EstiloDeParrafo): String = buildString {
         append(estilo.alineacion.control)
