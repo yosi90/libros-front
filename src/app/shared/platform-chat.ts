@@ -34,6 +34,8 @@ export const CHAT_EDIT_WINDOW_MS = 15 * 60_000;
 
 const REACTION_TYPES = Object.keys(CHAT_REACTION_EMOJIS) as ChatReactionType[];
 const DELETED_NAME = 'Cuenta borrada';
+/** Un mensaje que la persona ya no puede ver (privacidad alta, historial anterior a su entrada…). */
+const UNAVAILABLE_TEXT = 'Mensaje no disponible';
 
 /** La plataforma guarda cada emoji sin el selector de variación cuando ya se pinta como emoji: se comparan sin él. */
 export function sameEmoji(left: string | null | undefined, right: string | null | undefined): boolean {
@@ -115,7 +117,7 @@ export function avisoText(mensaje: PlataformaMensaje, selfId: string | null): st
 }
 
 function messageText(mensaje: PlataformaMensaje): string {
-    if (mensaje.noDisponible) return 'Mensaje no disponible';
+    if (mensaje.noDisponible) return UNAVAILABLE_TEXT;
     if (mensaje.borrado || mensaje.retirado) return 'Mensaje borrado';
     return mensaje.texto ?? '';
 }
@@ -219,7 +221,7 @@ export function toChatMessage(mensaje: PlataformaMensaje, selfId: string | null,
         RemitenteId: aviso ? null : mensaje.persona?.id ?? null,
         Remitente: aviso ? null : toChatPerson(mensaje.persona),
         Propio: propio,
-        Texto: aviso ? avisoText(mensaje, selfId) : (mensaje.noDisponible ? 'Mensaje no disponible' : (mensaje.texto ?? '')),
+        Texto: aviso ? avisoText(mensaje, selfId) : (mensaje.noDisponible ? UNAVAILABLE_TEXT : (mensaje.texto ?? '')),
         FechaEnvio: mensaje.creado,
         FechaEdicion: typeof mensaje.editado === 'string' ? mensaje.editado : null,
         Eliminado: eliminado,
@@ -237,7 +239,7 @@ export function toChatMessage(mensaje: PlataformaMensaje, selfId: string | null,
         MensajeRespondido: respuesta ? {
             Id: respuesta.id,
             RemitenteId: respuesta.persona?.id ?? null,
-            Texto: respuesta.noDisponible ? 'Mensaje no disponible' : (respuesta.texto ?? ''),
+            Texto: respuesta.noDisponible ? UNAVAILABLE_TEXT : (respuesta.texto ?? ''),
             Eliminado: respuesta.borrado === true
         } : null
     };
