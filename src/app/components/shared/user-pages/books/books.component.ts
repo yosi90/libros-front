@@ -48,7 +48,6 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
-import { NativeReaderSessionService } from '../../../../services/navigation/native-reader-session.service';
 import { MobileLibraryViewComponent } from '../../../mobile/user/mobile-library-view/mobile-library-view.component';
 import { AntologyService } from '../../../../services/entities/antology.service';
 import { getProductStateMessage } from '../../../../shared/api-error-message';
@@ -222,7 +221,6 @@ export class BooksComponent implements OnInit {
         private host: ElementRef<HTMLElement>,
         private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService,
-        private nativeReader: NativeReaderSessionService,
         private anthologyApi: AntologyService,
         private bookApi: BookService,
         private bookStore: BookStoreService,
@@ -360,14 +358,6 @@ export class BooksComponent implements OnInit {
         ).subscribe({
             next: book => {
                 this.bookStore.setBook(book);
-                const summary = { bookName: book.Nombre, coverUrl: book.Portada, anthologyId: anthology.Id };
-                if (this.nativeReader.supported) {
-                    // El dashboard permanece adjunto detrás del lector nativo.
-                    // Conservamos también su superficie fullscreen para que al
-                    // minimizar se vuelva exactamente a la antología de origen.
-                    void this.nativeReader.open(book.Id, 'statistics', summary);
-                    return;
-                }
                 this.clearAnthologySelection();
                 void this.router.navigate(['/book', book.Id, 'statistics'], { queryParams: { anthologyId: anthology.Id } });
             },
@@ -603,23 +593,7 @@ export class BooksComponent implements OnInit {
 
     openBook(book: BookSimple): void {
         this.loader.activateLoader('book');
-        this.recordNativeReaderQaStage('scheduled');
-        requestAnimationFrame(() => {
-            this.recordNativeReaderQaStage('frame');
-            if (this.nativeReader.supported) {
-                void this.nativeReader.open(book.Id, 'statistics', {
-                    bookName: book.Nombre,
-                    coverUrl: book.Portada
-                }).finally(() => this.loader.deactivateLoader());
-                return;
-            }
-            void this.router.navigate(['/book', book.Id]);
-        });
-    } 
-
-    private recordNativeReaderQaStage(stage: string): void {
-        if (environment.environmentName !== 'qa' || !this.nativeReader.supported) return;
-        try { sessionStorage.setItem('qa:native-reader-open-stage', stage); } catch { /* Diagnóstico QA no bloqueante. */ }
+        requestAnimationFrame(() => void this.router.navigate(['/book', book.Id]));
     }
 
     editBook(bookId: number, event: MouseEvent): void {

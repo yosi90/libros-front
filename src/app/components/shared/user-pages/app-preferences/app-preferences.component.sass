@@ -4,9 +4,8 @@
 :host
     display: block
 
-// Mobile (APK) ocupa su propia pantalla y desplaza su contenido.
-:host-context(html[data-presentation-active='mobile']),
-:host-context(html[data-presentation-active='native-mobile'])
+// Mobile ocupa su propia pantalla y desplaza su contenido.
+:host-context(html[data-presentation-active='mobile'])
     height: 100%
     overflow: auto
     overscroll-behavior: contain
@@ -74,11 +73,6 @@
     &__content
         min-width: 0
         padding: var(--mobile-space-5) max(var(--mobile-space-4), var(--app-safe-right)) 0 max(var(--mobile-space-4), var(--app-safe-left))
-
-:host-context(html[data-presentation-active='native-mobile'])
-    .m-preferences
-        width: 100%
-        max-width: none
 
 @media (min-width: 600px)
     .m-preferences

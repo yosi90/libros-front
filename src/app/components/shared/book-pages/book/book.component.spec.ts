@@ -21,7 +21,6 @@ describe('BookComponent navigation and structure', () => {
             {} as any,
             {} as any,
             {} as any,
-            {} as any,
             {} as any
         );
     }

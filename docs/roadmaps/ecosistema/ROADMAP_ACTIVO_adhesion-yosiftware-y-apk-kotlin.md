@@ -304,6 +304,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `4a890aa`, `3b7448d`, `
 - [ ] Lista «App Android» con su evidencia.
 - [ ] Plegables y QA del propietario.
 - [ ] Publicada, con su ficha y su novedad.
+- Publicación (anotado en el hito 4, al retirar Capacitor): `.github/workflows/android-release-manual.yml` se retiró de la web con `android/`; su última versión está en la etiqueta `apk-capacitor-final` (`4f1fecd`). Sirve de base para la APK Kotlin casi tal cual: la firma con los mismos secretos (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEY_ALIAS`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD`, la misma clave, para instalar encima), `google-services.json` por entorno desde `ANDROID_GOOGLE_SERVICES_QA_BASE64` y `…_PRODUCTION_BASE64` (en la Kotlin, los de la plataforma, en `app/src/qa` y `app/src/produccion`), `apksigner verify`, el `.sha256` y la GitHub Release `android-vX.Y.Z` solo de producción con el `versionCode` creciente comprobado contra la anterior. Lo que cambia: sin `npm ci` ni `build:native:*` (no hay web dentro), `working-directory: android-nativa`, las tareas `testQaDebugUnitTest`/`assembleQaRelease` y `assembleProduccionRelease`, y la ruta de salida del flavor `produccion`. Antes de recuperarlo, decidir con el kit 1.57 (`APK.md`, «Publicar una versión de tu APK»): si la plataforma sirve la APK, se publica con `herramientas/publicar_apk.py` y su credencial, y la Release de GitHub sobra.
 
 ### Hito 14. Auditoría completa de duplicados de la APK Kotlin (fase 9)
 

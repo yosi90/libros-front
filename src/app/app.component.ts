@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy, effect, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NavbarComponent } from './components/shared/common/navbar/navbar.component';
 import { RouterComponent } from './components/shared/common/main-router/router.component';
 import { FooterComponent } from './components/shared/common/footer/footer.component';
@@ -18,15 +18,8 @@ import { ConnectivityService } from './services/ui/connectivity.service';
 import { PwaLifecycleService } from './services/ui/pwa-lifecycle.service';
 import { MatIconModule } from '@angular/material/icon';
 import { PresentationModeService } from './services/ui/presentation-mode.service';
-import { NativeAppLinksService } from './services/native/native-app-links.service';
-import { NativeRuntimeService } from './services/native/native-runtime.service';
-import { AndroidReleaseUpdateService } from './services/native/android-release-update.service';
 import { CommandPaletteService } from './services/ui/command-palette.service';
 import { WebCommandPaletteComponent } from './components/web/ui/web-command-palette/web-command-palette.component';
-import { NativeReaderIslandComponent } from './components/mobile/book/native-reader-island/native-reader-island.component';
-import { NativeReaderSessionService } from './services/navigation/native-reader-session.service';
-import { NativeKeyboardFocusService } from './services/native/native-keyboard-focus.service';
-import { NativeNetworkFeedbackService } from './services/native/native-network-feedback.service';
 
 @Component({
     standalone: true,
@@ -38,7 +31,6 @@ import { NativeNetworkFeedbackService } from './services/native/native-network-f
         AppToastHostComponent,
         DecisionNoticeHostComponent,
         MatIconModule,
-        NativeReaderIslandComponent,
         WebCommandPaletteComponent
     ],
     templateUrl: './app.component.html',
@@ -46,7 +38,6 @@ import { NativeNetworkFeedbackService } from './services/native/native-network-f
     styleUrl: './app.component.sass'
 })
 export class AppComponent implements OnInit {
-    readonly networkFeedback = inject(NativeNetworkFeedbackService);
     readonly commandPalette = inject(CommandPaletteService);
     title = 'Memoria bibliográfica';
     building: boolean = true;
@@ -143,34 +134,13 @@ export class AppComponent implements OnInit {
         private toasts: AppToastService,
         private adaptiveLayout: AdaptiveLayoutService,
         private presentationMode: PresentationModeService,
-        private nativeAppLinks: NativeAppLinksService,
-        private nativeRuntime: NativeRuntimeService,
-        private nativeKeyboardFocus: NativeKeyboardFocusService,
-        private androidUpdates: AndroidReleaseUpdateService,
-        private nativeReader: NativeReaderSessionService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
-    ) {
-        effect(() => {
-            const message = this.networkFeedback.message();
-            if (message && this.sessionReady && !this.building) {
-                this.toasts.showSystem(message, { title: 'Buscando otro camino', dedupeKey: 'native:ipv6-fallback', durationMs: 6000 });
-            }
-        });
-    }
-
+    ) { }
 
     ngOnInit(): void {
-        this.nativeKeyboardFocus.initialize();
-        void this.nativeReader.state();
         void this.adaptiveLayout.snapshot;
         void this.presentationMode.snapshot;
-        void this.nativeAppLinks.initialize();
-        void this.nativeRuntime.initialize().catch(() => this.toasts.showSystem(
-            'Android no pudo preparar todas las integraciones del dispositivo. Puedes continuar y volver a intentarlo al reiniciar la app.',
-            { title: 'Integración nativa parcial', dedupeKey: 'native:runtime:init', durationMs: 8000 }
-        ));
-        void this.androidUpdates.check();
         this.loader.loaderStatus$.subscribe(value => {
             // Un mismo proceso puede emitir varias veces mientras sigue activo (por
             // ejemplo, el guard del libro confirma la carga iniciada desde la

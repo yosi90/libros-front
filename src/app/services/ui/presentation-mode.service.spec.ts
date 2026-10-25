@@ -5,7 +5,6 @@ import { AdaptiveLayoutService, AdaptiveLayoutState } from './adaptive-layout.se
 import {
     MOBILE_PRESENTATION_ENABLED,
     MOBILE_PRESENTATION_PREVIEW,
-    NATIVE_MOBILE_PLATFORM,
     PresentationModeService,
     WebThemeChoice
 } from './presentation-mode.service';
@@ -48,7 +47,7 @@ class AdaptiveLayoutStub {
 }
 
 describe('PresentationModeService', () => {
-    function configure(nativeMobile = false, mobileEnabled = false, mobilePreview = false): { service: PresentationModeService; adaptive: AdaptiveLayoutStub } {
+    function configure(mobileEnabled = false, mobilePreview = false): { service: PresentationModeService; adaptive: AdaptiveLayoutStub } {
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
             providers: [
@@ -56,8 +55,7 @@ describe('PresentationModeService', () => {
                 AdaptiveLayoutStub,
                 { provide: AdaptiveLayoutService, useExisting: AdaptiveLayoutStub },
                 { provide: MOBILE_PRESENTATION_ENABLED, useValue: mobileEnabled },
-                { provide: MOBILE_PRESENTATION_PREVIEW, useValue: mobilePreview },
-                { provide: NATIVE_MOBILE_PLATFORM, useValue: nativeMobile }
+                { provide: MOBILE_PRESENTATION_PREVIEW, useValue: mobilePreview }
             ]
         });
         return {
@@ -82,14 +80,8 @@ describe('PresentationModeService', () => {
         expect(service.snapshot.isWoodPresentationActive).toBeTrue();
     });
 
-    it('fuerza native-mobile y bloquea administración en Capacitor', () => {
-        const { service } = configure(true, true);
-        expect(service.snapshot.targetMode).toBe('native-mobile');
-        expect(service.snapshot.mobilePresentationEnabled).toBeTrue();
-    });
-
     it('publica el objetivo y la feature flag sin activar Mobile implícitamente', () => {
-        const { service, adaptive } = configure(false, false);
+        const { service, adaptive } = configure(false);
         adaptive.set(layout({
             mode: 'compact',
             width: 390,
@@ -109,7 +101,7 @@ describe('PresentationModeService', () => {
     });
 
     it('activa Mobile con la flag o la previsualización local', () => {
-        const { service, adaptive } = configure(false, false, true);
+        const { service, adaptive } = configure(false, true);
         adaptive.set(layout({
             mode: 'compact',
             width: 390,
@@ -133,8 +125,7 @@ describe('PresentationModeService', () => {
                     AdaptiveLayoutStub,
                     { provide: AdaptiveLayoutService, useExisting: AdaptiveLayoutStub },
                     { provide: MOBILE_PRESENTATION_ENABLED, useValue: true },
-                    { provide: MOBILE_PRESENTATION_PREVIEW, useValue: false },
-                    { provide: NATIVE_MOBILE_PLATFORM, useValue: false }
+                    { provide: MOBILE_PRESENTATION_PREVIEW, useValue: false }
                 ]
             });
             const service = TestBed.inject(PresentationModeService);
@@ -155,14 +146,6 @@ describe('PresentationModeService', () => {
             adaptive.set(compact());
             expect(service.snapshot.activeMode).toBe('web');
             expect(service.snapshot.isMobilePresentationActive).toBeFalse();
-        });
-
-
-        it('ignora el tema Web en la APK', () => {
-            const { service } = configure(true, true);
-            service.attachWebTheme(new BehaviorSubject<WebThemeChoice>('dark'));
-            expect(service.snapshot.targetMode).toBe('native-mobile');
-            expect(service.snapshot.isWebPresentation).toBeFalse();
         });
     });
 });

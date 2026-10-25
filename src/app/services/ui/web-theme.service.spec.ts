@@ -2,20 +2,19 @@ import { DOCUMENT } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { BehaviorSubject } from 'rxjs';
 import { PlatformSessionService } from '../auth/platform-session.service';
-import { NATIVE_MOBILE_PLATFORM, PresentationModeService, WEB_PRESENTATION_ENABLED } from './presentation-mode.service';
+import { PresentationModeService, WEB_PRESENTATION_ENABLED } from './presentation-mode.service';
 import { WebThemeService } from './web-theme.service';
 
 describe('WebThemeService', () => {
     let session: { userIsLogged$: BehaviorSubject<boolean> };
     let presentation: jasmine.SpyObj<PresentationModeService>;
 
-    function create(enabled = true, native = false): WebThemeService {
+    function create(enabled = true): WebThemeService {
         TestBed.configureTestingModule({
             providers: [
                 { provide: PlatformSessionService, useValue: session },
                 { provide: PresentationModeService, useValue: presentation },
-                { provide: WEB_PRESENTATION_ENABLED, useValue: enabled },
-                { provide: NATIVE_MOBILE_PLATFORM, useValue: native }
+                { provide: WEB_PRESENTATION_ENABLED, useValue: enabled }
             ]
         });
         return TestBed.inject(WebThemeService);
@@ -71,8 +70,8 @@ describe('WebThemeService', () => {
         expect(localStorage.getItem('libros:web-theme:last')).toBe('light');
     });
 
-    it('no actúa en la APK ni sin la flag', () => {
-        const service = create(true, true);
+    it('no actúa sin la flag', () => {
+        const service = create(false);
         session.userIsLogged$.next(true);
         service.select('dark');
 

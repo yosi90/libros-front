@@ -28,8 +28,7 @@
             "assets": [
               "src/favicon.ico",
               "src/manifest.webmanifest",
-              "src/assets",
-              { "glob": "firebase-messaging-sw.js", "input": "src", "output": "/" }
+              "src/assets"
             ],
             "styles": [
               "node_modules/material-icons/iconfont/filled.css",
@@ -43,7 +42,6 @@
                 "src/favicon.ico",
                 "src/manifest.webmanifest",
                 "src/assets",
-                { "glob": "firebase-messaging-sw.js", "input": "src", "output": "/" },
                 { "glob": "assetlinks.json", "input": "src/hosting/production/.well-known", "output": "/.well-known" }
               ],
               "serviceWorker": "ngsw-config.json",
@@ -71,7 +69,6 @@
                 "src/favicon.ico",
                 "src/manifest.webmanifest",
                 "src/assets",
-                { "glob": "firebase-messaging-sw.js", "input": "src", "output": "/" },
                 { "glob": "assetlinks.json", "input": "src/hosting/qa/.well-known", "output": "/.well-known" }
               ],
               "fileReplacements": [

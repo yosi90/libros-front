@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { PlatformSessionService } from '../auth/platform-session.service';
-import { NATIVE_MOBILE_PLATFORM, PresentationModeService, WEB_PRESENTATION_ENABLED, WebThemeChoice } from './presentation-mode.service';
+import { PresentationModeService, WEB_PRESENTATION_ENABLED, WebThemeChoice } from './presentation-mode.service';
 
 export type { WebThemeChoice } from './presentation-mode.service';
 
@@ -15,7 +15,7 @@ export function isWebThemeChoice(value: unknown): value is WebThemeChoice {
 /**
  * Tema del navegador, recordado por dispositivo (CONTRATO_PRESENTACIONES_WEB.md). Con la cuenta de Yosiftware el tema
  * no se guarda en la cuenta (ecosistema-kit/ACCESO.md, «Los ajustes de la web»): se queda en cada navegador y no se
- * borra al cambiar de cuenta. La APK no usa este servicio.
+ * borra al cambiar de cuenta.
  */
 @Injectable({ providedIn: 'root' })
 export class WebThemeService {
@@ -31,10 +31,9 @@ export class WebThemeService {
         private session: PlatformSessionService,
         @Inject(DOCUMENT) private document: Document,
         presentation: PresentationModeService,
-        @Inject(WEB_PRESENTATION_ENABLED) webPresentationEnabled: boolean,
-        @Inject(NATIVE_MOBILE_PLATFORM) nativeMobile: boolean
+        @Inject(WEB_PRESENTATION_ENABLED) webPresentationEnabled: boolean
     ) {
-        this.enabled = webPresentationEnabled && !nativeMobile;
+        this.enabled = webPresentationEnabled;
         if (!this.enabled) return;
         this.apply(this.readLocal() ?? 'light');
         presentation.attachWebTheme(this.choice$);

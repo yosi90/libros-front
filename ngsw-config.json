@@ -35,7 +35,6 @@
   "navigationUrls": [
     "/**",
     "!/__/auth/**",
-    "!/firebase-cloud-messaging-push-scope/**",
     "!/**/*.*"
   ]
 }

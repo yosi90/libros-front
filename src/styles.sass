@@ -17,18 +17,15 @@
 // Los fundamentos Mobile se emiten una sola vez y permanecen encapsulados.
 // Cada vista Mobile debe tener esta clase raíz; Wood no hereda sus reglas.
 .mobile-ui,
-html[data-presentation-active='mobile'],
-html[data-presentation-active='native-mobile']
+html[data-presentation-active='mobile']
     @include mobile-tokens.mobile-tokens
     @include mobile-primitives.mobile-primitives
     @include mobile-public-auth.mobile-public-auth
 
-html[data-mobile-theme='dark'][data-presentation-active='mobile'],
-html[data-mobile-theme='dark'][data-presentation-active='native-mobile']
+html[data-mobile-theme='dark'][data-presentation-active='mobile']
     @include mobile-tokens.mobile-dark-tokens
 
-html[data-mobile-theme='dark'][data-presentation-active='mobile'] .mobile-ui,
-html[data-mobile-theme='dark'][data-presentation-active='native-mobile'] .mobile-ui
+html[data-mobile-theme='dark'][data-presentation-active='mobile'] .mobile-ui
     @include mobile-tokens.mobile-dark-tokens
 
 // Fundamentos Web: se emiten una vez. Sin efecto hasta que la presentación Web
@@ -75,8 +72,7 @@ html[data-web-theme='dark'] .web-ui
 html[data-presentation-active='web']
     @include apex-tooltips(web, surface-muted)
 
-html[data-presentation-active='mobile'],
-html[data-presentation-active='native-mobile']
+html[data-presentation-active='mobile']
     @include apex-tooltips(mobile, surface-container)
 
 html[data-presentation-active='web'] body,
@@ -109,9 +105,7 @@ body
     background: var(--app-color-background)
 
 html[data-presentation-active='mobile'] body,
-html[data-presentation-active='native-mobile'] body,
-html[data-presentation-active='mobile'] app-root,
-html[data-presentation-active='native-mobile'] app-root
+html[data-presentation-active='mobile'] app-root
     color: var(--mobile-color-ink)
     background: var(--mobile-color-canvas)
 
@@ -188,8 +182,7 @@ mat-icon.mat-icon:not(.mat-icon-inline)
 html[data-presentation-active='web']
     @include web-yosiftware.yosiftware-variables
 
-html[data-presentation-active='mobile'],
-html[data-presentation-active='native-mobile']
+html[data-presentation-active='mobile']
     @include mobile-yosiftware.yosiftware-variables
 
 html[data-presentation-active='wood']

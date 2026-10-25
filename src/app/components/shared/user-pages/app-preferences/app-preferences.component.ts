@@ -5,26 +5,24 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { ProfileChatPreferencesComponent } from '../user-profile/preferences/profile-chat-preferences.component';
 import { ProfilePlatformPrivacyComponent } from '../user-profile/preferences/profile-platform-privacy.component';
-import { MobileAppPermissionsComponent } from './mobile-app-permissions.component';
 import { AppearancePreferencesComponent } from './appearance-preferences.component';
 
-type PreferenceSection = 'appearance' | 'privacy' | 'chat' | 'permissions';
+type PreferenceSection = 'appearance' | 'privacy' | 'chat';
 
 @Component({
     selector: 'app-app-preferences',
     standalone: true,
-    imports: [MatIconModule, ProfileChatPreferencesComponent, ProfilePlatformPrivacyComponent, MobileAppPermissionsComponent, AppearancePreferencesComponent],
+    imports: [MatIconModule, ProfileChatPreferencesComponent, ProfilePlatformPrivacyComponent, AppearancePreferencesComponent],
     templateUrl: './app-preferences.component.html',
     styleUrl: './app-preferences.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class AppPreferencesComponent {
     activeSection: PreferenceSection = 'privacy';
-    readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; description: string; nativeOnly?: boolean; webOnly?: boolean }> = [
+    readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; description: string; webOnly?: boolean }> = [
         { id: 'appearance', label: 'Apariencia', icon: 'palette', description: 'Tema de la interfaz en este navegador.', webOnly: true },
         { id: 'privacy', label: 'Privacidad', icon: 'visibility', description: 'Tu privacidad en Libros es la de tu cuenta de Yosiftware.' },
-        { id: 'chat', label: 'Chat', icon: 'forum', description: 'Cómo se comportan tus ventanas de chat en este escritorio.' },
-        { id: 'permissions', label: 'Permisos del móvil', icon: 'app_settings_alt', description: 'Permisos del sistema para la aplicación.', nativeOnly: true }
+        { id: 'chat', label: 'Chat', icon: 'forum', description: 'Cómo se comportan tus ventanas de chat en este escritorio.' }
     ];
 
     constructor(
@@ -32,14 +30,13 @@ export class AppPreferencesComponent {
         route: ActivatedRoute
     ) {
         route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
-            // Dentro del Perfil el apartado llega en `tab`; en la ruta propia (APK), en `section`.
+            // Dentro del Perfil el apartado llega en `tab`; en la ruta propia (Mobile), en `section`.
             const section = params.get('tab') ?? params.get('section') ?? params.get('preference');
             if (this.isSection(section) && this.isAvailable(this.section(section))) this.activeSection = section;
         });
     }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
-    get isNativeMobile(): boolean { return this.presentation.snapshot.isNativeMobile; }
 
     get isWebPresentation(): boolean { return this.presentation.snapshot.isWebPresentation; }
     /** Vista Web activa (no solo navegador): claro u oscuro con vista propia. */
@@ -49,10 +46,10 @@ export class AppPreferencesComponent {
     availableSections() { return this.sections.filter(section => this.isAvailable(section)); }
     select(section: PreferenceSection): void { this.activeSection = section; }
     private isSection(value: string | null): value is PreferenceSection {
-        return value === 'appearance' || value === 'privacy' || value === 'chat' || value === 'permissions';
+        return value === 'appearance' || value === 'privacy' || value === 'chat';
     }
     private section(id: PreferenceSection) { return this.sections.find(section => section.id === id)!; }
-    private isAvailable(section: { nativeOnly?: boolean; webOnly?: boolean }): boolean {
-        return (!section.nativeOnly || this.isNativeMobile) && (!section.webOnly || this.isWebPresentation);
+    private isAvailable(section: { webOnly?: boolean }): boolean {
+        return !section.webOnly || this.isWebPresentation;
     }
 }

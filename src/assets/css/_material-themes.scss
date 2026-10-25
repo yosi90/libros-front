@@ -16,8 +16,7 @@
     ));
   }
 
-  html[data-presentation-active='mobile'],
-  html[data-presentation-active='native-mobile'] {
+  html[data-presentation-active='mobile'] {
     @include mat.theme((color: (
       theme-type: light,
       primary: mat.$spring-green-palette,
@@ -25,8 +24,7 @@
     )));
   }
 
-  html[data-mobile-theme='dark'][data-presentation-active='mobile'],
-  html[data-mobile-theme='dark'][data-presentation-active='native-mobile'] {
+  html[data-mobile-theme='dark'][data-presentation-active='mobile'] {
     @include mat.theme((color: (
       theme-type: dark,
       primary: mat.$spring-green-palette,

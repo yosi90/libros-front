@@ -164,8 +164,7 @@
         width: min(420px, calc(100vw - 1.5rem))
         transform: none
 
-:host-context(html[data-presentation-active="mobile"]),
-:host-context(html[data-presentation-active="native-mobile"])
+:host-context(html[data-presentation-active="mobile"])
     .app-toast-host
         top: auto
         right: max(var(--mobile-space-3), var(--app-safe-right))
@@ -250,8 +249,7 @@
             animation-play-state: paused
 
 @media (min-width: 600px)
-    :host-context(html[data-presentation-active="mobile"]),
-    :host-context(html[data-presentation-active="native-mobile"])
+    :host-context(html[data-presentation-active="mobile"])
         .app-toast-host
             right: max(var(--mobile-space-5), var(--app-safe-right))
             // Medium no tiene barra inferior, pero conserva recorrido suficiente
@@ -262,7 +260,6 @@
             margin-inline: auto
 
 @media (prefers-reduced-motion: reduce)
-    :host-context(html[data-presentation-active="mobile"]),
-    :host-context(html[data-presentation-active="native-mobile"])
+    :host-context(html[data-presentation-active="mobile"])
         .app-toast
             transition-duration: 80ms

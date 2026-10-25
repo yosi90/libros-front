@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
+import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 
@@ -52,18 +52,20 @@ test('los estilos no usan tokens MDC retirados por Angular Material', async () =
     assert.deepEqual(offenders, [], `Tokens --mdc-* sin efecto: ${offenders.join(', ')}`);
 });
 
-test('la PWA no cachea API privada y convive con Firebase Messaging', async () => {
+test('la PWA no cachea API privada ni copia el worker de Firebase Messaging', async () => {
     const ngsw = JSON.parse(await readFile(path.join(root, 'ngsw-config.json'), 'utf8'));
     const angular = JSON.parse(await readFile(path.join(root, 'angular.json'), 'utf8'));
-    const build = angular.projects['book-front'].architect.build.options;
-    const assetGlobs = build.assets.map(asset => typeof asset === 'string' ? asset : asset.glob);
+    const configurations = angular.projects['book-front'].architect.build.configurations;
+    const assetGlobs = [angular.projects['book-front'].architect.build.options, configurations.production, configurations.qa]
+        .flatMap(config => config.assets ?? [])
+        .map(asset => typeof asset === 'string' ? asset : asset.glob);
 
     assert.equal(ngsw.dataGroups, undefined, 'No debe existir cache de respuestas de API.');
-    assert.ok(ngsw.navigationUrls.includes('!/__/auth/**'), 'El handler OAuth debe quedar fuera del fallback SPA.');
-    assert.ok(ngsw.navigationUrls.includes('!/firebase-cloud-messaging-push-scope/**'), 'El scope de Messaging debe quedar fuera del fallback SPA.');
-    assert.equal(angular.projects['book-front'].architect.build.configurations.production.serviceWorker, 'ngsw-config.json');
-    assert.equal(angular.projects['book-front'].architect.build.configurations.qa.serviceWorker, 'ngsw-config.json');
-    assert.ok(assetGlobs.includes('firebase-messaging-sw.js'), 'El worker de Firebase Messaging debe copiarse al artefacto.');
+    assert.equal(configurations.production.serviceWorker, 'ngsw-config.json');
+    assert.equal(configurations.qa.serviceWorker, 'ngsw-config.json');
+    // El push es el de la plataforma (hito 3 de la adhesión): Libros ya no registra su propio worker de Messaging.
+    assert.ok(!assetGlobs.includes('firebase-messaging-sw.js'), 'El worker de Firebase Messaging ya no se publica.');
+    assert.ok(!ngsw.navigationUrls.includes('!/firebase-cloud-messaging-push-scope/**'));
 });
 
 test('Mobile se activa en QA y produccion, limita su apariencia a light/dark y no altera Wood', async () => {
@@ -90,7 +92,7 @@ test('Mobile se activa en QA y produccion, limita su apariencia a light/dark y n
     assert.match(mobileTheme, /export type MobileTheme = 'light' \| 'dark'/);
     assert.match(mobileTheme, /theme === 'dark' \? 'dark' : 'light'/, 'Wood historico debe degradar a light en Mobile.');
     assert.match(globalStyles, /data-mobile-theme='dark'.*data-presentation-active='mobile'/);
-    assert.match(globalStyles, /data-mobile-theme='dark'.*data-presentation-active='native-mobile'/);
+    assert.doesNotMatch(globalStyles, /native-mobile/, 'La presentación de Capacitor se retiró en el corte.');
     assert.doesNotMatch(globalStyles, /data-mobile-theme=.*data-presentation-active='wood'/);
     assert.doesNotMatch(presentationMode, /MobileTheme|mobileTheme|InterfaceTheme/, 'La apariencia no debe decidir la presentacion Wood/Mobile.');
 });
@@ -110,54 +112,27 @@ test('Bootstrap permanece confinado a los dos puntos legacy declarados', async (
     assert.deepEqual(consumers.sort(), ['src/main.ts', 'src/styles.sass']);
 });
 
-test('Android separa flavors, Firebase y capacidades nativas sin debilitar el artefacto', async () => {
-    const [packageJson, manifest, qaManifest, productionManifest, gradle, androidIgnore, capacitor, index, stampScript, releaseWorkflow, updateService, angular, qaAppLinks, productionAppLinks] = await Promise.all([
+test('la web ya no lleva la APK de Capacitor y conserva los App Links de la APK Kotlin', async () => {
+    // La APK de Capacitor quedó sin soporte en el corte (etiqueta `apk-capacitor-final`); la nueva vive en `android-nativa/`.
+    const [packageJson, index, angular, qaAppLinks, productionAppLinks] = await Promise.all([
         readFile(path.join(root, 'package.json'), 'utf8').then(JSON.parse),
-        readFile(path.join(root, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8'),
-        readFile(path.join(root, 'android', 'app', 'src', 'qa', 'AndroidManifest.xml'), 'utf8'),
-        readFile(path.join(root, 'android', 'app', 'src', 'production', 'AndroidManifest.xml'), 'utf8'),
-        readFile(path.join(root, 'android', 'app', 'build.gradle'), 'utf8'),
-        readFile(path.join(root, 'android', '.gitignore'), 'utf8'),
-        readFile(path.join(root, 'capacitor.config.ts'), 'utf8'),
         readFile(path.join(root, 'src', 'index.html'), 'utf8'),
-        readFile(path.join(root, 'scripts', 'android', 'stamp-native-build.mjs'), 'utf8'),
-        readFile(path.join(root, '.github', 'workflows', 'android-release-manual.yml'), 'utf8'),
-        readFile(path.join(root, 'src', 'app', 'services', 'native', 'android-release-update.service.ts'), 'utf8'),
         readFile(path.join(root, 'angular.json'), 'utf8').then(JSON.parse),
         readFile(path.join(root, 'src', 'hosting', 'qa', '.well-known', 'assetlinks.json'), 'utf8').then(JSON.parse),
         readFile(path.join(root, 'src', 'hosting', 'production', '.well-known', 'assetlinks.json'), 'utf8').then(JSON.parse)
     ]);
+    const dependencies = Object.keys({ ...packageJson.dependencies, ...packageJson.devDependencies });
+    const missing = async target => access(path.join(root, ...target)).then(() => false, () => true);
 
-    assert.equal(packageJson.dependencies['@capacitor/network'], '^8.0.1');
-    assert.equal(packageJson.dependencies['@capacitor/browser'], '^8.0.4');
-    assert.match(manifest, /android:allowBackup="false"/);
-    assert.match(manifest, /android:windowSoftInputMode="adjustResize"/);
-    assert.match(gradle, /applicationIdSuffix "\.qa"/);
-    assert.match(qaManifest, /android:host="qa-libros\.yosiftware\.es"/);
-    assert.doesNotMatch(qaManifest, /android:host="libros\.yosiftware\.es"/);
-    assert.match(productionManifest, /android:host="libros\.yosiftware\.es"/);
-    assert.doesNotMatch(productionManifest, /qa-libros\.yosiftware\.es/);
-    assert.match(androidIgnore, /google-services\.json/);
-    assert.match(androidIgnore, /\*\.keystore/);
-    assert.doesNotMatch(capacitor, /server:\s*\{[^}]*url:/s, 'La app no debe cargar un frontend remoto dentro del WebView.');
+    assert.deepEqual(dependencies.filter(name => /^@capacitor(?:-firebase)?\//.test(name) || name === 'firebase'), []);
+    assert.deepEqual(Object.keys(packageJson.scripts).filter(name => /native|android/.test(name)), []);
+    for (const target of [['android'], ['capacitor.config.ts'], ['src', 'app', 'services', 'native'], ['src', 'firebase-messaging-sw.js'], ['.github', 'workflows', 'android-release-manual.yml']])
+        assert.ok(await missing(target), `${target.join('/')} se retiró con Capacitor.`);
     assert.match(index, /viewport-fit=cover/);
     assert.match(index, /interactive-widget=resizes-content/);
-    assert.match(packageJson.scripts['build:native:qa'], /stamp-native-build\.mjs qa/);
-    assert.match(packageJson.scripts['build:native:production'], /stamp-native-build\.mjs production/);
-    assert.match(gradle, /native-build-environment\.json/);
-    assert.match(stampScript, /forbiddenApi/);
-    assert.match(gradle, /ANDROID_KEYSTORE_PATH/);
-    assert.match(gradle, /Una APK release exige/);
-    assert.match(releaseWorkflow, /ANDROID_KEYSTORE_BASE64: \$\{\{ secrets\.ANDROID_KEYSTORE_BASE64 \}\}/);
-    assert.match(releaseWorkflow, /ANDROID_GOOGLE_SERVICES_QA_BASE64/);
-    assert.match(releaseWorkflow, /ANDROID_GOOGLE_SERVICES_PRODUCTION_BASE64/);
-    assert.match(releaseWorkflow, /inputs\.publish_release && inputs\.flavor == 'production'/);
-    assert.match(releaseWorkflow, /apksigner_path[\s\S]*verify/);
-    assert.match(releaseWorkflow, /sha256sum/);
-    assert.match(updateService, /appInfo\.id !== 'es\.yosiftware\.libros'/);
-    assert.match(updateService, /api\.github\.com\/repos\/yosi90\/libros-front\/releases\/latest/);
-    assert.match(updateService, /\.sha256/);
+    assert.doesNotMatch(index, /Capacitor/);
     assert.match(JSON.stringify(angular.projects['book-front'].architect.build.configurations.production.assets), /src\/hosting\/production\/\.well-known/);
+    // Los App Links son los del paquete de siempre: la APK Kotlin se instala encima con la misma firma.
     assert.equal(qaAppLinks[0].target.package_name, 'es.yosiftware.libros.qa');
     assert.deepEqual(qaAppLinks[0].target.sha256_cert_fingerprints, [
         '83:AD:BD:68:7E:8A:13:D1:FD:AE:27:6B:0E:78:8B:EF:FD:69:CD:BA:21:B9:3D:3F:A8:D4:3D:B6:99:4C:5E:75',

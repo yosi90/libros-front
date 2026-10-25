@@ -24,7 +24,7 @@
 
 ## Plataforma Yosiftware (cuenta única)
 
-> **Adaptación en el frontend de Libros:** donde el bloque dice `CONTEXTO_PROYECTO.md`, léase `docs/codex/PROJECT_WORKING_NOTES.md`. La adhesión y la APK nativa en Kotlin se siguen en `docs/roadmaps/ecosistema/`. Este repositorio contiene la web Angular y las APK (la de Capacitor en `android/`, la nativa en Kotlin en `android-nativa/`); el backend vive en `../Libros API`.
+> **Adaptación en el frontend de Libros:** donde el bloque dice `CONTEXTO_PROYECTO.md`, léase `docs/codex/PROJECT_WORKING_NOTES.md`. La adhesión y la APK nativa en Kotlin se siguen en `docs/roadmaps/ecosistema/`. Este repositorio contiene la web Angular y la APK nativa en Kotlin (`android-nativa/`); la de Capacitor se retiró en el corte de la adhesión y queda en la etiqueta `apk-capacitor-final`. El backend vive en `../Libros API`.
 > Fuente vigente del kit: carpeta `ecosistema-kit/` del repositorio privado `yosi90/administracion-yosiftware`, rama `main` (en el servidor, `C:\Users\Yosi\Desktop\administracion yosiftware\ecosistema-kit`). Peticiones a la plataforma: `C:\Users\Yosi\Desktop\administracion yosiftware\docs\peticiones\`.
 > En cuanto se copie `ecosistema-kit/` a la raíz, añade `/ecosistema-kit/` al `.gitignore` y comprueba que Git lo ignore.
 > En las webs y APK, cumplir `ecosistema-kit/CAMBIO_DE_CUENTA.md` es obligatorio para adherirse al ecosistema: limpiar datos y canales privados al cambiar de id, descartar resultados y reintentos de la identidad anterior, separar almacenamiento y trabajo pendiente por cuenta y entorno, y comprobar el destinatario del push. Se prueba A → B → A, cierre, revocación y red lenta; no se presupone un cierre intermedio. No se borra la exclusión de Yosiftadísticas.

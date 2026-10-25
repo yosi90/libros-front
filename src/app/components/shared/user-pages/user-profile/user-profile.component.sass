@@ -606,8 +606,7 @@
 
 // Wood conserva la ficha editorial; light/dark usan la superficie personal moderna.
 
-:host-context(html[data-presentation-active="mobile"]),
-:host-context(html[data-presentation-active="native-mobile"])
+:host-context(html[data-presentation-active="mobile"])
     .profile-page
         display: block
         height: 100%
@@ -688,20 +687,6 @@
         --mat-form-field-outlined-caret-color: var(--mobile-color-primary)
         --mat-form-field-leading-icon-color: var(--mobile-color-primary)
         --mat-form-field-subscript-text-color: var(--mobile-color-ink-muted)
-
-:host-context(html[data-presentation-active="native-mobile"])
-    .profile-modal-backdrop
-        align-items: stretch
-        padding: 0
-
-    .profile-modal
-        width: 100%
-        min-height: 100dvh
-        max-height: 100dvh
-        padding: calc(var(--app-safe-top) + var(--mobile-space-4)) max(var(--mobile-space-4), var(--app-safe-right)) calc(var(--app-safe-bottom) + var(--mobile-space-5)) max(var(--mobile-space-4), var(--app-safe-left))
-        border: 0
-        border-radius: 0
-        box-shadow: none
 
 @media (max-width: 599px)
     :host-context(html[data-presentation-active="mobile"])

@@ -18,7 +18,7 @@ describe('DahsboardComponent', () => {
     }
 
     it('arranca la bandeja del chat de la plataforma con cualquier sesión y publica los no leídos', () => {
-        const { component, chatStore } = create({ isWoodPresentationActive: false, isMobilePresentationActive: true, isNativeMobile: true });
+        const { component, chatStore } = create({ isWoodPresentationActive: false, isMobilePresentationActive: true });
         let unread = 0;
         const subscription = component.unreadChatCount$.subscribe(value => unread = value);
 

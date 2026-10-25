@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const SCREENS = ['login', 'library', 'chapter', 'community', 'security', 'onboarding', 'reader'] as const;
+const SCREENS = ['login', 'library', 'chapter', 'community', 'security', 'onboarding'] as const;
 const VIEWPORTS = [
     { name: 'compacta', width: 390, height: 844 },
     { name: 'tablet', width: 800, height: 1024 }
@@ -14,7 +14,7 @@ test.describe('laboratorio del sistema visual Mobile', () => {
     });
 
     for (const viewport of VIEWPORTS) {
-        test(`mantiene las siete referencias usables en ${viewport.name}`, async ({ page }) => {
+        test(`mantiene las seis referencias usables en ${viewport.name}`, async ({ page }) => {
             await page.setViewportSize(viewport);
 
             for (const screen of SCREENS) {
@@ -49,12 +49,6 @@ test.describe('laboratorio del sistema visual Mobile', () => {
                 expect(layout.hasPreview, `${screen} debe renderizar el laboratorio`).toBeTruthy();
                 expect(layout.backgroundImage, `${screen} no debe heredar texturas Wood`).toBe('none');
                 expect(layout.undersizedControls, `${screen} debe respetar targets táctiles de 44px`).toBe(0);
-
-                if (screen === 'reader') {
-                    const restore = await page.locator('.native-reader-island__restore').boundingBox();
-                    expect(restore).not.toBeNull();
-                    expect(Math.abs(restore!.width - restore!.height), 'El control de restaurar debe conservar su forma circular').toBeLessThanOrEqual(.5);
-                }
 
                 if (screen === 'login' || screen === 'onboarding') {
                     expect(layout.navigationPosition).toBeNull();

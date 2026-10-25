@@ -8,13 +8,9 @@ describe('BooksComponent reader opening', () => {
         Portada: '/ala-de-dragon.jpg'
     } as any;
 
-    function create(supported: boolean) {
+    function create() {
         const component = Object.create(BooksComponent.prototype) as any;
         component.loader = jasmine.createSpyObj('loader', ['activateLoader', 'deactivateLoader']);
-        component.nativeReader = {
-            supported,
-            open: jasmine.createSpy('open').and.resolveTo(true)
-        };
         component.router = jasmine.createSpyObj('router', ['navigate']);
         component.fullscreenReturn = jasmine.createSpyObj('fullscreenReturn', ['rememberLibrary', 'rememberAnthology', 'consumeAnthology']);
         component.fullscreenReturn.consumeAnthology.and.returnValue(null);
@@ -24,28 +20,8 @@ describe('BooksComponent reader opening', () => {
         return component;
     }
 
-    it('opens the Android reader on the next animation frame like the known-good 1.0.11 flow', async () => {
-        const component = create(true);
-        let callback: FrameRequestCallback | undefined;
-        const frame = spyOn(window, 'requestAnimationFrame').and.callFake(value => {
-            callback = value;
-            return 1;
-        });
-
-        component.openBook(book);
-
-        expect(frame).toHaveBeenCalled();
-        expect(component.nativeReader.open).not.toHaveBeenCalled();
-        callback?.(0);
-        expect(component.nativeReader.open).toHaveBeenCalledWith(11, 'statistics', {
-            bookName: 'Ala de dragón', coverUrl: '/ala-de-dragon.jpg'
-        });
-        await Promise.resolve();
-        expect(component.loader.deactivateLoader).toHaveBeenCalled();
-    });
-
-    it('keeps the existing deferred web navigation', () => {
-        const component = create(false);
+    it('opens the book on the next animation frame', () => {
+        const component = create();
         const frame = spyOn(window, 'requestAnimationFrame').and.callFake(callback => {
             callback(0);
             return 1;
@@ -55,11 +31,10 @@ describe('BooksComponent reader opening', () => {
 
         expect(frame).toHaveBeenCalled();
         expect(component.router.navigate).toHaveBeenCalledWith(['/book', 11]);
-        expect(component.nativeReader.open).not.toHaveBeenCalled();
     });
 
     it('expands only universes and sagas that contain a running book', () => {
-        const component = create(false);
+        const component = create();
         const running = { Id: 1, Estados: [{ Nombre: 'En marcha' }] } as any;
         const waiting = { Id: 2, Estados: [{ Nombre: 'En espera' }] } as any;
         component.visibleUniverses = [
@@ -75,7 +50,7 @@ describe('BooksComponent reader opening', () => {
     });
 
     it('preserves a manual collapse when the visible collection refreshes', () => {
-        const component = create(false);
+        const component = create();
         component.visibleUniverses = [
             { Id: 20, Libros: [], Sagas: [{ Id: 21, Libros: [], Antologias: [] }], Antologias: [] },
             { Id: 30, Libros: [], Sagas: [], Antologias: [] }
@@ -94,7 +69,7 @@ describe('BooksComponent reader opening', () => {
     });
 
     it('opens an anthology selector and orders its contextual sections', () => {
-        const component = create(true);
+        const component = create();
         const anthology = { Id: 4, Nombre: 'Arcanum ilimitado', Autores: [], Portada: '/anthology.jpg' } as any;
         component.universeStore = { getAllAnthologies: () => [anthology] };
         component.anthologyApi = { getAntology: () => of({
@@ -112,8 +87,8 @@ describe('BooksComponent reader opening', () => {
         expect(component.isLoadingAnthology).toBeFalse();
     });
 
-    it('opens a selected section in the native reader with its anthology context', async () => {
-        const component = create(true);
+    it('opens a selected section with its anthology context', async () => {
+        const component = create();
         const section = { Id: 31, Nombre: 'El Alma del Emperador', Portada: '/section.jpg' } as any;
         const anthology = { Id: 4, Nombre: 'Arcanum ilimitado' } as any;
         component.selectedAnthology = anthology;
@@ -129,14 +104,11 @@ describe('BooksComponent reader opening', () => {
         await Promise.resolve();
 
         expect(component.bookStore.setBook).toHaveBeenCalledWith(section);
-        expect(component.nativeReader.open).toHaveBeenCalledWith(31, 'statistics', {
-            bookName: section.Nombre, coverUrl: section.Portada, anthologyId: 4
-        });
-        expect(component.selectedAnthology).toBe(anthology);
+        expect(component.router.navigate).toHaveBeenCalledWith(['/book', 31, 'statistics'], { queryParams: { anthologyId: 4 } });
     });
 
     it('opens similar anthologies with the first canonical style selected', () => {
-        const component = create(true);
+        const component = create();
         component.selectedAnthology = {
             Id: 4, Nombre: 'Arcanum ilimitado', Autores: [], Estados: [], Portada: '/anthology.jpg',
             Estilos: [{ Id: 130, Nombre: 'Fantasía' }, { Id: 144, Nombre: 'Ficción especulativa' }]
@@ -156,7 +128,7 @@ describe('BooksComponent reader opening', () => {
     });
 
     it('hands the selected anthology to the catalog public detail', () => {
-        const component = create(true);
+        const component = create();
         component.selectedAnthology = { Id: 4, Nombre: 'Arcanum ilimitado', Autores: [], Estados: [], Portada: '/anthology.jpg' };
         component.anthologySections = [];
         component.catalogViewState = jasmine.createSpyObj('catalogViewState', ['setPendingDetail']);
@@ -170,7 +142,7 @@ describe('BooksComponent reader opening', () => {
 
     for (const kind of ['book', 'antology']) {
         it(`opens ${kind} editions preserving their IDs without opening the reader`, () => {
-            const component = create(true);
+            const component = create();
             component.catalogViewState = jasmine.createSpyObj('catalogViewState', ['setPendingDetail']);
             const event = jasmine.createSpyObj('event', ['stopPropagation']);
             const item = { ...book, Ediciones: [{ Id: 91, ISBN: null, EnMiBiblioteca: true }] };
@@ -181,12 +153,11 @@ describe('BooksComponent reader opening', () => {
                 Id: 11, Tipo: kind === 'book' ? 'libro' : 'antologia', Ediciones: item.Ediciones
             }));
             expect(component.router.navigate).toHaveBeenCalledOnceWith(['/dashboard/catalog']);
-            expect(component.nativeReader.open).not.toHaveBeenCalled();
         });
     }
 
     it('keeps the anthology selector behind its reading editor', () => {
-        const component = create(true);
+        const component = create();
         const anthology = { Id: 4, Nombre: 'Arcanum ilimitado', Estados: [], Autores: [] } as any;
         component.selectedAnthology = anthology;
         component.anthologySections = [{ Id: 31, Nombre: 'El Alma del Emperador' }];
@@ -200,7 +171,7 @@ describe('BooksComponent reader opening', () => {
     });
 
     it('loads the private contextual state before opening the section editor', () => {
-        const component = create(true);
+        const component = create();
         const section = { Id: 31, Nombre: 'El Alma del Emperador' } as any;
         component.selectedAnthology = { Id: 4, Nombre: 'Arcanum ilimitado' };
         component.collectionSrv = { getAnthologySectionContext: () => of({
@@ -221,7 +192,7 @@ describe('BooksComponent reader opening', () => {
     });
 
     it('writes section changes contextually and reconciles the anthology detail', () => {
-        const component = create(true);
+        const component = create();
         const section = { Id: 31, Nombre: 'El Alma del Emperador', Portada: '', Estados: [] } as any;
         component.selectedAnthology = { Id: 4, Nombre: 'Arcanum ilimitado', SeccionesProgreso: [] };
         component.anthologySections = [section];

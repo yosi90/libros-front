@@ -1,19 +1,17 @@
 import { CollectionStateModalComponent } from './collection-state-modal.component';
 
 describe('CollectionStateModalComponent presentation', () => {
-    function create(options: { mobile: boolean; native?: boolean; compact?: boolean }) {
+    function create(options: { mobile: boolean; compact?: boolean }) {
         const presentation = {
             snapshot: {
-                isMobilePresentationActive: options.mobile,
-                isNativeMobile: options.native ?? false
+                isMobilePresentationActive: options.mobile
             }
         };
         const layout = { snapshot: { isCompact: options.compact ?? false } };
         return new CollectionStateModalComponent(presentation as never, layout as never);
     }
 
-    it('uses fullscreen only in native-mobile and compact Mobile', () => {
-        expect(create({ mobile: true, native: true }).isFullscreenPresentation).toBeTrue();
+    it('uses fullscreen only in compact Mobile', () => {
         expect(create({ mobile: true, compact: true }).isFullscreenPresentation).toBeTrue();
         expect(create({ mobile: true, compact: false }).isFullscreenPresentation).toBeFalse();
         expect(create({ mobile: false, compact: true }).isFullscreenPresentation).toBeFalse();
@@ -40,7 +38,7 @@ describe('CollectionStateModalComponent presentation', () => {
     });
 
     it('allows a contextual fullscreen surface to describe its real return destination', () => {
-        const component = create({ mobile: true, native: true });
+        const component = create({ mobile: true, compact: true });
         component.closeLabel = 'Volver a las secciones';
 
         expect(component.resolvedCloseLabel).toBe('Volver a las secciones');

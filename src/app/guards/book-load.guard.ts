@@ -7,7 +7,6 @@ import { LoaderEmmitterService } from '../services/emmitters/loader.service';
 import { AppToastService } from '../shared/toast/app-toast.service';
 import { getProductStateMessage, isPolicyAcceptanceBlock } from '../shared/api-error-message';
 import { PlatformSessionService } from '../services/auth/platform-session.service';
-import { NativeReaderRouteReuseStrategy } from '../services/navigation/native-reader-route-reuse.strategy';
 
 export const bookLoadGuard: CanActivateFn = (route) => {
     const router = inject(Router);
@@ -16,7 +15,6 @@ export const bookLoadGuard: CanActivateFn = (route) => {
     const loader = inject(LoaderEmmitterService);
     const toasts = inject(AppToastService);
     const session = inject(PlatformSessionService);
-    const nativeReaderRoutes = inject(NativeReaderRouteReuseStrategy);
     const bookId = Number(route.paramMap.get('id'));
     const anthologyId = Number(route.queryParamMap?.get('anthologyId'));
 
@@ -32,7 +30,7 @@ export const bookLoadGuard: CanActivateFn = (route) => {
             // authGuard decide el destino si no hay sesión. Este guard no debe
             // anticiparse con una petición sin token porque Angular los ejecuta
             // en paralelo.
-            if (!session.canAccessLibrary || nativeReaderRoutes.hasStoredBook(bookId) || bookStore.getBook().Id === bookId)
+            if (!session.canAccessLibrary || bookStore.getBook().Id === bookId)
                 return of(true);
 
             loader.activateLoader('book');

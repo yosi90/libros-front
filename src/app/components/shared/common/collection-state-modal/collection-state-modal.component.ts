@@ -49,7 +49,7 @@ export class CollectionStateModalComponent {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get isFullscreenPresentation(): boolean {
-        return this.presentation.snapshot.isNativeMobile || (this.isMobilePresentation && this.layout.snapshot.isCompact);
+        return this.isMobilePresentation && this.layout.snapshot.isCompact;
     }
 
     get canWriteReview(): boolean {

@@ -135,7 +135,6 @@ export class UserProfileComponent implements OnInit {
     }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
-    get isNativeMobile(): boolean { return this.presentation.snapshot.isNativeMobile; }
     get mobileController(): this { return this; }
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 

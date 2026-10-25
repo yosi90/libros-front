@@ -7,7 +7,6 @@
             @if (activeSection === 'appearance' && isWebPresentation) {<app-appearance-preferences></app-appearance-preferences>}
             @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
             @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
-            @if (activeSection === 'permissions' && isNativeMobile) {<app-mobile-app-permissions></app-mobile-app-permissions>}
         </section>
     </main>
 } @else if (isWebView) {
