@@ -5,6 +5,7 @@ import android.content.Context
 import java.io.IOException
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -389,7 +390,12 @@ class SesionYosiftware internal constructor(
         val para = JSONObject().put("paquete", paquete).put("huellas", JSONArray(huellas))
         val cuerpo = JSONObject().put("refresh", refresh).put("web", configuracion.web).put("para", para)
         val respuesta = try {
-            conGracia { api("POST", "/v1/sesion/nativa/traspaso", cuerpo) }
+            // La otra app deja de esperar a los 15 segundos: el refresh que rota se guarda igual.
+            sinCortar {
+                conGracia { api("POST", "/v1/sesion/nativa/traspaso", cuerpo) }.also { rotada ->
+                    if (rotada.correcta) rotada.json.cadena("refresh")?.let { guardarEn(hueco, it) }
+                }
+            }
         } catch (error: ErrorSesion) {
             return@withLock Oferta(error.codigo)
         }
@@ -398,7 +404,6 @@ class SesionYosiftware internal constructor(
             return@withLock Oferta(respuesta.error().codigo)
         }
         val json = respuesta.json
-        json.cadena("refresh")?.let { guardarEn(hueco, it) }
         val cuenta = json.optJSONObject("cuenta")
         Oferta(
             codigo = Oferta.OFERTA,
@@ -452,13 +457,16 @@ class SesionYosiftware internal constructor(
             val pendientes = estadoActual.value as? EstadoSesion.NormasDeUsoPendientes ?: throw estadoNoValido()
             val refresh = leerRefresh() ?: throw sinSesion().also { cerrarAqui(null) }
             val cuerpo = JSONObject().put("refresh", refresh).put("idVersion", pendientes.normas.id)
-            val respuesta = conGracia { api("POST", "/v1/sesion/nativa/normas", cuerpo) }
+            val respuesta = sinCortar {
+                conGracia { api("POST", "/v1/sesion/nativa/normas", cuerpo) }.also { rotada ->
+                    if (rotada.correcta) rotada.json.cadena("refresh")?.let { guardarRefresh(it) }
+                }
+            }
             if (!respuesta.correcta) {
                 if (respuesta.cierraLaSesion) cerrarAqui(respuesta.motivo())
                 if (respuesta.codigo == "normas_no_vigentes") renovar()
                 throw respuesta.error()
             }
-            respuesta.json.cadena("refresh")?.let { guardarRefresh(it) }
             renovar()
         }
     }
@@ -762,15 +770,26 @@ class SesionYosiftware internal constructor(
     private suspend fun renovar(): Tokens? {
         val refresh = leerRefresh() ?: throw sinSesion().also { cerrarAqui(null) }
         val cuerpo = JSONObject().put("refresh", refresh).put("web", configuracion.web)
-        val respuesta = conGracia { api("POST", "/v1/sesion/nativa/renovacion", cuerpo) }
-        if (respuesta.correcta) {
-            ultimaComprobacion = reloj()
-            tratarSesion(respuesta.json)
-            return tokensActuales
+        val respuesta = sinCortar {
+            conGracia { api("POST", "/v1/sesion/nativa/renovacion", cuerpo) }.also { rotada ->
+                if (rotada.correcta) {
+                    ultimaComprobacion = reloj()
+                    tratarSesion(rotada.json)
+                }
+            }
         }
+        if (respuesta.correcta) return tokensActuales
         if (respuesta.cierraLaSesion) cerrarAqui(respuesta.motivo())
         throw respuesta.error()
     }
+
+    /**
+     * Una llamada que rota el `refresh`, y guardar el nuevo, sin cortarse a medias (2026-10-25). Si quien la pidió se va
+     * con la llamada ya enviada (una vista que se cierra, la app que pasa a segundo plano, la otra app que deja de
+     * esperar el traspaso), la plataforma ya ha rotado el `refresh`. Sin el nuevo, la siguiente renovación presentaría el
+     * anterior pasado su minuto de gracia, y la plataforma cerraría la sesión por reutilización.
+     */
+    private suspend fun <T> sinCortar(llamada: suspend () -> T): T = withContext(NonCancellable) { llamada() }
 
     /**
      * Lo que rota el refresh: si la respuesta se pierde, se repite con el mismo refresh, que vale un minuto más

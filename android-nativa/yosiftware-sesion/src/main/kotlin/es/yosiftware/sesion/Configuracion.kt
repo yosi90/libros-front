@@ -5,7 +5,7 @@ import android.os.Build
 import android.provider.Settings
 
 /** Versión de la librería; va en el `User-Agent` de cada llamada. Sube con cada cambio del módulo. */
-const val VERSION_LIBRERIA = "1.7.0"
+const val VERSION_LIBRERIA = "1.7.1"
 
 /**
  * Dónde está la plataforma y quién es la app. Lo normal es crearla con [qa] o [produccion]:

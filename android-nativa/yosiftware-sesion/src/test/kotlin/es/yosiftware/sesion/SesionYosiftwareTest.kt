@@ -1,8 +1,10 @@
 package es.yosiftware.sesion
 
 import java.io.IOException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -42,14 +44,14 @@ class SesionYosiftwareTest {
     /** Responde por el final de la ruta, en orden: cada respuesta se usa una vez (la última se repite). */
     private class Simulado : Transporte {
         val llegadas = mutableListOf<Peticion>()
-        private val respuestas = mutableMapOf<String, MutableList<() -> Respuesta>>()
+        private val respuestas = mutableMapOf<String, MutableList<suspend () -> Respuesta>>()
         private val usadas = mutableMapOf<String, Int>()
 
         fun responder(ruta: String, estado: Int, cuerpo: String) = alLlegar(ruta) { Respuesta(estado, cuerpo) }
 
         fun sinRed(ruta: String) = alLlegar(ruta) { throw IOException("sin red") }
 
-        fun alLlegar(ruta: String, respuesta: () -> Respuesta) {
+        fun alLlegar(ruta: String, respuesta: suspend () -> Respuesta) {
             respuestas.getOrPut(ruta) { mutableListOf() }.add(respuesta)
         }
 
@@ -258,6 +260,31 @@ class SesionYosiftwareTest {
         assertEquals(listOf("r1", "r1"), red.a("/renovacion").map { JSONObject(it.cuerpo!!).getString("refresh") })
         assertEquals(listOf(2_000L), esperas)
         assertEquals("r1", almacen.valor) // Sin refresh nuevo, sigue el que había.
+    }
+
+    @Test
+    fun `una renovacion ya enviada termina y guarda el refresh aunque se cancele quien la pidio`() = runTest {
+        entrar()
+        val enviada = CompletableDeferred<Unit>()
+        val responder = CompletableDeferred<Unit>()
+        red.alLlegar("/renovacion") {
+            enviada.complete(Unit)
+            responder.await()
+            Respuesta(200, renovada(2, refresh = "r2"))
+        }
+        red.responder("/renovacion", 200, renovada(3))
+        ahora += 600_000
+
+        val pedida = launch { sesion.tokens() }
+        enviada.await()
+        pedida.cancel() // La vista que pedía los tokens se ha cerrado.
+        responder.complete(Unit)
+        pedida.join()
+
+        assertEquals("r2", almacen.valor)
+        ahora += 600_000
+        assertEquals("tp3", sesion.tokens().plataforma.valor)
+        assertEquals("r2", red.cuerpo("/renovacion").getString("refresh"))
     }
 
     @Test
@@ -550,6 +577,26 @@ class SesionYosiftwareTest {
 
     private fun traspaso(refresh: String? = null) =
         """{"ticket":"t1","caducaEn":300,"cuenta":{"id":"6f1c","alias":"yosi"},"de":{"web":"renotas","nombre":"Re-Notas"},"para":{"web":"lorcana","nombre":"Lorcana"},"refresh":${refresh?.let { "\"$it\"" } ?: "null"}}"""
+
+    @Test
+    fun `un traspaso ya enviado guarda el refresh que rota aunque la otra app deje de esperar`() = runTest {
+        entrar()
+        val enviado = CompletableDeferred<Unit>()
+        val responder = CompletableDeferred<Unit>()
+        red.alLlegar("/v1/sesion/nativa/traspaso") {
+            enviado.complete(Unit)
+            responder.await()
+            Respuesta(200, traspaso(refresh = "r2"))
+        }
+
+        val pedido = launch { sesion.darSesion("com.mazoslorcana.app", listOf("ab12"), "https://api.prueba/") }
+        enviado.await()
+        pedido.cancel() // El servicio se destruye: la otra app se ha ido.
+        responder.complete(Unit)
+        pedido.join()
+
+        assertEquals("r2", almacen.valor)
+    }
 
     @Test
     fun `da su sesion a otra app con un ticket, sin darle el refresh, y guarda el que rota`() = runTest {
