@@ -13,6 +13,12 @@ interface Avisador {
     fun exitoConAccion(mensaje: String, accion: AccionDeAviso, titulo: String? = null, clave: String? = null, duracionMs: Long? = null) =
         exito(mensaje)
 
+    /** Un aviso informativo (`infoBar`), con título y clave para no repetirlo. */
+    fun informar(mensaje: String, titulo: String? = null, clave: String? = null) = exito(mensaje)
+
+    /** Un aviso del sistema (`showSystem`), como «Cambios recuperados». */
+    fun avisarDelSistema(mensaje: String, titulo: String? = null, clave: String? = null) = exito(mensaje)
+
     /** Sin avisos (las muestras y las pruebas que no los miran). */
     object Mudo : Avisador {
         override fun exito(mensaje: String) = Unit

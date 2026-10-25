@@ -101,6 +101,10 @@ class Avisos : Avisador {
         mostrar(TipoDeAviso.EXITO, mensaje, titulo, clave, accion = accion, duracionMs = duracionMs)
 
     /** Un error de la API: el título es el texto de la pantalla y el mensaje, el del servidor. Las normas pendientes no avisan. */
+    override fun informar(mensaje: String, titulo: String?, clave: String?) = info(mensaje, titulo, clave)
+
+    override fun avisarDelSistema(mensaje: String, titulo: String?, clave: String?) = sistema(mensaje, titulo, clave)
+
     override fun deError(error: ErrorDeLibros, generico: String) {
         if (error.bloqueoPorNormas) return
         error(error.mensajeO(generico), titulo = generico)

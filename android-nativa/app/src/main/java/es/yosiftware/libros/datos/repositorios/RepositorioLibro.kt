@@ -46,12 +46,24 @@ data class InterludioAGuardar(val nombre: String, val pagina: Int, val ordenCapi
     )
 }
 
+/** Lo que escribe un capítulo con sus escenas: así su ViewModel se prueba sin red. */
+interface ServidorDeCapitulos {
+    suspend fun crearCapitulo(libroId: Int, capitulo: CapituloAGuardar): Capitulo
+    suspend fun cambiarCapitulo(id: Int, capitulo: CapituloAGuardar): Capitulo
+    suspend fun crearCapituloDeInterludio(interludioId: Int, capitulo: CapituloAGuardar): Capitulo
+    suspend fun cambiarCapituloDeInterludio(id: Int, capitulo: CapituloAGuardar): Capitulo
+    suspend fun crearEscena(capituloId: Int, escena: EscenaAGuardar): Escena
+    suspend fun crearEscenaDeInterludio(capituloId: Int, escena: EscenaAGuardar): Escena
+    suspend fun cambiarEscena(id: Int, escena: EscenaAGuardar): Escena
+    suspend fun borrarEscena(id: Int): Boolean
+}
+
 /**
  * El libro por dentro (`book`, `chapter`, `scene`, `part`, `interlude` y `note.service.ts`): su detalle, la sección de
  * una antología abierta como libro, el orden de sus personajes, y la escritura de capítulos, escenas, partes,
  * interludios y notas.
  */
-class RepositorioLibro(private val api: ClienteLibros) {
+class RepositorioLibro(private val api: ClienteLibros) : ServidorDeCapitulos {
     suspend fun libro(id: Int): Libro = api.get("libros/$id").objeto(Libro::de)
 
     /** Una sección de antología abierta como libro, con su antología y sus páginas. */
@@ -62,30 +74,30 @@ class RepositorioLibro(private val api: ClienteLibros) {
 
     // ---------- Capítulos ----------
 
-    suspend fun crearCapitulo(libroId: Int, capitulo: CapituloAGuardar): Capitulo =
+    override suspend fun crearCapitulo(libroId: Int, capitulo: CapituloAGuardar): Capitulo =
         api.post("capitulos/libros/$libroId", capitulo.comoJson()).objeto(Capitulo::de)
 
-    suspend fun cambiarCapitulo(id: Int, capitulo: CapituloAGuardar): Capitulo = api.put("capitulos/$id", capitulo.comoJson()).objeto(Capitulo::de)
+    override suspend fun cambiarCapitulo(id: Int, capitulo: CapituloAGuardar): Capitulo = api.put("capitulos/$id", capitulo.comoJson()).objeto(Capitulo::de)
 
-    suspend fun crearCapituloDeInterludio(interludioId: Int, capitulo: CapituloAGuardar): Capitulo =
+    override suspend fun crearCapituloDeInterludio(interludioId: Int, capitulo: CapituloAGuardar): Capitulo =
         api.post("capitulos-interludio/interludios/$interludioId", capitulo.comoJson()).objeto(Capitulo::de)
 
-    suspend fun cambiarCapituloDeInterludio(id: Int, capitulo: CapituloAGuardar): Capitulo =
+    override suspend fun cambiarCapituloDeInterludio(id: Int, capitulo: CapituloAGuardar): Capitulo =
         api.put("capitulos-interludio/$id", capitulo.comoJson()).objeto(Capitulo::de)
 
     // ---------- Escenas ----------
 
     suspend fun escena(id: Int): Escena = api.get("escenas/$id").objeto(Escena::de)
 
-    suspend fun crearEscena(capituloId: Int, escena: EscenaAGuardar): Escena =
+    override suspend fun crearEscena(capituloId: Int, escena: EscenaAGuardar): Escena =
         api.post("escenas/capitulos/$capituloId", escena.comoJson()).objeto(Escena::de)
 
-    suspend fun crearEscenaDeInterludio(capituloId: Int, escena: EscenaAGuardar): Escena =
+    override suspend fun crearEscenaDeInterludio(capituloId: Int, escena: EscenaAGuardar): Escena =
         api.post("escenas/capitulos-interludio/$capituloId", escena.comoJson()).objeto(Escena::de)
 
-    suspend fun cambiarEscena(id: Int, escena: EscenaAGuardar): Escena = api.put("escenas/$id", escena.comoJson()).objeto(Escena::de)
+    override suspend fun cambiarEscena(id: Int, escena: EscenaAGuardar): Escena = api.put("escenas/$id", escena.comoJson()).objeto(Escena::de)
 
-    suspend fun borrarEscena(id: Int): Boolean = hecho(api.delete("escenas/$id").objeto())
+    override suspend fun borrarEscena(id: Int): Boolean = hecho(api.delete("escenas/$id").objeto())
 
     // ---------- Partes e interludios ----------
 
