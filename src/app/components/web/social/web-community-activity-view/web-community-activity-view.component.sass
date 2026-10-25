@@ -1,0 +1,189 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+
+.icon-button
+    @include web.icon-button
+
+.state
+    @include web.state
+
+.activity__head
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    justify-content: space-between
+    gap: var(--web-space-3)
+    margin-bottom: var(--web-space-4)
+
+    h2
+        margin: 0
+        font: 600 22px/1.25 var(--web-font-reading)
+
+    p
+        margin: var(--web-space-1) 0 0
+        color: var(--web-color-ink-muted)
+
+.activity__head-actions
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+
+.activity__settings
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: var(--web-color-primary)
+    font-weight: 600
+    text-decoration: none
+    @include web.focus-ring
+
+.activity__error
+    margin: 0 0 var(--web-space-3)
+    color: var(--web-color-danger)
+
+.activity__subtitle
+    margin: var(--web-space-5) 0 var(--web-space-3)
+    font: 600 18px/1.3 var(--web-font-reading)
+
+.activity__list
+    display: grid
+    gap: var(--web-space-3)
+    margin: 0
+    padding: 0
+    list-style: none
+
+.activity__card
+    @include web.card
+    overflow: hidden
+
+.activity__header
+    display: block
+    width: 100%
+    aspect-ratio: 16 / 9
+    object-fit: cover
+
+.activity__body
+    display: grid
+    grid-template-columns: 40px minmax(0, 1fr) auto
+    gap: var(--web-space-3)
+    padding: var(--web-space-4)
+
+.activity__avatar
+    display: grid
+    place-items: center
+    width: 40px
+    height: 40px
+    overflow: hidden
+    border-radius: 50%
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    font-weight: 700
+
+    img
+        width: 100%
+        height: 100%
+        object-fit: cover
+
+    &.is-small
+        width: 30px
+        height: 30px
+        font-size: 13px
+
+.activity__text
+    min-width: 0
+
+    p
+        margin: 0
+        line-height: 1.45
+
+    small
+        display: block
+        margin-top: 2px
+        color: var(--web-color-ink-muted)
+
+.activity__link
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    margin-top: var(--web-space-2)
+    color: var(--web-color-primary)
+    font-weight: 600
+    text-decoration: none
+    @include web.focus-ring
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
+
+.activity__cover
+    width: 52px
+    height: 76px
+    border-radius: var(--web-radius-sm)
+    object-fit: cover
+
+.activity__actions
+    display: flex
+    gap: var(--web-space-2)
+    padding: 0 var(--web-space-4) var(--web-space-3)
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 36px
+        padding: 0 var(--web-space-3)
+        border: 1px solid var(--web-color-outline)
+        border-radius: 999px
+        color: var(--web-color-ink-muted)
+        background: transparent
+        font: inherit
+        cursor: pointer
+        @include web.focus-ring
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+        &.is-active
+            border-color: var(--web-color-danger)
+            color: var(--web-color-danger)
+
+.activity__comments
+    display: grid
+    gap: var(--web-space-2)
+    padding: var(--web-space-3) var(--web-space-4) var(--web-space-4)
+    border-top: 1px solid var(--web-color-outline)
+
+.activity__comment
+    display: grid
+    grid-template-columns: 30px minmax(0, 1fr) auto
+    align-items: start
+    gap: var(--web-space-2)
+
+    p
+        margin: 2px 0 0
+        white-space: pre-line
+
+.activity__muted
+    margin: 0
+    color: var(--web-color-ink-muted)
+
+.activity__comment-form
+    display: grid
+    gap: var(--web-space-2)
+
+    textarea
+        @include web.field
+        min-height: 64px
+        resize: vertical
+
+    button
+        justify-self: end
+
+.activity__more
+    display: block
+    margin: var(--web-space-4) auto 0

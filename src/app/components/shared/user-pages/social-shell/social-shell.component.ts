@@ -35,6 +35,7 @@ interface SocialNavigationItem {
 export class SocialShellComponent implements OnInit, OnDestroy {
     readonly items: SocialNavigationItem[] = [
         { label: 'Resumen', description: 'Tu actividad social', icon: 'dashboard', path: 'summary' },
+        { label: 'Actividad', description: 'Lo que comparten en Libros', icon: 'dynamic_feed', path: 'activity' },
         { label: 'Clubes', description: 'Lecturas compartidas', icon: 'groups_3', path: 'clubs', capability: 'clubes' },
         { label: 'Mensajes', description: 'Directos, grupos y clubes', icon: 'forum', path: 'messages' }
     ];

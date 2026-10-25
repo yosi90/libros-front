@@ -11,6 +11,7 @@ import { ChatComponent } from '../components/shared/user-pages/chat/chat.compone
 import { ChatConversationComponent } from '../components/shared/user-pages/chat-conversation/chat-conversation.component';
 import { communityCapabilityGuard } from '../guards/community-capability.guard';
 import { SocialShellComponent } from '../components/shared/user-pages/social-shell/social-shell.component';
+import { CommunityActivityComponent } from '../components/shared/user-pages/community-activity/community-activity.component';
 import { SocialSummaryComponent } from '../components/shared/user-pages/social-summary/social-summary.component';
 import { AccountSecurityComponent } from '../components/shared/user-pages/account-security/account-security.component';
 import { AppPreferencesComponent } from '../components/shared/user-pages/app-preferences/app-preferences.component';
@@ -51,6 +52,8 @@ export const routes: Routes = [
                 canActivate: [authGuard],
                 children: [
                     { path: 'summary', component: SocialSummaryComponent },
+                    // Lo que comparten desde Libros las amistades y los seguidos (el feed de novedades de la plataforma).
+                    { path: 'activity', component: CommunityActivityComponent },
                     { path: 'clubs/:id', component: ClubDetailComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes' } },
                     { path: 'clubs', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes' } },
                     // El chat es el de la plataforma (decisión 6 del roadmap del ecosistema), con cualquier sesión.
@@ -59,7 +62,7 @@ export const routes: Routes = [
                     ] },
                     // Las personas, las amistades, los bloqueos, los perfiles y el muro general se retiraron con la
                     // adhesión: son de la web social, que el resumen enlaza con el símbolo del ecosistema.
-                    ...['people', 'activity', 'friendships', 'blocks', 'relationships', 'users/:id']
+                    ...['people', 'friendships', 'blocks', 'relationships', 'users/:id']
                         .map(path => ({ path, redirectTo: 'summary', pathMatch: 'full' as const })),
                     { path: '', redirectTo: 'summary', pathMatch: 'full' },
                 ]

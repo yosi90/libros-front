@@ -1,0 +1,69 @@
+<section class="activity" [attr.aria-busy]="c.loading">
+  <header class="activity__head">
+    <div>
+      <h2>Actividad</h2>
+      <p>Lo que comparten en Libros tus amistades y quienes sigues.</p>
+    </div>
+    <div class="activity__head-actions">
+      <a class="activity__settings" [href]="c.settingsUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Qué compartes</a>
+      <button class="m-icon-button" type="button" aria-label="Actualizar actividad" [disabled]="c.loading" (click)="c.load()"><mat-icon>refresh</mat-icon></button>
+    </div>
+  </header>
+
+  @if (c.error) { <p class="activity__error" role="alert">{{ c.error }}</p> }
+
+  @if (c.loading && !c.items.length) {
+    <div class="activity__state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando la actividad…</p></div>
+  } @else if (!c.items.length && !c.error) {
+    <div class="activity__state"><mat-icon>dynamic_feed</mat-icon><strong>Aún no hay actividad</strong><p>Cuando tus amistades o quienes sigues empiecen, terminen o puntúen un libro, aparecerá aquí.</p></div>
+    @if (c.discover.length) {
+      <h3 class="activity__subtitle">Descubrir</h3>
+      <ng-container *ngTemplateOutlet="list; context: { $implicit: c.discover }"></ng-container>
+    }
+  }
+  @if (c.items.length) {
+    <ng-container *ngTemplateOutlet="list; context: { $implicit: c.items }"></ng-container>
+    @if (c.cursor) { <button class="m-button m-button--outline activity__more" type="button" [disabled]="c.loadingMore" (click)="c.loadMore()">{{ c.loadingMore ? 'Cargando…' : 'Cargar más' }}</button> }
+  }
+</section>
+
+<ng-template #list let-items>
+  <ol class="activity__list">
+    @for (item of items; track c.trackItem($index, item)) {
+      <li class="activity__card">
+        @if (c.headerImage(item); as header) { <img class="activity__header" [src]="header" [alt]="item.cabecera?.textoAlternativo ?? ''"> }
+        <div class="activity__body">
+          <span class="activity__avatar">@if (c.personAvatar(item.persona); as avatar) { <img [src]="avatar" alt=""> } @else { {{ c.initial(item.persona) }} }</span>
+          <div class="activity__text">
+            <p><strong>{{ c.personName(item.persona) }}</strong> {{ item.texto }}</p>
+            <small>{{ item.creada | date:'d MMM y, HH:mm' }}</small>
+            @if (item.enlace) { <a class="activity__link" [href]="item.enlace" target="_blank" rel="noopener">Abrir<mat-icon aria-hidden="true">open_in_new</mat-icon></a> }
+          </div>
+          @if (item.imagen) { <img class="activity__cover" [src]="item.imagen" alt=""> }
+        </div>
+        <footer class="activity__actions">
+          <button type="button" [class.is-active]="item.meGusta.propio" [attr.aria-pressed]="item.meGusta.propio" [disabled]="c.likeBusy.has(item.id)" (click)="c.toggleLike(item)"><mat-icon>{{ item.meGusta.propio ? 'favorite' : 'favorite_border' }}</mat-icon>{{ item.meGusta.total }}</button>
+          <button type="button" [attr.aria-expanded]="!!c.commentsOf(item)" (click)="c.toggleComments(item)"><mat-icon>chat_bubble_outline</mat-icon>{{ item.comentarios }}</button>
+        </footer>
+        @if (c.commentsOf(item); as comments) {
+          <div class="activity__comments">
+            @if (comments.loading && !comments.items.length) { <p class="activity__muted">Cargando comentarios…</p> }
+            @for (comment of comments.items; track comment.id) {
+              <div class="activity__comment">
+                <span class="activity__avatar is-small">@if (c.personAvatar(comment.persona); as avatar) { <img [src]="avatar" alt=""> } @else { {{ c.initial(comment.persona) }} }</span>
+                <div><strong>{{ c.personName(comment.persona) }}</strong><p>{{ comment.texto }}</p></div>
+                @if (c.canDeleteComment(item, comment)) { <button class="m-icon-button" type="button" aria-label="Borrar el comentario" (click)="c.deleteComment(item, comment)"><mat-icon>delete_outline</mat-icon></button> }
+              </div>
+            }
+            @if (comments.cursor) { <button class="m-button m-button--outline" type="button" [disabled]="comments.loading" (click)="c.loadComments(item, true)">Ver más comentarios</button> }
+            <form class="activity__comment-form" (submit)="$event.preventDefault(); c.sendComment(item)">
+              <textarea [(ngModel)]="comments.draft" name="comment-{{ item.id }}" maxlength="500" rows="2" placeholder="Escribe un comentario" aria-label="Comentario"></textarea>
+              <button class="m-button" type="submit" [disabled]="!comments.draft.trim() || comments.sending">{{ comments.sending ? 'Enviando…' : 'Comentar' }}</button>
+            </form>
+            @if (comments.error) { <p class="activity__error" role="alert">{{ comments.error }}</p> }
+          </div>
+        }
+      </li>
+    }
+  </ol>
+</ng-template>
