@@ -1,8 +1,9 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, catchError, filter, from, of, switchMap, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { PlatformSessionService } from '../auth/platform-session.service';
+import { requestWithToken } from '../auth/token-request';
 
 type Metodo = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 type Parametros = Record<string, string | number | boolean | null | undefined>;
@@ -15,8 +16,9 @@ export const SIN_SESION_PLATAFORMA = { status: 401, error: { code: 'sin_sesion',
  * plataforma (`yosiftware.tokenPlataforma()`, `aud: cuentas`), pedido en cada llamada y nunca guardado
  * (ecosistema-kit/ACCESO.md). Ante un 401 se pide otro y se repite una vez.
  *
- * Como en `PlatformTokenInterceptor`, cada llamada pertenece a la generación de la cuenta con la que empezó
- * (CAMBIO_DE_CUENTA.md): si la cuenta cambia antes de la respuesta, se descarta sin valor ni error.
+ * Como en `PlatformTokenInterceptor` (los dos con `requestWithToken`), cada llamada pertenece a la generación de la
+ * cuenta con la que empezó (CAMBIO_DE_CUENTA.md): si la cuenta cambia antes de la respuesta, se descarta sin valor ni
+ * error.
  */
 @Injectable({ providedIn: 'root' })
 export class PlatformApiService {
@@ -32,34 +34,22 @@ export class PlatformApiService {
 
     request<T>(method: Metodo, path: string, body?: unknown, params?: Parametros): Observable<T> {
         const generation = this.session.generation;
-        const current = () => this.session.isCurrentGeneration(generation);
         const url = `${this.baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
-        const send = (token: string) => this.http.request<T>(method, url, {
-            body,
-            params: toHttpParams(params),
-            headers: { Authorization: `Bearer ${token}` }
-        });
-
-        return from(this.session.platformToken()).pipe(
-            catchError(() => of(null)),
-            switchMap(token => {
-                if (!current()) return EMPTY;
-                if (!token) return throwError(() => SIN_SESION_PLATAFORMA);
-                return send(token).pipe(catchError((error: unknown) => {
-                    if (!current()) return EMPTY;
-                    if (!(error instanceof HttpErrorResponse) || error.status !== 401) return throwError(() => error);
-                    return from(this.session.platformToken()).pipe(
-                        catchError(() => of(null)),
-                        switchMap(renewed => {
-                            if (!current()) return EMPTY;
-                            if (!renewed || renewed === token) return throwError(() => error);
-                            return send(renewed).pipe(catchError((retryError: unknown) => current() ? throwError(() => retryError) : EMPTY));
-                        })
-                    );
-                }));
+        return requestWithToken<T>({
+            token: () => this.session.platformToken(),
+            // El SDK renueva solo: si aún da el mismo token, no se repite.
+            renew: async previous => {
+                const renewed = await this.session.platformToken();
+                return renewed === previous ? null : renewed;
+            },
+            send: token => this.http.request<T>(method, url, {
+                body,
+                params: toHttpParams(params),
+                headers: { Authorization: `Bearer ${token}` }
             }),
-            filter(() => current())
-        );
+            isCurrent: () => this.session.isCurrentGeneration(generation),
+            withoutToken: () => throwError(() => SIN_SESION_PLATAFORMA)
+        });
     }
 }
 

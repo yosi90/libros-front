@@ -1,8 +1,9 @@
-import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, catchError, filter, from, of, switchMap, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { GENERACION_PETICION, PlatformSessionService } from './platform-session.service';
+import { requestWithToken } from './token-request';
 
 /**
  * Las llamadas a la API de Libros llevan el token de la plataforma (`yosiftware.token()`, audiencia `libros-api`),
@@ -21,36 +22,12 @@ export class PlatformTokenInterceptor implements HttpInterceptor {
             return next.handle(req);
 
         const generation = req.context.get(GENERACION_PETICION) ?? this.session.generation;
-        const current = () => this.session.isCurrentGeneration(generation);
-
-        return from(this.session.token()).pipe(
-            catchError(() => of(null)),
-            switchMap(token => {
-                if (!current()) return EMPTY;
-                return next.handle(withToken(req, token)).pipe(
-                    catchError((error: unknown) => {
-                        if (!current()) return EMPTY;
-                        if (!(error instanceof HttpErrorResponse) || error.status !== 401 || !token)
-                            return throwError(() => error);
-                        return this.retryOnce(req, next, token, error, current);
-                    })
-                );
-            }),
-            filter(() => current())
-        );
-    }
-
-    private retryOnce(req: HttpRequest<unknown>, next: HttpHandler, previous: string, original: HttpErrorResponse, current: () => boolean): Observable<HttpEvent<unknown>> {
-        return from(this.session.renewToken(previous)).pipe(
-            catchError(() => of(null)),
-            switchMap(renewed => {
-                if (!current()) return EMPTY;
-                if (!renewed) return throwError(() => original);
-                return next.handle(withToken(req, renewed)).pipe(
-                    catchError((error: unknown) => current() ? throwError(() => error) : EMPTY)
-                );
-            })
-        );
+        return requestWithToken({
+            token: () => this.session.token(),
+            renew: previous => this.session.renewToken(previous),
+            send: token => next.handle(withToken(req, token)),
+            isCurrent: () => this.session.isCurrentGeneration(generation)
+        });
     }
 }
 
