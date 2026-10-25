@@ -8,9 +8,10 @@ test.describe('regresion visual publica @visual', () => {
     });
 
     test('Home conserva su composicion editorial', async ({ page }) => {
-        // La portada cambia con la cuenta de Yosiftware (botones de entrar y la línea con el símbolo): la referencia se
-        // regenera en Linux (docs/codex/PROJECT_WORKING_NOTES.md, «Referencias visuales») en el hito 4, antes del corte.
-        test.fixme(true, 'Referencia pendiente de regenerar con la portada de la cuenta de Yosiftware (hito 4).');
+        // La portada cambió con la cuenta de Yosiftware (`<yosi-acceso>`, `<yosi-webs>` y la campana): la referencia de
+        // Windows se regeneró en el hito 4; la de Linux, que compara la campaña nocturna, se regenera con Docker
+        // (docs/codex/PROJECT_WORKING_NOTES.md, «Referencias visuales») antes de volver a activarla.
+        test.fixme(process.platform === 'linux', 'Referencia de Linux pendiente de regenerar con la portada de la adhesión (hito 4).');
         await page.addInitScript(() => { Math.random = () => 0.25; });
         await page.goto('/');
         await expect(page).toHaveScreenshot('home.webp', { fullPage: true, animations: 'disabled' });

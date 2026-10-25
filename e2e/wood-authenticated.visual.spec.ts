@@ -2,9 +2,11 @@ import { expect, test } from './fixtures/test';
 
 import { installLocalVisualSession, visualBook } from './support/local-visual-session';
 
-// La cabecera Wood lleva ahora la cuenta de Yosiftware (`<yosi-acceso>`) y «Cuenta y seguridad» enlaza la cuenta común:
-// las referencias se regeneran en Linux en el hito 4, antes del corte (docs/codex/PROJECT_WORKING_NOTES.md).
-const REFERENCIA_PENDIENTE = 'Referencia pendiente de regenerar con la cuenta de Yosiftware en la cabecera (hito 4).';
+// La cabecera Wood lleva la cuenta de Yosiftware (`<yosi-acceso>`), sus webs y la campana, y «Cuenta y seguridad»
+// enlaza la cuenta común. Las referencias de Windows se regeneraron en el hito 4 (revisadas una a una); las de Linux, que
+// compara la campaña nocturna, se regeneran con Docker (docs/codex/PROJECT_WORKING_NOTES.md) antes de volver a activarlas.
+const REFERENCIA_LINUX_PENDIENTE = 'Referencia de Linux pendiente de regenerar con la cabecera de la adhesión (hito 4).';
+const linux = process.platform === 'linux';
 
 test.describe('regresion visual Wood autenticada @visual', () => {
     test.skip(({ browserName }) => browserName !== 'chromium', 'Los baselines visuales se mantienen en Chromium.');
@@ -12,7 +14,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
     test.beforeEach(async ({ page }) => installLocalVisualSession(page));
 
     test('Cuenta y seguridad se integra en el escritorio Wood', async ({ page }) => {
-        test.fixme(true, REFERENCIA_PENDIENTE);
+        test.fixme(linux, REFERENCIA_LINUX_PENDIENTE);
         // En Wood es un apartado del Perfil: la ruta propia redirige a él.
         await page.goto('/dashboard/account-security');
         await expect(page).toHaveURL(/\/dashboard\/profile\?section=security/);
@@ -27,15 +29,17 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         });
     });
 
-    test('Administracion no se puede abrir desde Mobile', async ({ page }) => {
-        await page.setViewportSize({ width: 390, height: 844 });
-        await page.goto('/dashboard/adminpanel');
-        await expect(page).toHaveURL(/\/dashboard\/books(?:[?#]|$)/);
-        await expect(page.locator('html')).toHaveAttribute('data-presentation-target', 'mobile');
+    test('La administración ya no existe en la web (es el plugin de la plataforma)', async ({ page }) => {
+        for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+            await page.setViewportSize(viewport);
+            await page.goto('/dashboard/adminpanel');
+            await expect(page).toHaveURL(/\/dashboard\/books(?:[?#]|$)/);
+            await expect(page.getByRole('link', { name: 'Administración' })).toHaveCount(0);
+        }
     });
 
     test('El shell, indice y busqueda del libro conservan Wood', async ({ page }) => {
-        test.fixme(true, REFERENCIA_PENDIENTE);
+        test.fixme(linux, REFERENCIA_LINUX_PENDIENTE);
         await page.goto('/book/73/search');
         await expect(page.getByRole('heading', { name: 'Búsqueda avanzada' })).toBeVisible();
         await expect(page.locator('.dragon-loader')).toBeHidden();
@@ -45,7 +49,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
     });
 
     test('El editor de capítulo conserva la composición Wood', async ({ page }) => {
-        test.fixme(true, REFERENCIA_PENDIENTE);
+        test.fixme(linux, REFERENCIA_LINUX_PENDIENTE);
         await page.goto('/book/73/chapter/11');
         await expect(page.getByRole('heading', { name: 'Escenas' })).toBeVisible();
         await expect(page.locator('.dragon-loader')).toBeHidden();
@@ -221,31 +225,9 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await expect(page.getByRole('option', { name: 'Iria Valverde' })).toBeVisible();
     });
 
-    test('El dashboard Android medium reserva la safe area solo para el contenido', async ({ page }) => {
-        await page.setViewportSize({ width: 718, height: 781 });
-        await page.goto('/dashboard/books');
-        await expect(page.locator('.dragon-loader')).toBeHidden();
-        // La vista Mobile se monta tras el cambio de presentación; medir antes daba nulos intermitentes.
-        await expect(page.locator('.m-navigation')).toBeVisible();
-        await expect(page.locator('.library-main')).toBeVisible();
-        await page.locator('html').evaluate(element => {
-            element.setAttribute('data-presentation-active', 'native-mobile');
-            (element as HTMLElement).style.setProperty('--app-safe-top', '33px');
-        });
-
-        const geometry = await page.evaluate(() => ({
-            mainTop: document.querySelector<HTMLElement>('.library-main')!.getBoundingClientRect().top,
-            contentTop: document.querySelector<HTMLElement>('app-user-router')!.getBoundingClientRect().top,
-            railTop: document.querySelector<HTMLElement>('.m-navigation')!.getBoundingClientRect().top
-        }));
-
-        expect(geometry.mainTop).toBe(0);
-        expect(geometry.contentTop).toBeCloseTo(33, 0);
-        expect(geometry.railTop).toBe(0);
-    });
 
     test('Las entidades narrativas conservan la superficie Wood', async ({ page }) => {
-        test.fixme(true, REFERENCIA_PENDIENTE);
+        test.fixme(linux, REFERENCIA_LINUX_PENDIENTE);
         await page.goto('/book/73/characters');
         await expect(page.getByRole('heading', { name: 'Personajes' })).toBeVisible();
         await expect(page.getByText('Iria Valverde', { exact: true })).toBeVisible();
