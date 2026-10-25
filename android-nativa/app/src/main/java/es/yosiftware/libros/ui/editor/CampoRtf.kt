@@ -26,7 +26,8 @@ data class EstadoDeLaBarra(
     val subrayado: Boolean = false,
     val tachado: Boolean = false,
     val fuente: String? = null,
-    val puntos: Int = SpansRtf.PUNTOS_POR_DEFECTO,
+    /** En medios puntos, como `s` (10,5 pt son 21). */
+    val mediosPuntos: Int = SpansRtf.PUNTOS_POR_DEFECTO * 2,
     val parrafo: EstiloDeParrafo = EstiloDeParrafo(),
 )
 
@@ -146,6 +147,9 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
         } finally {
             cargando = false
         }
+        // `setText` avisa del cursor antes de que haya formato: la barra se calcula ya con él (si no, enseñaría los
+        // valores por defecto hasta mover el cursor, el fallo de la APK actual).
+        avisarALaBarra()
     }
 
     /** El valor que tiene el campo ahora (el último que se cargó o se emitió). */
@@ -229,7 +233,7 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
         val letra = pendiente ?: marcado.letraEn(if (selectionStart == selectionEnd) maxOf(0, posicion - 1) else posicion)
         alCambiarLaBarra(EstadoDeLaBarra(
             negrita = letra.negrita, cursiva = letra.cursiva, subrayado = letra.subrayado, tachado = letra.tachado,
-            fuente = letra.fuente, puntos = letra.tamano / 2,
+            fuente = letra.fuente, mediosPuntos = letra.tamano,
             parrafo = marcado.parrafos.getOrElse(marcado.parrafoEn(posicion)) { EstiloDeParrafo() },
         ))
     }

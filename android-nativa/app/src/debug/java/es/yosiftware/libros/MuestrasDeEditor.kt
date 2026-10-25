@@ -46,7 +46,7 @@ class MuestrasDeEditor : ComponentActivity() {
         setContent {
             TemaLibros(tema) {
                 val colores = LocalColores.current
-                var valor by remember { mutableStateOf(ESCENA) }
+                var valor by remember { mutableStateOf(if (intent.getStringExtra("vista") == "fuentes") FUENTES else ESCENA) }
                 var cambios by remember { mutableStateOf(0) }
                 Column(Modifier.fillMaxSize().background(colores.lienzo).systemBarsPadding().verticalScroll(rememberScrollState()).padding(16.dp)) {
                     EditorRtf(valor, { valor = it; cambios++ }, Modifier.fillMaxWidth(), enlaces = enlaces, descripcion = "Descripción de la escena 1")
@@ -58,6 +58,9 @@ class MuestrasDeEditor : ComponentActivity() {
     }
 
     private companion object {
+        /** `--es vista fuentes`: un párrafo por fuente y tamaño, como escenas de distintas épocas del escritorio. */
+        const val FUENTES = """{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang3082{\fonttbl{\f0\fnil\fcharset0 Microsoft Sans Serif;}{\f1\fnil Georgia;}{\f2\fnil Courier New;}{\f3\fnil Segoe UI;}}\viewkind4\uc1\pard\f1\fs32 Georgia a 16 puntos.\par \f2\fs21 Courier New a 10,5 puntos.\par \f3\fs18 Segoe UI a 9 puntos, que no est\'e1 en la lista.\par \f0\fs24 Microsoft Sans Serif a 12.\par}"""
+
         /** Como la escena 1 de la captura: fuente y tamaño de RichEdit, colores del escritorio y palabras clave ya marcadas. */
         const val ESCENA = """{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang3082{\fonttbl{\f0\fnil\fcharset0 Microsoft Sans Serif;}}{\colortbl ;\red245\green222\blue179;\red246\green230\blue201;}\viewkind4\uc1\pard\f0\fs24 \pard\ql \cf2 Una carta ordinaria le lleg\'f3 a \cf1\ul Citra\cf2\ulnone  con una entrada de \'f3pera. Ella termin\'f3 yendo por mera curiosidad, ten\'eda la certeza de que era alg\'fan chico que no se atrev\'eda a pedirle salir a la cara. Cuando lleg\'f3 un acomodador la llev\'f3 a un palco donde se encontr\'f3 con \cf1\ul rowan\cf2\ulnone  (no se conoc\'edan). Tras el primer intermedio de la \b \'f3pera\b0  lleg\'f3 Faraday con la respuesta.\par \pard\qc \i Ma\'f1ana lo viviremos.\i0\par}"""
     }

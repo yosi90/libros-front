@@ -53,6 +53,22 @@ class TextoMarcadoTest {
         assertEquals(listOf(Alineacion.CENTRO, Alineacion.IZQUIERDA, Alineacion.JUSTIFICADO), solo.parrafos.map { it.alineacion })
     }
 
+    /** La barra enseña el formato de lo que hay junto al cursor, no el de por defecto (el fallo de la APK actual). */
+    @Test
+    fun elFormatoJuntoAlCursorEsElDelTexto() {
+        val georgia = EstiloDeLetra(fuente = "Georgia", tamano = 32)
+        val courier = EstiloDeLetra(fuente = "Courier New", tamano = 21)
+        val marcado = TextoMarcado.de(DocumentoRtf(listOf(
+            Parrafo(EstiloDeParrafo(), listOf(Tramo("Uno", georgia))),
+            Parrafo(EstiloDeParrafo(), listOf(Tramo("Dos", courier))),
+        )))
+        // El cursor tras «Uno» (lo de antes) y al principio de «Dos» (el `\n` lleva su formato).
+        assertEquals(georgia, marcado.letraEn(2))
+        assertEquals(courier, marcado.letraEn(3))
+        assertEquals(courier, marcado.letraEn(4))
+        assertEquals(marcado.aDocumento().parrafos.map { it.tramos }, listOf(listOf(Tramo("Uno", georgia)), listOf(Tramo("Dos", courier))))
+    }
+
     /** Abrir en el editor y guardar sin tocar nada no cambia lo que dice ningún texto de QA (`app/build/paridad-rtf/`). */
     @Test
     fun abrirYGuardarSinCambiosNoCambiaNadaDelCorpus() {

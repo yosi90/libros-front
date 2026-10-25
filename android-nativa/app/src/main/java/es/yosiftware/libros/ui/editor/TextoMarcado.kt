@@ -117,8 +117,10 @@ data class TextoMarcado(
                     texto.append(tramo.texto)
                 }
                 if (i < documento.parrafos.lastIndex) {
-                    // El `\n` que separa los párrafos lleva el formato del último tramo (o el de por defecto).
-                    letras.add(Rango(texto.length, texto.length + 1, parrafo.tramos.lastOrNull()?.estilo ?: EstiloDeLetra()))
+                    // El `\n` que separa los párrafos lleva el formato del principio del siguiente: con el cursor al
+                    // principio de un párrafo, la barra enseña su formato y lo que se escriba lo toma.
+                    val siguiente = documento.parrafos[i + 1].tramos.firstOrNull()?.estilo
+                    letras.add(Rango(texto.length, texto.length + 1, siguiente ?: parrafo.tramos.lastOrNull()?.estilo ?: EstiloDeLetra()))
                     texto.append('\n')
                 }
             }

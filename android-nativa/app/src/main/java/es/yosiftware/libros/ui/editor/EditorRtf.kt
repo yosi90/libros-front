@@ -175,7 +175,7 @@ private fun Barra(estado: EstadoDeLaBarra, campo: CampoRtf?) {
     ) {
         Grupo {
             SelectorDeFuente(estado.fuente ?: FUENTE_POR_DEFECTO) { fuente -> campo?.cambiarLetra { it.copy(fuente = fuente) } }
-            SelectorDeTamano(estado.puntos) { puntos -> campo?.cambiarLetra { it.copy(tamano = puntos * 2) } }
+            SelectorDeTamano(estado.mediosPuntos) { puntos -> campo?.cambiarLetra { it.copy(tamano = puntos * 2) } }
         }
         Grupo {
             Herramienta(Iconos.formatBold, "Negrita", estado.negrita) { campo?.let { c -> val poner = !c.seleccionCumple { it.negrita }; c.cambiarLetra { it.copy(negrita = poner) } } }
@@ -268,9 +268,11 @@ private fun SelectorDeFuente(fuente: String, alElegir: (String) -> Unit) {
 }
 
 @Composable
-private fun SelectorDeTamano(puntos: Int, alElegir: (Int) -> Unit) {
+private fun SelectorDeTamano(mediosPuntos: Int, alElegir: (Int) -> Unit) {
     val colores = LocalColores.current
-    Selector(puntos.toString(), 48, "Tamaños habituales") { cerrar ->
+    // El tamaño del texto aunque no esté en la lista (10,5 pt de RichEdit, por ejemplo).
+    val texto = if (mediosPuntos % 2 == 0) (mediosPuntos / 2).toString() else "${mediosPuntos / 2},5"
+    Selector(texto, 48, "Tamaños habituales") { cerrar ->
         tamanos.forEach { tamano ->
             DropdownMenuItem(text = { Text(tamano.toString(), style = Textos.cuerpo.copy(fontSize = 12.sp, color = colores.tinta)) }, onClick = { cerrar(); alElegir(tamano) })
         }
