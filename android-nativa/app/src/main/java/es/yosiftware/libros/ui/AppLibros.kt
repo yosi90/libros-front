@@ -53,6 +53,15 @@ import es.yosiftware.libros.ui.mensajes.MensajesViewModel
 import es.yosiftware.libros.ui.mensajes.PantallaMensajes
 import es.yosiftware.libros.ui.mensajes.ConversacionViewModel
 import es.yosiftware.libros.push.AperturaDeAviso
+import es.yosiftware.libros.push.FiltroDePush as PushFiltro
+import es.yosiftware.libros.ui.avisos.AccionesDelPanel
+import es.yosiftware.libros.ui.avisos.CentroDeAvisosViewModel
+import es.yosiftware.libros.ui.avisos.PanelDeAvisos
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import es.yosiftware.libros.push.DestinoDeEnlace
 import es.yosiftware.libros.push.DestinoDelAviso
 import es.yosiftware.libros.push.PushLibros
@@ -161,6 +170,21 @@ fun AppLibros(app: LibrosApp) {
     val centroDeAcceso: CentroDeAccesoViewModel = viewModel { CentroDeAccesoViewModel(app.datos.ambito, app.datos.espacios) }
     val actividad: ActividadViewModel = viewModel { ActividadViewModel(app.datos.ambito, app.datos.novedades) }
     val mensajes: MensajesViewModel = viewModel { MensajesViewModel(app.datos.ambito, app.datos.bandeja, app.datos.chat) }
+    val centroDeAvisos: CentroDeAvisosViewModel = viewModel {
+        CentroDeAvisosViewModel(app.datos.ambito, app.datos.avisos, app.datos.tiempoReal?.eventos ?: emptyFlow())
+    }
+    // El contador de la campana: al volver a la app y cada minuto con ella delante.
+    val cicloDeLaApp = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(cicloDeLaApp) {
+        cicloDeLaApp.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                centroDeAvisos.refrescarContador()
+                delay(60_000)
+            }
+        }
+    }
+    // Y al llegar un push con la app delante.
+    LaunchedEffect(Unit) { app.avisoRecibido.collect { centroDeAvisos.alCambiarEnLaPlataforma() } }
     val sinLeer by app.datos.bandeja.sinLeer.collectAsStateWithLifecycle()
     // Abre Comunidad › Mensajes y, con [id], esa conversación (el chat de un club, un aviso).
     val abrirMensajes: (Long?) -> Unit = { id ->
@@ -284,6 +308,28 @@ fun AppLibros(app: LibrosApp) {
                             alAbrirCuentas = { panelAbierto = true },
                             nav = nav,
                             mensajesSinLeer = sinLeer,
+                            avisosSinVer = centroDeAvisos.contadores.noVistas,
+                            avisosAbiertos = centroDeAvisos.abierto,
+                            alPulsarCampana = centroDeAvisos::alternar,
+                            panelDeAvisos = { alto ->
+                                val contexto = LocalContext.current
+                                PanelDeAvisos(
+                                    centroDeAvisos,
+                                    AccionesDelPanel(
+                                        abrirEnlace = { aviso, enlace ->
+                                            // Una invitación a un club en nombre de Libros: Acceso › Invitaciones recibidas.
+                                            val destino = if (aviso.tipo == "espacio.invitacion" && aviso.marca == PushFiltro.WEB) DestinoDelAviso.InvitacionesRecibidas
+                                            else DestinoDeEnlace.de(enlace, aviso.tipo, PushLibros.origenesDeLibros)
+                                            irAlAviso(destino)
+                                        },
+                                        verTodas = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("notificaciones")) } },
+                                        preferencias = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("ajustes-notificaciones")) } },
+                                        imagen = { ruta -> ruta?.let { r -> if (r.startsWith("http")) r else app.datos.apiPlataforma?.let { it.trimEnd('/') + "/" + r.trimStart('/') } } },
+                                    ),
+                                    altoMaximo = alto,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            },
                             contenido = { destino ->
                                 when (destino) {
                                     Destino.Biblioteca -> PantallaBiblioteca(

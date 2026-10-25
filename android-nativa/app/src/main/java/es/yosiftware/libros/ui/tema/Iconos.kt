@@ -74,6 +74,7 @@ object Iconos {
     // Los estados de lectura (readingStatusOptions).
     @DrawableRes val schedule = R.drawable.mi_schedule
     @DrawableRes val doneAll = R.drawable.mi_done_all
+    @DrawableRes val notificationsNone = R.drawable.mi_notifications_none
     @DrawableRes val addShoppingCart = R.drawable.mi_add_shopping_cart
     @DrawableRes val bookmarkAdd = R.drawable.mi_bookmark_add
     @DrawableRes val block = R.drawable.mi_block

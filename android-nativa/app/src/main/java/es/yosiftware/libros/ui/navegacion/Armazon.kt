@@ -1,5 +1,11 @@
 package es.yosiftware.libros.ui.navegacion
 
+import es.yosiftware.libros.ui.tema.Espacios
+import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.clickable
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -59,6 +65,13 @@ fun Armazon(
     aviso: (@Composable () -> Unit)? = null,
     /** Los mensajes sin leer del chat: el punto del avatar, en el rail y en la app bar. */
     mensajesSinLeer: Int = 0,
+    /** Lo que falta por ver en la campana (su punto). */
+    avisosSinVer: Int = 0,
+    /** El panel de la campana abierto, y la campana: abrirlo o cerrarlo. */
+    avisosAbiertos: Boolean = false,
+    alPulsarCampana: () -> Unit = {},
+    /** El panel de la campana, con su alto máximo. */
+    panelDeAvisos: (@Composable (Dp) -> Unit)? = null,
     /** Con la hoja «Más» ya abierta (las muestras de depuración). */
     masAbiertaAlPrincipio: Boolean = false,
     contenido: @Composable (Destino) -> Unit = { PantallaVacia(it) },
@@ -73,7 +86,10 @@ fun Armazon(
     // La hoja «Más» registra el suyo después, así que Atrás la cierra antes que volver.
     BackHandler(enabled = nav.puedeVolver) { nav.volver() }
 
-    val estado = EstadoDeNavegacion(actual = nav.actual, masAbierta = masAbierta, mensajesSinLeer = mensajesSinLeer)
+    val estado = EstadoDeNavegacion(
+        actual = nav.actual, masAbierta = masAbierta, mensajesSinLeer = mensajesSinLeer,
+        avisosSinLeer = avisosSinVer > 0, avisosSinVer = avisosSinVer, avisosAbiertos = avisosAbiertos,
+    )
     val elegir: (Destino) -> Unit = { destino -> nav.irA(destino) }
     val alternarMas = { masAbierta = !masAbierta }
 
@@ -104,20 +120,33 @@ fun Armazon(
 
         if (ventana.clase.conRail) {
             Rail(
-                estado, elegir, alternarMas, alPulsarAvisos = { elegir(Destino.Avisos) }, Modifier.align(Alignment.TopStart),
+                estado, elegir, alternarMas, alPulsarAvisos = alPulsarCampana, Modifier.align(Alignment.TopStart),
                 // Como en la APK de Capacitor, el avatar del rail lleva a Perfil; el panel de cuentas se abre desde «Más › Cuenta».
                 avatar = avatar, nombre = nombre,
             )
         } else {
             // La app bar va encima del contenido, como la `fixed` de la web (con z-index 20).
             BarraSuperior(nav.actual.titulo, Modifier.align(Alignment.TopStart)) {
-                BotonDeCampana(abierta = nav.actual == Destino.Avisos, sinLeer = false, alPulsar = { elegir(Destino.Avisos) })
+                BotonDeCampana(abierta = avisosAbiertos, sinLeer = avisosSinVer > 0, alPulsar = alPulsarCampana, sinVer = avisosSinVer)
                 BotonDePerfil(mensajesSinLeer = mensajesSinLeer, avatar = avatar, nombre = nombre) {
                     masAbierta = false
                     elegir(Destino.Perfil)
                 }
             }
             BarraInferior(estado, elegir, alternarMas, Modifier.align(Alignment.BottomCenter))
+        }
+
+        // El panel de la campana (`app-notification-center`): bajo la app bar en compacto; desde 600 dp, arriba, junto
+        // al rail. Tocar fuera lo cierra.
+        if (avisosAbiertos && panelDeAvisos != null) {
+            Box(Modifier.fillMaxSize().clickable(remember { MutableInteractionSource() }, indication = null, onClick = alPulsarCampana))
+            val arriba = zona.calculateTopPadding() + if (ventana.clase.conRail) Espacios.e3 else Alturas.barraSuperior + Espacios.e3
+            val izquierda = if (ventana.clase.conRail) Alturas.anchoRail + zona.calculateLeftPadding(direccion) + Espacios.e3 else Espacios.e3
+            val abajo = zona.calculateBottomPadding() + if (ventana.clase.conRail) Espacios.e5 else Alturas.navegacionInferior + Espacios.e5
+            val alto = (ventana.altoDp.dp - arriba - abajo).coerceAtMost(if (ventana.clase.conRail) 520.dp else 620.dp)
+            Box(Modifier.fillMaxWidth().padding(start = izquierda, end = Espacios.e3, top = arriba)) {
+                panelDeAvisos(alto)
+            }
         }
 
         HojaMas(

@@ -67,6 +67,10 @@ data class EstadoDeNavegacion(
     val comunidadActiva: Boolean = true,
     val mensajesSinLeer: Int = 0,
     val avisosSinLeer: Boolean = false,
+    /** Lo que falta por ver en la campana: su descripción («Notificaciones, N sin ver»). */
+    val avisosSinVer: Int = 0,
+    /** El panel de la campana abierto. */
+    val avisosAbiertos: Boolean = false,
 )
 
 /**
@@ -146,7 +150,7 @@ private fun PildoraDeIcono(icono: Int, activo: Boolean) {
  * pasa al primario sobre el contenedor primario al abrir su panel, y el punto de error de 9 dp si hay avisos sin leer.
  */
 @Composable
-fun BotonDeCampana(abierta: Boolean, sinLeer: Boolean, alPulsar: () -> Unit, modifier: Modifier = Modifier) {
+fun BotonDeCampana(abierta: Boolean, sinLeer: Boolean, alPulsar: () -> Unit, modifier: Modifier = Modifier, sinVer: Int = 0) {
     val colores = LocalColores.current
     Box(
         modifier
@@ -159,7 +163,8 @@ fun BotonDeCampana(abierta: Boolean, sinLeer: Boolean, alPulsar: () -> Unit, mod
     ) {
         Icon(
             painterResource(Iconos.notifications),
-            contentDescription = "Abrir notificaciones",
+            // El `aria-label` de la campana del SDK.
+            contentDescription = if (sinVer > 0) "Notificaciones, $sinVer sin ver" else "Abrir notificaciones",
             tint = if (abierta) colores.primario else colores.tinta,
             modifier = Modifier.size(24.dp),
         )
@@ -286,7 +291,7 @@ fun Rail(
                 verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                BotonDeCampana(abierta = estado.actual == Destino.Avisos, sinLeer = estado.avisosSinLeer, alPulsar = alPulsarAvisos)
+                BotonDeCampana(abierta = estado.avisosAbiertos, sinLeer = estado.avisosSinLeer, alPulsar = alPulsarAvisos, sinVer = estado.avisosSinVer)
                 Text("Avisos", color = colores.tintaSuave, style = Textos.etiquetaDeNavegacion, textAlign = TextAlign.Center)
             }
             Spacer(Modifier.height(Espacios.e2))

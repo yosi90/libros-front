@@ -10,6 +10,7 @@ import es.yosiftware.libros.datos.red.ClientePlataforma
 import es.yosiftware.libros.datos.red.EstadoDeRed
 import es.yosiftware.libros.datos.red.TiempoReal
 import es.yosiftware.libros.datos.red.TokensDeLaSesion
+import es.yosiftware.libros.datos.repositorios.RepositorioAvisos
 import es.yosiftware.libros.datos.repositorios.RepositorioCatalogo
 import es.yosiftware.libros.datos.repositorios.RepositorioClubes
 import es.yosiftware.libros.datos.repositorios.RepositorioChat
@@ -82,6 +83,9 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
     val dispositivos = RepositorioDispositivos(llamadaDePlataforma) { metodo, ruta, cuerpo ->
         plataforma?.sinToken(metodo, ruta, cuerpo) ?: throw ErrorDeLibros.sinSesion()
     }
+
+    /** El centro de notificaciones de la plataforma (la campana). */
+    val avisos = RepositorioAvisos(llamadaDePlataforma)
 
     /** El socket del tiempo real de la plataforma (chat y canales de los clubes); sin sesión, no hay. */
     val tiempoReal: TiempoReal? = plataforma?.let { TiempoReal({ chat.ticket() }, alcance) }
