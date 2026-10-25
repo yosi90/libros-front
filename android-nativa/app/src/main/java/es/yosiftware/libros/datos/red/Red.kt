@@ -34,6 +34,11 @@ object Red {
 
     val cliente: OkHttpClient by lazy { crearCliente() }
 
+    /** El del socket del tiempo real: el mismo, sin tiempo de llamada ni de lectura, que lo cortarían (lo mantiene el ping). */
+    val clienteDeSocket: OkHttpClient by lazy {
+        cliente.newBuilder().callTimeout(0, TimeUnit.MILLISECONDS).readTimeout(0, TimeUnit.MILLISECONDS).build()
+    }
+
     fun crearCliente(agente: String = AGENTE): OkHttpClient = OkHttpClient.Builder()
         .fastFallback(true)
         .connectTimeout(3, TimeUnit.SECONDS)
