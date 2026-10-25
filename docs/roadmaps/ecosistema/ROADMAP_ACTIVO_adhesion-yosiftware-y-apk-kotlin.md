@@ -378,7 +378,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - Incluye «Cargar más», «Descubrir» con el feed vacío, «me gusta» al momento, comentarios (leer, escribir y borrar) y «Qué compartes» en la web social.
   - Web en producción (`3d87a9e`), con 4 pruebas.
   - APK con `RepositorioNovedades` y `ActividadViewModel`, con 4 pruebas.
-  - Pendiente de verla en el Honor: se bloqueó antes de capturarla.
+  - Vista en el Honor con la cuenta de QA: carga sin errores. El feed de QA está vacío, así que sale «Aún no hay actividad»; falta verla con novedades reales.
 - [x] Perfil, Mis peticiones y Mis reportes. Visto en el Honor el 25/10/2026 (muestras (`MuestrasDePerfil`: `resumen`, `perfil`, `peticiones`, `reportes` y sus vacías).
   - El perfil de Yosiftware (nombre, alias y avatar) se edita en la web social (`?vista=perfil`), como ofrece el kit: la librería no tiene `editarPerfil()` y una pantalla propia con `/v1/perfil` duplicaría la de la plataforma. Al volver a la app se relee el perfil. Así queda resuelto el punto del hito 6 sobre `/v1/perfil` y el avatar.
   - Fallos de la web corregidos en los dos (front `7958a9e`): reenviar las peticiones «otro» (la API solo admite `Texto` y `Titulo`), el doble envío de «Reenviar» y las antologías de «Actividad reciente», que llevaban a una ruta inexistente; en la APK, una antología se abre en la Biblioteca.
