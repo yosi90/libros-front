@@ -1,8 +1,8 @@
 import { AccountSecurityComponent } from '../account-security/account-security.component';
 import { AppPreferencesComponent } from '../app-preferences/app-preferences.component';
 import { WebProfileViewComponent } from '../../../web/user/web-profile-view/web-profile-view.component';
-import { CatalogRequestField, catalogEntityLabel, catalogRequestActionLabel, catalogRequestPayloadFields } from '../../../../shared/catalog-request-labels';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CatalogRequestField, catalogEntityLabel, catalogRequestActionLabel, catalogRequestPayloadFields, catalogRequestResponsePayload } from '../../../../shared/catalog-request-labels';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { UserService } from '../../../../services/entities/user.service';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, UrlTree } from '@angular/router';
 import { ObjectManagerComponent } from '../object-manager/object-manager.component';
 import { ManagerKind } from '../object-manager/object-manager.models';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
@@ -93,6 +93,7 @@ export class UserProfileComponent implements OnInit {
     areReportsLoading = true;
     requestResponses: Record<number, string> = {};
     isRespondingRequest = false;
+    private readonly router = inject(Router);
     /** Apartado interno de Seguridad o Preferencias (`?tab=`) al abrirlos dentro del Perfil. */
     activeTab: string | null = null;
     constructor(private sessionSrv: PlatformSessionService, private userSrv: UserService, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
@@ -215,9 +216,10 @@ export class UserProfileComponent implements OnInit {
         });
     }
 
-    getActivityRoute(activity: RecentLibraryActivity): string[] {
+    /** Un libro se abre en su página; una antología, en la Biblioteca (`?antologia=`), porque no tiene página propia. */
+    getActivityRoute(activity: RecentLibraryActivity): string[] | UrlTree {
         return activity.Tipo === 'antologia'
-            ? ['/antology', String(activity.Id)]
+            ? this.router.createUrlTree(['/dashboard/books'], { queryParams: { antologia: activity.Id } })
             : ['/book', String(activity.Id)];
     }
 
@@ -272,12 +274,7 @@ export class UserProfileComponent implements OnInit {
         }
 
         this.isRespondingRequest = true;
-        this.catalogRequestSrv.respond(request.Id, {
-            Payload: {
-                ...request.Payload,
-                Comentario: response
-            }
-        }).subscribe({
+        this.catalogRequestSrv.respond(request.Id, { Payload: catalogRequestResponsePayload(request, response) }).subscribe({
             next: updatedRequest => {
                 this.myRequests = this.myRequests.map(item => item.Id === updatedRequest.Id ? updatedRequest : item);
                 delete this.requestResponses[request.Id];

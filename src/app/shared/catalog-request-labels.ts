@@ -55,6 +55,18 @@ export function catalogRequestPayloadFields(payload: Record<string, unknown> | n
         });
 }
 
+/**
+ * El `Payload` con el que se reenvía una petición devuelta. Las de tipo `otro` solo admiten `Texto` y `Titulo` (la API
+ * rechaza cualquier otra clave), así que la respuesta se añade al texto; las demás la llevan en `Comentario`.
+ */
+export function catalogRequestResponsePayload(request: Pick<CatalogRequest, 'TipoEntidad' | 'Payload'>, response: string): Record<string, unknown> {
+    if (request.TipoEntidad !== 'otro')
+        return { ...request.Payload, Comentario: response };
+    const text = typeof request.Payload?.['Texto'] === 'string' ? request.Payload['Texto'].trim() : '';
+    const title = typeof request.Payload?.['Titulo'] === 'string' ? request.Payload['Titulo'].trim() : '';
+    return { Texto: text ? `${text}\n\n${response}` : response, ...(title ? { Titulo: title } : {}) };
+}
+
 function payloadLabel(key: string): string {
     return payloadLabels[key] ?? key.replace(/([a-z])([A-Z])/g, '$1 $2');
 }
