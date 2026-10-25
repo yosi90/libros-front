@@ -1,94 +1,37 @@
-import { DatePipe, TitleCasePipe } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
-import { Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, forkJoin, map, of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AccessMethod, AccessMethodName, GoogleEmailMismatchConfirmationDetails, UserSession } from '../../../../interfaces/auth';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { AuthApiService } from '../../../../services/auth/auth-api.service';
-import { FirebaseProviderAuthService } from '../../../../services/auth/firebase-provider-auth.service';
-import { getGoogleEmailMismatchConfirmationDetails } from '../../../../services/auth/google-link-error';
-import { isGoogleSignInCancellation } from '../../../../services/auth/google-sign-in-error';
-import { SessionService } from '../../../../services/auth/session.service';
-import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { WebAccountSecurityViewComponent } from '../../../web/user/web-account-security-view/web-account-security-view.component';
-import { AccountSecuritySection, accountSecuritySections, isAccountSecuritySection } from './account-security-sections';
+import { AccountSecuritySection, accountSecuritySections, resolveAccountSecuritySection } from './account-security-sections';
 import { MobileAccountSecurityViewComponent } from '../../../mobile/user/mobile-account-security-view/mobile-account-security-view.component';
-import { ModerationAppeal, ModerationIncident, ModerationPolicy, ModerationPolicyKind } from '../../../../interfaces/moderation';
-import { ModerationService } from '../../../../services/entities/moderation.service';
-import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
-import { getApiErrorCode } from '../../../../shared/api-error-message';
-import { renderSafeMarkdown } from '../../../../shared/markdown';
-import { CommunityRelationship } from '../../../../interfaces/community';
-import { CommunityService } from '../../../../services/entities/community.service';
+import { YosiftwareMarkComponent } from '../../common/yosiftware-mark/yosiftware-mark.component';
 
+/**
+ * Cuenta y seguridad: todo es de la cuenta de Yosiftware (ecosistema-kit/ACCESO.md, PRIVACIDAD.md y MODERACION.md) y
+ * aquí solo se abre o se enlaza, con el símbolo del ecosistema: el perfil (`yosiftware.editarPerfil()`), cambiar de
+ * cuenta, la privacidad (`<yosi-privacidad>`), errores y propuestas (`<yosi-reportar>`), las normas, la moderación,
+ * los bloqueos y «Tus datos». Las normas, la moderación y los bloqueos propios se retiraron con la adhesión.
+ */
 @Component({
     standalone: true,
     selector: 'app-account-security',
-    imports: [A11yModule, DatePipe, TitleCasePipe, FormsModule, ReactiveFormsModule, MatButtonModule, MatIconModule, SnackbarModule, MobileAccountSecurityViewComponent, WebAccountSecurityViewComponent],
+    imports: [A11yModule, MatButtonModule, MatIconModule, SnackbarModule, MobileAccountSecurityViewComponent, WebAccountSecurityViewComponent, YosiftwareMarkComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './account-security.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './account-security.component.sass'
 })
 export class AccountSecurityComponent implements OnInit {
-    methods: AccessMethod[] = [];
-    sessions: UserSession[] = [];
-    reauthenticationTicket: string | null = null;
-    emailReservationTicket: string | null = null;
-    phoneAttemptId: string | null = null;
-    phoneCodeRequested = false;
-    busy = false;
-    moderationIncidents: ModerationIncident[] = [];
-    moderationAppeals: ModerationAppeal[] = [];
-    isModerationLoading = true;
-    appealDrafts: Record<number, string> = {};
-    isSubmittingAppeal = false;
-    policies: ModerationPolicy[] = [];
-    isPoliciesLoading = true;
-    policiesLoadError = false;
-    acceptingPolicy: ModerationPolicyKind | null = null;
-    blockedProfiles: CommunityRelationship[] = [];
-    blockedProfilesNextAfterId: number | null = null;
-    areBlockedProfilesLoading = true;
-    isLoadingMoreBlockedProfiles = false;
-    blockedProfilesError = '';
-    blockedProfileActionId: number | null = null;
-    moderationSurfaceOpen = false;
-    blockedProfilesSurfaceOpen = false;
-    reauthenticationSurfaceOpen = false;
-    selectedPolicy: ModerationPolicy | null = null;
-    private pendingSensitiveAction: (() => void) | null = null;
-    private pendingGoogleLink: { firebaseIdToken: string; details: GoogleEmailMismatchConfirmationDetails } | null = null;
-
-    get googleEmailMismatchDetails(): GoogleEmailMismatchConfirmationDetails | null {
-        return this.pendingGoogleLink?.details ?? null;
-    }
-
-    readonly reauthForm = this.fb.group({ password: ['', Validators.required] });
-    readonly passwordForm = this.fb.group({
-        password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(20), Validators.pattern('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ_])[A-Za-z\\d@$!%*?&#ñÑ_]{8,20}$')]]
-    });
-    readonly emailForm = this.fb.group({ email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]] });
-    readonly phoneForm = this.fb.group({
-        phone: ['+34', [Validators.required, Validators.pattern('^\\+[1-9]\\d{7,14}$')]],
-        code: ['', Validators.pattern('^\\d{6}$')]
-    });
-
     constructor(
-        private fb: FormBuilder,
-        private api: AuthApiService,
-        public providerAuth: FirebaseProviderAuthService,
-        public session: SessionService,
+        public session: PlatformSessionService,
         private snackBar: SnackbarModule,
         private presentation: PresentationModeService,
-        private moderation: ModerationService,
-        private moderationAccess: ModerationAccessService,
-        private route: ActivatedRoute,
-        private community: CommunityService
+        private route: ActivatedRoute
     ) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
@@ -96,379 +39,46 @@ export class AccountSecurityComponent implements OnInit {
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     readonly sections = accountSecuritySections;
-    woodSection: AccountSecuritySection = 'access';
-    /** Formulario desplegado en «Contraseña y correo» (Wood). */
-    credentialEditor: 'password' | 'email' | null = null;
+    woodSection: AccountSecuritySection = 'account';
 
-    get accountEmail(): string { return this.session.userEmail; }
+    get accountAlias(): string { return this.session.cuenta?.alias ?? this.session.userName; }
+    get accountEmail(): string { return this.session.cuenta?.correo ?? ''; }
+    /** «Gestionar tu cuenta» en la web social. */
+    get socialAccountUrl(): string { return this.session.socialUrl('cuenta'); }
+    /** Las normas de uso y la política de privacidad de la plataforma (se ven sin entrar). */
+    get socialRulesUrl(): string { return this.session.socialUrl('normas'); }
+    /** Los avisos, sanciones y alegaciones de la cuenta. */
+    get socialModerationUrl(): string { return this.session.socialUrl('moderacion'); }
+    get socialBlocksUrl(): string { return this.session.socialUrl('bloqueos'); }
+    /** «Más… › Cuenta» de la web social: «Tus datos», con «Descargar» y «Borrar» (TUS_DATOS.md). */
+    get socialDataUrl(): string { return this.session.socialUrl('cuenta'); }
+
+    editProfile(): void { void this.session.editarPerfil().catch(error => this.notifyError(error, 'No se pudo abrir tu perfil')); }
+    switchAccount(): void { void this.session.cambiarCuenta().catch(error => this.notifyError(error, 'No se pudo cambiar de cuenta')); }
+    signOut(): void { void this.session.salir().catch(error => this.notifyError(error, 'No se pudo cerrar la sesión')); }
+    openPrivacy(): void { void this.session.privacidad().catch(error => this.notifyError(error, 'No se pudo abrir la privacidad')); }
+    /** Libros no tiene aún descarga propia: se pide como propuesta, con el formulario de la plataforma. */
+    requestLibrosData(): void { void this.session.reportar('propuesta').catch(error => this.notifyError(error, 'No se pudo abrir el formulario')); }
 
     get woodSectionInfo() { return this.sections.find(section => section.id === this.woodSection)!; }
 
     selectWoodSection(section: AccountSecuritySection): void {
         this.woodSection = section;
-        this.credentialEditor = null;
     }
 
-    sectionBadge(section: AccountSecuritySection): string {
-        if (section === 'policies') {
-            const pending = this.policies.filter(policy => !policy.Aceptada).length;
-            return pending ? String(pending) : '';
-        }
-        if (section === 'moderation') return this.moderationItemsCount ? String(this.moderationItemsCount) : '';
-        return '';
-    }
-
-    toggleCredentialEditor(editor: 'password' | 'email'): void {
-        this.credentialEditor = this.credentialEditor === editor ? null : editor;
-    }
-    get moderationItemsCount(): number { return this.moderationIncidents.length + this.moderationAppeals.length; }
-    get blockedProfilesCountLabel(): string { return `${this.blockedProfiles.length}${this.blockedProfilesNextAfterId ? '+' : ''}`; }
+    /** Sin contadores: lo pendiente de la cuenta lo avisa la campana de la plataforma. */
+    sectionBadge(_section: AccountSecuritySection): string { return ''; }
 
     ngOnInit(): void {
-        this.load();
-        this.loadPolicies();
-        this.loadModeration();
-        this.loadBlockedProfiles();
+        // Dentro del Perfil (Wood) el apartado llega en `tab`; en la ruta propia, en `section`.
         const params = this.route.snapshot.queryParamMap;
-        const section = params.get('section');
-        if (this.isMobilePresentation && section === 'moderation') this.openModerationSurface();
-        else if (this.isMobilePresentation && section === 'blocks') this.openBlockedProfilesSurface();
-        else if (this.isMobilePresentation && section === 'policies')
+        const section = resolveAccountSecuritySection(params.get('tab') ?? params.get('section'));
+        if (section) this.woodSection = section;
+        if (this.isMobilePresentation && section)
             setTimeout(() => document.getElementById(`account-${section}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-        // Dentro del Perfil (Wood) el apartado llega en `tab`.
-        const tab = params.get('tab') ?? section;
-        if (isAccountSecuritySection(tab)) this.woodSection = tab;
     }
 
-    load(): void {
-        forkJoin({ methods: this.api.getAccessMethods(), sessions: this.api.getSessions() }).subscribe({
-            next: result => { this.methods = result.methods.Metodos; this.sessions = result.sessions.Sesiones; },
-            error: error => this.notifyError(error, 'No se pudo cargar la seguridad de la cuenta')
-        });
+    private notifyError(error: unknown, fallback: string): void {
+        this.snackBar.openApiError(error, fallback);
     }
-
-    hasMethod(method: AccessMethodName): boolean { return this.methods.some(item => item.Metodo === method); }
-
-    reauthenticatePassword(): void {
-        if (this.reauthForm.invalid) return;
-        this.busy = true;
-        this.providerAuth.signInPassword(this.session.userEmail, this.reauthForm.controls.password.value ?? '')
-            .then(token => this.api.reauthenticate(token).subscribe({
-                next: result => this.completeReauthentication(result.Ticket),
-                error: error => this.notifyError(error, 'No se pudo confirmar tu identidad')
-            }))
-            .catch(error => this.notifyError(error, 'No se pudo confirmar tu identidad'));
-    }
-
-    async reauthenticateGoogle(): Promise<void> {
-        this.busy = true;
-        try {
-            const token = await this.providerAuth.signInGoogle('popup');
-            if (!token) { this.busy = false; return; }
-            this.api.reauthenticate(token).subscribe({
-                next: result => this.completeReauthentication(result.Ticket),
-                error: error => this.notifyError(error, 'No se pudo confirmar tu identidad')
-            });
-        } catch (error) { this.finishCancelledGoogleActionOrNotify(error, 'No se pudo confirmar tu identidad'); }
-    }
-
-    async linkGoogle(): Promise<void> {
-        if (!this.requireReauthentication(() => void this.linkGoogle())) return;
-        this.cancelGoogleEmailMismatchConfirmation();
-        this.busy = true;
-        try {
-            const token = await this.providerAuth.signInGoogle('popup');
-            if (!token) { this.busy = false; return; }
-            this.api.linkGoogle(this.reauthenticationTicket!, token).subscribe({
-                next: () => this.afterMutation('Google se ha vinculado a tu cuenta'),
-                error: error => {
-                    const details = getGoogleEmailMismatchConfirmationDetails(error);
-                    if (details) {
-                        this.pendingGoogleLink = { firebaseIdToken: token, details };
-                        this.busy = false;
-                        return;
-                    }
-                    this.notifyError(error, 'No se pudo vincular Google');
-                }
-            });
-        } catch (error) { this.finishCancelledGoogleActionOrNotify(error, 'No se pudo vincular Google'); }
-    }
-
-    confirmGoogleEmailMismatch(): void {
-        const pending = this.pendingGoogleLink;
-        if (!pending || !this.reauthenticationTicket || this.busy) return;
-        this.pendingGoogleLink = null;
-        this.busy = true;
-        this.api.linkGoogle(this.reauthenticationTicket, pending.firebaseIdToken, true).subscribe({
-            next: () => this.afterMutation('Google se ha vinculado a tu cuenta'),
-            error: error => this.notifyError(error, 'No se pudo vincular Google')
-        });
-    }
-
-    cancelGoogleEmailMismatchConfirmation(): void {
-        this.pendingGoogleLink = null;
-    }
-
-    @HostListener('document:keydown.escape')
-    closeGoogleEmailMismatchWithEscape(): void {
-        if (this.busy) return;
-        if (this.googleEmailMismatchDetails) this.cancelGoogleEmailMismatchConfirmation();
-        else if (this.reauthenticationSurfaceOpen) this.cancelReauthentication();
-        else if (this.selectedPolicy) this.closePolicySurface();
-        else if (this.blockedProfilesSurfaceOpen) this.closeBlockedProfilesSurface();
-        else if (this.moderationSurfaceOpen) this.closeModerationSurface();
-    }
-
-    unlink(method: AccessMethodName): void {
-        if (!this.requireReauthentication(() => this.unlink(method)) || !confirm(`¿Desvincular el acceso mediante ${this.methodLabel(method)}?`)) return;
-        this.busy = true;
-        this.api.unlink(method, this.reauthenticationTicket!).subscribe({ next: () => this.afterMutation('Método desvinculado'), error: error => this.notifyError(error, 'No se pudo desvincular el método') });
-    }
-
-    changePassword(): void {
-        if (this.passwordForm.invalid || !this.requireReauthentication(() => this.changePassword())) return;
-        this.busy = true;
-        this.providerAuth.changePassword(this.passwordForm.controls.password.value ?? '')
-            .then(() => { this.passwordForm.reset(); this.credentialEditor = null; this.afterMutation('Contraseña actualizada'); })
-            .catch(error => this.notifyError(error, 'No se pudo cambiar la contraseña'));
-    }
-
-    changeEmail(): void {
-        if (this.emailForm.invalid || !this.requireReauthentication(() => this.changeEmail())) return;
-        const email = this.emailForm.controls.email.value ?? '';
-        this.busy = true;
-        this.api.reserveEmail(this.reauthenticationTicket!, email).subscribe({
-            next: reservation => {
-                this.emailReservationTicket = reservation.ReservaTicket;
-                this.providerAuth.requestEmailChange(email)
-                    .then(() => { this.busy = false; this.snackBar.openSnackBar('Revisa el nuevo correo y, después, confirma aquí el cambio', 'successBar', 7000); })
-                    .catch(error => this.notifyError(error, 'No se pudo enviar la verificación del nuevo correo'));
-            },
-            error: error => this.notifyError(error, 'No se pudo reservar el nuevo correo')
-        });
-    }
-
-    confirmEmailChange(): void {
-        if (!this.emailReservationTicket) return;
-        this.busy = true;
-        this.providerAuth.freshIdToken().then(token => this.api.confirmEmail(this.emailReservationTicket!, token).subscribe({
-            next: () => { this.emailReservationTicket = null; this.afterMutation('Correo actualizado'); void this.session.refreshProfile().subscribe(); },
-            error: error => this.notifyError(error, 'El correo todavía no aparece verificado')
-        })).catch(error => this.notifyError(error, 'Debes volver a autenticarte'));
-    }
-
-    requestPhoneCode(): void {
-        if (this.phoneForm.controls.phone.invalid || (!this.hasMethod('phone') && !this.requireReauthentication(() => this.requestPhoneCode()))) return;
-        this.busy = true;
-        const phone = this.phoneForm.controls.phone.value ?? '';
-        this.api.phonePreflight(phone).subscribe({
-            next: result => {
-                this.phoneAttemptId = result.IntentoId;
-                this.providerAuth.startPhone(phone, 'security-recaptcha').then(() => { this.phoneCodeRequested = true; this.busy = false; }).catch(error => this.notifyError(error, 'No se pudo enviar el código'));
-            },
-            error: error => this.notifyError(error, 'No se pudo validar el teléfono')
-        });
-    }
-
-    confirmPhone(): void {
-        if (!this.phoneAttemptId || this.phoneForm.controls.code.invalid) return;
-        const phoneAttemptId = this.phoneAttemptId;
-        this.busy = true;
-        this.providerAuth.confirmPhone(this.phoneForm.controls.code.value ?? '').then(token => {
-            if (this.hasMethod('phone')) {
-                this.api.reauthenticate(token).subscribe({
-                    next: result => {
-                        this.phoneCodeRequested = false;
-                        this.phoneAttemptId = null;
-                        this.completeReauthentication(result.Ticket);
-                    },
-                    error: error => this.notifyError(error, 'No se pudo confirmar tu identidad')
-                });
-                return;
-            }
-            this.api.linkPhone(this.reauthenticationTicket!, token, phoneAttemptId).subscribe({
-                next: () => { this.phoneCodeRequested = false; this.phoneAttemptId = null; this.afterMutation('Teléfono vinculado'); },
-                error: error => this.notifyError(error, 'No se pudo vincular el teléfono')
-            });
-        }).catch(error => this.notifyError(error, 'El código no es válido'));
-    }
-
-    revoke(device: UserSession): void {
-        if (!confirm(`¿Cerrar la sesión de ${device.NombreDispositivo || 'este dispositivo'}?`)) return;
-        this.api.revokeSession(device.Id).subscribe({ next: () => device.EsActual ? this.session.logout() : this.load(), error: error => this.notifyError(error, 'No se pudo cerrar la sesión') });
-    }
-
-    logout(): void {
-        this.session.logout();
-    }
-
-    revokeAll(): void {
-        if (!confirm('¿Cerrar todas las sesiones de la cuenta?')) return;
-        this.api.revokeAllSessions().subscribe({ next: () => this.session.logout(), error: error => this.notifyError(error, 'No se pudieron cerrar las sesiones') });
-    }
-
-    methodLabel(method: AccessMethodName): string { return ({ password: 'contraseña', google: 'Google', phone: 'teléfono' })[method]; }
-
-    loadPolicies(): void {
-        this.isPoliciesLoading = true;
-        this.policiesLoadError = false;
-        forkJoin((['uso', 'creacion'] as ModerationPolicyKind[]).map(kind => this.moderation.getActivePolicy(kind).pipe(
-            map(policy => ({ policy, error: false })),
-            catchError(error => of({ policy: null, error: getApiErrorCode(error) !== 'active_policy_not_found' }))
-        ))).subscribe(results => {
-            this.policies = results.flatMap(result => result.policy ? [result.policy] : []);
-            this.policiesLoadError = results.some(result => result.error);
-            this.isPoliciesLoading = false;
-        });
-    }
-
-    acceptPolicy(kind: ModerationPolicyKind): void {
-        if (this.acceptingPolicy) return;
-        this.acceptingPolicy = kind;
-        this.moderation.acceptPolicy(kind).subscribe({
-            next: () => {
-                this.moderationAccess.refresh().subscribe();
-                if (this.selectedPolicy?.Tipo === kind) this.closePolicySurface();
-                this.loadPolicies();
-                this.acceptingPolicy = null;
-                this.snackBar.openSnackBar('Norma aceptada correctamente', 'successBar');
-            },
-            error: error => {
-                this.acceptingPolicy = null;
-                this.notifyError(error, 'No se ha podido registrar la aceptación');
-            }
-        });
-    }
-
-    renderPolicyMarkdown(markdown: string): string { return renderSafeMarkdown(markdown); }
-    policyLabel(kind: ModerationPolicyKind): string { return kind === 'uso' ? 'Normas de uso' : 'Normas de creación'; }
-
-    loadModeration(): void {
-        this.isModerationLoading = true;
-        this.moderation.listOwnIncidents({ limit: 50 }).subscribe({
-            next: incidents => {
-                this.moderationIncidents = incidents.items;
-                this.moderation.listOwnAppeals().subscribe({
-                    next: appeals => { this.moderationAppeals = appeals; this.isModerationLoading = false; },
-                    error: () => this.isModerationLoading = false
-                });
-            },
-            error: () => this.isModerationLoading = false
-        });
-    }
-
-    hasAppeal(sanctionId: number): boolean { return this.moderationAppeals.some(appeal => appeal.SancionId === sanctionId); }
-
-    submitAppeal(incident: ModerationIncident): void {
-        const sanctionId = incident.Sancion.Id;
-        const text = (this.appealDrafts[sanctionId] || '').trim();
-        if (!sanctionId || incident.Sancion.Estado === 'none' || !text || this.isSubmittingAppeal) return;
-        this.isSubmittingAppeal = true;
-        this.moderation.createAppeal(sanctionId, text).subscribe({
-            next: () => {
-                delete this.appealDrafts[sanctionId];
-                this.isSubmittingAppeal = false;
-                this.snackBar.openSnackBar('Alegación enviada', 'successBar');
-                this.loadModeration();
-            },
-            error: error => {
-                this.isSubmittingAppeal = false;
-                this.notifyError(error, 'No se ha podido enviar la alegación');
-            }
-        });
-    }
-
-    moderationStatusLabel(status: string): string {
-        const labels: Record<string, string> = { none: 'Sin sanción', banned: 'Cuenta suspendida', blocked: 'Bloqueada', sanctioned: 'Sancionada', revoked: 'Revocada', pendiente: 'Pendiente', en_revision: 'En revisión', aceptada: 'Aceptada', rechazada: 'Rechazada' };
-        return labels[status] ?? status;
-    }
-
-    loadBlockedProfiles(afterId?: number): void {
-        if (afterId) this.isLoadingMoreBlockedProfiles = true;
-        else this.areBlockedProfilesLoading = true;
-        this.blockedProfilesError = '';
-        this.community.relationships('bloqueos', afterId).subscribe({
-            next: page => {
-                this.blockedProfiles = afterId
-                    ? [...this.blockedProfiles, ...page.Relaciones.filter(incoming => !this.blockedProfiles.some(current => current.Usuario.Id === incoming.Usuario.Id))]
-                    : page.Relaciones;
-                this.blockedProfilesNextAfterId = page.SiguienteAfterId;
-                this.areBlockedProfilesLoading = false;
-                this.isLoadingMoreBlockedProfiles = false;
-            },
-            error: error => {
-                this.blockedProfilesError = getApiErrorMessage(error, 'No se pudieron cargar los perfiles bloqueados');
-                this.areBlockedProfilesLoading = false;
-                this.isLoadingMoreBlockedProfiles = false;
-            }
-        });
-    }
-
-    unblockProfile(relationship: CommunityRelationship): void {
-        const user = relationship.Usuario;
-        if (this.blockedProfileActionId !== null || !confirm(`¿Quieres desbloquear a ${user.Nombre}?`)) return;
-        this.blockedProfileActionId = user.Id;
-        this.community.unblockUser(user.Id).subscribe({
-            next: () => {
-                this.blockedProfiles = this.blockedProfiles.filter(item => item.Usuario.Id !== user.Id);
-                this.blockedProfileActionId = null;
-                this.snackBar.openSnackBar(`${user.Nombre} ya no está bloqueado`, 'successBar');
-            },
-            error: error => {
-                this.blockedProfileActionId = null;
-                this.notifyError(error, 'No se pudo desbloquear este perfil');
-            }
-        });
-    }
-
-    openModerationSurface(): void { this.moderationSurfaceOpen = true; }
-    closeModerationSurface(): void { this.moderationSurfaceOpen = false; }
-    openBlockedProfilesSurface(): void { this.blockedProfilesSurfaceOpen = true; }
-    closeBlockedProfilesSurface(): void { this.blockedProfilesSurfaceOpen = false; }
-    openPolicySurface(policy: ModerationPolicy): void { this.selectedPolicy = policy; }
-    closePolicySurface(): void { this.selectedPolicy = null; }
-
-    cancelReauthentication(): void {
-        if (this.busy) return;
-        this.reauthenticationSurfaceOpen = false;
-        this.pendingSensitiveAction = null;
-        this.reauthForm.reset();
-        this.phoneForm.reset({ phone: '+34', code: '' });
-        this.phoneCodeRequested = false;
-        this.phoneAttemptId = null;
-    }
-
-    private requireReauthentication(action?: () => void): boolean {
-        if (this.reauthenticationTicket) return true;
-        this.pendingSensitiveAction = action ?? null;
-        this.reauthenticationSurfaceOpen = true;
-        return false;
-    }
-
-    private completeReauthentication(ticket: string): void {
-        const pendingAction = this.pendingSensitiveAction;
-        this.reauthenticationTicket = ticket;
-        this.reauthenticationSurfaceOpen = false;
-        this.pendingSensitiveAction = null;
-        this.reauthForm.reset();
-        // Si se está vinculando un teléfono, la acción pendiente necesita el número escrito.
-        if (this.hasMethod('phone')) {
-            this.phoneForm.reset({ phone: '+34', code: '' });
-            this.phoneCodeRequested = false;
-            this.phoneAttemptId = null;
-        }
-        this.busy = false;
-        this.snackBar.openSnackBar('Identidad confirmada durante cinco minutos', 'successBar');
-        pendingAction?.();
-    }
-
-    private afterMutation(message: string): void { this.busy = false; this.snackBar.openSnackBar(message, 'successBar'); this.load(); }
-    private finishCancelledGoogleActionOrNotify(error: unknown, fallback: string): void {
-        if (isGoogleSignInCancellation(error)) {
-            this.busy = false;
-            return;
-        }
-        this.notifyError(error, fallback);
-    }
-    private notifyError(error: unknown, fallback: string): void { this.busy = false; this.snackBar.openApiError(error, fallback); }
 }

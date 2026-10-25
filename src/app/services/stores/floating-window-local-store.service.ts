@@ -1,8 +1,12 @@
 import { Injectable } from '@angular/core';
 import { PersistedFloatingWindowState } from '../../interfaces/floating-window';
+import { PlatformSessionService } from '../auth/platform-session.service';
 
+/** Posición y estado de las ventanas flotantes, guardados por entorno y cuenta de Yosiftware (CAMBIO_DE_CUENTA.md). */
 @Injectable({ providedIn: 'root' })
 export class FloatingWindowLocalStoreService {
+    constructor(private session: PlatformSessionService) { }
+
     load(actorId: number, windowId: string): PersistedFloatingWindowState | null {
         try {
             const raw = localStorage.getItem(this.key(actorId, windowId));
@@ -25,9 +29,10 @@ export class FloatingWindowLocalStoreService {
     }
 
     private key(actorId: number, windowId: string): string {
-        if (!Number.isInteger(actorId) || actorId < 1 || !windowId.trim())
-            throw new Error('La persistencia flotante requiere actor y ventana válidos.');
-        return `book-front:floating-window:v1:${actorId}:${windowId.trim()}`;
+        const base = this.session.accountStorageKey('book-front:floating-window:v2:');
+        if (!Number.isInteger(actorId) || actorId < 1 || actorId !== this.session.userId || !base || !windowId.trim())
+            throw new Error('La persistencia flotante requiere la cuenta activa y una ventana válida.');
+        return `${base}:${windowId.trim()}`;
     }
 
     private normalize(value: unknown): PersistedFloatingWindowState | null {

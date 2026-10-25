@@ -1,7 +1,6 @@
 import { fakeAsync, tick } from '@angular/core/testing';
 import { MobileDashboardChromeComponent } from './mobile-dashboard-chrome.component';
 import { MobileThemeService } from '../../../../services/ui/mobile-theme.service';
-import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 
 describe('MobileDashboardChromeComponent', () => {
@@ -53,7 +52,7 @@ describe('MobileDashboardChromeComponent', () => {
 function createComponent(): MobileDashboardChromeComponent {
     const theme = jasmine.createSpyObj<MobileThemeService>('theme', ['initialize', 'toggle']);
     const layout = { state: () => ({ isMedium: false }) } as AdaptiveLayoutService;
-    return new MobileDashboardChromeComponent(theme, layout, new SessionNotificationStoreService());
+    return new MobileDashboardChromeComponent(theme, layout);
 }
 
 function pointerEvent(pointerId: number, clientY: number, currentTarget: HTMLElement): PointerEvent {

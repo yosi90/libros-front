@@ -13,6 +13,10 @@
         @if (item.path === 'messages' && c.unreadCount > 0) {<b>{{c.unreadCount > 99 ? '99+' : c.unreadCount}}</b>}
       </a>
     }
+    <!-- Las personas y las relaciones son de la plataforma: se abren en la web social, con el símbolo del ecosistema. -->
+    @for (item of c.externalItems; track item.href) {
+      <a [href]="item.href" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>{{item.label}}</a>
+    }
   </nav>
   <div class="web-social__content"><router-outlet></router-outlet></div>
 </div>

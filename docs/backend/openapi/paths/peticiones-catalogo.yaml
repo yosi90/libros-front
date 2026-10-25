@@ -25,38 +25,6 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '409':
         $ref: '../../openapi.yaml#/components/responses/Conflict'
-  get:
-    operationId: getPeticionesCatalogo
-    tags:
-    - PeticionesCatalogo
-    summary: Lista peticiones de catalogo
-    description: Requiere admin o moderador. En estado pendiente se devuelve una fila por GrupoISBN, con Participantes; las peticiones propias mantienen sus filas individuales.
-    parameters:
-    - name: estado
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-        - pendiente
-        - aprobada
-        - rechazada
-        - devuelta
-        - todas
-        default: pendiente
-    responses:
-      '200':
-        description: Lista de peticiones
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '../../openapi.yaml#/components/schemas/CatalogRequest'
-      '401':
-        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-      '403':
-        $ref: '../../openapi.yaml#/components/responses/Forbidden'
 /peticiones/catalogo/mias:
   get:
     operationId: getPeticionesCatalogoMias
@@ -151,32 +119,3 @@
         $ref: '../../openapi.yaml#/components/responses/NotFound'
       '409':
         $ref: '../../openapi.yaml#/components/responses/Conflict'
-/peticiones/catalogo/{id_peticion}/resolver:
-  patch:
-    operationId: patchPeticionesCatalogoByIdPeticionResolver
-    tags:
-    - PeticionesCatalogo
-    summary: Resuelve peticion de catalogo
-    description: Requiere JWT de administrador o moderador. Obra.ObraId permite aprobar un alta contra una obra existente del tipo de la petición. El ISBN se toma de la petición; para una edición nueva la fecha procede de Obra.FechaPublicacion o Payload.FechaPublicacion y la portada inicial es nocover.png. VincularEdicionId autoriza un ISBN compartido solo al administrador. Resuelve todos los participantes pendientes del grupo atómicamente. Solo JSON; la portada se edita después mediante PATCH /catalogo/admin/ediciones/{id_edicion}.
-    parameters:
-    - $ref: '../../openapi.yaml#/components/parameters/IdPeticionCatalogo'
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/CatalogRequestResolve'
-    responses:
-      '200':
-        $ref: '../../openapi.yaml#/components/responses/CatalogRequestResolved'
-      '400':
-        $ref: '../../openapi.yaml#/components/responses/BadRequest'
-      '401':
-        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-      '403':
-        $ref: '../../openapi.yaml#/components/responses/Forbidden'
-      '404':
-        $ref: '../../openapi.yaml#/components/responses/NotFound'
-      '409':
-        $ref: '../../openapi.yaml#/components/responses/Conflict'
-      '415':
-        description: El resolver general no admite multipart ni portadas adjuntas.
-        content:
-          application/json:
-            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}

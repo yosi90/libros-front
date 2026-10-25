@@ -18,7 +18,6 @@ describe('MobileBookShellComponent', () => {
 
         controller = {
             book: { Id: 7, Nombre: 'Libro de prueba', Portada: '', Partes: [] },
-            isNativeReader: true,
             bookIndexOpen: false,
             bookActionsOpen: false,
             structureEditorKind: null,

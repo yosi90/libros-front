@@ -1,5 +1,7 @@
 # Contrato QA para Playwright del front
 
+> **Adhesión a Yosiftware (fase 3, rama `adhesion/api-identidad`).** QA ya no tiene WebSocket propio (`wss://qa-ws.yosiftware.es`), NATS, gateway, workers de tiempo real, Firebase Authentication, Firestore, RTDB ni FCM: la sesión es la cuenta de Yosiftware de la plataforma de QA y sus cuentas de prueba (`scripts/qa-plataforma-smoke.py`), y las contraseñas `QA_*_PASSWORD` y `QA_PHONE_TEST_*` ya no sirven para entrar. El perfil `realtime-recovery` se conserva como fixture SQL, sin entrega en directo. Lo que sigue documenta el contrato anterior donde no se ha actualizado; prevalecen `../api/ADHESION_YOSIFTWARE.md`, `README.md` y `ENTORNO_QA.md`.
+
 Esta guía define el flujo ejecutable para `yosi90/libros-front`. Leer primero `HANDOFF_CODEX_FRONT.md`.
 
 ## Destinos y barrera anti-producción
@@ -98,7 +100,6 @@ Usar `Type`, nunca `ResourceType`. Resolver todos los IDs y emails por alias, si
 - narrativa: `scene.rtf-2297`;
 - relaciones/comunidad: `relationship.friendship-a-b`, `relationship.request-b-moderator`, `feed.publication-primary`, `feed.comment-primary`;
 - chat: `chat.primary`, `chat.message-primary`;
-- clubes: `club.primary`, `club.closed`, `club.invitation-pending`, `club.join-request-pending`, `club.reading-current`, `club.poll`, `club.poll.option-a`, `club.poll.option-b`, `club.poll.vote`;
 - notificaciones/políticas: `notification.member-a`, `policy.use.active`, `policy.creation.active`;
 - moderación/auditoría: `review-report.pending`, `community-report.pending`, `sanction.member-b.history`, `appeal.member-b.rejected`, `audit.admin-fixture`, `audit.club-fixture`.
 
@@ -111,7 +112,6 @@ Telefono usa exclusivamente `QA_PHONE_TEST_NUMBER` y `QA_PHONE_TEST_CODE`, confi
 | Perfil | Aserción observable |
 |---|---|
 | `baseline` | Cuatro identidades verificadas y recorridos normales. |
-| `version-conflict` | El moderador actualiza `club.poll.vote` y repite con `MiVotoVersion` antigua: `409 club_poll_vote_conflict`. |
 | `expired-sessions` | `user.member-a` obtiene un token caducado: siguiente ruta protegida devuelve `401 access_token_expired`. |
 | `rate-limited` | Petición protegida de `user.member-a`: `429 too_many_requests`. |
 | `realtime-recovery` | Sobres duplicados y reordenados conservan `eventId`; el cliente deduplica, reconecta y reconcilia por REST. |

@@ -4,7 +4,7 @@ import { BehaviorSubject, Observable, catchError, finalize, map, of, shareReplay
 import { environment } from '../../../environment/environment';
 import { CommunityCapabilitiesResponse, CommunityCapabilityId } from '../../interfaces/community-capabilities';
 
-const capabilityIds: CommunityCapabilityId[] = ['sanciones', 'realtime', 'notificaciones', 'feed', 'chat', 'clubes'];
+const capabilityIds: CommunityCapabilityId[] = ['clubes'];
 
 @Injectable({ providedIn: 'root' })
 export class CommunityCapabilitiesService {
@@ -88,7 +88,8 @@ export class CommunityCapabilitiesService {
     }
 
     private publish(): void {
-        this.stateSubject.next(this.policyHold ? { ...this.rawState, Conservadora: true } : this.rawState);
+        const state = onlyLibrosCapabilities(this.rawState);
+        this.stateSubject.next(this.policyHold ? { ...state, Conservadora: true } : state);
     }
 
     private conservativeState(userId = -1): CommunityCapabilitiesResponse {
@@ -102,4 +103,10 @@ export class CommunityCapabilitiesService {
             Capacidades: capabilityIds.reduce((all, id) => ({ ...all, [id]: { Activa: false, VersionMinima: null } }), {} as Record<CommunityCapabilityId, { Activa: boolean; VersionMinima: string | null }>)
         };
     }
+}
+
+/** Solo lo que es de Libros: lo demás que la API anuncie (`feed`) ya no se usa en la web. */
+function onlyLibrosCapabilities(state: CommunityCapabilitiesResponse): CommunityCapabilitiesResponse {
+    const Capacidades = capabilityIds.reduce((all, id) => ({ ...all, [id]: state.Capacidades?.[id] ?? { Activa: false, VersionMinima: null } }), {} as CommunityCapabilitiesResponse['Capacidades']);
+    return { ...state, Capacidades };
 }

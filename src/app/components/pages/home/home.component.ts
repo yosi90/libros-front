@@ -12,11 +12,14 @@ import { HomeWebViewComponent } from './views/web/home-web-view.component';
     providers: [HomeFacade],
     template: `
         @if (presentation.state().activeMode === 'web') {
-            <app-home-web-view [readingQuote]="facade.readingQuote()"></app-home-web-view>
+            <app-home-web-view [readingQuote]="facade.readingQuote()" [notice]="facade.notice()" [canRetry]="facade.canRetry()"
+                [normsUrl]="facade.normsUrl" (entrar)="facade.entrar($event)" (retry)="facade.retry()"></app-home-web-view>
         } @else if (presentation.state().isMobilePresentationActive) {
-            <app-home-mobile-view [readingQuote]="facade.readingQuote()"></app-home-mobile-view>
+            <app-home-mobile-view [readingQuote]="facade.readingQuote()" [notice]="facade.notice()" [canRetry]="facade.canRetry()"
+                (entrar)="facade.entrar($event)" (retry)="facade.retry()"></app-home-mobile-view>
         } @else {
-            <app-home-wood-view [readingQuote]="facade.readingQuote()"></app-home-wood-view>
+            <app-home-wood-view [readingQuote]="facade.readingQuote()" [notice]="facade.notice()" [canRetry]="facade.canRetry()"
+                [normsUrl]="facade.normsUrl" (entrar)="facade.entrar($event)" (retry)="facade.retry()"></app-home-wood-view>
         }
     `,
     changeDetection: ChangeDetectionStrategy.Eager,

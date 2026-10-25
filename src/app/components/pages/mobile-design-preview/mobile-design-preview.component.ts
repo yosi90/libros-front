@@ -5,28 +5,21 @@ import { ActivatedRoute } from '@angular/router';
 import { MobileAppBarComponent } from '../../mobile/ui/mobile-app-bar/mobile-app-bar.component';
 import { MobileNavigationComponent, MobileNavigationItem } from '../../mobile/ui/mobile-navigation/mobile-navigation.component';
 import { MobileStateComponent } from '../../mobile/ui/mobile-state/mobile-state.component';
-import { NativeReaderIslandComponent } from '../../mobile/book/native-reader-island/native-reader-island.component';
-import { NativeReaderSessionState } from '../../../interfaces/native-reader';
 
-type MobilePreviewScreen = 'login' | 'library' | 'chapter' | 'community' | 'security' | 'onboarding' | 'reader';
+type MobilePreviewScreen = 'login' | 'library' | 'chapter' | 'community' | 'security' | 'onboarding';
 
-const SCREENS = new Set<MobilePreviewScreen>(['login', 'library', 'chapter', 'community', 'security', 'onboarding', 'reader']);
+const SCREENS = new Set<MobilePreviewScreen>(['login', 'library', 'chapter', 'community', 'security', 'onboarding']);
 
 @Component({
     selector: 'app-mobile-design-preview',
     standalone: true,
-    imports: [MatIconModule, MobileAppBarComponent, MobileNavigationComponent, MobileStateComponent, NativeReaderIslandComponent],
+    imports: [MatIconModule, MobileAppBarComponent, MobileNavigationComponent, MobileStateComponent],
     templateUrl: './mobile-design-preview.component.html',
     styleUrl: './mobile-design-preview.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MobileDesignPreviewComponent {
     readonly screen = signal<MobilePreviewScreen>('library');
-    readonly readerPreview: NativeReaderSessionState = {
-        mode: 'minimized', transition: 'idle', bookId: 7, anthologyId: null,
-        bookName: 'El atlas de las historias que todavía recordamos', coverUrl: '',
-        readerUrl: '/book/7/chapter/3', backgroundUrl: '/dashboard/books', saving: false
-    };
 
     constructor(route: ActivatedRoute) {
         route.paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
@@ -42,8 +35,7 @@ export class MobileDesignPreviewComponent {
             chapter: 'La puerta entreabierta',
             community: 'Comunidad',
             security: 'Cuenta y seguridad',
-            onboarding: 'Completa tu biblioteca',
-            reader: 'Tu biblioteca'
+            onboarding: 'Completa tu biblioteca'
         } as const)[this.screen()];
     }
 

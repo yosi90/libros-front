@@ -2,9 +2,9 @@ import { Injectable, Optional } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, debounceTime, skip, Subscription } from 'rxjs';
 import { ChatFloatingPreferences, ChatFloatingPreferencesPatch } from '../../interfaces/chat';
+import { chatConversationTitle } from '../../shared/chat-display';
 import { FloatingWindowPlacement, FloatingWindowRuntimeState } from '../../interfaces/floating-window';
-import { getApiErrorCode } from '../../shared/api-error-message';
-import { ChatService } from '../entities/chat.service';
+import { ChatFloatingSettingsService } from '../platform/chat-floating-settings.service';
 import { ChatStoreService } from './chat-store.service';
 import { FloatingWindowManagerService } from './floating-window-manager.service';
 import { AdaptiveLayoutService } from '../ui/adaptive-layout.service';
@@ -12,7 +12,6 @@ import { PresentationModeService } from '../ui/presentation-mode.service';
 
 @Injectable({ providedIn: 'root' })
 export class ChatFloatingCoordinatorService {
-    private readonly conflictRetryLimit = 2;
     private actorId: number | null = null;
     private preferences: ChatFloatingPreferences | null = null;
     private readonly preferencesSubject = new BehaviorSubject<ChatFloatingPreferences | null>(null);
@@ -21,7 +20,7 @@ export class ChatFloatingCoordinatorService {
     private syncing = false;
     private lastCompatible = false;
 
-    constructor(private windows: FloatingWindowManagerService, private chat: ChatService, private chats: ChatStoreService, private router: Router, private adaptiveLayout: AdaptiveLayoutService, @Optional() private presentation?: PresentationModeService) { }
+    constructor(private windows: FloatingWindowManagerService, private settings: ChatFloatingSettingsService, private chats: ChatStoreService, private router: Router, private adaptiveLayout: AdaptiveLayoutService, @Optional() private presentation?: PresentationModeService) { }
 
     initialize(actorId: number): void {
         this.clear();
@@ -29,9 +28,9 @@ export class ChatFloatingCoordinatorService {
         this.actorId = actorId;
         this.windows.initialize(actorId);
         this.lastCompatible = this.isCompatible();
-        this.chat.floatingPreferences().subscribe({
+        this.settings.load().subscribe({
             next: preferences => {
-                if (preferences.VersionShape !== 1 || this.actorId !== actorId) return;
+                if (this.actorId !== actorId) return;
                 this.preferences = preferences;
                 this.preferencesSubject.next(preferences);
                 if (this.isCompatible()) this.restore(preferences);
@@ -64,7 +63,7 @@ export class ChatFloatingCoordinatorService {
         if (openConversations.length >= 5 && !openConversations.some(item => item.id === this.conversationWindowId(conversationId)))
             this.windows.close(openConversations[0].id);
         const conversation = this.chats.snapshot.conversations.find(item => item.Id === conversationId);
-        this.windows.open(this.conversationWindowId(conversationId), conversation?.Titulo?.trim() || (conversation?.Tipo === 'sistema' ? 'Yosiftware' : 'Conversación'), this.conversationPlacement(openConversations.length));
+        this.windows.open(this.conversationWindowId(conversationId), conversation ? chatConversationTitle(conversation) : 'Conversación', this.conversationPlacement(openConversations.length));
     }
 
     closeConversation(conversationId: number): void { this.windows.close(this.conversationWindowId(conversationId)); }
@@ -132,12 +131,12 @@ export class ChatFloatingCoordinatorService {
         if (list && preferences.ModoListado === 'minimizado') this.windows.update(list.id, 'minimized', list.restoredPlacement);
     }
 
-    private sync(windows: FloatingWindowRuntimeState[], retriesRemaining = this.conflictRetryLimit): void {
+    private sync(windows: FloatingWindowRuntimeState[]): void {
         if (!this.actorId || !this.preferences || this.syncing || !this.isCompatible()) return;
+        const actorId = this.actorId;
         const list = windows.find(item => item.id === 'chat-list' && item.open);
         const conversations = windows.filter(item => item.open && item.id.startsWith('chat-conversation:')).slice(-5);
         const patch: ChatFloatingPreferencesPatch = {
-            Version: this.preferences.Version,
             AutoabrirListado: !!list,
             ModoListado: list?.mode === 'minimized' ? 'minimizado' : 'normal',
             PosicionListado: list ? { x: list.restoredPlacement.left, y: list.restoredPlacement.top } : null,
@@ -148,18 +147,10 @@ export class ChatFloatingCoordinatorService {
             })
         };
         this.syncing = true;
-        this.chat.saveFloatingPreferences(patch).subscribe({
-            next: preferences => { if (preferences.VersionShape === 1) this.adoptPreferences(preferences); this.syncing = false; },
-            error: error => {
-                this.syncing = false;
-                if (retriesRemaining > 0 && getApiErrorCode(error) === 'chat_preferences_conflict')
-                    this.chat.floatingPreferences().subscribe({
-                        next: preferences => {
-                            this.adoptPreferences(preferences);
-                            this.sync(windows, retriesRemaining - 1);
-                        }
-                    });
-            }
+        // El bloque de ajustes aplica el cambio sobre lo último guardado y reintenta solo si otro dispositivo guardó.
+        this.settings.save(patch).subscribe({
+            next: preferences => { if (this.actorId === actorId) this.adoptPreferences(preferences); this.syncing = false; },
+            error: () => { this.syncing = false; }
         });
     }
 

@@ -9,6 +9,12 @@
         @if (item.path === 'messages' && c.unreadCount > 0) { <em>{{ c.unreadCount > 99 ? '99+' : c.unreadCount }}</em> }
       </a>
     }
+    @for (item of c.externalItems; track item.href) {
+      <a [href]="item.href" target="_blank" rel="noopener">
+        <span class="m-social-shell__nav-icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+        <span><strong><app-yosiftware-mark></app-yosiftware-mark> {{ item.label }}</strong><small>{{ item.description }}</small></span>
+      </a>
+    }
   </nav>
 
   <main class="m-social-shell__content"><router-outlet></router-outlet></main>

@@ -1,22 +1,15 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { ClubAccessCenterComponent } from '../../../shared/user-pages/community/club-access-center/club-access-center.component';
 import type { CommunityComponent } from '../../../shared/user-pages/community/community.component';
 
-const audienceLabels: Record<string, string> = {
-    publico: 'Público',
-    seguidores: 'Seguidores',
-    amigos: 'Amigos',
-    club: 'Club'
-};
-
+// Las solicitudes pendientes son de la plataforma: `EstadoMembresia` ya no vale `solicitud_pendiente` (fase 4).
 const membershipLabels: Record<string, string> = {
     disponible: 'puedes unirte',
-    miembro: 'ya eres miembro',
-    solicitud_pendiente: 'solicitud pendiente'
+    miembro: 'ya eres miembro'
 };
 
 export const clubRoleLabels: Record<string, string> = {
@@ -26,8 +19,8 @@ export const clubRoleLabels: Record<string, string> = {
 };
 
 /**
- * Vista Web de Comunidad (Personas, Actividad y Clubes). Consume el mismo
- * controlador que Mobile; la publicación nueva se escribe en un diálogo.
+ * Vista Web de los clubes de Comunidad. Consume el mismo controlador que Mobile. Las personas y el muro general se
+ * retiraron con la adhesión (son de la web social y de las novedades de la plataforma).
  */
 @Component({
     selector: 'app-web-community-view',
@@ -45,21 +38,11 @@ export class WebCommunityViewComponent {
         return (name ?? '').trim().charAt(0).toUpperCase() || '?';
     }
 
-    audienceLabel(audience: string): string {
-        return audienceLabels[audience] ?? audience;
-    }
-
     membershipLabel(state: string): string {
         return membershipLabels[state] ?? state;
     }
 
     roleLabel(role: string): string {
         return clubRoleLabels[role] ?? role;
-    }
-
-    @HostListener('document:keydown.escape')
-    closeComposerOnEscape(): void {
-        if (this.c.composerOpen && !this.c.isPublishing)
-            this.c.closeComposer();
     }
 }

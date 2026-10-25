@@ -1,0 +1,46 @@
+/*
+ * Aspecto de Memoria bibliográfica para las ventanas de la plataforma Yosiftware (entrar, crear la cuenta, perfil,
+ * reportar…), que son otra página y no reciben las variables de la web (ecosistema-kit/ESTILOS.md, «La hoja de la web»).
+ * El SDK la carga desde `data-estilos` y la manda a sus ventanas. Solo cambia colores, letra y radios: la marca de
+ * Yosiftware, las normas y los avisos se ven como siempre.
+ *
+ * Las variables se limitan a las ventanas (`raiz` con `tarjeta` dentro): `<yosi-acceso>` y su panel, que están en la
+ * página, toman las de cada presentación (Web, Wood o Mobile) desde `styles.sass`.
+ * Paleta: los tokens de la presentación Web (`assets/css/web/_tokens.sass`), en claro y en oscuro.
+ */
+[part~="raiz"]:has([part~="tarjeta"]) {
+    --yosi-color-principal: #0b6b5e;
+    --yosi-color-principal-texto: #ffffff;
+    --yosi-color-principal-suave: #d9efe9;
+    --yosi-color-fondo: #fffdf8;
+    --yosi-color-fondo-suave: #f0ece2;
+    --yosi-color-fondo-pagina: #f6f3ec;
+    --yosi-color-texto: #1b211f;
+    --yosi-color-texto-suave: #5f6964;
+    --yosi-color-borde: #ddd7ca;
+    --yosi-color-borde-fuerte: #a9b0aa;
+    --yosi-color-acento: #9a5b2e;
+    --yosi-color-acento-suave: #f4e3d3;
+    --yosi-color-exito: #2b6d47;
+    --yosi-color-error: #b3261e;
+    --yosi-fuente: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --yosi-radio: 10px;
+    --yosi-radio-ventana: 14px;
+}
+
+[part~="raiz"][data-tema="oscuro"]:has([part~="tarjeta"]) {
+    --yosi-color-principal: #7fd6c4;
+    --yosi-color-principal-texto: #05302a;
+    --yosi-color-principal-suave: #1d3a34;
+    --yosi-color-fondo: #19201d;
+    --yosi-color-fondo-suave: #202925;
+    --yosi-color-fondo-pagina: #121715;
+    --yosi-color-texto: #e7ece9;
+    --yosi-color-texto-suave: #a9b5af;
+    --yosi-color-borde: #2f3a35;
+    --yosi-color-borde-fuerte: #54625b;
+    --yosi-color-acento: #e3a877;
+    --yosi-color-acento-suave: #3d2b1d;
+    --yosi-color-exito: #8fd4a8;
+    --yosi-color-error: #ffb4ab;
+}

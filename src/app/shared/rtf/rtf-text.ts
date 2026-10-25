@@ -1,3 +1,4 @@
+import { escapeHtml } from '../html';
 import { rtfInkTone } from './rtf-ink';
 
 const DEFAULT_FONT = 'Microsoft Sans Serif';
@@ -850,10 +851,6 @@ function rtfLineSpacingToCss(style: RtfParagraphStyle): string {
     if (style.lineSpacingMultiple)
         return String(Math.max(1, Math.abs(style.lineSpacing) / 240));
     return `${twipsToPoints(Math.abs(style.lineSpacing))}pt`;
-}
-
-function escapeHtml(value: string): string {
-    return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function escapeHtmlAttribute(value: string): string {

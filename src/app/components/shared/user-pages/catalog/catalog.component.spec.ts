@@ -30,11 +30,10 @@ describe('CatalogComponent', () => {
             'updateAnthologyEditions',
             'getUniverses'
         ]);
-        const catalogRequestSrv = jasmine.createSpyObj('CatalogRequestService', ['create', 'list', 'listMine', 'resolve']);
+        const catalogRequestSrv = jasmine.createSpyObj('CatalogRequestService', ['create', 'listMine']);
         catalogRequestSrv.listMine.and.returnValue(of([]));
         const universeStore = jasmine.createSpyObj('UniverseStoreService', ['setUniverses']);
         const sessionSrv = {
-            canModerateCatalog: false,
             username: 'Yosi',
             displayName: null,
             userName: 'Yosi'

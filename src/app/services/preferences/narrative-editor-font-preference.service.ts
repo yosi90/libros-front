@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SessionService } from '../auth/session.service';
+import { PlatformSessionService } from '../auth/platform-session.service';
 
 export const NARRATIVE_EDITOR_SYSTEM_FONTS = [
     'Arial',
@@ -41,7 +41,7 @@ export class NarrativeEditorFontPreferenceService {
     private readonly storagePrefix = 'narrative-editor-fonts:v1:';
     private readonly maximumRememberedBooks = 4;
 
-    constructor(private session: SessionService) { }
+    constructor(private session: PlatformSessionService) { }
 
     preferredFont(bookId: number | null | undefined): string {
         const storageKey = this.storageKey();
@@ -143,8 +143,8 @@ export class NarrativeEditorFontPreferenceService {
         return font.length > 0 && font.length <= 100 && /^[\p{L}\p{N} .,'-]+$/u.test(font) ? font : null;
     }
 
+    /** Por entorno y cuenta de Yosiftware (CAMBIO_DE_CUENTA.md, obligación 4). */
     private storageKey(): string | null {
-        const userId = Number(this.session.userId);
-        return Number.isInteger(userId) && userId > 0 ? `${this.storagePrefix}${userId}` : null;
+        return this.session.accountStorageKey(this.storagePrefix);
     }
 }

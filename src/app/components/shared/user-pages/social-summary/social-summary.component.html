@@ -4,7 +4,7 @@
   <app-web-social-summary-view [controller]="mobileController"></app-web-social-summary-view>
 } @else {
 <section class="social-summary" [attr.aria-busy]="loading">
-  @if (summary?.Parcial) {
+  @if (partial) {
     <p class="social-summary__partial" role="status"><mat-icon>info</mat-icon>Parte del resumen no está disponible ahora mismo. El resto continúa operativo.</p>
   }
   @if (loading) {
@@ -16,7 +16,11 @@
   @if (!loading && !error) {
     <div class="social-summary__grid">
       @for (card of cards; track trackCard($index, card)) {
-        <a [routerLink]="card.path" [class.has-pending]="card.accent"><mat-icon>{{card.icon}}</mat-icon><span><strong>{{card.value}}</strong><small>{{card.label}}</small></span><mat-icon>chevron_right</mat-icon></a>
+        @if (card.href) {
+          <a [href]="card.href" target="_blank" rel="noopener" [class.has-pending]="card.accent"><mat-icon>{{card.icon}}</mat-icon><span><strong>{{card.value}}</strong><small><app-yosiftware-mark></app-yosiftware-mark> {{card.label}}</small></span><mat-icon>open_in_new</mat-icon></a>
+        } @else {
+          <a [routerLink]="card.path" [class.has-pending]="card.accent"><mat-icon>{{card.icon}}</mat-icon><span><strong>{{card.value}}</strong><small>{{card.label}}</small></span><mat-icon>chevron_right</mat-icon></a>
+        }
       }
     </div>
   }

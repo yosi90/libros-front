@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { NotificationBellComponent } from '../../../shared/common/notification-bell/notification-bell.component';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 
 export interface MobileNavigationItem {
-    id: 'profile' | 'library' | 'catalog' | 'community' | 'notifications' | 'preferences' | 'more' | 'statistics';
+    id: 'profile' | 'library' | 'catalog' | 'community' | 'preferences' | 'more' | 'statistics';
     label: string;
     icon: string;
     route: string | null;
@@ -14,7 +13,7 @@ export interface MobileNavigationItem {
 @Component({
     selector: 'app-mobile-navigation',
     standalone: true,
-    imports: [MatIconModule, RouterLink, RouterLinkActive, NotificationBellComponent],
+    imports: [MatIconModule, RouterLink, RouterLinkActive],
     templateUrl: './mobile-navigation.component.html',
     styleUrl: './mobile-navigation.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -33,7 +32,6 @@ export class MobileNavigationComponent {
         { id: 'library', label: 'Biblioteca', icon: 'local_library', route: '/dashboard/books' },
         { id: 'catalog', label: 'Catálogo', icon: 'travel_explore', route: '/dashboard/catalog' },
         { id: 'community', label: 'Comunidad', icon: 'forum', route: '/dashboard/community' },
-        { id: 'notifications', label: 'Avisos', icon: 'notifications', route: null, railOnly: true },
         { id: 'statistics', label: 'Estadísticas', icon: 'bar_chart', route: '/dashboard/statistics', railOnly: true },
         { id: 'more', label: 'Más', icon: 'more_horiz', route: null },
         { id: 'preferences', label: 'Preferencias', icon: 'settings', route: '/dashboard/preferences', railOnly: true }

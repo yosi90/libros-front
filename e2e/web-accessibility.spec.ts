@@ -19,7 +19,6 @@ test.describe('accesibilidad de la presentación Web', () => {
             await installLocalVisualSession(page, { webPresentation: true });
             await page.addInitScript(choice => {
                 localStorage.setItem('libros:web-theme:last', choice);
-                localStorage.setItem('libros:web-theme:37', choice);
             }, theme);
             await page.route('**/notas/libro/73', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
             await page.setViewportSize({ width: 1440, height: 900 });
@@ -53,13 +52,10 @@ test.describe('accesibilidad de la presentación Web', () => {
         test(`zona pública sin infracciones críticas ni graves en ${theme === 'light' ? 'claro' : 'oscuro'}`, async ({ page }) => {
             test.setTimeout(120000);
             await page.addInitScript(choice => localStorage.setItem('libros:web-theme:last', choice), theme);
-            await page.route('**/runtime-config', route => route.fulfill({ status: 200, contentType: 'application/json',
-                body: JSON.stringify({ success: true, Environment: 'local', QaDatasetVersion: null, RealtimeWsUrl: '', Firebase: { Providers: { Password: true, Google: true, Phone: true } } }) }));
-            await page.route('**/auth/session/refresh', route => route.fulfill({ status: 401, contentType: 'application/json', body: '{"success":false}' }));
             await page.setViewportSize({ width: 1440, height: 900 });
 
             const blocking: string[] = [];
-            for (const path of ['/home', '/login', '/register', '/forgot-password', '/reset-password']) {
+            for (const path of ['/home']) {
                 await page.goto(path);
                 await expect(page.locator('app-web-public-shell')).toBeVisible({ timeout: 15000 });
                 const audit = await new AxeBuilder({ page }).include('app-web-public-shell').analyze();

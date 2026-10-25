@@ -62,30 +62,4 @@ export interface ApiUserProfile {
     VerificationPending?: boolean;
     EstadoCuenta?: Role | null;
     Role: Role;
-    ExcluirMedicionAudiencia?: boolean;
-}
-
-export interface AuthResponse {
-    success: boolean;
-    token?: string;
-    refresh?: string;
-    VerificationPending?: boolean;
-    user?: Partial<ApiUserProfile>;
-    message?: string;
-    EmailChangePending?: boolean;
-}
-
-export interface UserProfileUpdate {
-    name?: string;
-    email?: string;
-    image?: string;
-    username?: string | null;
-    displayName?: string | null;
-    bio?: string | null;
-    paisCodigo?: string | null;
-    paisNombre?: string | null;
-    perfilPublico?: boolean;
-    mostrarEstadisticas?: boolean;
-    mostrarBiblioteca?: boolean;
-    permitirMensajes?: boolean;
 }

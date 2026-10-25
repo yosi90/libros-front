@@ -51,24 +51,19 @@
         align-items: end
         gap: var(--mobile-space-3)
 
-        label
-            display: grid
-            gap: 5px
-            color: var(--mobile-color-ink-muted)
-            font-size: .7rem
-            font-weight: 800
-
-        select
-            min-height: 48px
-            padding: 0 var(--mobile-space-3)
-            border: 1px solid var(--mobile-color-outline-strong)
-            border-radius: var(--mobile-radius-sm)
-            color: var(--mobile-color-ink)
-            background: var(--mobile-color-surface)
+    &__error,
+    &__notice
+        display: flex
+        flex-wrap: wrap
+        align-items: center
+        gap: var(--mobile-space-2)
+        margin: 0
 
     &__error
-        margin: 0
         color: var(--mobile-color-error)
+
+    &__notice
+        color: var(--mobile-color-success)
 
     &__state
         min-height: 160px
@@ -150,11 +145,7 @@
             color: var(--mobile-color-error)
             background: var(--mobile-color-error-container)
 
-    &__more
-        justify-self: center
-
 @media (max-width: 599px)
-    .m-club-access__filters,
     .m-club-access__list
         grid-template-columns: minmax(0, 1fr)
 

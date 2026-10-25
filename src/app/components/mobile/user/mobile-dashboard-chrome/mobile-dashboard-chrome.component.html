@@ -1,14 +1,10 @@
 <app-mobile-app-bar eyebrow="Memoria Bibliográfica" [title]="title" [leadingIcon]="null">
     <div class="m-dashboard-actions">
-        @if (toastDelivery$ | async; as toastDelivery) {
-            @if (!layout.state().isMedium && (notificationsEnabled || toastDelivery.requested)) {
-                <app-notification-bell placement="navbar"></app-notification-bell>
-            }
-        }
-        <a class="m-dashboard-actions__button" [class.has-unread-messages]="unreadChatCount > 0" routerLink="/dashboard/profile"
-            [attr.aria-label]="unreadChatCount > 0 ? 'Abrir perfil, ' + unreadChatCount + ' mensajes sin leer' : 'Abrir perfil'" (click)="closeMore()">
-            <img [src]="imageUrl" alt="" (error)="imageError.emit($event)">
-        </a>
+        <!-- Las webs del ecosistema, la campana de la plataforma y la cuenta de Yosiftware (el avatar abre el panel de
+             cuentas). El Perfil de Libros está en «Más». -->
+        <app-yosiftware-webs class="m-dashboard-actions__platform"></app-yosiftware-webs>
+        <app-yosiftware-notifications class="m-dashboard-actions__platform"></app-yosiftware-notifications>
+        <app-yosiftware-account class="m-dashboard-actions__account"></app-yosiftware-account>
     </div>
 </app-mobile-app-bar>
 
@@ -26,10 +22,10 @@
                 (pointerdown)="startMoreSheetDrag($event)" (pointermove)="moveMoreSheetDrag($event)"
                 (pointerup)="finishMoreSheetDrag($event)" (pointercancel)="cancelMoreSheetDrag($event)"><span></span></div>
             <header class="m-more-sheet__profile">
-                <img [src]="imageUrl" alt="" (error)="imageError.emit($event)">
+                @if (imageUrl) { <img [src]="imageUrl" alt="" (error)="imageError.emit($event)"> } @else { <span class="m-more-sheet__initial" aria-hidden="true">{{ initial }}</span> }
                 <div>
                     <span>Tu espacio</span>
-                    <strong>{{ user.displayName || user.name }}</strong>
+                    <strong>{{ user.name }}</strong>
                 </div>
                 <button class="m-icon-button" type="button" data-native-back-action aria-label="Cerrar" (click)="closeMore()"><mat-icon>close</mat-icon></button>
             </header>

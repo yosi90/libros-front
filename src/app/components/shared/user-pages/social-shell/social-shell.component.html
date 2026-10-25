@@ -12,6 +12,9 @@
           <mat-icon>{{item.icon}}</mat-icon><span><strong>{{item.label}}</strong></span>
         </a>
       }
+      @for (item of externalItems; track item.href) {
+        <a [href]="item.href" target="_blank" rel="noopener" class="social-shell__external"><mat-icon>{{item.icon}}</mat-icon><span><strong><app-yosiftware-mark></app-yosiftware-mark> {{item.label}}</strong></span></a>
+      }
     </nav>
     <footer class="social-shell__counters" aria-label="Resumen de mensajes y amistades">
       <span><small>Amigos</small><strong>{{friendshipsCount}}</strong></span>

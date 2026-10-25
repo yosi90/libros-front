@@ -25,19 +25,6 @@ test.describe('Regresiones Mobile de campaña QA @visual', () => {
         await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     });
 
-    test('el panel medium respeta la app bar web y el lienzo Android', async ({ page }, testInfo) => {
-        await page.setViewportSize({width: 800, height: 900});
-        await page.goto('/dashboard/books');
-        await page.locator('.m-navigation').getByRole('button', {name: 'Abrir notificaciones', exact: true}).click();
-        const panel = page.locator('.m-notifications');
-        await expect(panel).toBeVisible();
-        await expect.poll(async () => (await panel.boundingBox())!.y).toBeGreaterThanOrEqual((await page.locator('.m-appbar').boundingBox())!.height);
-        await panel.evaluate(async element => { await Promise.all(element.getAnimations().map(animation => animation.finished)); });
-        await page.screenshot({path: testInfo.outputPath('medium-notifications.png')});
-        await page.evaluate(() => document.documentElement.setAttribute('data-presentation-active', 'native-mobile'));
-        await expect.poll(async () => (await panel.boundingBox())!.y).toBe(16);
-    });
-
     test('el fondo router del artefacto se decodifica completo', async ({ page }) => {
         await page.goto('/home');
         const size = await page.evaluate(async () => {

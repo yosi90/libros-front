@@ -4,17 +4,16 @@
 
 La API arranca con `python app.py`. `LIBROS_API_HOST` y `LIBROS_API_PORT` controlan la escucha; el valor local habitual es `http://localhost:5001` y QA usa `127.0.0.1:5101`.
 
-Para levantar también gateway y workers usar `scripts/start-realtime-stack.ps1`. En QA usar siempre los scripts de `qa/`.
+Para levantar también el lector del feed de la plataforma usar `scripts/start-realtime-stack.ps1`. En QA usar siempre los scripts de `qa/`. Sin `YOSIFTWARE_EMISOR` válido la API arranca, lo registra como crítico y responde `503 authentication_unavailable` en las rutas privadas.
 
 ## Salud y readiness
 
 `GET /verify` devuelve el entorno, la versión del dataset QA cuando aplica, el estado general y comprobaciones seguras de:
 
 - API y SQL Server;
-- NATS y gateway;
-- heartbeats de relay, projection worker, push worker y retention worker.
+- el latido del lector del feed de la plataforma (`plataformaFeedWorker`).
 
-También devuelve `ReleaseId` y `SourceDirty`. En QA, `ReleaseId` es el commit Git cargado al arrancar y `SourceDirty` indica si el checkout tenía cambios; la identidad anidada de `Componentes.realtimeGateway` debe coincidir. Una campaña contractual no cuenta con `SourceDirty: true` o releases distintas.
+El gateway, NATS y los workers del tiempo real propio se retiraron con la adhesión a Yosiftware. También devuelve `ReleaseId` y `SourceDirty`. En QA, `ReleaseId` es el commit Git cargado al arrancar y `SourceDirty` indica si el checkout tenía cambios. Una campaña contractual no cuenta con `SourceDirty: true`.
 
 Estados:
 
@@ -29,11 +28,9 @@ Un `503` significa que la API no está lista. Con `200` y degradación secundari
 `GET /runtime-config` expone solo:
 
 - identificador de entorno;
-- versión de dataset QA;
-- URL WebSocket pública;
-- configuración web pública Firebase/FCM, incluidos `Providers` y `PhoneTestingMode` QA sin número/código.
+- versión de dataset QA.
 
-No devuelve service accounts, tokens de reset, secretos JWT/ticket ni credenciales SQL.
+La configuración de Firebase y la URL del WebSocket propio se retiraron con la adhesión: la sesión, el tiempo real y el push son del SDK de la plataforma. No devuelve credenciales de servicio, tokens de reset ni credenciales SQL.
 
 ## CORS y entornos
 
@@ -41,6 +38,5 @@ No devuelve service accounts, tokens de reset, secretos JWT/ticket ni credencial
 
 Produccion exige declarar `LIBROS_DB_DATABASE` de forma explicita; no se infiere la base a partir de `DEBUG`. En el servidor oficial el valor vigente es `libros`, cuyo esquema debe actualizarse de forma coordinada antes de arrancar una version nueva del stack.
 
-`LIBROS_AUDIENCE_EXCLUDED_USER_IDS` es una lista privada de IDs SQL de usuario separados por comas (por ejemplo `1,35`). Calcula `ExcluirMedicionAudiencia` en el usuario propio para que el front excluya los dispositivos del propietario de Yosiftadísticas. Vacía o ausente, ninguna cuenta queda excluida; un valor no numérico impide arrancar. Se configura por entorno, porque los IDs de QA y desarrollo no coinciden con producción, y el backend nunca envía datos a Yosiftadísticas.
 
 Las rutas `/qa/*` no reciben CORS y no se registran fuera de QA.

@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { Book, DisplayGroup, DisplayItem } from '../../../../interfaces/book';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,8 +32,7 @@ import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.s
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileBookShellComponent } from '../../../mobile/book/mobile-book-shell/mobile-book-shell.component';
 import { WebBookShellViewComponent } from '../../../web/book/web-book-shell-view/web-book-shell-view.component';
-import { ExternalNavigationService } from '../../../../services/native/external-navigation.service';
-import { NativeReaderSessionService } from '../../../../services/navigation/native-reader-session.service';
+import { ExternalNavigationService } from '../../../../services/navigation/external-navigation.service';
 
 type StructureEditorKind = 'part' | 'interlude';
 
@@ -117,7 +116,7 @@ export class BookComponent implements OnInit, OnDestroy {
     constructor(
         private route: ActivatedRoute,
         private router: Router,
-        public sessionSrv: SessionService,
+        public sessionSrv: PlatformSessionService,
         private bookSrv: BookService,
         private bookStore: BookStoreService,
         private loader: LoaderEmmitterService,
@@ -129,7 +128,6 @@ export class BookComponent implements OnInit, OnDestroy {
         private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService,
         private externalNavigation: ExternalNavigationService,
-        private nativeReader: NativeReaderSessionService,
     ) {
 
     }
@@ -503,7 +501,6 @@ export class BookComponent implements OnInit, OnDestroy {
     private get closesIndexOnNavigation(): boolean {
         return this.isMobilePresentation || (this.isWebView && !this.isDesktopLayout);
     }
-    get isNativeReader(): boolean { return this.nativeReader.supported; }
     get mobileController(): this { return this; }
 
     toggleBookActions(): void {
@@ -512,7 +509,7 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     backToLibrary(): void {
-        void (this.nativeReader.supported ? this.nativeReader.minimize() : this.router.navigate(['/dashboard/books']));
+        void this.router.navigate(['/dashboard/books']);
     }
 
     getBookIndexToggleIcon(): string {

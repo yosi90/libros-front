@@ -1,170 +1,54 @@
-# Guia de integracion: comunidad, chat y realtime
+# Guia de integracion: comunidad y clubes
 
-Esta guia es el punto de partida del front para la vertical social. SQL es la fuente de verdad; WebSocket y Firebase solo aceleran la UI y nunca sustituyen una recarga REST.
+Punto de partida del front para la vertical social que **sigue siendo de Libros** después de la fase 3 de la adhesión a Yosiftware: las publicaciones y comentarios de los clubes, las denuncias de contenido y los clubes. La actividad automática pasó a las novedades de la plataforma y el muro general se retiró. SQL y REST son la fuente de verdad.
 
-Los detalles operativos viven en `OPERACION.md` y el inventario vigente en `CONTRATOS.md`.
+La cuenta, la sesión, el perfil, las relaciones, el chat, las notificaciones y su push, la moderación de cuentas y las preferencias de interfaz son de la plataforma: la web los usa con el SDK (`ecosistema-kit/ACCESO.md`, `SOCIAL.md`, `CHAT.md`, `NOTIFICACIONES.md`, `MODERACION.md`). Qué se retiró y qué usar en su lugar: [ADHESION_YOSIFTWARE.md](../api/ADHESION_YOSIFTWARE.md) y [RUTAS_RETIRADAS.md](../api/RUTAS_RETIRADAS.md).
 
-## Inicio de sesion y Firebase
+## Sesión y configuración
 
-1. Mantener el JWT de Libros como credencial de la API.
-2. Pedir `POST /auth/firebase-custom-token` con JWT.
-3. Iniciar sesion Firebase con el custom token. El UID siempre es `libros:<id_usuario>`.
-4. No usar Firebase para roles, sanciones ni autorizacion de la API.
+- Todas las rutas privadas llevan `Authorization: Bearer <token>` con el token de la cuenta de Yosiftware (`yosiftware.fetch()` lo pone y lo renueva). Firebase ya no interviene: ni custom token ni `signInWithCustomToken`.
+- `GET /runtime-config` solo devuelve `Environment` y `QaDatasetVersion`; validar que `Environment` coincide con el despliegue esperado (en campañas QA, exactamente `qa`).
+- `GET /usuarios/me` da el `Id` local, el alias (`Nombre`) y el rol de Libros.
+- Firestore y la RTDB se retiraron: sus reglas (`docs/firebase/`) niegan todo y la web no debe leerlas.
 
-### Configuracion web por entorno
+## Tiempo real
 
-El front debe consultar `GET /runtime-config` de la misma API que va a consumir. La respuesta publica entrega `Environment`, `QaDatasetVersion`, `RealtimeWsUrl` y `Firebase` con `ApiKey`, `AuthDomain`, `ProjectId`, `StorageBucket`, `MessagingSenderId`, `AppId`, `DatabaseURL`, `VapidKey`, flags `Providers` y `PhoneTestingMode` QA.
-
-- Validar que `Environment` coincide con el despliegue esperado antes de inicializar Firebase o abrir el WebSocket. En campañas QA debe ser exactamente `qa`.
-- `produccion`, `qa` y `local` usan configuraciones separadas. No hardcodear recursos de produccion en builds QA.
-- Desarrollo local puede usar el proyecto de emulador `demo-libros-api`; conectar los SDK a los puertos definidos por `firebase.json` cuando el runtime local lo indique.
-- La configuracion web y la VAPID publica no son credenciales administrativas. El service account, tokens de reset y secretos del servidor nunca se solicitan ni almacenan en el front.
-- Tras inicializar el SDK, pedir el custom token a la API e invocar `signInWithCustomToken`. Renovar esa sesion obteniendo un token nuevo tras restaurar la sesion propia de Libros, no almacenando el custom token como si fuera un JWT de larga duracion.
-
-Las reglas se despliegan desde este repositorio mediante `firebase.json`, que referencia `docs/firebase/firestore.rules` y `docs/firebase/database.rules.json`. Para comprobarlas localmente, el repositorio backend ofrece `npm run test:firebase-rules`; no es un comando del repositorio frontend ni un requisito para compilar su cliente.
-
-El despliegue de reglas se ejecuta desde la raíz del backend con `npx firebase deploy --only firestore:rules,database`; seleccionar el proyecto Firebase correspondiente a cada entorno antes de publicar. `firebase.json` configura emuladores para Firestore en `localhost:8080` y RTDB en `localhost:9000`; ninguno sustituye SQL/REST como fuente de verdad.
-
-Las reglas publicadas son `docs/firebase/firestore.rules` y `docs/firebase/database.rules.json`: Firestore permite solo lectura bajo `private_users/libros:<id_usuario>` y prohibe toda escritura cliente; RTDB reserva `chat_members` para el backend y solo permite presencia propia y typing de una conversacion con membresia proyectada.
-
-## Recuperacion de estado
-
-- REST: historial duradero de notificaciones, feed, clubes y chat.
-- Firestore: leer solo `private_users/libros:<id_usuario>` con listeners si aporta valor. El cliente no escribe Firestore.
-- WebSocket: señal de novedad. Deduplicar por `eventId`; ante reconexion o eventos desordenados, volver a consultar REST/Firestore.
-
-## Notificaciones
-
-- `GET /notificaciones`
-- `POST /notificaciones/<id>/leer`
-- `POST /notificaciones/leer-todas`
-
-Mostrar `Titulo`, `Cuerpo`, `Contexto`, `FechaCreacion` y estado de lectura. Una notificacion realtime no elimina la necesidad de refrescar el listado.
-
-Las resoluciones de denuncias comunitarias usan `community.report_source_resolved` y `community.report_reporter_resolved`. El contexto no expone conversación, contenido, medida ni moderador; los avisos de mensaje son informativos y los destinos inaccesibles se conservan como no disponibles. El inventario vigente está en `CONTRATOS.md` y los schemas exactos en OpenAPI.
+No hay WebSocket propio. Los eventos del club (`club.updated`, `club.reading_updated`, `club.milestone_*`, `club.event_*`) llegan por el **canal del espacio** de cada club (fase 4; [CONTRATOS.md](CONTRATOS.md)): `yosiftware.espacios.canal(EspacioId, …)` entrega `mensaje.datos = { tipo, ClubId, LecturaId?, HitoId?, EventoId? }`, que es un aviso para refrescar por REST. Con `desfase`, recargar de la API; sin canal, refrescar al entrar en el club, al volver al foco o tras una acción propia.
 
 ## Publicaciones de club
 
-El compositor general usa `POST /comunidad/publicaciones` con `Audiencia: "club"` y `ClubId`. No enviar `ClubId` con otra audiencia. También permanece `POST /clubes-lectura/<id>/publicaciones`, que fuerza esa misma audiencia. La retirada del descubrimiento no cierra el club para sus miembros; un `404 club_post_target_unavailable` no distingue club eliminado, inexistente o membresía no activa. Los bloqueos se aplican filtrando destinatarios y feed, no como error que exponga relaciones privadas.
+Se publica con `POST /clubes-lectura/<id>/publicaciones` (audiencia `club`; si se envía `ClubId`, el de la ruta). El compositor general del muro (`POST /comunidad/publicaciones`) se retiró. La retirada del descubrimiento no cierra el club para sus miembros; un `404 club_post_target_unavailable` no distingue club eliminado, inexistente o membresía no activa.
 
-## Actividad automática
+## Novedades (antes, actividad automática y muro general)
 
-`GET /comunidad/actividad/preferencias` devuelve `AudienciaPredeterminada: "seguidores"` si aún no existe una fila de preferencias para la cuenta. Ese valor también es el fallback de servidor para una actividad forzada y no sobrescribe preferencias ya guardadas. Con `PublicarActividad` omitido, el backend decide por los opt-ins persistidos; el frontend no decide la audiencia efectiva.
-
-## Preferencias visuales multidispositivo
-
-Consultar `GET /usuarios/me/preferencias-interfaz` al iniciar sesión, recuperar conectividad o volver al foco. Sin valor persistido devuelve `light`, `Version: 1` y fecha nula. Guardar con PATCH enviando la última `Version` conocida y `Tema: wood|light|dark`.
-
-`user.interface_preferences_updated` llega por `/ws/community` con la representación completa. Ignorar duplicados o eventos con versión igual/inferior; ante un salto o reconexión, GET vuelve a ser autoritativo. Un `409 interface_preferences_conflict` incluye el estado remoto en `details.Preferencias`: no reintentar a ciegas ni asociar preferencias locales de una cuenta a otra.
-
-Los tickets emitidos desde una sesion revocable quedan ligados a `sid` y `sessionVersion`. `realtime.session_revoked` provoca cierre `4403` solo en ese dispositivo; `realtime.access_revoked` cierra todos. Tras cualquiera de los dos, limpiar el access JWT afectado y reconciliar por REST en los demas dispositivos.
-
-`Preferencias.Reconocimientos` conserva por cuenta los booleanos `Estado`, `Puntuacion` y `Resena`, inicialmente `false`. Tras explicar una categoría, llamar a `POST /comunidad/actividad/reconocimientos/estado|puntuacion|resena`; es idempotente, no modifica opt-ins/audiencia y no publica actividad.
+La actividad lectora se publica como novedades de la plataforma (decisión 2 de la petición de migración): empezar o terminar una obra, puntuarla y reseñarla, con el catálogo de tipos de Libros. Las ve la web social (y, si la web quiere, su feed: `GET /v1/novedades` con el token de la plataforma, `ecosistema-kit/NOVEDADES.md`). `PublicarActividad: false` sigue evitando publicar un cambio concreto; lo demás lo deciden los ajustes de compartir de la persona en la web social (`https://social.yosiftware.es/?vista=novedades`), que sustituyen a `/comunidad/actividad/preferencias` (retirada). El muro general se retiró.
 
 ## Comunidad
 
-- Directorio: `GET /comunidad/usuarios?q=`.
-- Seguimiento: `POST|DELETE /comunidad/seguimientos` con `{ UsuarioId }`.
-- Amistad: `POST /comunidad/amistades/solicitudes`; resolver con `PATCH /comunidad/amistades/solicitudes/<id>` y `{ Estado: "aceptada"|"rechazada" }`.
-- Bloqueo: `POST|DELETE /comunidad/bloqueos` con `{ UsuarioId }`.
-- Feed: `GET|POST /comunidad/publicaciones`; comentarios y reacciones bajo `/comunidad/publicaciones/<id>`.
-- Denuncia: `POST /comunidad/denuncias` admite `perfil`, `publicacion`, `comentario`, `mensaje` y `club`. Para mensaje o club solo enviar `{ TipoEntidad, EntidadId, Motivo }`: el backend valida el acceso y construye la evidencia. Un `404` no distingue inexistencia de inaccesibilidad.
+- Publicaciones de los clubes: `GET|POST /clubes-lectura/<id>/publicaciones`; editar, borrar, comentarios y reacciones bajo `/comunidad/publicaciones/<id>` (solo publicaciones de club).
+- Denuncia: `POST /comunidad/denuncias` admite `publicacion`, `comentario` y `club`. Para un club solo enviar `{ TipoEntidad, EntidadId, Motivo }`: el backend valida el acceso y construye la evidencia. Un `404` no distingue inexistencia de inaccesibilidad. Los perfiles y los mensajes se denuncian en la plataforma (`yosiftware.denunciar()`).
+- El directorio de personas, los seguimientos, las amistades y los bloqueos son de la plataforma (`GET /v1/personas` y el perfil de la web social).
 
-Renderizar Markdown saneado; no permitir HTML arbitrario ni embeds fuera de la allowlist del front.
-
-Si una denuncia administrativa oculta un mensaje, recibir `message.updated` con `OcultoPorModeracion: true` y eliminarlo de historial, búsqueda, replies y caché; recuperar por REST. Si retira un club del descubrimiento, `club.updated` invalida los miembros activos, pero el directorio se refresca por REST y no debe inferir la medida ni sanción de cuenta.
+Renderizar Markdown saneado; no permitir HTML arbitrario ni embeds fuera de la allowlist del front. Si una denuncia retira un club del descubrimiento, el directorio se refresca por REST y no debe inferir la medida.
 
 ## Clubes de lectura
 
-Un usuario crea como maximo un club y puede tener tres membresias activas, incluido el club propio.
+Un usuario crea como máximo un club. Desde la fase 4 cada club es un **espacio** de la plataforma (`ecosistema-kit/ESPACIOS.md`; guía: [ADHESION_YOSIFTWARE.md](../api/ADHESION_YOSIFTWARE.md)): la pertenencia, las invitaciones, las solicitudes y sus avisos son de la plataforma, y todo lo demás del club sigue en Libros.
 
-- `abierto`: `POST /clubes-lectura/<id>/unirse`.
-- `cerrado`: invitacion o `POST /clubes-lectura/<id>/solicitudes` con `{ Mensaje? }`.
-- Bandeja propia: `GET /bandejas/clubes/invitaciones?estado=pendiente&limit=20&cursorId=`. REST recupera invitaciones aunque se haya perdido una notificacion; `Mensaje` siempre es `null` porque el modelo de invitaciones no lo almacena.
-- Bandeja de gestión: propietario o moderador activo usa `GET /clubes-lectura/<id>/solicitudes?estado=pendiente&limit=20&cursorId=`. Ambos listados ordenan por ID descendente y devuelven `SiguienteCursor`.
-- Un bloqueo bilateral cancela invitaciones y solicitudes pendientes que conecten a las dos personas, elimina sus notificaciones de club relacionadas y prohíbe crear o resolver nuevas interacciones entre ellas. No interpretar la ausencia de un registro como prueba de quién bloqueó a quién.
-- Descubrimiento/creacion: `GET|POST /clubes-lectura`.
-- Descubrimiento paginado: `GET /clubes-lectura?q=&tipoObjetivo=libro&objetivoId=1&limit=20&cursorFecha=&cursorId=`. Solo incluye clubes abiertos activos no bloqueados respecto al propietario, ordenados por actualización e ID descendentes. `tipoObjetivo` y `objetivoId` se envían juntos; cada resultado declara `EstadoMembresia` (`disponible`, `miembro` o `solicitud_pendiente`).
-- Detalle/edicion/borrado: `GET|PATCH|DELETE /clubes-lectura/<id>`.
-- Restauracion: `POST /clubes-lectura/<id>/restaurar`.
-- Miembros, roles, salida, invitaciones y lectura actual: subrutas documentadas en OpenAPI.
-- Propietario o moderador activo busca candidatos con `GET /clubes-lectura/<id>/invitaciones/candidatos?q=&limit=&cursorTipo=&cursorNombre=&cursorId=`. El cursor es compuesto y la respuesta ordena `amistad`, `seguidor`, `publico`, nombre e ID. Los perfiles privados solo aparecen por amistad o porque siguen al gestor. El `POST` de invitación aplica exactamente la misma elegibilidad al `UsuarioId` recibido.
+- Descubrimiento y creación: `GET|POST /clubes-lectura`; paginado con `q`, `tipoObjetivo` + `objetivoId`, `limit`, `cursorFecha` y `cursorId`. Cada club trae `EspacioId`, y en el descubrimiento `EstadoMembresia` (`disponible` o `miembro`).
+- `abierto`: `POST /v1/espacios/{EspacioId}/entrar` con el token de la plataforma (o `yosiftware.espacios`).
+- `cerrado`: `POST /v1/espacios/{EspacioId}/solicitudes` `{ mensaje? }` o una invitación de la plataforma.
+- Invitar: buscar en `GET /v1/personas?q=` y `POST /v1/espacios/{EspacioId}/invitaciones` `{ cuenta | correo, rol? }`; aceptar con `#yosi-invitacion=<código>` o `#yosi-invitaciones` (el SDK abre su ventana) o con su interfaz propia.
+- Salir: `DELETE /v1/espacios/{EspacioId}/miembros/yo`. Expulsar y cambiar el rol, en Libros (`DELETE` y `PATCH /clubes-lectura/<id>/miembros/<userId>`, solo la propiedad).
+- Detalle, edición y borrado: `GET|PATCH|DELETE /clubes-lectura/<id>`; restauración: `POST /clubes-lectura/<id>/restaurar` (crea un espacio nuevo con la propiedad como único miembro). El detalle trae `ConversacionId`, la conversación del espacio: `<yosi-chat-conversacion conversacion="…">` o la interfaz de chat de Libros sobre `/v1/chat/…`.
+- Lo que se hace en la plataforma llega a Libros por el feed (cada 5 minutos o antes, con NATS): después de entrar, hasta que la copia lo aplica, las rutas del club pueden responder `404 club_access_unavailable`; reintentar tras un momento.
 
-Las notificaciones `club.invitation`, `club.invitation_cancelled` y `club.join_request` son solo avisos; al recibirlas, al reconectar o tras resolver o cancelar una operación, refrescar la bandeja REST correspondiente. Las bandejas globales requieren `direccion=enviadas|recibidas` y el resumen aporta sus cuatro contadores pendientes. No se añaden eventos realtime granulares nuevos: `club.updated` conserva su semántica de invalidación y REST permanece como fuente de verdad.
+La expulsión de un club se avisa con una notificación de Libros (`club.expulsion`). Las invitaciones y las solicitudes (y su respuesta) las avisa la plataforma.
 
-El propietario edita y cambia roles; propietario o moderador gestiona invitaciones/solicitudes. Al salir o ser expulsado, retirar de inmediato la UI del chat del club.
+En encuestas, `Opciones` siempre devuelve `Id` y `Texto`. Antes del voto y mientras la encuesta siga abierta, `TotalVotos` es `null`; tras votar o cerrar se devuelven los recuentos.
 
-En encuestas, `Opciones` siempre devuelve `Id` y `Texto` para que se pueda votar. Antes del voto y mientras la encuesta siga abierta, `TotalVotos` es `null`; tras votar o cerrar se devuelven los recuentos.
+Los spoilers estructurados de clubes se limitan a debates y sus comentarios. `ClubDebate` y `ClubDebateComment` identifican al autor mediante `Autor: { Id, Nombre, Imagen }`; `Nombre` es el alias que copia el feed.
 
-Los spoilers estructurados de clubes se limitan a debates y sus comentarios. Los hitos son metadatos de coordinación y el chat —incluidos directos y mensajes de club— no admite campos de spoiler, ocultación por progreso ni `revelarSpoilers`; no enviar esos campos ni inferirlos desde un hito. Usar un debate persistente cuando una conversación de club necesite protección por progreso.
+## Errores
 
-`ClubDebate` y `ClubDebateComment` identifican al autor mediante `Autor: { Id, Nombre, Imagen }`; no existe `AutorId` duplicado. La membresía permite mostrar autores con perfil privado y autores históricos. El bloqueo bilateral oculta el debate completo o el comentario correspondiente, y un detalle bloqueado responde como no disponible.
-
-## Chat y WebSocket
-
-- Listado: `GET /chat/conversaciones`.
-- Directo: `POST /chat/conversaciones/directa` con `{ UsuarioId }`.
-- Club: `POST /chat/clubes/<id>`.
-- Historial/envio: `GET|POST /chat/conversaciones/<id>/mensajes`.
-- Lectura: `POST /chat/conversaciones/<id>/leer`.
-- Ticket: `POST /chat/ws-ticket`; comunidad: `POST /chat/comunidad-ws-ticket`.
-
-Conectar a la URL devuelta por el ticket dentro de 60 segundos. Abrir `/ws/chat` para eventos `chat.*` y `message.*`; abrir `/ws/community` para notificaciones, comunidad, clubes y moderación. Solo enviar frames `{ "type": "ping" }`; el servidor responde `pong`. Los frames recibidos usan `{ eventId, occurredAtUtc, type, payload }`.
-
-Desde el cierre de la carrera de readiness, `WebSocket.onopen` solo puede observarse cuando el socket ya está registrado para la entrega NATS: handshake y registro comparten la misma barrera que el fanout. El front puede comenzar la estimulación QA después de `open` sin espera fija ni frame `ready`. Esta garantía cubre exclusivamente el alta inicial; la pérdida posterior de conectividad conserva el contrato normal de reconciliación REST.
-
-Si el socket cierra por bloqueo o sancion, limpiar el estado live, no reintentar inmediatamente y recuperar por REST tras volver a tener acceso.
-
-Ejemplo de ticket y conexión:
-
-```json
-{
-  "success": true,
-  "Ticket": "<ticket-de-un-solo-uso>",
-  "FechaExpiracion": "2026-07-12T22:10:00+00:00",
-  "WebSocketUrl": "wss://realtime.example/ws/community"
-}
-```
-
-Conectar con `new WebSocket(`${WebSocketUrl}?ticket=${encodeURIComponent(Ticket)}`)`. El único frame cliente admitido es `{ "type": "ping" }`, cuya respuesta es `{ "type": "pong", "payload": {} }`. Un evento válido es `{ "eventId": "42", "occurredAtUtc": "2026-07-12T22:09:00+00:00", "type": "club.updated", "payload": { "ClubId": 7 } }`.
-
-| Cierre | Reintento | Acción cliente |
-| --- | --- | --- |
-| `4400` | No automático | Corregir el frame o tamaño enviado. |
-| `4401` | Sí, con ticket nuevo | Pedir un ticket nuevo por REST. |
-| `4403` | No hasta recuperar acceso | Limpiar estado live y recargar REST cuando vuelva a estar autorizado. |
-| `4429` | Sí, con backoff | Esperar con backoff y jitter antes de conectar de nuevo. |
-
-## Presencia y typing
-
-RTDB solo contiene estado efimero:
-
-- Presencia propia: `presence/libros:<id_usuario>`.
-- Typing propio: `typing/<id_conversacion>/libros:<id_usuario>`.
-- Typing ajeno: cada miembro activo puede leer el nodo concreto `typing/<id_conversacion>/libros:<id_otro_usuario>`. No puede leer ni listar el padre `typing/<id_conversacion>`, ni consultar nodos de personas o conversaciones ajenas.
-
-Registrar la limpieza antes de escribir el estado efimero y volver a registrarla cada vez que se reconecte RTDB:
-
-```ts
-const uid = `libros:${userId}`;
-const presence = ref(rtdb, `presence/${uid}`);
-await onDisconnect(presence).remove();
-await set(presence, { online: true, updatedAt: serverTimestamp() });
-
-const typing = ref(rtdb, `typing/${conversationId}/${uid}`);
-await onDisconnect(typing).remove();
-await set(typing, true);
-// Al enviar o abandonar el campo: remove(typing).
-```
-
-El valor permitido de typing es cualquier JSON efímero controlado por el cliente; la forma recomendada es `true`, como en el ejemplo. Para mostrar “X está escribiendo…”, suscribirse o leer el nodo individual de cada participante conocido, y considerar que solo `true` significa que está escribiendo.
-
-No usar `onDisconnect()` para mensajes, notificaciones ni confirmaciones de lectura: esos datos viven en SQL/REST. Las reglas permiten leer y escribir typing solo cuando el backend ha proyectado membresía activa de la conversación. Si se pierde la membresía, hay bloqueo bilateral o una sanción de cuenta/comunidad/chat, el worker retira `chat_members/<id_conversacion>/libros:<id_usuario>` y borra su `typing` asociado; las reglas deniegan desde entonces toda lectura y escritura. Si falla por permisos, limpiar el estado local y refrescar conversaciones por REST.
-
-## Errores y seguridad
-
-Todas las respuestas de error incluyen `error`; cuando exista, usar `code` para la logica de UI. Tratar `account_sanctioned`, requisitos de politica y limites de clubes como estados de producto, no como errores silenciosos.
-
-La referencia detallada de parametros y metodos esta en `docs/backend/openapi.yaml`; esta guia explica como componerlos en la aplicacion.
-
-`npm run lint:openapi` se ejecuta en la raíz de este repositorio backend y valida `docs/backend/openapi.yaml`. El frontend consume el contrato publicado; no necesita copiar el roadmap interno ni ejecutar ese script para integrar las rutas.
+Todas las respuestas de error incluyen `error`; cuando exista, usar `code` para la logica de UI ([ERRORES_Y_GATES.md](../api/ERRORES_Y_GATES.md)). `403 platform_restriction_active` (con `details.Alcance`), los `club_space_*` y el límite de crear un club son estados de producto, no errores silenciosos. La referencia de parametros y metodos esta en `docs/backend/openapi.yaml`.

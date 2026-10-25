@@ -1,180 +1,85 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { FormBuilder } from '@angular/forms';
-import { Observable, of, throwError } from 'rxjs';
 import { AccountSecurityComponent } from './account-security.component';
 
-describe('AccountSecurityComponent Google linking', () => {
-    function createComponent(linkGoogleResult: Observable<unknown>, mobile = false) {
-        const api = jasmine.createSpyObj('AuthApiService', ['linkGoogle', 'getAccessMethods', 'getSessions', 'reauthenticate']);
-        api.linkGoogle.and.returnValue(linkGoogleResult);
-        api.reauthenticate.and.returnValue(of({ Ticket: 'fresh-reauth-ticket' }));
-        api.getAccessMethods.and.returnValue(of({ success: true, Metodos: [] }));
-        api.getSessions.and.returnValue(of({ success: true, Sesiones: [] }));
-        const providerAuth = {
-            providers: { google: true, phone: false },
-            signInGoogle: jasmine.createSpy('signInGoogle').and.resolveTo('firebase-id-token')
+describe('AccountSecurityComponent', () => {
+    function createComponent(mobile = false, section: string | null = null) {
+        const session = {
+            cuenta: { id: 'cuenta-a', alias: 'lectora', correo: 'lectora@example.test' },
+            userName: 'Lectora',
+            socialUrl: jasmine.createSpy('socialUrl').and.callFake((vista?: string) => `https://qa-social.yosiftware.es/?vista=${vista}`),
+            editarPerfil: jasmine.createSpy('editarPerfil').and.resolveTo(true),
+            cambiarCuenta: jasmine.createSpy('cambiarCuenta').and.resolveTo(true),
+            salir: jasmine.createSpy('salir').and.resolveTo(),
+            privacidad: jasmine.createSpy('privacidad').and.resolveTo(),
+            reportar: jasmine.createSpy('reportar').and.resolveTo(true)
         };
-        const session = { userEmail: 'reader@outlook.com', logout: jasmine.createSpy('logout') };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const presentation = { snapshot: { isMobilePresentationActive: mobile } };
-        const community = jasmine.createSpyObj('CommunityService', ['relationships', 'unblockUser']);
-        community.relationships.and.returnValue(of({ Relaciones: [], SiguienteAfterId: null }));
         const component = new AccountSecurityComponent(
-            new FormBuilder(),
-            api,
-            providerAuth as never,
             session as never,
             snackBar,
             presentation as never,
-            {} as never,
-            {} as never,
-            { snapshot: { queryParamMap: { get: () => null } } } as never,
-            community
+            { snapshot: { queryParamMap: { get: (key: string) => key === 'section' ? section : null } } } as never
         );
-        component.reauthenticationTicket = 'reauth-ticket';
-        return { component, api, providerAuth, session, snackBar, community };
+        return { component, session, snackBar };
     }
 
-    it('keeps the original ID token in memory and retries only after explicit acceptance', async () => {
-        const mismatch = new HttpErrorResponse({
-            status: 409,
-            error: {
-                success: false,
-                error: 'Confirmation required',
-                code: 'google_email_mismatch_confirmation_required',
-                field: 'ConfirmEmailMismatch',
-                details: {
-                    EmailPrincipalEnmascarado: 'r***@o***.com',
-                    EmailGoogleEnmascarado: 'r***@g***.com'
-                }
-            }
-        });
-        const { component, api } = createComponent(throwError(() => mismatch));
-        api.linkGoogle.and.returnValues(throwError(() => mismatch), of({ success: true }));
+    it('enseña la cuenta de Yosiftware y enlaza su gestión en la web social', () => {
+        const { component, session } = createComponent();
 
-        await component.linkGoogle();
-
-        expect(component.googleEmailMismatchDetails?.EmailGoogleEnmascarado).toBe('r***@g***.com');
-        expect(api.linkGoogle).toHaveBeenCalledOnceWith('reauth-ticket', 'firebase-id-token');
-
-        component.confirmGoogleEmailMismatch();
-
-        expect(component.googleEmailMismatchDetails).toBeNull();
-        expect(api.linkGoogle).toHaveBeenCalledWith('reauth-ticket', 'firebase-id-token', true);
+        expect(component.woodSection).toBe('account');
+        expect(component.accountAlias).toBe('lectora');
+        expect(component.accountEmail).toBe('lectora@example.test');
+        expect(component.socialAccountUrl).toBe('https://qa-social.yosiftware.es/?vista=cuenta');
+        expect(session.socialUrl).toHaveBeenCalledWith('cuenta');
     });
 
-    it('discards the pending proof when confirmation is cancelled', async () => {
-        const mismatch = new HttpErrorResponse({
-            status: 409,
-            error: {
-                success: false,
-                error: 'Confirmation required',
-                code: 'google_email_mismatch_confirmation_required',
-                field: 'ConfirmEmailMismatch',
-                details: {
-                    EmailPrincipalEnmascarado: 'r***@o***.com',
-                    EmailGoogleEnmascarado: 'r***@g***.com'
-                }
-            }
-        });
-        const { component, api } = createComponent(throwError(() => mismatch));
+    it('cambia de cuenta, edita el perfil y sale con el SDK, sin formularios propios', () => {
+        const { component, session } = createComponent();
 
-        await component.linkGoogle();
-        component.cancelGoogleEmailMismatchConfirmation();
-        component.confirmGoogleEmailMismatch();
+        component.switchAccount();
+        component.editProfile();
+        component.signOut();
 
-        expect(component.googleEmailMismatchDetails).toBeNull();
-        expect(api.linkGoogle).toHaveBeenCalledTimes(1);
+        expect(session.cambiarCuenta).toHaveBeenCalled();
+        expect(session.editarPerfil).toHaveBeenCalled();
+        expect(session.salir).toHaveBeenCalled();
+        expect('reauthenticationTicket' in component).toBeFalse();
+        expect('passwordForm' in component).toBeFalse();
     });
 
-    it('silences an Android Google cancellation while linking', async () => {
-        const { component, api, providerAuth, snackBar } = createComponent(throwError(() => new Error('unused')));
-        providerAuth.signInGoogle.and.rejectWith({ message: '12501: ' });
+    it('avisa si la plataforma no deja cerrar la sesión', async () => {
+        const { component, session, snackBar } = createComponent();
+        const failure = new Error('No hemos podido cerrar la sesión.');
+        session.salir.and.rejectWith(failure);
 
-        await component.linkGoogle();
-
-        expect(component.busy).toBeFalse();
-        expect(api.linkGoogle).not.toHaveBeenCalled();
-        expect(snackBar.openSnackBar).not.toHaveBeenCalled();
-    });
-
-    it('closes the current session from account security', () => {
-        const { component, session } = createComponent(throwError(() => new Error('unused')));
-
-        component.logout();
-
-        expect(session.logout).toHaveBeenCalledTimes(1);
-    });
-
-    it('loads and unblocks profiles from account security', () => {
-        const { component, community, snackBar } = createComponent(throwError(() => new Error('unused')));
-        const relationship = { Usuario: { Id: 8, Nombre: 'Lector bloqueado' }, FechaCreacion: '2026-09-01T10:00:00Z' };
-        community.relationships.and.returnValue(of({ Relaciones: [relationship], SiguienteAfterId: null }));
-        community.unblockUser.and.returnValue(of(undefined));
-        spyOn(window, 'confirm').and.returnValue(true);
-
-        component.loadBlockedProfiles();
-        component.unblockProfile(relationship as never);
-
-        expect(community.relationships).toHaveBeenCalledWith('bloqueos', undefined);
-        expect(community.unblockUser).toHaveBeenCalledOnceWith(8);
-        expect(component.blockedProfiles).toEqual([]);
-        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Lector bloqueado ya no está bloqueado', 'successBar');
-    });
-
-    it('opens mobile reauthentication only when a sensitive action requests it', async () => {
-        const { component, providerAuth, api } = createComponent(of({ success: true }), true);
-        component.reauthenticationTicket = null;
-
-        await component.linkGoogle();
-
-        expect(component.reauthenticationSurfaceOpen).toBeTrue();
-        expect(providerAuth.signInGoogle).not.toHaveBeenCalled();
-        expect(api.linkGoogle).not.toHaveBeenCalled();
-
-        component.cancelReauthentication();
-        expect(component.reauthenticationSurfaceOpen).toBeFalse();
-    });
-
-    it('resumes the pending mobile action after a successful reauthentication', async () => {
-        const { component, providerAuth, api } = createComponent(of({ success: true }), true);
-        component.reauthenticationTicket = null;
-        await component.linkGoogle();
-
-        await component.reauthenticateGoogle();
+        component.signOut();
+        await Promise.resolve();
         await Promise.resolve();
 
-        expect(component.reauthenticationSurfaceOpen).toBeFalse();
-        expect(component.reauthenticationTicket as string | null).toBe('fresh-reauth-ticket');
-        expect(providerAuth.signInGoogle).toHaveBeenCalledTimes(2);
-        expect(api.linkGoogle).toHaveBeenCalledOnceWith('fresh-reauth-ticket', 'firebase-id-token');
+        expect(snackBar.openApiError).toHaveBeenCalledWith(failure, 'No se pudo cerrar la sesión');
     });
 
-    it('exposes mobile moderation and block lists as independent back-aware surfaces', () => {
-        const { component } = createComponent(of({ success: true }), true);
+    it('lleva las normas, la moderación, los bloqueos y «Tus datos» a la web social, y la privacidad al SDK', () => {
+        const { component, session } = createComponent();
 
-        component.openModerationSurface();
-        component.openBlockedProfilesSurface();
-        expect(component.moderationSurfaceOpen).toBeTrue();
-        expect(component.blockedProfilesSurfaceOpen).toBeTrue();
+        expect(component.socialRulesUrl).toBe('https://qa-social.yosiftware.es/?vista=normas');
+        expect(component.socialModerationUrl).toBe('https://qa-social.yosiftware.es/?vista=moderacion');
+        expect(component.socialBlocksUrl).toBe('https://qa-social.yosiftware.es/?vista=bloqueos');
+        expect(component.socialDataUrl).toBe('https://qa-social.yosiftware.es/?vista=cuenta');
 
-        component.closeModerationSurface();
-        component.closeBlockedProfilesSurface();
-        expect(component.moderationSurfaceOpen).toBeFalse();
-        expect(component.blockedProfilesSurfaceOpen).toBeFalse();
+        component.openPrivacy();
+        component.requestLibrosData();
+        expect(session.privacidad).toHaveBeenCalled();
+        expect(session.reportar).toHaveBeenCalledWith('propuesta');
+        expect('policies' in component).toBeFalse();
+        expect('blockedProfiles' in component).toBeFalse();
     });
 
-    it('opens one community policy at a time as a mobile reading surface', () => {
-        const { component } = createComponent(of({ success: true }), true);
-        const policy = {
-            Tipo: 'uso', Version: 3, Titulo: 'Normas de uso', Markdown: '# Respeto',
-            FechaPublicacion: '2026-09-07T08:00:00Z', Aceptada: true
-        } as const;
-
-        component.openPolicySurface(policy);
-        expect(component.selectedPolicy).toBe(policy);
-
-        component.closePolicySurface();
-        expect(component.selectedPolicy).toBeNull();
+    it('los enlaces antiguos a normas, moderación o bloqueos abren la privacidad', () => {
+        for (const section of ['policies', 'moderation', 'blocks']) {
+            const { component } = createComponent(false, section);
+            component.ngOnInit();
+            expect(component.woodSection).withContext(section).toBe('privacy');
+        }
     });
 });

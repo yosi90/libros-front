@@ -347,8 +347,7 @@
         color: #ffc26f
         background: rgba(242, 166, 74, .12)
 
-:host-context(html[data-presentation-active="mobile"]),
-:host-context(html[data-presentation-active="native-mobile"])
+:host-context(html[data-presentation-active="mobile"])
     .rtf-toolbar,
     .rtf-editor,
     .rtf-font-select,
@@ -485,8 +484,7 @@
         color: var(--mobile-color-primary) !important
         text-decoration-color: var(--mobile-color-primary) !important
 
-::ng-deep html[data-presentation-active="mobile"] .rtf-font-select-panel.mat-mdc-select-panel,
-::ng-deep html[data-presentation-active="native-mobile"] .rtf-font-select-panel.mat-mdc-select-panel
+::ng-deep html[data-presentation-active="mobile"] .rtf-font-select-panel.mat-mdc-select-panel
     width: min(280px, calc(100vw - 16px)) !important
     min-width: min(240px, calc(100vw - 16px)) !important
     max-width: calc(100vw - 16px) !important
@@ -509,8 +507,7 @@
         &.mdc-list-item--selected:not(.mdc-list-item--disabled)
             color: var(--mobile-color-primary)
 
-::ng-deep html[data-presentation-active="mobile"] .rtf-size-select-panel.mat-mdc-select-panel,
-::ng-deep html[data-presentation-active="native-mobile"] .rtf-size-select-panel.mat-mdc-select-panel
+::ng-deep html[data-presentation-active="mobile"] .rtf-size-select-panel.mat-mdc-select-panel
     width: 80px !important
     min-width: 72px !important
     max-width: 96px !important
@@ -536,8 +533,7 @@
         grid-template-rows: auto minmax(180px, auto)
         min-height: 180px
 
-    :host-context(html[data-presentation-active="mobile"]),
-    :host-context(html[data-presentation-active="native-mobile"])
+    :host-context(html[data-presentation-active="mobile"])
         .rtf-toolbar
             justify-self: end
             width: max-content
@@ -586,8 +582,7 @@
                 min-height: 42px
 
 @media (pointer: coarse)
-    :host-context(html[data-presentation-active="mobile"]),
-    :host-context(html[data-presentation-active="native-mobile"])
+    :host-context(html[data-presentation-active="mobile"])
         .rtf-select,
         .rtf-font-select,
         .rtf-select select,

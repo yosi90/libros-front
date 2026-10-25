@@ -30,11 +30,12 @@ import { ownedEditionIds } from '../../../../shared/edition-selection';
 import { Universe } from '../../../../interfaces/universe';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { isValidIsbn } from '../../../../shared/isbn';
 import { isIsoPublicationDate } from '../../../../shared/publication-date';
 import { CatalogService } from '../../../../services/entities/catalog.service';
+import { ReportService } from '../../../../services/entities/report.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import {
@@ -146,16 +147,17 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         collectionSrv: CollectionService,
         private catalogRequestSrv: CatalogRequestService,
         universeStore: UniverseStoreService,
-        sessionSrv: SessionService,
+        sessionSrv: PlatformSessionService,
         snackBar: SnackbarModule,
         private router: Router,
         private viewState: CatalogViewStateService,
         private host: ElementRef<HTMLElement>,
         private presentation: PresentationModeService,
         private fullscreenReturn: MobileFullscreenReturnService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        reportSrv?: ReportService
     ) {
-        super(catalogSrv, collectionSrv, universeStore, sessionSrv, snackBar);
+        super(catalogSrv, collectionSrv, universeStore, sessionSrv, snackBar, reportSrv);
         const state = this.viewState.snapshot;
         this.filterType = state.filterType;
         this.searchTerms = state.searchTerms;

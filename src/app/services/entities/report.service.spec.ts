@@ -25,7 +25,7 @@ describe('ReportService', () => {
         httpMock.verify();
     });
 
-    it('creates review reports and resolves moderation groups', () => {
+    it('creates review reports and lists the own ones', () => {
         service.create({
             TipoFuente: 'resena',
             EntidadTipo: 'libro',
@@ -45,16 +45,10 @@ describe('ReportService', () => {
         });
         req.flush({ success: true, Id: 1, GrupoId: 2, Estado: 'pendiente' });
 
-        service.list('pendiente').subscribe();
-        req = httpMock.expectOne(request => request.url === `${environment.apiUrl}moderacion/reportes`);
+        service.listMine('todos').subscribe();
+        req = httpMock.expectOne(request => request.url === `${environment.apiUrl}reportes/mios`);
         expect(req.request.method).toBe('GET');
-        expect(req.request.params.get('estado')).toBe('pendiente');
+        expect(req.request.params.get('estado')).toBe('todos');
         req.flush([]);
-
-        service.resolve(2, { Estado: 'aceptado', Comentario: 'Incumple las normas.' }).subscribe();
-        req = httpMock.expectOne(`${environment.apiUrl}moderacion/reportes/2/resolver`);
-        expect(req.request.method).toBe('PATCH');
-        expect(req.request.body).toEqual({ Estado: 'aceptado', Comentario: 'Incumple las normas.' });
-        req.flush({ success: true, Id: 2, Estado: 'aceptado' });
     });
 });

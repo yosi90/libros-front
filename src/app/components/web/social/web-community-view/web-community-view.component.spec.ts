@@ -16,19 +16,11 @@ describe('WebCommunityViewComponent', () => {
         expect(component.initial(null)).toBe('?');
     });
 
-    it('traduce la audiencia de la publicación', () => {
+    it('traduce la pertenencia y el rol de un club', () => {
         const component = create({});
 
-        expect(component.audienceLabel('amigos')).toBe('Amigos');
-        expect(component.audienceLabel('desconocida')).toBe('desconocida');
-    });
-
-    it('cierra el diálogo de publicación con Escape salvo mientras publica', () => {
-        const closeComposer = jasmine.createSpy('closeComposer');
-        create({ composerOpen: true, isPublishing: true, closeComposer } as Partial<CommunityComponent>).closeComposerOnEscape();
-        expect(closeComposer).not.toHaveBeenCalled();
-
-        create({ composerOpen: true, isPublishing: false, closeComposer } as Partial<CommunityComponent>).closeComposerOnEscape();
-        expect(closeComposer).toHaveBeenCalled();
+        expect(component.membershipLabel('miembro')).toBe('ya eres miembro');
+        expect(component.roleLabel('moderador')).toBe('Moderador');
+        expect(component.roleLabel('desconocido')).toBe('desconocido');
     });
 });

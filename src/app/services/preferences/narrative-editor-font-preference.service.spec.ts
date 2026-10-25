@@ -1,20 +1,22 @@
-import { SessionService } from '../auth/session.service';
+import { PlatformSessionService } from '../auth/platform-session.service';
 import { NarrativeEditorFontPreferenceService } from './narrative-editor-font-preference.service';
 
 describe('NarrativeEditorFontPreferenceService', () => {
-    let session: Pick<SessionService, 'userId'>;
+    let account: string;
+    let session: Pick<PlatformSessionService, 'accountStorageKey'>;
     let service: NarrativeEditorFontPreferenceService;
 
     beforeEach(() => {
-        localStorage.removeItem('narrative-editor-fonts:v1:7');
-        localStorage.removeItem('narrative-editor-fonts:v1:8');
-        session = { userId: 7 };
-        service = new NarrativeEditorFontPreferenceService(session as SessionService);
+        localStorage.removeItem('narrative-editor-fonts:v1:qa:cuenta-a');
+        localStorage.removeItem('narrative-editor-fonts:v1:qa:cuenta-b');
+        account = 'cuenta-a';
+        session = { accountStorageKey: (prefix: string) => `${prefix}qa:${account}` };
+        service = new NarrativeEditorFontPreferenceService(session as PlatformSessionService);
     });
 
     afterEach(() => {
-        localStorage.removeItem('narrative-editor-fonts:v1:7');
-        localStorage.removeItem('narrative-editor-fonts:v1:8');
+        localStorage.removeItem('narrative-editor-fonts:v1:qa:cuenta-a');
+        localStorage.removeItem('narrative-editor-fonts:v1:qa:cuenta-b');
     });
 
     it('inherits the account font in a new book and remembers it for that book', () => {
@@ -29,14 +31,14 @@ describe('NarrativeEditorFontPreferenceService', () => {
 
     it('keeps only the four most recently used books', () => {
         [1, 2, 3, 4, 5].forEach(bookId => service.rememberFont(bookId, `Font ${bookId}`));
-        const stored = JSON.parse(localStorage.getItem('narrative-editor-fonts:v1:7') ?? '{}');
+        const stored = JSON.parse(localStorage.getItem('narrative-editor-fonts:v1:qa:cuenta-a') ?? '{}');
 
         expect(stored.books.map((item: { bookId: number }) => item.bookId)).toEqual([5, 4, 3, 2]);
     });
 
-    it('isolates preferences by account', () => {
+    it('isolates preferences by environment and Yosiftware account', () => {
         service.rememberFont(10, 'Lato');
-        session.userId = 8;
+        account = 'cuenta-b';
 
         expect(service.preferredFont(10)).toBe('Microsoft Sans Serif');
     });

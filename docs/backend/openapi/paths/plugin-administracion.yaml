@@ -1,0 +1,359 @@
+/admin/v1/resumen:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminSummary
+    summary: Resumen de la administración (acción `resumen`)
+    description: Cuentas por rol y estado y las tres colas pendientes. Solo por la propia máquina y con la credencial del plugin.
+    security: [{adminPluginCredential: []}]
+    responses:
+      '200': {description: Resumen administrativo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AdminSummaryResponse'}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/PluginNotLocal'}
+      '503': {$ref: '../../openapi.yaml#/components/responses/PluginNotConfigured'}
+/admin/v1/estadisticas:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminRequestStatistics
+    summary: Estadísticas de las peticiones de catálogo (acción `estadisticas`)
+    security: [{adminPluginCredential: []}]
+    responses:
+      '200': {description: Totales por estado y desglose por tipo y acción, content: {application/json: {schema: {type: object, required: [Total, PorEstado, Desglose], properties: {Total: {type: integer}, PorEstado: {type: object, additionalProperties: {type: integer}}, Desglose: {type: array, items: {type: object, properties: {TipoEntidad: {type: string}, Accion: {type: string}, Estado: {type: string}, Total: {type: integer}}}}}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/PluginNotLocal'}
+/admin/v1/roles:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminRoles
+    summary: Roles de Libros (acción `roles`)
+    security: [{adminPluginCredential: []}]
+    responses:
+      '200': {description: Roles, content: {application/json: {schema: {type: object, required: [success, Roles], properties: {success: {type: boolean}, Roles: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/IdName'}}}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/PluginNotLocal'}
+/admin/v1/usuarios:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminUsers
+    summary: Usuarios locales para la gestión de roles (acción `usuarios`)
+    description: Busca por el alias (`Nombre`, copiado por el feed) o por la cuenta de Yosiftware exacta (`IdGlobal`). Orden descendente por FechaRegistro e Id; el cursor requiere cursorFecha y cursorId.
+    security: [{adminPluginCredential: []}]
+    parameters: [{name: q, in: query, schema: {type: string, maxLength: 100}}, {name: rolId, in: query, schema: {type: integer, minimum: 1}}, {name: estadoId, in: query, schema: {type: integer, minimum: 1}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: cursorFecha, in: query, schema: {type: string, format: date-time}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    x-functional-error-codes: {invalid_admin_users_query: '400: filtros o cursor inválidos.'}
+    responses:
+      '200': {description: Página de cuentas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AdminUserListResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/PluginNotLocal'}
+/admin/v1/usuarios/{user_id}/rol:
+  parameters: [{name: user_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminUserRole
+    summary: Cambia el rol de una cuenta en Libros (acción `rol`)
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [RolId, Motivo], properties: {RolId: {type: integer, minimum: 1}, Motivo: {type: string, minLength: 1, maxLength: 1000}}}}}}
+    x-functional-error-codes: {admin_role_self_change_forbidden: '409: la cuenta de administración no cambia su propio rol.', last_active_admin_required: '409: debe quedar otro administrador activo.', admin_role_required: '400: falta RolId válido.', admin_role_reason_required: '400: falta Motivo válido.', admin_user_not_found: '404: cuenta inexistente.', admin_role_not_found: '404: rol inexistente.'}
+    responses:
+      '200': {description: Rol actualizado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, UsuarioId: {type: integer}, Rol: {$ref: '../../openapi.yaml#/components/schemas/IdName'}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/auditoria:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminAudit
+    summary: Auditoría de las escrituras administrativas (acción `auditoria`)
+    description: Cada registro hecho desde el plugin guarda en `Despues.UsuarioAdministracion` quién lo hizo en la administración (`X-Yosi-Admin-Usuario`).
+    security: [{adminPluginCredential: []}]
+    parameters: [{name: modulo, in: query, schema: {type: string}}, {name: accion, in: query, schema: {type: string}}, {name: actorId, in: query, schema: {type: integer, minimum: 1}}, {name: usuarioObjetivoId, in: query, schema: {type: integer, minimum: 1}}, {name: desde, in: query, schema: {type: string, format: date-time}}, {name: hasta, in: query, schema: {type: string, format: date-time}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: cursorFecha, in: query, schema: {type: string, format: date-time}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    x-functional-error-codes: {invalid_admin_audit_query: '400: filtros o cursor inválidos.'}
+    responses:
+      '200': {description: Página de auditoría, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AdminAuditResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/PluginNotLocal'}
+/admin/v1/peticiones:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminCatalogRequests
+    summary: Cola de peticiones de catálogo (acción `peticiones`)
+    description: Con `estado=pendiente` (por defecto) devuelve una fila por grupo ISBN.
+    security: [{adminPluginCredential: []}]
+    parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, devuelta, aprobada, rechazada, todas], default: pendiente}}]
+    responses:
+      '200': {description: Peticiones, content: {application/json: {schema: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/CatalogRequest'}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/PluginNotLocal'}
+/admin/v1/peticiones/{id_peticion}/resolucion:
+  parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdPeticionCatalogo'}]
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminResolveCatalogRequest
+    summary: Resuelve una petición de catálogo (acción `resolver_peticion`)
+    description: Aprobar, rechazar o devolver. `Obra.ObraId` aprueba un alta contra una obra existente; sin `Obra`, el alta se crea con los datos de la petición. Avisa a quien la pidió (`peticion.resuelta`) tras confirmar.
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/CatalogRequestResolve'}
+    responses:
+      '200': {$ref: '../../openapi.yaml#/components/responses/CatalogRequestResolved'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/catalogo/{tipo}:
+  parameters: [{name: tipo, in: path, required: true, schema: {type: string, enum: [libros, antologias, autores, universos, sagas, idiomas, estilos, lugares-origen, estados-localizacion]}}]
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminCatalogList
+    summary: Lista un catálogo (acción `catalogo`)
+    description: Llama a la lista de siempre del tipo (`/catalogo/{tipo}` o `/estado_localizacion/catalogo`). `libros`, `antologias` y `autores` exigen `page` y `pageSize`, porque la administración no acepta respuestas de más de 1 MiB.
+    security: [{adminPluginCredential: []}]
+    parameters: [{name: q, in: query, schema: {type: string}}, {name: page, in: query, schema: {type: integer, minimum: 1}}, {name: pageSize, in: query, schema: {type: integer, minimum: 1, maximum: 100}}]
+    x-functional-error-codes: {invalid_catalog_entity_type: '400: tipo desconocido.', catalog_page_required: '400: falta la página en un catálogo grande.'}
+    responses:
+      '200': {description: Lista o página del catálogo, content: {application/json: {schema: {oneOf: [{type: array, items: {type: object}}, {$ref: '../../openapi.yaml#/components/schemas/CatalogItemsPage'}]}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminCatalogCreate
+    summary: Da de alta en un catálogo (acción `crear`)
+    description: 'Libros, antologías, autores, universos y sagas (`CatalogAdminWrite`; las obras admiten su portada en `Imagen`), idiomas (`Nombre`, `Codigo`), estilos y estados de localización (`Nombre`). `lugares-origen` no tiene alta propia: se crean al guardar un autor.'
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses:
+      '201': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/catalogo/fichas/{item_id}:
+  parameters: [{name: item_id, in: path, required: true, schema: {type: integer, minimum: 1}}, {$ref: '../../openapi.yaml#/components/parameters/PluginCatalogType'}]
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminCatalogRecord
+    summary: Ficha editable (acción `ficha`)
+    description: 'Libros y antologías (con autores, idiomas, estilos, saga u universo, ediciones y, en las antologías, sus secciones), autores, universos y sagas.'
+    security: [{adminPluginCredential: []}]
+    responses:
+      '200': {description: Ficha, content: {application/json: {schema: {type: object}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminCatalogUpdate
+    summary: Guarda una ficha (acción `editar`)
+    description: 'Libro, antología, autor, universo o saga (`CatalogAdminWrite`; las obras admiten `Imagen`, que pasa a la edición principal o a `EdicionId`), idioma, estilo, lugar de origen (corregir el nombre) o estado de localización.'
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses:
+      '200': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/catalogo/fichas/{item_id}/borrado:
+  parameters: [{name: item_id, in: path, required: true, schema: {type: integer, minimum: 1}}, {$ref: '../../openapi.yaml#/components/parameters/PluginCatalogType'}]
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminCatalogDelete
+    summary: Borra un idioma o un estilo sin usar (acción `borrar`)
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    x-functional-error-codes: {metadata_in_use: '409: está en uso (details.Referencias).', metadata_not_found: '404: no existe.'}
+    responses:
+      '200': {description: Borrado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/catalogo/fichas/{item_id}/ediciones:
+  parameters: [{name: item_id, in: path, required: true, schema: {type: integer, minimum: 1}}, {$ref: '../../openapi.yaml#/components/parameters/PluginCatalogType'}]
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminWorkEditions
+    summary: Ediciones de una obra (acción `ediciones`)
+    security: [{adminPluginCredential: []}]
+    responses:
+      '200': {description: Ediciones, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/WorkEditions'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminWorkEdition
+    summary: Añade o comparte una edición (acción `crear_edicion`)
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/EditionWrite'}
+    responses:
+      '201': {$ref: '../../openapi.yaml#/components/responses/EditionSaved'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/catalogo/ediciones/{id_edicion}:
+  parameters: [{name: id_edicion, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminEditionUpdate
+    summary: Edita una edición (acción `editar_edicion`)
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/EditionWrite'}
+    responses:
+      '200': {$ref: '../../openapi.yaml#/components/responses/EditionSaved'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/catalogo/antologias/{id_antologia}/secciones:
+  parameters: [{name: id_antologia, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminAnthologySection
+    summary: Añade una sección a una antología (acción `crear_seccion`)
+    description: 'Crea el libro de la sección con `Nombre`, `Autores` (ids), `PaginaInicio` y `PaginaFinal`, y opcionalmente los datos editoriales e `Imagen`. `Estado` (el estado de lectura de quien la crea) es opcional: cada persona pone el suyo desde su colección.'
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionCreate'}
+    responses:
+      '201': {description: Sección creada, content: {application/json: {schema: {type: object}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/catalogo/secciones/{id_libro}:
+  parameters: [{name: id_libro, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminAnthologySectionUpdate
+    summary: Edita una sección de antología (acción `editar_seccion`)
+    description: La antología se deduce del libro (un libro es sección de una antología como mucho). Admite los campos editables de la sección e `Imagen`.
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionUpdate'}
+    responses:
+      '200': {description: Sección actualizada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AnthologySectionMetadata'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/admin/v1/catalogo/lugares-origen/{place_id}/fusion:
+  parameters: [{name: place_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminOriginPlaceMerge
+    summary: Fusiona un lugar de origen con otro (acción `fusionar_lugar`)
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [DestinoId], properties: {DestinoId: {type: integer, minimum: 1}}}}}}
+    responses:
+      '200': {description: Fusionado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, DestinoId: {type: integer}, AutoresReasignados: {type: integer}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/admin/v1/catalogo/isbn/{isbn}:
+  parameters: [{name: isbn, in: path, required: true, schema: {type: string}}]
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminGoogleBooksIsbn
+    summary: Datos de Google Books de un ISBN (acción `isbn`)
+    security: [{adminPluginCredential: []}]
+    responses:
+      '200': {description: Metadatos (con la portada como `data:`), content: {application/json: {schema: {type: object}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/admin/v1/reportes:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminReviewReports
+    summary: Cola de denuncias de reseñas (acción `reportes`)
+    security: [{adminPluginCredential: []}]
+    parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptado, rechazado, todos], default: pendiente}}]
+    responses:
+      '200': {description: Grupos de reportes, content: {application/json: {schema: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ReportGroup'}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+/admin/v1/reportes/{id_grupo}/resolucion:
+  parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdGrupoReporte'}]
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminResolveReviewReport
+    summary: Resuelve una denuncia de reseña (acción `resolver_reporte`)
+    description: Aceptar oculta la reseña y retira su novedad; rechazar solo cierra el grupo. Avisa a quien la escribió y a quien la denunció. Al aceptar, `Incidente` registra un incidente en la plataforma a la cuenta de quien la escribió (`idExterno` `reporte-resena-{id}`).
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/ReportResolve'}
+    x-functional-error-codes: {invalid_report_incident: '400: incidente incompleto o con una denuncia rechazada.', report_group_already_resolved: '409: ya resuelto.'}
+    responses:
+      '200': {$ref: '../../openapi.yaml#/components/responses/ReportGroupResolved'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/denuncias:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminCommunityReports
+    summary: Cola de denuncias de clubes (acción `denuncias`)
+    description: Clubes, sus publicaciones y sus comentarios (los grupos antiguos de perfiles y mensajes, archivados, solo se cierran).
+    security: [{adminPluginCredential: []}]
+    parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, todos], default: pendiente}}]
+    responses:
+      '200': {description: Grupos de denuncias, content: {application/json: {schema: {type: object, required: [success, Grupos], properties: {success: {type: boolean}, Grupos: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/CommunityReportGroup'}}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+/admin/v1/denuncias/{id_grupo}/resolucion:
+  parameters: [{name: id_grupo, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminResolveCommunityReport
+    summary: Resuelve una denuncia de club (acción `resolver_denuncia`)
+    description: Aceptar oculta la publicación o el comentario, o retira el club del descubrimiento (`Medida`). Al aceptar, `Incidente` registra un incidente en la plataforma (`idExterno` `denuncia-comunidad-{id}`).
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}, Comentario: {type: [string, 'null'], maxLength: 1000}, Medida: {type: string, enum: [ninguna, club_retirado_descubrimiento, club_restaurado_descubrimiento]}, Incidente: {$ref: '../../openapi.yaml#/components/schemas/PluginIncident'}}}}}}
+    x-functional-error-codes: {invalid_content_report_resolution: '400: Estado debe ser aceptada o rechazada.', invalid_content_report_measure: '400: medida desconocida o incompatible.', invalid_content_report_incident: '400: incidente incompleto o con una denuncia rechazada.', community_report_group_already_resolved: '409: ya resuelto.'}
+    responses:
+      '200': {description: Grupo resuelto, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Id: {type: integer}, Estado: {type: string, enum: [aceptada, rechazada]}, IncidenteRegistrado: {type: boolean}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/v1/moderacion/casos:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminModerationCases
+    summary: Casos de moderación de la plataforma (acción `casos`)
+    description: '`GET /v1/servicio/moderacion/casos` con la credencial de servicio, para elegir el caso del incidente.'
+    security: [{adminPluginCredential: []}]
+    responses:
+      '200': {description: Casos, content: {application/json: {schema: {type: object, required: [Casos], properties: {Casos: {type: array, items: {type: object}}}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '503': {description: La plataforma no responde, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
+/admin/v1/copias:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminBackups
+    summary: Copias de seguridad guardadas en el servidor (acción `copias`)
+    security: [{adminPluginCredential: []}]
+    responses:
+      '200': {description: Estado y copias, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/PluginBackups'}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminBackup
+    summary: Genera una copia de seguridad completa (acción `copia`)
+    description: En segundo plano (la administración espera 10 segundos como mucho). Deja el ZIP (un SQL por tabla) en `.runtime/copias/` del servidor y actualiza los SQL canónicos del entorno. No disponible en QA.
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    x-functional-error-codes: {admin_backup_unavailable_in_qa: '409: no disponible en QA.', admin_backup_in_progress: '409: ya hay una copia en curso.'}
+    responses:
+      '202': {description: Copia en marcha, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Estado: {type: string, const: en_curso}, Carpeta: {type: string}}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}

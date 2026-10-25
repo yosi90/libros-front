@@ -1,5 +1,7 @@
 # QA en GitHub Actions
 
+> **Adhesión a Yosiftware (fase 3, rama `adhesion/api-identidad`).** QA ya no tiene WebSocket propio (`wss://qa-ws.yosiftware.es`), NATS, gateway, workers de tiempo real, Firebase Authentication, Firestore, RTDB ni FCM: la sesión es la cuenta de Yosiftware de la plataforma de QA y sus cuentas de prueba (`scripts/qa-plataforma-smoke.py`), y las contraseñas `QA_*_PASSWORD` y `QA_PHONE_TEST_*` ya no sirven para entrar. El perfil `realtime-recovery` se conserva como fixture SQL, sin entrega en directo. Lo que sigue documenta el contrato anterior donde no se ha actualizado; prevalecen `../api/ADHESION_YOSIFTWARE.md`, `README.md` y `ENTORNO_QA.md`.
+
 El workflow `.github/workflows/quality.yml` separa contrato, pruebas, Firebase y smokes desplegados.
 
 ## Trabajos actuales

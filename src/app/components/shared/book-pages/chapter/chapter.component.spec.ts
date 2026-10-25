@@ -9,6 +9,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { CharacterOrderRefreshService } from '../../../../services/stores/character-order-refresh.service';
 import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
+import { PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { ChapterComponent } from './chapter.component';
 
 describe('ChapterComponent', () => {
@@ -227,6 +228,55 @@ describe('ChapterComponent', () => {
             expect(chapterService.update).toHaveBeenCalled();
             expect(sceneService.createForChapter).toHaveBeenCalled();
             done();
+        });
+    });
+
+    describe('con un cambio de cuenta (CAMBIO_DE_CUENTA.md)', () => {
+        const scopeA = 'desarrollo:cuenta-a';
+        let pendingWork: PendingWorkService;
+
+        beforeEach(() => {
+            localStorage.clear();
+            pendingWork = TestBed.inject(PendingWorkService);
+        });
+        afterEach(() => localStorage.clear());
+
+        it('aparta para la cuenta que los escribió los cambios sin enviar y no los guarda con la nueva', () => {
+            (component as any).accountScope = scopeA;
+            component.book.Personajes = [{ Id: 10, Nombre: 'Ágata' } as any];
+            component.chapter.Id = 91;
+            component.name.setValue('Capítulo de A');
+            component.assignCharacterById(component.scenesControls.at(0), '10', false);
+
+            pendingWork.abandonAll();
+            const result = component.canDeactivate();
+            component.flushAutosave();
+            component.setChapter();
+
+            expect(result).toBeTrue();
+            expect(chapterService.update).not.toHaveBeenCalled();
+            expect(chapterService.createForBook).not.toHaveBeenCalled();
+            expect(sceneService.createForChapter).not.toHaveBeenCalled();
+            expect(pendingWork.take<any>('desarrollo:cuenta-b', 'capitulo:1:capitulo:91')).toBeNull();
+            expect(pendingWork.take<any>(scopeA, 'capitulo:1:capitulo:91')?.borrador.form.name).toBe('Capítulo de A');
+        });
+
+        it('devuelve los cambios apartados solo a la misma cuenta al volver a abrir el capítulo', () => {
+            pendingWork.stash(scopeA, 'capitulo:1:capitulo:nuevo', {
+                form: { name: 'Capítulo recuperado', order: '1', page: '3', endPage: '9', scenes: [] },
+                deletedSceneIds: []
+            });
+
+            pendingWork.setScope('desarrollo:cuenta-b');
+            (component as any).syncChapterFromBook();
+            expect(component.name.value).toBe('Capítulo 1');
+
+            pendingWork.setScope(scopeA);
+            (component as any).syncChapterFromBook();
+            expect(component.name.value).toBe('Capítulo recuperado');
+            expect(component.endPage.value).toBe('9');
+            expect(component.scenesControls.length).toBe(1);
+            expect(pendingWork.take(scopeA, 'capitulo:1:capitulo:nuevo')).toBeNull();
         });
     });
 });

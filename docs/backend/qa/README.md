@@ -1,6 +1,6 @@
 # Servidor QA
 
-`qa/` levanta en Windows un stack aislado sin Docker. La base, puertos, prefijo NATS, secretos, Firebase y rutas de reset son distintos de producción.
+`qa/` levanta en Windows un stack aislado sin Docker. La base, los puertos, los secretos, la plataforma (la de QA) y las rutas de reset son distintos de producción.
 
 La seleccion obligatoria de pruebas por tipo y riesgo de cambio esta en `PRUEBAS.md`.
 
@@ -10,16 +10,15 @@ La seleccion obligatoria de pruebas por tipo y riesgo de cambio esta en `PRUEBAS
 |---|---|
 | SQL Server | `libros_qa` en `localhost\SQLEXPRESS` |
 | API | `http://127.0.0.1:5101` |
-| WebSocket | `ws://127.0.0.1:8101` |
 | API pública | `https://qa-api.yosiftware.es` |
-| WebSocket público | `wss://qa-ws.yosiftware.es` |
-| NATS | `127.0.0.1:4322` |
-| Monitor NATS | `127.0.0.1:8322` |
-| Firestore emulado | `127.0.0.1:8180` |
-| RTDB emulada | `127.0.0.1:9100` |
-| Firebase remoto | proyecto exclusivo `libros-qa` |
+| Lector del feed | `python -m realtime.plataforma_feed_worker` (latido `plataformaFeedWorker` en `/verify`) |
+| Plataforma | la de QA: `https://qa-cuentas-api.yosiftware.es` |
 
-La publicación usa un Cloudflare Tunnel exclusivo y mantiene SQL/NATS privados. Configuración y recuperación: `CLOUDFLARE.md`.
+La publicación usa un Cloudflare Tunnel exclusivo y mantiene SQL privado. Configuración y recuperación: `CLOUDFLARE.md`. El WebSocket propio, NATS, los workers de tiempo real y Firebase se retiraron con la adhesión a Yosiftware.
+
+### La cuenta de Yosiftware
+
+`qa/.env` necesita `YOSIFTWARE_EMISOR`, `YOSIFTWARE_CREDENCIAL_SERVICIO_FILE` y `QA_PROPIETARIO_ID_GLOBAL` (ver `qa/.env.example`): la API solo acepta los tokens de la plataforma de QA y `qa/start.ps1` exige esas variables y arranca el lector del feed (`realtime.plataforma_feed_worker`), con su latido `plataformaFeedWorker` en `/verify`. Cada provisión enlaza `usuarios.id = 1` con la cuenta del propietario antes de capturar el baseline. La prueba con las cuentas de prueba de la plataforma es `scripts/qa-plataforma-smoke.py`. Guía: `../api/ADHESION_YOSIFTWARE.md`; operación desde el worktree de la rama: `docs/roadmaps/ACTIVO_adhesion-yosiftware/bugs.md`.
 
 ## Primera ejecución
 
@@ -29,7 +28,7 @@ La publicación usa un Cloudflare Tunnel exclusivo y mantiene SQL/NATS privados.
 .\qa\status.ps1
 ```
 
-`setup.ps1` crea el archivo ignorado `qa/.env`, genera secretos y contraseñas locales, construye exclusivamente `libros_qa` desde los scripts canónicos y captura el baseline.
+`setup.ps1` crea el archivo ignorado `qa/.env`, genera el token de reset, construye exclusivamente `libros_qa` desde los scripts canónicos y captura el baseline.
 
 Si el host ejecuta el runner privado, `QA_SQL_RUNNER_WINDOWS_LOGIN` contiene el nombre exacto de su login Windows ya provisionado. El setup reaplica sus roles mínimos dentro de `libros_qa` después de cada reconstrucción; no crea logins de servidor.
 
@@ -43,9 +42,9 @@ Para detener:
 
 ## Arranque automático del servidor
 
-El host oficial puede iniciar el stack 45 segundos después de arrancar Windows mediante una tarea programada. La tarea usa la identidad de Windows que ejecuta el instalador con inicio S4U y nivel limitado: no almacena contraseña, no eleva los componentes y conserva los permisos locales limitados a `libros_qa` y el acceso a la credencial Firebase QA.
+El host oficial puede iniciar el stack 45 segundos después de arrancar Windows mediante una tarea programada. La tarea usa la identidad de Windows que ejecuta el instalador con inicio S4U y nivel limitado: no almacena contraseña, no eleva los componentes y conserva los permisos locales limitados a `libros_qa` y el acceso a la credencial de servicio de la plataforma de QA.
 
-En el host oficial la tarea se llama `Libros QA Stack`. Se validó ejecutándola bajo S4U: inició NATS, API, gateway, cuatro workers y Cloudflare Tunnel, devolvió `0x00000000` y dejó operativas las comprobaciones locales y públicas.
+En el host oficial la tarea se llama `Libros QA Stack`. Se validó ejecutándola bajo S4U (entonces con NATS, gateway y cuatro workers, hoy retirados); ahora inicia la API, el lector del feed y Cloudflare Tunnel.
 
 Desde PowerShell abierto como administrador:
 
@@ -76,36 +75,21 @@ Para recrear conscientemente solo la base QA:
 .\qa\setup.ps1 -ResetDatabase
 ```
 
-## Firebase emulado o remoto
-
-```powershell
-.\qa\stop.ps1
-.\qa\configure-firebase.ps1 -Mode Emulator  # completamente local
-.\qa\configure-firebase.ps1 -Mode Remote    # proyecto libros-qa
-.\qa\start.ps1
-```
-
-El modo remoto exige `qa/secrets/firebase-service-account.json`, ignorado por Git, y valida que credencial, Project ID y URL RTDB pertenezcan exactamente a `libros-qa`. El cambio de modo limpia variables heredadas antes del arranque.
-
 ## Reset determinista
 
-El handoff especifico del corte de autenticacion Firebase para el front esta en `HANDOFF_AUTENTICACION_FIREBASE_FRONT.md`.
+La autenticación de QA es la cuenta de Yosiftware de la plataforma de QA: `../api/ADHESION_YOSIFTWARE.md` y `scripts/qa-plataforma-smoke.py`.
 
-Los perfiles cerrados son `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`. El contrato y los guards están en `ENTORNO_QA.md`; la entrega ejecutable está en `PLAYWRIGHT_FRONT.md` y el resumen de alcance para el otro Codex en `HANDOFF_CODEX_FRONT.md`.
+Los perfiles cerrados son `baseline`, `expired-sessions`, `rate-limited` y `realtime-recovery` (`version-conflict` se retiró en la fase 4 de la adhesión con los clubes de la provisión). El contrato y los guards están en `ENTORNO_QA.md`; la entrega ejecutable está en `PLAYWRIGHT_FRONT.md` y el resumen de alcance para el otro Codex en `HANDOFF_CODEX_FRONT.md`.
 
-Smoke local o remoto:
+Smoke local o remoto (entorno, semáforo, lease y los cinco perfiles; las comprobaciones con sesión están en `scripts/qa-plataforma-smoke.py`):
 
 ```powershell
 . .\qa\common.ps1
 Import-QaEnvironment
-.\scripts\qa-smoke.ps1 `
-  -BaseUrl http://127.0.0.1:5101 `
-  -ResetToken $env:LIBROS_QA_RESET_TOKEN `
-  -UserAPassword $env:QA_USER_A_PASSWORD `
-  -ModeratorPassword $env:QA_MODERATOR_PASSWORD
+.\scripts\qa-smoke.ps1 -BaseUrl http://127.0.0.1:5101 -ResetToken $env:LIBROS_QA_RESET_TOKEN
 ```
 
-Nunca imprimir ni versionar `qa/.env`, el token de reset, contraseñas o el JSON administrativo.
+Nunca imprimir ni versionar `qa/.env`, el token de reset ni la credencial de servicio.
 
 ## Operación de campañas compartidas
 

@@ -1,18 +1,14 @@
 <main class="m-profile">
   @if (controller.activeSection === 'overview') {
     <section class="m-profile__hero" aria-labelledby="mobile-profile-name">
-      <button class="m-profile__avatar" type="button" aria-label="Actualizar imagen de perfil" (click)="controller.changeProfileImage()">
-        <img [src]="controller.imgUrl + 'photo/' + controller.userData.image + '?v=' + controller.imageCacheBuster" alt="" (error)="controller.handleProfileImageError($event)">
-        <span aria-hidden="true"><mat-icon>photo_camera</mat-icon></span>
+      <!-- El avatar y el nombre son del perfil de Yosiftware: se editan en su vista, sobre la app. -->
+      <button class="m-profile__avatar" type="button" aria-label="Editar tu perfil de Yosiftware" (click)="controller.editPlatformProfile()">
+        @if (controller.avatarUrl) {<img [src]="controller.avatarUrl" alt="" (error)="controller.handleProfileImageError($event)">} @else {<mat-icon class="m-profile__avatar-placeholder" aria-hidden="true">account_circle</mat-icon>}
+        <span aria-hidden="true"><mat-icon>edit</mat-icon></span>
       </button>
       <div class="m-profile__identity">
         <h1 id="mobile-profile-name" class="m-title">{{controller.getProfileDisplayName()}}</h1>
         <p class="m-profile__handle">{{controller.getProfileHandle()}}</p>
-        <div class="m-profile__meta">
-          <span><mat-icon>location_on</mat-icon>{{controller.getCountryLabel()}}</span>
-          <span><mat-icon>{{controller.userData.perfilPublico ? 'public' : 'lock'}}</mat-icon>{{controller.userData.perfilPublico ? 'Público' : 'Privado'}}</span>
-        </div>
-        @if (controller.userData.bio) {<p class="m-profile__bio">{{controller.userData.bio}}</p>}
       </div>
       <dl class="m-profile__hero-metrics" aria-label="Resumen de biblioteca">
         <div><dt>Libros</dt><dd>{{controller.books.length}}</dd></div>
@@ -54,27 +50,18 @@
   } @else {
     <header class="m-profile__detail-heading">
       <button class="m-icon-button" type="button" aria-label="Volver al resumen del perfil" (click)="controller.setActiveSection('overview')"><mat-icon>arrow_back</mat-icon></button>
-      <div><p class="m-eyebrow">Tu perfil lector</p><h1 class="m-title">@switch (controller.activeSection) {@case ('profile') { Identidad pública } @case ('requests') { Mis peticiones } @case ('reports') { Mis reportes }}</h1></div>
+      <div><p class="m-eyebrow">Tu perfil lector</p><h1 class="m-title">@switch (controller.activeSection) {@case ('profile') { Perfil } @case ('requests') { Mis peticiones } @case ('reports') { Mis reportes }}</h1></div>
     </header>
 
     @switch (controller.activeSection) {
       @case ('profile') {
-        <section class="m-profile__settings" aria-label="Datos de identidad pública">
-          <article class="m-profile__setting" [class.is-editing]="controller.inlineProfileEditMode === 'username'">
-            <span class="m-list-item__icon"><mat-icon>alternate_email</mat-icon></span>
-            <div><strong>Alias</strong>@if (controller.inlineProfileEditMode === 'username') {<input [formControl]="controller.username" maxlength="50" aria-label="Alias">@if (controller.username.invalid) {<small class="m-profile__field-error">{{controller.errorUsernameMessage}}</small>}} @else {<small>{{controller.userData.username || 'Sin alias'}}</small>}</div>
-            @if (controller.inlineProfileEditMode === 'username') {<span class="m-profile__inline-actions"><button type="button" aria-label="Cancelar edición de alias" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()"><mat-icon>close</mat-icon></button><button type="button" aria-label="Guardar alias" [disabled]="controller.username.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()"><mat-icon>check</mat-icon></button></span>} @else {<button type="button" aria-label="Editar alias" (click)="controller.startInlineProfileEdit('username')"><mat-icon>edit</mat-icon></button>}
-          </article>
-          <article class="m-profile__setting" [class.is-editing]="controller.inlineProfileEditMode === 'displayName'">
+        <section class="m-profile__settings" aria-label="Tu perfil de Yosiftware">
+          <article class="m-profile__setting">
             <span class="m-list-item__icon"><mat-icon>badge</mat-icon></span>
-            <div><strong>Nombre visible</strong>@if (controller.inlineProfileEditMode === 'displayName') {<input [formControl]="controller.displayName" maxlength="80" aria-label="Nombre visible">@if (controller.displayName.invalid) {<small class="m-profile__field-error">{{controller.errorDisplayNameMessage}}</small>}} @else {<small>{{controller.userData.displayName || controller.userData.name}}</small>}</div>
-            @if (controller.inlineProfileEditMode === 'displayName') {<span class="m-profile__inline-actions"><button type="button" aria-label="Cancelar edición del nombre visible" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()"><mat-icon>close</mat-icon></button><button type="button" aria-label="Guardar nombre visible" [disabled]="controller.displayName.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()"><mat-icon>check</mat-icon></button></span>} @else {<button type="button" aria-label="Editar nombre visible" (click)="controller.startInlineProfileEdit('displayName')"><mat-icon>edit</mat-icon></button>}
+            <div><strong>{{controller.getProfileDisplayName()}}</strong><small>{{controller.getProfileHandle()}}</small></div>
+            <button type="button" aria-label="Editar tu perfil de Yosiftware" (click)="controller.editPlatformProfile()"><mat-icon>edit</mat-icon></button>
           </article>
-          <article class="m-profile__setting" [class.is-editing]="controller.inlineProfileEditMode === 'bio'">
-            <span class="m-list-item__icon"><mat-icon>notes</mat-icon></span>
-            <div><strong>Biografía</strong>@if (controller.inlineProfileEditMode === 'bio') {<textarea [formControl]="controller.bio" maxlength="500" rows="3" aria-label="Biografía"></textarea>@if (controller.bio.invalid) {<small class="m-profile__field-error">{{controller.errorBioMessage}}</small>}} @else {<small>{{controller.userData.bio || 'Sin biografía'}}</small>}</div>
-            @if (controller.inlineProfileEditMode === 'bio') {<span class="m-profile__inline-actions"><button type="button" aria-label="Cancelar edición de biografía" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()"><mat-icon>close</mat-icon></button><button type="button" aria-label="Guardar biografía" [disabled]="controller.bio.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()"><mat-icon>check</mat-icon></button></span>} @else {<button type="button" aria-label="Editar biografía" (click)="controller.startInlineProfileEdit('bio')"><mat-icon>edit</mat-icon></button>}
-          </article>
+          <a class="m-button m-button--tonal" [href]="controller.socialProfileUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Ver tu perfil en la web social</a>
         </section>
       }
       @case ('requests') {

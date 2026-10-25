@@ -7,19 +7,16 @@ import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } fr
 import { Subscription } from 'rxjs';
 import { ChatConversation } from '../../../../interfaces/chat';
 import { ChatStoreService } from '../../../../services/stores/chat-store.service';
-import { SessionService } from '../../../../services/auth/session.service';
-import { chatConversationIcon, chatConversationTitle } from '../../../../shared/chat-display';
-import { ChatService } from '../../../../services/entities/chat.service';
-import { CommunityService } from '../../../../services/entities/community.service';
-import { CommunityRelationship } from '../../../../interfaces/community';
-import { ChatGroupCandidate } from '../../../../interfaces/chat';
+import { ChatConversationFilter, chatConversationIcon, chatConversationTitle, friendshipCandidates, matchesConversationFilter } from '../../../../shared/chat-display';
+import { PlatformChatService } from '../../../../services/platform/platform-chat.service';
+import { ChatFriendship, ChatGroupCandidate } from '../../../../interfaces/chat';
 import { getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { ChatFloatingCoordinatorService } from '../../../../services/stores/chat-floating-coordinator.service';
 import { FloatingWindowManagerService } from '../../../../services/stores/floating-window-manager.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileChatViewComponent } from '../../../mobile/social/mobile-chat-view/mobile-chat-view.component';
 
-type ConversationFilter = 'todas' | 'directa' | 'club' | 'grupo' | 'sistema';
+type ConversationFilter = ChatConversationFilter;
 
 @Component({
     standalone: true,
@@ -36,24 +33,24 @@ export class ChatComponent implements OnInit, OnDestroy {
     accessRevokedMessage = '';
     filter: ConversationFilter = 'todas';
     readonly filters: { id: ConversationFilter; label: string }[] = [
-        { id: 'todas', label: 'Todas' }, { id: 'directa', label: 'Directos' }, { id: 'club', label: 'Clubes' }, { id: 'grupo', label: 'Grupos' }, { id: 'sistema', label: 'Sistema' }
+        { id: 'todas', label: 'Todas' }, { id: 'directa', label: 'Directos' }, { id: 'club', label: 'Clubes' }, { id: 'grupo', label: 'Grupos' }
     ];
     creator: 'direct' | 'group' | null = null;
-    friendships: CommunityRelationship[] = [];
+    friendships: ChatFriendship[] = [];
     isLoadingFriendships = false;
     creatorError = '';
     groupTitle = '';
     groupQuery = '';
     groupCandidates: ChatGroupCandidate[] = [];
     isLoadingGroupCandidates = false;
-    selectedParticipantIds = new Set<number>();
+    selectedParticipantIds = new Set<string>();
     isCreating = false;
     hasActiveConversation = false;
     private realtimeSubscription: Subscription | null = null;
     private windowSubscription: Subscription | null = null;
     isFloatingListOpen = false;
 
-    constructor(private chatStore: ChatStoreService, private router: Router, private route: ActivatedRoute, private session: SessionService, private chat: ChatService, private community: CommunityService, private floating: ChatFloatingCoordinatorService, private windows: FloatingWindowManagerService, private presentation: PresentationModeService) { }
+    constructor(private chatStore: ChatStoreService, private router: Router, private route: ActivatedRoute, private chat: PlatformChatService, private floating: ChatFloatingCoordinatorService, private windows: FloatingWindowManagerService, private presentation: PresentationModeService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
@@ -66,7 +63,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.accessRevokedMessage = (this.router.getCurrentNavigation()?.extras.state?.['accessRevokedMessage'] as string | undefined) ?? '';
         this.hasActiveConversation = this.route.firstChild !== null;
-        this.chatStore.initialize(this.session.userId);
+        this.chatStore.initialize();
         this.realtimeSubscription = this.chatStore.state$.subscribe(state => {
             this.conversations = state.conversations;
             this.isLoading = state.loading;
@@ -86,8 +83,8 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     conversationTitle(conversation: ChatConversation): string { return chatConversationTitle(conversation); }
     conversationIcon(conversation: ChatConversation): string { return chatConversationIcon(conversation); }
-    get filteredConversations(): ChatConversation[] { return this.filter === 'todas' ? this.conversations : this.conversations.filter(item => item.Tipo === this.filter); }
-    preview(conversation: ChatConversation): string { return conversation.UltimoMensaje?.VistaPrevia || (conversation.FechaUltimoMensaje ? 'Conversación actualizada' : 'Sin mensajes aún'); }
+    get filteredConversations(): ChatConversation[] { return this.conversations.filter(item => matchesConversationFilter(item, this.filter)); }
+    preview(conversation: ChatConversation): string { return conversation.UltimoMensaje?.VistaPrevia || 'Sin mensajes aún'; }
     activateConversation(): void { this.hasActiveConversation = true; }
     deactivateConversation(): void { this.hasActiveConversation = false; }
     openFloatingChats(): void { this.floating.openList(); }
@@ -96,21 +93,21 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.creator = this.creator === type ? null : type;
         this.creatorError = '';
         if (this.creator && !this.friendships.length) this.loadFriendships();
-        if (this.creator === 'group') this.loadGroupCandidates();
+        else if (this.creator === 'group') this.loadGroupCandidates();
     }
 
-    startDirect(userId: number): void {
+    startDirect(accountId: string): void {
         if (this.isCreating) return;
         this.isCreating = true;
         this.creatorError = '';
-        this.chat.createDirectConversation(userId).subscribe({
+        this.chat.createDirectConversation(accountId).subscribe({
             next: id => { this.isCreating = false; this.creator = null; this.chatStore.refresh(true); void this.router.navigate(['/dashboard/community/messages', id]); },
             error: error => { this.isCreating = false; this.creatorError = getProductStateMessage(error, 'No se ha podido iniciar la conversación.'); }
         });
     }
 
-    toggleParticipant(userId: number): void {
-        this.selectedParticipantIds.has(userId) ? this.selectedParticipantIds.delete(userId) : this.selectedParticipantIds.add(userId);
+    toggleParticipant(accountId: string): void {
+        this.selectedParticipantIds.has(accountId) ? this.selectedParticipantIds.delete(accountId) : this.selectedParticipantIds.add(accountId);
     }
 
     searchGroupCandidates(): void { this.loadGroupCandidates(); }
@@ -135,21 +132,16 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     private loadFriendships(): void {
         this.isLoadingFriendships = true;
-        this.community.relationships('amistades').subscribe({
-            next: page => { this.friendships = page.Relaciones; this.isLoadingFriendships = false; },
+        this.chat.friendships().subscribe({
+            next: friendships => { this.friendships = friendships; this.isLoadingFriendships = false; this.loadGroupCandidates(); },
             error: error => { this.creatorError = getApiErrorMessage(error, 'No se han podido cargar tus amistades.'); this.isLoadingFriendships = false; }
         });
     }
 
+    /** Solo se invita a amistades (CHAT.md): se buscan entre ellas, sin pedir nada más a la plataforma. */
     private loadGroupCandidates(): void {
         if (this.creator !== 'group') return;
-        this.isLoadingGroupCandidates = true;
-        this.chat.groupCandidates(this.groupQuery).subscribe({
-            next: page => {
-                this.groupCandidates = [...page.Candidatos].sort((left, right) => Number(right.EsAmistad) - Number(left.EsAmistad) || left.Nombre.localeCompare(right.Nombre));
-                this.isLoadingGroupCandidates = false;
-            },
-            error: error => { this.creatorError = getApiErrorMessage(error, 'No se han podido cargar personas elegibles.'); this.isLoadingGroupCandidates = false; }
-        });
+        this.groupCandidates = friendshipCandidates(this.friendships, this.groupQuery);
+        this.isLoadingGroupCandidates = false;
     }
 }

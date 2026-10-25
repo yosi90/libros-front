@@ -3,7 +3,7 @@
     <h2>Tu actividad social</h2>
     <button class="icon-button" type="button" aria-label="Actualizar resumen" [disabled]="c.loading" (click)="c.load()"><mat-icon>refresh</mat-icon></button>
   </header>
-  @if (c.summary?.Parcial) {
+  @if (c.partial) {
     <p class="summary__notice" role="status"><mat-icon aria-hidden="true">info</mat-icon>Parte del resumen no está disponible. El resto funciona con normalidad.</p>
   }
   @if (c.loading && !c.cards.length) {
@@ -13,11 +13,20 @@
   } @else {
     <div class="summary__grid">
       @for (card of c.cards; track c.trackCard($index, card)) {
-        <a class="summary__card" [routerLink]="card.path" [class.is-pending]="card.accent">
-          <span class="summary__icon"><mat-icon aria-hidden="true">{{card.icon}}</mat-icon></span>
-          <strong>{{card.value}}</strong>
-          <span>{{card.label}}</span>
-        </a>
+        @if (card.href) {
+          <!-- Las relaciones son de la plataforma: se gestionan en la web social (con el símbolo del ecosistema). -->
+          <a class="summary__card" [href]="card.href" target="_blank" rel="noopener" [class.is-pending]="card.accent">
+            <span class="summary__icon"><mat-icon aria-hidden="true">{{card.icon}}</mat-icon></span>
+            <strong>{{card.value}}</strong>
+            <span><app-yosiftware-mark></app-yosiftware-mark> {{card.label}}</span>
+          </a>
+        } @else {
+          <a class="summary__card" [routerLink]="card.path" [class.is-pending]="card.accent">
+            <span class="summary__icon"><mat-icon aria-hidden="true">{{card.icon}}</mat-icon></span>
+            <strong>{{card.value}}</strong>
+            <span>{{card.label}}</span>
+          </a>
+        }
       }
     </div>
   }

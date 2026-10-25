@@ -67,8 +67,8 @@ describe('WebCommandPaletteComponent', () => {
         expect(palette.open()).toBeFalse();
     });
 
-    it('no existe en la APK ni en pantallas táctiles', () => {
-        mode = 'native-mobile';
+    it('no existe en Mobile ni en pantallas táctiles', () => {
+        mode = 'mobile';
         expect(press('k', { ctrlKey: true }).defaultPrevented).toBeFalse();
         expect(palette.open()).toBeFalse();
 

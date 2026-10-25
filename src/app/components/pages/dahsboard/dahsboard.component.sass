@@ -70,23 +70,22 @@
             background: linear-gradient(145deg, rgba(44, 70, 50, .95), rgba(24, 43, 30, .98))
             border-color: rgba(240, 200, 117, .28)
 
-        &.is-active:not(.library-sidebar__avatar)
+        &.is-active
             box-shadow: 0 10px 18px rgba(0, 0, 0, .38), inset 0 1px rgba(255, 255, 255, .12), inset 0 -7px 12px rgba(0, 0, 0, .22)
             transform: translateY(-1px)
 
-    .library-sidebar__avatar
-        width: 62px
-        height: 62px
-        overflow: hidden
-        border-radius: 50%
-        margin: 0 0 18px
+    // El botón de la cuenta de Yosiftware ocupa el sitio del antiguo avatar de perfil.
+    .library-sidebar__account
+        margin: 0 0 12px
         flex: 0 0 auto
 
-        img
-            width: 60px
-            height: 60px
-            border-radius: 50%
-            object-fit: cover
+    // Las webs del ecosistema y la campana de la plataforma, en columna bajo la cuenta (las pinta el SDK).
+    .library-sidebar__platform
+        display: grid
+        justify-items: center
+        gap: 8px
+        width: 40px
+        margin: 0 0 18px
 
     &__nav,
     &__bottom
@@ -274,14 +273,8 @@
             border-bottom: 1px solid var(--app-color-border)
             padding: 0 4px 16px
 
-        .library-sidebar__avatar
-            width: 46px
-            height: 46px
+        .library-sidebar__account
             margin: 0
-
-            img
-                width: 44px
-                height: 44px
 
         .library-sidebar__identity-copy
             display: grid
@@ -334,7 +327,7 @@
             border-radius: 12px
             padding: 0 12px
 
-            &.is-active:not(.library-sidebar__avatar)
+            &.is-active
                 box-shadow: none
                 transform: none
 
@@ -616,28 +609,6 @@
         .library-main
             height: 100%
             border-radius: 0
-
-    :host-context(html[data-presentation-active='native-mobile']) .library-shell--mobile
-        padding-top: 0
-        padding-bottom: 0
-
-        .library-main
-            box-sizing: border-box
-            height: 100%
-            margin: 0
-            padding-top: var(--app-safe-top)
-
-        .library-content
-            height: 100%
-            margin: 0
-
-        app-user-router
-            position: static
-            display: block
-            height: 100%
-
-        .library-connection
-            top: max(var(--mobile-space-2), var(--app-safe-top))
 
 // Presentación Web: navegación propia a la izquierda y contenido sobre el lienzo Web.
 .library-shell--web

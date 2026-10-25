@@ -4,7 +4,6 @@ import { Subject } from 'rxjs';
 
 import { ReadingReturnService } from './reading-return.service';
 import { BookStoreService } from '../stores/book-store.service';
-import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 
 describe('ReadingReturnService', () => {
     let events: Subject<unknown>;
@@ -26,8 +25,7 @@ describe('ReadingReturnService', () => {
         TestBed.configureTestingModule({
             providers: [
                 { provide: Router, useValue: router },
-                { provide: BookStoreService, useValue: { getBook: () => book } },
-                { provide: NATIVE_MOBILE_PLATFORM, useValue: false }
+                { provide: BookStoreService, useValue: { getBook: () => book } }
             ]
         });
         service = TestBed.inject(ReadingReturnService);

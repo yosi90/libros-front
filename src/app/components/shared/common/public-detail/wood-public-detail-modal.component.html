@@ -218,6 +218,9 @@
               @if (controller.publicReviewDate(review)) {
                 <time>{{controller.publicReviewDate(review) | date:'dd/MM/yyyy'}}</time>
               }
+              @if (controller.canReportReview(review)) {
+                <button class="public-review-report" type="button" aria-label="Denunciar reseña" (click)="controller.reportReview(review)"><mat-icon>flag</mat-icon>Denunciar</button>
+              }
             </header>
             <div class="public-review-text">
               <p [class.is-clamped]="!controller.isPublicReviewExpanded(review, $index) && controller.reviewTextNeedsToggle(review.Resena)">

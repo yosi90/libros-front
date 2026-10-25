@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { DecisionNotice, DecisionNoticeAction } from '../../interfaces/session-notification';
-import { SessionNotificationStoreService } from '../stores/session-notification-store.service';
 
 @Injectable({ providedIn: 'root' })
 export class DecisionNoticeService {
@@ -11,16 +10,12 @@ export class DecisionNoticeService {
     private pending: DecisionNotice | null = null;
     readonly notice$ = this.noticeSubject.asObservable();
 
-    constructor(private sessionNotifications: SessionNotificationStoreService) { }
-
     show(notice: DecisionNotice, onceKey?: string): void {
         if (notice.actions.length < 1 || notice.actions.length > 3) throw new Error('DecisionNotice requiere entre una y tres acciones.');
-        const centerAction = notice.actions.find(action => action.showInCenter) ?? notice.actions[0];
-        this.sessionNotifications.ensureActionable({ dedupeKey: notice.id, type: notice.type, title: notice.title, message: notice.message, action: { label: centerAction.label, execute: centerAction.execute } });
         if (onceKey && this.shownOnceKeys.has(onceKey)) return;
         if (onceKey) this.shownOnceKeys.add(onceKey);
         if (this.holdCondition()) {
-            // Ya está en la campana; se presenta al terminar lo que lo retiene.
+            // Se presenta al terminar lo que lo retiene.
             this.pending = notice;
             return;
         }
@@ -52,7 +47,7 @@ export class DecisionNoticeService {
         this.noticeSubject.next(null);
     }
 
-    /** Cierra el aviso si está a la vista o retenido, pero lo conserva en la campana. */
+    /** Cierra el aviso si está a la vista o retenido. */
     dismiss(id: string): void {
         if (this.noticeSubject.value?.id === id) this.noticeSubject.next(null);
         if (this.pending?.id === id) this.pending = null;
@@ -61,7 +56,6 @@ export class DecisionNoticeService {
     remove(id: string): void {
         if (this.noticeSubject.value?.id === id) this.noticeSubject.next(null);
         if (this.pending?.id === id) this.pending = null;
-        this.sessionNotifications.removeByDedupeKey(id);
     }
 
     reset(): void { this.noticeSubject.next(null); this.shownOnceKeys.clear(); this.pending = null; }

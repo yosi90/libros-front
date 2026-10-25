@@ -28,21 +28,20 @@ describe('CommunityCapabilitiesService', () => {
         http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
 
         expect(values.length).toBe(2);
-        expect(values.every(value => value.Capacidades.chat.Activa && !value.Conservadora)).toBeTrue();
+        expect(values.every(value => value.Capacidades.clubes.Activa && !value.Conservadora)).toBeTrue();
     });
 
     it('con normas de uso pendientes presenta todo como conservador y lo restaura al aceptarlas', () => {
         service.initialize(7).subscribe();
         http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
-        expect(service.isActive('chat')).toBeTrue();
+        expect(service.isActive('clubes')).toBeTrue();
 
         service.setPolicyHold(true);
-        expect(service.isActive('chat')).toBeFalse();
-        expect(service.isActive('realtime')).toBeFalse();
+        expect(service.isActive('clubes')).toBeFalse();
         expect(service.state.Conservadora).toBeTrue();
 
         service.setPolicyHold(false);
-        expect(service.isActive('chat')).toBeTrue();
+        expect(service.isActive('clubes')).toBeTrue();
         expect(service.state.Conservadora).toBeFalse();
     });
 
@@ -50,12 +49,20 @@ describe('CommunityCapabilitiesService', () => {
         service.setPolicyHold(true);
         service.initialize(7).subscribe();
         http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
-        expect(service.isActive('chat')).toBeFalse();
+        expect(service.isActive('clubes')).toBeFalse();
 
         service.clear();
         service.initialize(7).subscribe();
         http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
-        expect(service.isActive('chat')).toBeTrue();
+        expect(service.isActive('clubes')).toBeTrue();
+    });
+
+    it('solo mira los clubes aunque la API aún anuncie el muro general (`feed`)', () => {
+        service.initialize(7).subscribe();
+        http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true), Capacidades: { feed: { Activa: true, VersionMinima: null }, clubes: { Activa: true, VersionMinima: null } } });
+
+        expect(Object.keys(service.state.Capacidades)).toEqual(['clubes']);
+        expect(service.isActive('clubes')).toBeTrue();
     });
 
     it('ignora una respuesta antigua después de limpiar la sesión', () => {
@@ -71,7 +78,7 @@ describe('CommunityCapabilitiesService', () => {
 });
 
 function capabilities(userId: number, active: boolean): CommunityCapabilitiesResponse {
-    const ids: CommunityCapabilityId[] = ['sanciones', 'realtime', 'notificaciones', 'feed', 'chat', 'clubes'];
+    const ids: CommunityCapabilityId[] = ['clubes'];
     return {
         UsuarioId: userId,
         VersionConfiguracion: 1,

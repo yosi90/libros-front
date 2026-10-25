@@ -1,30 +1,42 @@
 import { WebClubAccessCenterViewComponent } from '../../../../web/social/web-club-access-center-view/web-club-access-center-view.component';
 import { DatePipe } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable } from 'rxjs';
-import { ClubAccessContext, ClubAccessDirection, ClubAccessInboxCounters, ClubAccessUser, ClubInboxCursor, ClubInboxFilterState, ClubInboxState, ClubInvitation, ClubInvitationPage, ClubInvitationSent, ClubJoinRequestOwn, ClubJoinRequestOwnPage, ClubJoinRequestReceived } from '../../../../../interfaces/community';
-import { CommunityService } from '../../../../../services/entities/community.service';
-import { getProductStateMessage } from '../../../../../shared/api-error-message';
+import { Observable, Subscription } from 'rxjs';
+import { ClubAccessDirection, ClubAccessInboxCounters } from '../../../../../interfaces/community';
+import { ClubAccessClub, ClubAccessInbox, ClubAccessService } from '../../../../../services/platform/club-access.service';
+import { PlatformSpacesService } from '../../../../../services/platform/platform-spaces.service';
+import { PlatformSessionService } from '../../../../../services/auth/platform-session.service';
+import { getApiErrorCode } from '../../../../../shared/api-error-message';
+import { SOCIAL_SECURITY_VIEW, clubPersonName, spaceErrorMessage } from '../../../../../shared/club-spaces';
 import { PresentationModeService } from '../../../../../services/ui/presentation-mode.service';
 import { MobileClubAccessCenterViewComponent } from '../../../../mobile/social/mobile-club-access-center-view/mobile-club-access-center-view.component';
 
 type ClubAccessKind = 'solicitudes' | 'invitaciones';
 
-interface ClubAccessRow {
+/** Una fila del centro de acceso. Todas están pendientes: la plataforma no guarda el histórico. */
+export interface ClubAccessRow {
+    /** Única en la lista (tipo, dirección e id de la plataforma). */
+    Key: string;
     Id: number;
-    Club: ClubAccessContext;
-    Persona: ClubAccessUser | null;
-    PersonaSecundaria: ClubAccessUser | null;
+    Club: ClubAccessClub;
+    /** Quién invita, a quién se invita o quién pide entrar. */
+    Persona: string | null;
+    /** El rol con el que se entra, o el correo enmascarado de la invitación. */
+    Detalle: string | null;
     Mensaje: string | null;
-    Estado: ClubInboxState;
-    FechaCreacion: string;
-    FechaResolucion: string | null;
+    FechaCreacion: string | null;
+    Caduca: string | null;
 }
 
+/**
+ * Solicitudes e invitaciones de los clubes, con la misma interfaz de antes (tipo y dirección), sobre los espacios de la
+ * plataforma (ESPACIOS.md, «Con tu propia interfaz»): aceptar o rechazar las recibidas, retirar las enviadas, aprobar
+ * o rechazar quien pide entrar. Trata el otro correo, los dos pasos y la invitación caducada.
+ */
 @Component({
     standalone: true,
     selector: 'app-club-access-center',
@@ -33,30 +45,33 @@ interface ClubAccessRow {
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './club-access-center.component.sass'
 })
-export class ClubAccessCenterComponent implements OnInit, OnChanges {
-    @Input() counters: ClubAccessInboxCounters = this.emptyCounters();
+export class ClubAccessCenterComponent implements OnInit, OnChanges, OnDestroy {
     @Input() refreshToken = 0;
     @Output() accessChanged = new EventEmitter<void>();
 
-    kind: ClubAccessKind = 'solicitudes';
-    direction: ClubAccessDirection = 'enviadas';
-    state: ClubInboxFilterState = 'pendiente';
-    rows: ClubAccessRow[] = [];
-    nextCursor: ClubInboxCursor | null = null;
+    kind: ClubAccessKind = 'invitaciones';
+    direction: ClubAccessDirection = 'recibidas';
+    inbox: ClubAccessInbox | null = null;
+    counters: ClubAccessInboxCounters = { Solicitudes: { EnviadasPendientes: 0, RecibidasPendientes: 0 }, Invitaciones: { EnviadasPendientes: 0, RecibidasPendientes: 0 } };
     isLoading = false;
     error = '';
-    actionIds = new Set<number>();
+    notice = '';
+    /** La acción que la persona puede hacer para arreglar el último error (otro correo, los dos pasos). */
+    errorAction: 'cambiar_cuenta' | 'dos_pasos' | null = null;
+    /** El club al que se acaba de entrar, para abrirlo. */
+    joinedClub: ClubAccessClub | null = null;
+    actionIds = new Set<string>();
     private initialized = false;
+    private subscriptions = new Subscription();
 
-    readonly states: { value: ClubInboxFilterState; label: string }[] = [
-        { value: 'pendiente', label: 'Pendientes' },
-        { value: 'aceptada', label: 'Aceptadas' },
-        { value: 'rechazada', label: 'Rechazadas' },
-        { value: 'cancelada', label: 'Canceladas' },
-        { value: 'todas', label: 'Todas' }
-    ];
-
-    constructor(private community: CommunityService, private route: ActivatedRoute, private router: Router, private presentation: PresentationModeService) { }
+    constructor(
+        private clubAccess: ClubAccessService,
+        private spaces: PlatformSpacesService,
+        private session: PlatformSessionService,
+        private route: ActivatedRoute,
+        private router: Router,
+        private presentation: PresentationModeService
+    ) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
@@ -66,10 +81,10 @@ export class ClubAccessCenterComponent implements OnInit, OnChanges {
         const params = this.route.snapshot.queryParamMap;
         const kind = params.get('accessType');
         const direction = params.get('direction');
-        const state = params.get('status');
         if (kind === 'solicitudes' || kind === 'invitaciones') this.kind = kind;
         if (direction === 'enviadas' || direction === 'recibidas') this.direction = direction;
-        if (this.states.some(option => option.value === state)) this.state = state as ClubInboxFilterState;
+        this.subscriptions.add(this.clubAccess.counters$.subscribe(counters => this.counters = counters));
+        this.subscriptions.add(this.clubAccess.inbox$.subscribe(inbox => { if (this.inbox) this.inbox = inbox; }));
         this.initialized = true;
         this.load();
         this.syncUrl();
@@ -77,6 +92,33 @@ export class ClubAccessCenterComponent implements OnInit, OnChanges {
 
     ngOnChanges(changes: SimpleChanges): void {
         if (this.initialized && changes['refreshToken'] && !changes['refreshToken'].firstChange) this.load();
+    }
+
+    ngOnDestroy(): void { this.subscriptions.unsubscribe(); }
+
+    get rows(): ClubAccessRow[] {
+        const inbox = this.inbox;
+        if (!inbox) return [];
+        if (this.kind === 'invitaciones' && this.direction === 'recibidas')
+            return inbox.invitationsReceived.map(({ club, invitation }) => ({
+                Key: `ir-${invitation.id}`, Id: invitation.id, Club: club, Persona: invitation.de.nombre,
+                Detalle: invitation.nombreRol ? `Como ${invitation.nombreRol.toLowerCase()}` : null,
+                Mensaje: null, FechaCreacion: null, Caduca: invitation.caduca
+            }));
+        if (this.kind === 'invitaciones')
+            return inbox.invitationsSent.map(({ club, invitation }) => ({
+                Key: `ie-${club.EspacioId}-${invitation.id}`, Id: invitation.id, Club: club,
+                Persona: invitation.alias ? `@${invitation.alias}` : invitation.correo, Detalle: invitation.correo && invitation.alias ? invitation.correo : null,
+                Mensaje: null, FechaCreacion: invitation.creada, Caduca: invitation.caduca
+            }));
+        if (this.direction === 'recibidas')
+            return inbox.requestsReceived.map(({ club, request }) => ({
+                Key: `sr-${club.EspacioId}-${request.id}`, Id: request.id, Club: club, Persona: clubPersonName(request),
+                Detalle: request.nombre ? `@${request.alias}` : null, Mensaje: request.mensaje, FechaCreacion: request.creada, Caduca: null
+            }));
+        return inbox.requestsSent.map(({ club, creada, mensaje }) => ({
+            Key: `se-${club.EspacioId}`, Id: club.EspacioId, Club: club, Persona: null, Detalle: null, Mensaje: mensaje, FechaCreacion: creada, Caduca: null
+        }));
     }
 
     get pendingTotal(): number {
@@ -89,137 +131,148 @@ export class ClubAccessCenterComponent implements OnInit, OnChanges {
         return direction === 'enviadas' ? source.EnviadasPendientes : source.RecibidasPendientes;
     }
 
+    /** Lo que se dice cuando la lista está vacía (y, en las solicitudes enviadas, por qué solo se ven las de ahora). */
+    get emptyMessage(): string {
+        if (this.kind === 'invitaciones')
+            return this.direction === 'recibidas' ? 'No tienes invitaciones pendientes.' : 'No hay invitaciones pendientes en los clubes donde puedes invitar.';
+        return this.direction === 'recibidas'
+            ? 'Nadie ha pedido entrar en los clubes que gestionas.'
+            : 'No has pedido entrar en ningún club desde que abriste Libros. La respuesta te llegará a la campana de Yosiftware.';
+    }
+
     selectKind(kind: ClubAccessKind): void {
         if (this.kind === kind) return;
         this.kind = kind;
-        this.state = 'pendiente';
-        this.changeView();
+        this.clearMessages();
+        this.syncUrl();
     }
 
     selectDirection(direction: ClubAccessDirection): void {
         if (this.direction === direction) return;
         this.direction = direction;
-        this.state = 'pendiente';
-        this.changeView();
-    }
-
-    selectState(state: ClubInboxFilterState): void {
-        if (this.state === state) return;
-        this.state = state;
-        this.changeView();
-    }
-
-    loadMore(): void {
-        if (!this.nextCursor || this.isLoading) return;
-        this.load(this.nextCursor);
-    }
-
-    accept(row: ClubAccessRow): void { this.resolve(row, 'aceptada'); }
-    reject(row: ClubAccessRow): void { this.resolve(row, 'rechazada'); }
-    cancel(row: ClubAccessRow): void { this.resolve(row, 'cancelada'); }
-
-    stateLabel(state: ClubInboxState): string {
-        return { pendiente: 'Pendiente', aceptada: 'Aceptada', rechazada: 'Rechazada', cancelada: 'Cancelada' }[state];
-    }
-
-    personLabel(row: ClubAccessRow): string {
-        if (!row.Persona) return this.direction === 'enviadas' ? 'Solicitud propia' : 'Persona no disponible';
-        if (this.kind === 'invitaciones' && this.direction === 'enviadas' && row.PersonaSecundaria) return `${row.Persona.Nombre} · invitada por ${row.PersonaSecundaria.Nombre}`;
-        return row.Persona.Nombre;
-    }
-
-    private changeView(): void {
+        this.clearMessages();
         this.syncUrl();
-        this.load();
     }
 
-    private load(cursor?: ClubInboxCursor): void {
+    load(): void {
         if (this.isLoading) return;
         this.isLoading = true;
         this.error = '';
-        const request = (this.kind === 'solicitudes'
-            ? this.community.ownClubJoinRequests(this.direction, this.state, cursor)
-            : this.community.clubInvitations(this.direction, this.state, cursor)) as Observable<ClubJoinRequestOwnPage | ClubInvitationPage>;
-
-        request.subscribe({
-            next: page => {
-                const items = 'Solicitudes' in page
-                    ? page.Solicitudes.map(item => this.requestRow(item))
-                    : page.Invitaciones.map(item => this.invitationRow(item));
-                if (cursor) {
-                    const known = new Set(this.rows.map(row => row.Id));
-                    this.rows = [...this.rows, ...items.filter(row => !known.has(row.Id))];
-                } else this.rows = items;
-                this.nextCursor = page.SiguienteCursor;
+        this.clubAccess.refresh().subscribe({
+            next: inbox => {
+                this.inbox = inbox;
                 this.isLoading = false;
+                if (inbox.partial) this.notice = 'Algún club no ha respondido: puede faltar alguna pendiente. Vuelve a cargar en un momento.';
             },
             error: error => {
-                if (!cursor) this.rows = [];
-                this.error = getProductStateMessage(error, 'No se ha podido cargar esta bandeja.');
+                this.inbox ??= { invitationsReceived: [], invitationsSent: [], requestsReceived: [], requestsSent: [], partial: false };
+                this.error = spaceErrorMessage(error, 'No se han podido cargar las solicitudes e invitaciones.');
                 this.isLoading = false;
             }
         });
     }
 
-    private resolve(row: ClubAccessRow, state: 'aceptada' | 'rechazada' | 'cancelada'): void {
-        if (row.Estado !== 'pendiente' || this.actionIds.has(row.Id) || this.isLoading) return;
-        this.actionIds.add(row.Id);
-        this.error = '';
-        const request = state === 'cancelada'
-            ? this.kind === 'solicitudes'
-                ? this.community.cancelOwnClubJoinRequest(row.Id)
-                : this.community.cancelClubInvitation(row.Id)
-            : this.kind === 'solicitudes'
-                ? this.community.resolveClubJoinRequest(row.Club.Id, row.Id, state)
-                : this.community.resolveClubInvitation(row.Club.Id, row.Id, state);
+    /** Aceptar una invitación recibida, o aprobar una solicitud recibida. */
+    accept(row: ClubAccessRow): void {
+        if (this.kind === 'invitaciones') this.run(row, this.spaces.accept(row.Id), () => {
+            this.spaces.markEntered(row.Club.Id);
+            this.joinedClub = row.Club;
+            this.notice = `Ya eres miembro de ${row.Club.Nombre}. Libros tarda unos segundos en abrirte el club.`;
+            this.clubAccess.remove('invitationsReceived', item => item.invitation.id === row.Id);
+        });
+        else this.run(row, this.spaces.resolveJoinRequest(row.Club.EspacioId, row.Id, 'aprobar'), () => {
+            this.notice = `Solicitud aprobada: ${row.Persona ?? 'la persona'} ya puede entrar en ${row.Club.Nombre}.`;
+            this.clubAccess.remove('requestsReceived', item => item.request.id === row.Id && item.club.EspacioId === row.Club.EspacioId);
+        });
+    }
 
+    /** Rechazar una invitación o una solicitud recibidas. */
+    reject(row: ClubAccessRow): void {
+        if (this.kind === 'invitaciones') this.run(row, this.spaces.reject(row.Id), () => {
+            this.notice = `Invitación a ${row.Club.Nombre} rechazada.`;
+            this.clubAccess.remove('invitationsReceived', item => item.invitation.id === row.Id);
+        });
+        else this.run(row, this.spaces.resolveJoinRequest(row.Club.EspacioId, row.Id, 'rechazar'), () => {
+            this.notice = 'Solicitud rechazada.';
+            this.clubAccess.remove('requestsReceived', item => item.request.id === row.Id && item.club.EspacioId === row.Club.EspacioId);
+        });
+    }
+
+    /** Retirar una invitación enviada o la solicitud propia. */
+    cancel(row: ClubAccessRow): void {
+        if (this.kind === 'invitaciones') this.run(row, this.spaces.withdrawInvitation(row.Club.EspacioId, row.Id), () => {
+            this.notice = 'Invitación retirada.';
+            this.clubAccess.remove('invitationsSent', item => item.invitation.id === row.Id && item.club.EspacioId === row.Club.EspacioId);
+        });
+        else this.run(row, this.spaces.withdrawRequest(row.Club.EspacioId), () => {
+            this.notice = `Solicitud a ${row.Club.Nombre} retirada.`;
+            this.clubAccess.remove('requestsSent', item => item.club.EspacioId === row.Club.EspacioId);
+        });
+    }
+
+    acceptLabel(): string { return this.kind === 'invitaciones' ? 'Aceptar' : 'Aprobar'; }
+    cancelLabel(): string { return 'Retirar'; }
+
+    personLabel(row: ClubAccessRow): string {
+        if (this.kind === 'solicitudes' && this.direction === 'enviadas') return 'Tu solicitud';
+        if (this.kind === 'invitaciones' && this.direction === 'recibidas') return row.Persona ? `Te invita ${row.Persona}` : 'Te han invitado';
+        return row.Persona ?? 'Persona no disponible';
+    }
+
+    openJoinedClub(): void {
+        const club = this.joinedClub;
+        if (club?.Id) void this.router.navigate(['/dashboard/community/clubs', club.Id]);
+    }
+
+    /** Otro correo: entrar con la cuenta que tiene ese correo confirmado (el selector de cuentas del SDK). */
+    switchAccount(): void { void this.session.cambiarCuenta(); }
+
+    /** Los dos pasos se activan en la web social; al volver se reintenta. */
+    get securityUrl(): string { return this.session.socialUrl(SOCIAL_SECURITY_VIEW); }
+
+    private run(row: ClubAccessRow, request: Observable<unknown>, done: () => void): void {
+        if (this.actionIds.has(row.Key) || this.isLoading) return;
+        this.actionIds.add(row.Key);
+        this.clearMessages();
         request.subscribe({
-            next: () => this.finishAction(),
-            error: error => {
-                this.actionIds.delete(row.Id);
-                this.error = getProductStateMessage(error, 'No se ha podido actualizar el acceso. La bandeja se ha reconciliado.');
-                this.load();
+            next: () => {
+                this.actionIds.delete(row.Key);
+                done();
                 this.accessChanged.emit();
+            },
+            error: error => {
+                this.actionIds.delete(row.Key);
+                const code = getApiErrorCode(error);
+                this.error = spaceErrorMessage(error, 'No se ha podido actualizar el acceso. Se ha vuelto a cargar la bandeja.');
+                this.errorAction = code === 'correo_de_otra_cuenta' ? 'cambiar_cuenta' : code === 'dos_pasos_necesarios' ? 'dos_pasos' : null;
+                // Lo que ya no está pendiente (caducada, retirada, resuelta por otra persona) desaparece al recargar.
+                if (code !== 'dos_pasos_necesarios' && code !== 'correo_de_otra_cuenta') this.reloadAfterError();
             }
         });
     }
 
-    private finishAction(): void {
-        this.actionIds.clear();
+    private reloadAfterError(): void {
+        const error = this.error;
+        const action = this.errorAction;
+        this.isLoading = false;
         this.load();
-        this.accessChanged.emit();
+        this.error = error;
+        this.errorAction = action;
     }
 
-    private requestRow(item: ClubJoinRequestOwn | ClubJoinRequestReceived): ClubAccessRow {
-        return {
-            ...item,
-            Persona: 'Solicitante' in item ? item.Solicitante : null,
-            PersonaSecundaria: null
-        };
-    }
-
-    private invitationRow(item: ClubInvitation | ClubInvitationSent): ClubAccessRow {
-        return {
-            ...item,
-            Persona: 'Invitado' in item ? item.Invitado : item.Invitador,
-            PersonaSecundaria: 'Invitado' in item ? item.Invitador : null,
-            Mensaje: null
-        };
+    private clearMessages(): void {
+        this.error = '';
+        this.notice = '';
+        this.errorAction = null;
+        this.joinedClub = null;
     }
 
     private syncUrl(): void {
         void this.router.navigate([], {
             relativeTo: this.route,
-            queryParams: { clubTab: 'access', accessType: this.kind, direction: this.direction, status: this.state },
+            queryParams: { clubTab: 'access', accessType: this.kind, direction: this.direction, status: null },
             queryParamsHandling: 'merge',
             replaceUrl: true
         });
-    }
-
-    private emptyCounters(): ClubAccessInboxCounters {
-        return {
-            Solicitudes: { EnviadasPendientes: 0, RecibidasPendientes: 0 },
-            Invitaciones: { EnviadasPendientes: 0, RecibidasPendientes: 0 }
-        };
     }
 }

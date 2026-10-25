@@ -139,10 +139,6 @@
                         <form class="prototype-login__form m-card"><label class="m-auth-field"><span>Alias</span><span class="m-field"><mat-icon aria-hidden="true">alternate_email</mat-icon><input autocomplete="username" maxlength="50"></span></label><label><input type="checkbox"> He leído y acepto la política de uso.</label><button class="m-button" type="button">Crear mi biblioteca</button></form>
                     </section>
                 }
-                @case ('reader') {
-                    <section class="prototype prototype--library" aria-labelledby="mobile-reader-title"><header class="prototype-heading"><div><p class="m-eyebrow">Mientras escribes</p><h1 class="m-display" id="mobile-reader-title">Tu biblioteca sigue aquí.</h1></div></header><p class="m-supporting">La sesión del libro permanece disponible sobre la navegación.</p></section>
-                    <app-native-reader-island [previewState]="readerPreview"></app-native-reader-island>
-                }
             }
         </main>
     </div>

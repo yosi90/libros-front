@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures/test';
 import { installLocalVisualSession } from './support/local-visual-session';
+import { SDK_DOUBLE_TOKEN } from './support/yosiftware-sdk-double';
 
 // Caso real (Siega, 20/10/2026): el alta de «Segador Goodall» se guardó en la API, la web no
 // recibió la respuesta, la lista no lo mostró al volver y el segundo intento lo duplicó.
@@ -8,11 +9,13 @@ import { installLocalVisualSession } from './support/local-visual-session';
 interface CharacterApiDouble {
     created: Array<{ Id: number; Nombre: string }>;
     createRequests: Array<Record<string, unknown>>;
+    /** La cabecera `Authorization` de cada alta: la API de Libros se llama con el token de la plataforma. */
+    createAuthorizations: string[];
 }
 
 /** API de personajes del libro 73 en memoria: crea de verdad aunque se pierda la respuesta. */
 async function installCharacterApi(page: Page, options: { loseFirstCreateResponse: boolean }): Promise<CharacterApiDouble> {
-    const server: CharacterApiDouble = { created: [], createRequests: [] };
+    const server: CharacterApiDouble = { created: [], createRequests: [], createAuthorizations: [] };
     const byClientId = new Map<string, unknown>();
     const character = (id: number, name: string) => ({
         Id: id,
@@ -42,6 +45,7 @@ async function installCharacterApi(page: Page, options: { loseFirstCreateRespons
             return route.fallback();
         const body = route.request().postDataJSON() as Record<string, unknown>;
         server.createRequests.push(body);
+        server.createAuthorizations.push(route.request().headers()['authorization'] ?? '');
         const clientId = typeof body['IdCliente'] === 'string' ? body['IdCliente'] : null;
         const previous = clientId ? byClientId.get(clientId) : null;
         if (previous)
@@ -98,6 +102,7 @@ test.describe('Alta de personajes en la web', () => {
         expect(server.created).toHaveLength(1);
         expect(server.createRequests).toHaveLength(2);
         expect(server.createRequests[1]['IdCliente']).toBe(server.createRequests[0]['IdCliente']);
+        expect(server.createAuthorizations).toEqual([`Bearer ${SDK_DOUBLE_TOKEN}`, `Bearer ${SDK_DOUBLE_TOKEN}`]);
     });
 
     test('al volver a la lista aparece el alta cuya respuesta se perdió y crear otro igual pide confirmación', async ({ page }) => {

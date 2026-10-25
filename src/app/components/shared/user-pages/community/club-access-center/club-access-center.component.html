@@ -6,67 +6,67 @@
 <section class="club-access" aria-labelledby="club-access-title">
   <h2 id="club-access-title" class="sr-only">Centro de acceso a clubes</h2>
   <div class="club-access__primary" role="tablist" aria-label="Tipo de acceso">
-    <button type="button" role="tab" [attr.aria-selected]="kind === 'solicitudes'" [class.is-active]="kind === 'solicitudes'" (click)="selectKind('solicitudes')"><mat-icon>outgoing_mail</mat-icon>Solicitudes @if (counters.Solicitudes.EnviadasPendientes + counters.Solicitudes.RecibidasPendientes) {
-    <b>{{counters.Solicitudes.EnviadasPendientes + counters.Solicitudes.RecibidasPendientes}}</b>
-  }</button>
-  <button type="button" role="tab" [attr.aria-selected]="kind === 'invitaciones'" [class.is-active]="kind === 'invitaciones'" (click)="selectKind('invitaciones')"><mat-icon>mark_email_unread</mat-icon>Invitaciones @if (counters.Invitaciones.EnviadasPendientes + counters.Invitaciones.RecibidasPendientes) {
-  <b>{{counters.Invitaciones.EnviadasPendientes + counters.Invitaciones.RecibidasPendientes}}</b>
-}</button>
-</div>
-
-<div class="club-access__toolbar">
-  <div class="club-access__direction" role="tablist" aria-label="Dirección">
-    <button type="button" [class.is-active]="direction === 'enviadas'" (click)="selectDirection('enviadas')">Enviadas @if (pendingFor('enviadas')) {
-      <b>{{pendingFor('enviadas')}}</b>
+    <button type="button" role="tab" [attr.aria-selected]="kind === 'invitaciones'" [class.is-active]="kind === 'invitaciones'" (click)="selectKind('invitaciones')"><mat-icon>mark_email_unread</mat-icon>Invitaciones @if (counters.Invitaciones.EnviadasPendientes + counters.Invitaciones.RecibidasPendientes) {
+      <b>{{counters.Invitaciones.EnviadasPendientes + counters.Invitaciones.RecibidasPendientes}}</b>
     }</button>
-    <button type="button" [class.is-active]="direction === 'recibidas'" (click)="selectDirection('recibidas')">Recibidas @if (pendingFor('recibidas')) {
-      <b>{{pendingFor('recibidas')}}</b>
+    <button type="button" role="tab" [attr.aria-selected]="kind === 'solicitudes'" [class.is-active]="kind === 'solicitudes'" (click)="selectKind('solicitudes')"><mat-icon>outgoing_mail</mat-icon>Solicitudes @if (counters.Solicitudes.EnviadasPendientes + counters.Solicitudes.RecibidasPendientes) {
+      <b>{{counters.Solicitudes.EnviadasPendientes + counters.Solicitudes.RecibidasPendientes}}</b>
     }</button>
   </div>
-  <label>Estado<select [ngModel]="state" (ngModelChange)="selectState($event)">@for (option of states; track option) {
-    <option [ngValue]="option.value">{{option.label}}</option>
-  }</select></label>
-</div>
 
-@if (isLoading && !rows.length) {
-  <p class="club-access__state" role="status"><mat-icon>hourglass_top</mat-icon>Cargando accesos…</p>
-}
-@if (error) {
-  <p class="club-access__error" role="alert">{{error}}</p>
-}
-
-@for (row of rows; track row) {
-  <article class="club-access__row">
-    <span class="club-access__icon"><mat-icon>{{kind === 'solicitudes' ? 'person_add' : 'mail'}}</mat-icon></span>
-    <div class="club-access__content">
-      <a [routerLink]="['/dashboard/community/clubs', row.Club.Id]">{{row.Club.Nombre}}</a>
-      <strong>{{personLabel(row)}}</strong>
-      @if (row.Mensaje) {
-        <p>{{row.Mensaje}}</p>
-      }
-      <small>Creada el {{row.FechaCreacion | date:'dd/MM/yyyy · HH:mm'}}@if (row.FechaResolucion) {
-        · resuelta el {{row.FechaResolucion | date:'dd/MM/yyyy · HH:mm'}}
-      }</small>
+  <div class="club-access__toolbar">
+    <div class="club-access__direction" role="tablist" aria-label="Dirección">
+      <button type="button" [class.is-active]="direction === 'recibidas'" (click)="selectDirection('recibidas')">Recibidas @if (pendingFor('recibidas')) {
+        <b>{{pendingFor('recibidas')}}</b>
+      }</button>
+      <button type="button" [class.is-active]="direction === 'enviadas'" (click)="selectDirection('enviadas')">Enviadas @if (pendingFor('enviadas')) {
+        <b>{{pendingFor('enviadas')}}</b>
+      }</button>
     </div>
-    <span class="club-access__status" [class]="'club-access__status club-access__status--' + row.Estado">{{stateLabel(row.Estado)}}</span>
-    @if (row.Estado === 'pendiente') {
+    <span [matTooltip]="isLoading ? 'Las bandejas se están actualizando.' : ''"><button type="button" class="club-access__reload" (click)="load()" [disabled]="isLoading" aria-label="Volver a cargar"><mat-icon>refresh</mat-icon></button></span>
+  </div>
+
+  @if (isLoading && !rows.length) {
+    <p class="club-access__state" role="status"><mat-icon>hourglass_top</mat-icon>Cargando accesos…</p>
+  }
+  @if (error) {
+    <p class="club-access__error" role="alert">{{error}}
+      @if (errorAction === 'cambiar_cuenta') { <button type="button" class="secondary" (click)="switchAccount()">Entrar con otra cuenta</button> }
+      @if (errorAction === 'dos_pasos') { <a [href]="securityUrl" target="_blank" rel="noopener">Activar la verificación en dos pasos</a> }
+    </p>
+  }
+  @if (notice) {
+    <p class="club-access__notice" role="status">{{notice}} @if (joinedClub?.Id) { <button type="button" class="secondary" (click)="openJoinedClub()">Abrir el club</button> }</p>
+  }
+
+  @for (row of rows; track row.Key) {
+    <article class="club-access__row">
+      <span class="club-access__icon"><mat-icon>{{kind === 'solicitudes' ? 'person_add' : 'mail'}}</mat-icon></span>
+      <div class="club-access__content">
+        @if (row.Club.Id) { <a [routerLink]="['/dashboard/community/clubs', row.Club.Id]">{{row.Club.Nombre}}</a> } @else { <span>{{row.Club.Nombre}}</span> }
+        <strong>{{personLabel(row)}}</strong>
+        @if (row.Detalle) {
+          <small>{{row.Detalle}}</small>
+        }
+        @if (row.Mensaje) {
+          <p>{{row.Mensaje}}</p>
+        }
+        <small>@if (row.FechaCreacion) {Enviada el {{row.FechaCreacion | date:'dd/MM/yyyy · HH:mm'}}}@if (row.FechaCreacion && row.Caduca) { · }@if (row.Caduca) {Caduca el {{row.Caduca | date:'dd/MM/yyyy'}}}@if (row.Club.DosPasos) { · exige la verificación en dos pasos}</small>
+      </div>
+      <span class="club-access__status club-access__status--pendiente">Pendiente</span>
       <div class="club-access__actions">
         @if (direction === 'recibidas') {
-          <span [matTooltip]="actionIds.has(row.Id) || isLoading ? 'La bandeja se está actualizando.' : ''"><button type="button" (click)="accept(row)" [disabled]="actionIds.has(row.Id) || isLoading"><mat-icon>check</mat-icon>Aceptar</button></span>
-          <span [matTooltip]="actionIds.has(row.Id) || isLoading ? 'La bandeja se está actualizando.' : ''"><button type="button" class="secondary" (click)="reject(row)" [disabled]="actionIds.has(row.Id) || isLoading"><mat-icon>close</mat-icon>Rechazar</button></span>
+          <span [matTooltip]="actionIds.has(row.Key) || isLoading ? 'La bandeja se está actualizando.' : ''"><button type="button" (click)="accept(row)" [disabled]="actionIds.has(row.Key) || isLoading"><mat-icon>check</mat-icon>{{acceptLabel()}}</button></span>
+          <span [matTooltip]="actionIds.has(row.Key) || isLoading ? 'La bandeja se está actualizando.' : ''"><button type="button" class="secondary" (click)="reject(row)" [disabled]="actionIds.has(row.Key) || isLoading"><mat-icon>close</mat-icon>Rechazar</button></span>
         } @else {
-          <span [matTooltip]="actionIds.has(row.Id) || isLoading ? 'La bandeja se está actualizando.' : ''"><button type="button" class="secondary" (click)="cancel(row)" [disabled]="actionIds.has(row.Id) || isLoading"><mat-icon>cancel_schedule_send</mat-icon>Cancelar</button></span>
+          <span [matTooltip]="actionIds.has(row.Key) || isLoading ? 'La bandeja se está actualizando.' : ''"><button type="button" class="secondary" (click)="cancel(row)" [disabled]="actionIds.has(row.Key) || isLoading"><mat-icon>cancel_schedule_send</mat-icon>{{cancelLabel()}}</button></span>
         }
       </div>
-    }
-  </article>
-}
+    </article>
+  }
 
-@if (!isLoading && !error && !rows.length) {
-  <p class="club-access__empty">No hay {{kind}} {{direction}} con este estado.</p>
-}
-@if (nextCursor) {
-  <span class="club-access__more" [matTooltip]="isLoading ? 'La siguiente página se está cargando.' : ''"><button type="button" (click)="loadMore()" [disabled]="isLoading">{{isLoading ? 'Cargando…' : 'Cargar más'}}</button></span>
-}
+  @if (!isLoading && !error && !rows.length) {
+    <p class="club-access__empty">{{emptyMessage}}</p>
+  }
 </section>
 }

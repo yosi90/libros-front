@@ -4,19 +4,14 @@ import { BooksComponent } from '../components/shared/user-pages/books/books.comp
 import { UserProfileComponent } from '../components/shared/user-pages/user-profile/user-profile.component';
 import { StatisticsComponent } from '../components/shared/user-pages/statistics/statistics.component';
 import { CatalogComponent } from '../components/shared/user-pages/catalog/catalog.component';
-import { AdminpanelComponent } from '../components/pages/adminpanel/adminpanel.component';
 import { profileSectionGuard } from '../guards/profile-section.guard';
-import { canModerateCatalogGuard } from '../guards/can-moderate-catalog.guard';
 import { CommunityComponent } from '../components/shared/user-pages/community/community.component';
 import { ClubDetailComponent } from '../components/shared/user-pages/club-detail/club-detail.component';
 import { ChatComponent } from '../components/shared/user-pages/chat/chat.component';
 import { ChatConversationComponent } from '../components/shared/user-pages/chat-conversation/chat-conversation.component';
-import { CommunityProfileComponent } from '../components/shared/user-pages/community-profile/community-profile.component';
-import { CommunityRelationshipsComponent } from '../components/shared/user-pages/community-relationships/community-relationships.component';
 import { communityCapabilityGuard } from '../guards/community-capability.guard';
 import { SocialShellComponent } from '../components/shared/user-pages/social-shell/social-shell.component';
 import { SocialSummaryComponent } from '../components/shared/user-pages/social-summary/social-summary.component';
-import { desktopAdministrationGuard } from '../guards/desktop-administration.guard';
 import { AccountSecurityComponent } from '../components/shared/user-pages/account-security/account-security.component';
 import { AppPreferencesComponent } from '../components/shared/user-pages/app-preferences/app-preferences.component';
 import { desktopPresentationGuard } from '../guards/desktop-presentation.guard';
@@ -56,17 +51,16 @@ export const routes: Routes = [
                 canActivate: [authGuard],
                 children: [
                     { path: 'summary', component: SocialSummaryComponent },
-                    { path: 'people', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', communityView: 'people' } },
-                    { path: 'activity', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', communityView: 'activity' } },
-                    { path: 'friendships', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'amistades' } },
-                    { path: 'blocks', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'bloqueos', blocksOnly: true } },
                     { path: 'clubs/:id', component: ClubDetailComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes' } },
-                    { path: 'clubs', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes', communityView: 'clubs' } },
-                    { path: 'users/:id', component: CommunityProfileComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed' } },
-                    { path: 'messages', component: ChatComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'chat' }, children: [
+                    { path: 'clubs', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes' } },
+                    // El chat es el de la plataforma (decisión 6 del roadmap del ecosistema), con cualquier sesión.
+                    { path: 'messages', component: ChatComponent, children: [
                         { path: ':id', component: ChatConversationComponent }
                     ] },
-                    { path: 'relationships', redirectTo: 'friendships', pathMatch: 'full' },
+                    // Las personas, las amistades, los bloqueos, los perfiles y el muro general se retiraron con la
+                    // adhesión: son de la web social, que el resumen enlaza con el símbolo del ecosistema.
+                    ...['people', 'activity', 'friendships', 'blocks', 'relationships', 'users/:id']
+                        .map(path => ({ path, redirectTo: 'summary', pathMatch: 'full' as const })),
                     { path: '', redirectTo: 'summary', pathMatch: 'full' },
                 ]
             },
@@ -76,11 +70,6 @@ export const routes: Routes = [
                 canActivate: [authGuard],
             },
             {
-                path: 'adminpanel',
-                component: AdminpanelComponent,
-                canActivate: [authGuard, canModerateCatalogGuard, desktopAdministrationGuard],
-            },
-            {
                 path: 'authors',
                 // Los listados personales viven en el Perfil.
                 redirectTo: '/dashboard/profile?section=authors',
@@ -88,14 +77,14 @@ export const routes: Routes = [
             },
             {
                 path: 'authors/new',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=authors',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=authors',
                 pathMatch: 'full',
             },
             {
                 path: 'authors/:id',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=authors',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=authors',
                 pathMatch: 'full',
             },
             {
@@ -106,14 +95,14 @@ export const routes: Routes = [
             },
             {
                 path: 'universes/new',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=universes',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=universes',
                 pathMatch: 'full',
             },
             {
                 path: 'universes/:id',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=universes',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=universes',
                 pathMatch: 'full',
             },
             {
@@ -124,14 +113,14 @@ export const routes: Routes = [
             },
             {
                 path: 'sagas/new',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=sagas',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=sagas',
                 pathMatch: 'full',
             },
             {
                 path: 'sagas/:id',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=sagas',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=sagas',
                 pathMatch: 'full',
             },
             {
@@ -142,14 +131,14 @@ export const routes: Routes = [
             },
             {
                 path: 'anthologies/new',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=anthologies',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=anthologies',
                 pathMatch: 'full',
             },
             {
                 path: 'anthologies/:id',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=anthologies',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=anthologies',
                 pathMatch: 'full',
             },
             {
@@ -160,14 +149,14 @@ export const routes: Routes = [
             },
             {
                 path: 'books/manage/new',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=books',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=books',
                 pathMatch: 'full',
             },
             {
                 path: 'books/manage/:id',
-                // Altas y ediciones canónicas viven en Administración.
-                redirectTo: '/dashboard/adminpanel?section=books',
+                // El catálogo se edita en el plugin de la administración de la plataforma; aquí, el listado del Perfil.
+                redirectTo: '/dashboard/profile?section=books',
                 pathMatch: 'full',
             },
             { path: '', redirectTo: 'books', pathMatch: 'full' },

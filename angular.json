@@ -28,8 +28,7 @@
             "assets": [
               "src/favicon.ico",
               "src/manifest.webmanifest",
-              "src/assets",
-              { "glob": "firebase-messaging-sw.js", "input": "src", "output": "/" }
+              "src/assets"
             ],
             "styles": [
               "node_modules/material-icons/iconfont/filled.css",
@@ -43,7 +42,6 @@
                 "src/favicon.ico",
                 "src/manifest.webmanifest",
                 "src/assets",
-                { "glob": "firebase-messaging-sw.js", "input": "src", "output": "/" },
                 { "glob": "assetlinks.json", "input": "src/hosting/production/.well-known", "output": "/.well-known" }
               ],
               "serviceWorker": "ngsw-config.json",
@@ -71,7 +69,6 @@
                 "src/favicon.ico",
                 "src/manifest.webmanifest",
                 "src/assets",
-                { "glob": "firebase-messaging-sw.js", "input": "src", "output": "/" },
                 { "glob": "assetlinks.json", "input": "src/hosting/qa/.well-known", "output": "/.well-known" }
               ],
               "fileReplacements": [
@@ -85,6 +82,17 @@
               "sourceMap": true,
               "outputHashing": "all",
               "serviceWorker": "ngsw-config.json"
+            },
+            "dev-plataforma": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environment/environment.ts",
+                  "with": "src/environment/environment.dev-plataforma.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -100,6 +108,20 @@
             },
             "qa": {
               "buildTarget": "book-front:build:qa"
+            },
+            "dev-plataforma": {
+              "buildTarget": "book-front:build:dev-plataforma",
+              "host": "127.0.0.15",
+              "port": 443,
+              "ssl": true,
+              "proxyConfig": "proxy.dev-plataforma.json",
+              "allowedHosts": [
+                "libros.dev.yosiftware.es"
+              ],
+              "headers": {
+                "Content-Security-Policy": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://qa-cuentas.yosiftware.es https://estadisticas.yosiftware.es; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://qa-cuentas-api.yosiftware.es https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://qa-cuentas-api.yosiftware.es wss://qa-cuentas-ws.yosiftware.es https://estadisticas.yosiftware.es; frame-src https://qa-cuentas.yosiftware.es; worker-src 'self' blob:; manifest-src 'self'",
+                "Cross-Origin-Opener-Policy": "same-origin-allow-popups"
+              }
             }
           },
           "defaultConfiguration": "development"

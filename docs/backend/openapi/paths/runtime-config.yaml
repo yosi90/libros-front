@@ -11,31 +11,10 @@
           application/json:
             schema:
               type: object
-              required: [success, Environment, QaDatasetVersion, RealtimeWsUrl, Firebase]
+              additionalProperties: false
+              description: La configuracion de Firebase y del WebSocket propio se retiro con la adhesion a Yosiftware; la sesion, el tiempo real y el push son del SDK de la plataforma.
+              required: [success, Environment, QaDatasetVersion]
               properties:
                 success: {type: boolean, const: true}
                 Environment: {type: string, enum: [local, qa, produccion]}
                 QaDatasetVersion: {type: [string, 'null']}
-                RealtimeWsUrl: {type: string}
-                Firebase:
-                  type: object
-                  additionalProperties: false
-                  required: [ApiKey, AuthDomain, ProjectId, StorageBucket, MessagingSenderId, AppId, DatabaseURL, VapidKey, Providers, PhoneTestingMode]
-                  properties:
-                    ApiKey: {type: string}
-                    AuthDomain: {type: string}
-                    ProjectId: {type: string}
-                    StorageBucket: {type: string}
-                    MessagingSenderId: {type: string}
-                    AppId: {type: string}
-                    DatabaseURL: {type: string}
-                    VapidKey: {type: string}
-                    Providers:
-                      type: object
-                      additionalProperties: false
-                      required: [Password, Google, Phone]
-                      properties:
-                        Password: {type: boolean}
-                        Google: {type: boolean}
-                        Phone: {type: boolean}
-                    PhoneTestingMode: {type: boolean}

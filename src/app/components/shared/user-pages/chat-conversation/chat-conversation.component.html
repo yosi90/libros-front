@@ -6,7 +6,7 @@
 <section class="conversation" [class.conversation--floating]="floating" [attr.aria-busy]="isLoading">
   <header>@if (!floating) {
     <a routerLink="/dashboard/community/messages"><mat-icon>arrow_back</mat-icon>Conversaciones</a>
-    }<h1>{{conversation?.EsSistema ? 'Yosiftware' : (conversation?.Titulo || 'Chat')}}</h1>@if (canFloat) {
+    }<h1>{{conversation?.Titulo || 'Chat'}}</h1>@if (canFloat) {
     <button class="conversation__manage-toggle" type="button" (click)="openInWindow()" aria-label="Abrir en ventana flotante"><mat-icon>picture_in_picture_alt</mat-icon></button>
     }@if (conversation?.Tipo === 'grupo') {
     <button class="conversation__manage-toggle" type="button" (click)="toggleManagement()" [attr.aria-expanded]="managementOpen" aria-label="Gestionar grupo"><mat-icon>{{managementOpen ? 'close' : 'settings'}}</mat-icon></button>
@@ -50,7 +50,7 @@
   }
   <main #messageList>
     @for (message of (searchResults || messages); track message) {
-      <article class="conversation-message" [attr.data-message-id]="message.Id" [attr.data-request-state]="message.PeticionCatalogo?.Estado" [class.conversation-message--own]="isOwn(message)" [class.conversation-message--system]="message.TipoRemitente === 'sistema'" [class.conversation-message--highlighted]="highlightedMessageId === message.Id" [class.conversation-message--important]="message.SeveridadSistema === 'importante'" [class.conversation-message--critical]="message.SeveridadSistema === 'critico'">
+      <article class="conversation-message" [attr.data-message-id]="message.Id" [class.conversation-message--own]="isOwn(message)" [class.conversation-message--system]="message.TipoRemitente === 'sistema'" [class.conversation-message--highlighted]="highlightedMessageId === message.Id">
         <small>{{message.TipoRemitente === 'sistema' ? 'Yosiftware' : (message.Remitente?.Nombre || 'Usuario')}} · {{message.FechaEnvio | date:'dd/MM/yyyy HH:mm'}}@if (severityLabel(message); as severity) {
           · <b>{{severity}}</b>
           }@if (deliveryLabel(message); as delivery) {
@@ -58,15 +58,12 @@
         }</small>
         @if (!message.Eliminado) {
           @if (message.MensajeRespondido; as replied) {
-            <div class="conversation-message__reply"><mat-icon>reply</mat-icon><span>{{replied.Eliminado ? 'Mensaje respondido eliminado' : replied.CuerpoMarkdown}}</span></div>
+            <div class="conversation-message__reply"><mat-icon>reply</mat-icon><span>{{replied.Eliminado ? 'Mensaje respondido eliminado' : replied.Texto}}</span></div>
           }
           @if (editingMessageId !== message.Id) {
-            @if (message.PeticionCatalogo; as request) {<div>{{request.Texto}}</div>} @else {<div [innerHTML]="renderMarkdown(message.CuerpoMarkdown)"></div>}
+            <div [innerHTML]="renderText(message.Texto)"></div>
           } @else {
             <form class="conversation-message__edit" (submit)="$event.preventDefault(); saveEdit(message)"><textarea [(ngModel)]="editContent" [name]="'edit-' + message.Id" maxlength="4000" rows="3" aria-label="Contenido del mensaje" required></textarea><span><button type="button" (click)="cancelEdit()">Cancelar</button><button type="submit" [disabled]="!editContent.trim() || isSavingEdit">Guardar</button></span></form>
-          }
-          @if (message.TipoRemitente === 'sistema' && message.Accion && message.Accion.ContextoTipo !== 'none' && (!message.PeticionCatalogo || (message.PeticionCatalogo.Id && message.PeticionCatalogo.Estado !== 'no_disponible'))) {
-            <button type="button" class="conversation-message__system-action" (click)="openSystemAction(message)"><mat-icon>open_in_new</mat-icon>Ver detalle</button>
           }
           <footer>@if (message.Permisos.PuedeResponder) {
             <button type="button" (click)="reply(message)" aria-label="Responder"><mat-icon>reply</mat-icon></button>
@@ -76,6 +73,8 @@
               <span>{{message.Reacciones.PorTipo[reaction.type]}}</span>
             }</button>
           }
+          }@for (other of message.Reacciones.Otras; track other.Emoji) {
+          <button type="button" (click)="reactWithEmoji(message, other.Emoji)" [disabled]="!message.Permisos.PuedeReaccionar" [class.is-active]="isMyEmoji(message, other.Emoji)" [attr.aria-label]="'Reacción ' + other.Emoji"><span aria-hidden="true">{{other.Emoji}}</span><span>{{other.Total}}</span></button>
           }@if (message.Permisos.PuedeDenunciar) {
           <button type="button" (click)="report(message)" [disabled]="reportingMessageIds.has(message.Id)" aria-label="Denunciar mensaje"><mat-icon>flag</mat-icon></button>
           }@if (deliveryLabel(message) === 'Falló el envío') {
@@ -101,10 +100,10 @@
 }
 @if (conversation?.PuedeEnviar !== false) {
   <form (submit)="$event.preventDefault(); send()">@if (replyingTo) {
-    <div class="conversation__replying"><span>Respondiendo a: {{replyingTo.CuerpoMarkdown}}</span><button type="button" (click)="cancelReply()" aria-label="Cancelar respuesta"><mat-icon>close</mat-icon></button></div>
+    <div class="conversation__replying"><span>Respondiendo a: {{replyingTo.Texto}}</span><button type="button" (click)="cancelReply()" aria-label="Cancelar respuesta"><mat-icon>close</mat-icon></button></div>
     }@if (typingUserIds.size) {
     <p class="conversation__typing" role="status" aria-live="polite">{{typingLabel()}}</p>
-    }<textarea [(ngModel)]="draft" (input)="onDraftInput()" name="draft" maxlength="4000" rows="3" placeholder="Escribe un mensaje Markdown" aria-label="Nuevo mensaje" required></textarea><button type="submit" [disabled]="!draft.trim() || isSending"><mat-icon>send</mat-icon>{{isSending ? 'Enviando…' : 'Enviar'}}</button></form>
+    }<textarea [(ngModel)]="draft" (input)="onDraftInput()" name="draft" maxlength="4000" rows="3" placeholder="Escribe un mensaje" aria-label="Nuevo mensaje" required></textarea><button type="submit" [disabled]="!draft.trim() || isSending"><mat-icon>send</mat-icon>{{isSending ? 'Enviando…' : 'Enviar'}}</button></form>
   }
   @if (conversation?.PuedeEnviar === false) {
     <p class="conversation__state">Esta conversación es de solo lectura.</p>

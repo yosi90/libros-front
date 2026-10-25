@@ -4,55 +4,26 @@ Todas las respuestas de error usan el envelope documentado en OpenAPI. Cuando ex
 
 | Dominio | HTTP | `error.code` | Acción del cliente |
 |---|---:|---|---|
-| Autenticación | 401 | `authorization_required`, `access_token_expired`, `revoked_token`, `fresh_token_required` | Renovar o iniciar sesión según corresponda. |
-| Autenticación | 422 | `invalid_token` | Descartar la sesión local e iniciar sesión. |
-| Sesión | 401 | `session_refresh_invalid`, `session_revoked`, `refresh_replay_detected`, `firebase_identity_revoked` | Limpiar access/refresh local. Ante replay, informar del cierre de ese dispositivo. |
-| Sesión | 400 | `session_id_invalid` | Corregir el UUID de la sesion propia. |
-| Sesión | 403 | `csrf_invalid` | Recuperar una prueba con `GET /auth/session/csrf` y reintentar una sola vez; nunca intentar leer el refresh. |
-| Sesión | 503 | `session_refresh_unavailable`, `session_csrf_unavailable` | Mantener el estado de UI sin asumir que la sesion fue rotada y reintentar con prudencia. |
-| Firebase | 400/401/403 | `firebase_id_token_required`, `firebase_id_token_invalid`, `firebase_id_token_expired`, `firebase_id_token_revoked`, `firebase_provider_invalid`, `firebase_provider_not_enabled`, `firebase_provider_subject_required`, `firebase_email_required`, `firebase_email_unverified`, `firebase_user_disabled` | Renovar la prueba Firebase o mostrar el proveedor admitido; nunca reutilizar custom tokens como login. |
-| Onboarding | 400/409 | `onboarding_invalid_payload`, `onboarding_unknown_field`, `onboarding_alias_invalid`, `onboarding_policy_invalid`, `onboarding_country_invalid`, `onboarding_ticket_invalid`, `onboarding_email_taken`, `onboarding_alias_taken`, `usage_policy_version_conflict` | Señalar `field: Email` o `field: Alias` según corresponda; un alias ocupado permite obtener otro ticket desde la misma identidad Firebase. |
-| Corrección de correo del alta | 400/401/403/409 | `pending_email_correction_invalid_payload`, `firebase_recent_login_required`, `pending_email_correction_password_required`, `pending_email_correction_not_verified`, `pending_email_correction_account_unavailable`, `pending_email_correction_not_needed`, `email_already_registered` | Confirmar el enlace Firebase, volver a iniciar sesión con password y enviar el ID token reciente; después intercambiarlo en `/auth/session`. |
-| Cambio de email | 400/401/409 | `reauthentication_invalid_payload`, `firebase_recent_login_required`, `reauthentication_ticket_invalid`, `email_change_invalid_payload`, `email_change_email_invalid`, `email_change_same_email`, `email_change_reserved`, `email_change_reservation_invalid`, `email_change_not_confirmed` | Reautenticar, reservar y confirmar con el ID token que ya contiene el nuevo email verificado. |
-| Metodos de acceso | 400/404/409 | `access_method_not_enabled`, `access_method_invalid`, `access_method_not_linked`, `access_method_already_linked`, `access_method_conflict`, `link_ticket_invalid`, `firebase_email_conflict`, `firebase_identity_conflict`, `google_email_mismatch_confirmation_required`, `google_email_mismatch_confirmation_invalid`, `google_email_mismatch_confirmation_unexpected`, `last_recoverable_access_method` | Reconciliar con `GET /auth/access-methods`; ante diferencia Google mostrar solo `details` enmascarado y reintentar con `ConfirmEmailMismatch=true` tras confirmacion. Consumir `LinkTicket` solo tras login y reautenticacion, nunca fusionar silenciosamente ni retirar el ultimo metodo. |
-| Telefono | 400/403/429 | `phone_number_invalid`, `phone_region_not_allowed`, `phone_preflight_rate_limited` | No solicitar SMS sin preflight `201`; respetar `Retry-After` y no usar numeros fuera de la allowlist. |
-| Telefono | 400/401/403/409 | `phone_attempt_required`, `phone_attempt_unexpected`, `phone_attempt_invalid`, `phone_attempt_expired`, `phone_attempt_consumed`, `phone_attempt_not_allowed`, `phone_attempt_mismatch`, `phone_attempt_user_conflict`, `phone_attempt_user_required`, `phone_access_method_not_linked` | Repetir el preflight para obtener otro `IntentoId`; el login telefonico solo existe para una cuenta previamente vinculada. |
-| Gate | 403 | `account_sanctioned` | Bloquear acciones privadas y limpiar realtime/RTDB. Consultar el estado propio. |
-| Gate | 403 | `capability_sanctioned` | Bloquear solo el alcance pedido y consultar el estado propio. |
-| Gate | 403 | `user_not_found` | Invalidar la sesión local. |
-| Gate | 403 | `email_verification_pending` | Solicitar verificación de correo. |
-| Gate | 403 | `usage_policy_acceptance_required` | Abrir la aceptación de política de uso y suspender el resto del arranque privado hasta aceptar (ver «Nueva versión de las normas de uso»). |
-| Gate | 403 | `creation_policy_acceptance_required` | Abrir la aceptación de política de creación. |
-| Preferencias de interfaz | 400 | `interface_preferences_invalid_payload`, `interface_preferences_unknown_field`, `interface_preferences_version_invalid`, `interface_preferences_no_changes`, `interface_preferences_theme_invalid` | Corregir el body; enviar `Version` y un `Tema` admitido sin campos ajenos. |
-| Preferencias de interfaz | 409 | `interface_preferences_conflict` | Adoptar `details.Preferencias`, reconciliar la elección local y solo reintentar con confirmación del usuario. |
-| Preferencias de notificaciones | 400 | `invalid_notification_preferences`, `invalid_notification_preference`, `duplicate_notification_preference` | Corregir la matriz; cada combinación `Categoria` + `Canal` debe ser única y `Habilitado` booleano. |
-| Preferencias de notificaciones | 409 | `mandatory_notification_category` | Mantener habilitadas `moderacion/in_app` y `sistema/in_app`. |
+| Autenticación | 401 | `authorization_required`, `access_token_expired`, `invalid_token` | Token de la cuenta de Yosiftware ausente, caducado o no válido: `yosiftware.fetch()` renueva y repite; si vuelve a fallar, pedir que entre con `<yosi-acceso>` ([ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md)). |
+| Autenticación | 403 | `account_deleted` | La cuenta se borró en la plataforma: volver a la vista sin sesión. |
+| Autenticación | 503 | `authentication_unavailable` | La API no tiene configurada la validación de la plataforma: error genérico. |
+| Cuenta | 403 | `platform_restriction_active` | La cuenta tiene limitado lo que intenta (`details.Alcance` y `details.Hasta`); no ofrecerlo. |
+| Cuenta | 403 | `platform_rules_acceptance_required` | Llevar a aceptar las normas de Libros con el SDK y pedir un token nuevo. |
 | Coleccion | 409 | `anthology_section_collection_forbidden` | Retirar la seccion de superficies de libro independiente y abrirla exclusivamente desde su antologia. |
 | Seccion de antologia | 404 | `anthology_not_in_collection` | Retirar el editor contextual o refrescar la coleccion; la antologia ya no esta disponible para esa cuenta. |
 | Seccion de antologia | 404 | `anthology_section_relation_not_found` | Refrescar el detalle: el libro no pertenece a la antologia indicada. |
 | Edicion de seccion de antologia | 400 | `anthology_section_update_required_fields`, `anthology_section_update_empty`, `invalid_anthology_section_pages` | Enviar `AntologiaId`, `LibroId` y al menos un metadato editable; las paginas de encaje deben ser numericas. |
 | Multipart de seccion de antologia | 400 | `invalid_multipart_payload` | Corregir el JSON serializado enviado en `payload` o `data`. |
-| Clubes | 409 | `club_owner_limit_reached`, `club_membership_limit_reached` | Mostrar el límite de producto. |
-| Relaciones | 400 | `invalid_relationship_kind` | Usar `seguidos`, `seguidores`, `amistades` o `bloqueos`. |
-| Solicitudes | 400 | `invalid_friend_request_direction` | Usar `recibidas` o `enviadas`. |
-| Perfil/relación | 404 | `community_profile_not_found` | Tratar privado, bloqueado, no verificado o inexistente como no disponible. |
-| Seguir | 400 | `invalid_social_request`, `invalid_follow_target` | Corregir destino y no permitir seguirse a uno mismo. |
-| Amistad | 400 | `invalid_friend_target`, `invalid_friend_state` | Corregir destino o estado. |
-| Amistad | 404 | `friend_request_not_found` | Refrescar la bandeja. |
-| Bloqueo | 400 | `invalid_block_target` | No permitir bloquearse a uno mismo. |
-| Relación | 403 | `user_blocked` | Retirar acciones sin inferir quién bloqueó. |
-| Chat directo | 400 | `invalid_direct_target` | Corregir el ID de destino. |
-| Chat directo | 403 | `direct_not_allowed` | Refrescar elegibilidad sin revelar la causa. |
+| Clubes | 409 | `club_owner_limit_reached` | Mostrar el límite de producto. |
+| Clubes y su espacio | 503 | `club_space_unavailable` | La plataforma no responde: no se ha hecho nada; reintentar más tarde. |
+| Clubes y su espacio | 403, 409, 429, 502 | `club_space_account_restricted`, `club_space_account_unavailable`, `club_space_account_limit`, `club_space_two_steps_required`, `club_space_daily_limit`, `club_space_rejected` | La plataforma no deja crear o cambiar el espacio del club; mostrar `error` (`details.Plataforma` lleva su código). |
 
-## Nueva versión de las normas de uso
+## Normas pendientes
 
-Al publicarse una versión nueva de `uso`, toda cuenta que aceptó la anterior vuelve a recibir `403 usage_policy_acceptance_required` en las rutas no exentas hasta aceptar la vigente. Es el caso de las versiones 2 y 3 publicadas el 2026-10-06. El primer `403` de ese código debe:
+Las normas de uso comunes y las normas propias de Libros las publica la plataforma. Cuando el token trae `normasPendientes`, la API responde `403 platform_rules_acceptance_required` en las rutas no exentas. El primer `403` de ese código debe:
 
-1. Abrir la aceptación (`GET` y `POST` de la política `uso` activa) una sola vez, sin duplicar diálogos por cada petición fallida.
-2. Suspender el resto del arranque privado: tickets WebSocket (`/chat/ws-ticket`, `/chat/comunidad-ws-ticket`), `POST /auth/firebase-custom-token`, comunidad, chat, clubes, moderación propia y fichas de obra.
-3. No reintentar esas llamadas mientras la política siga pendiente. Este `403` no es transitorio y reintentarlo no lo resuelve.
-4. Tras aceptar, relanzar el arranque completo una vez.
+1. Llevar a aceptar las normas con el SDK de la plataforma, una sola vez, sin duplicar diálogos por cada petición fallida.
+2. Suspender el resto del arranque privado (comunidad, clubes y fichas de obra) y no reintentarlo mientras sigan pendientes: este `403` no es transitorio.
+3. Tras aceptar, pedir un token nuevo (`yosiftware.fetch()` lo renueva) y relanzar el arranque una vez.
 
-Mientras la política está pendiente siguen disponibles, con JWT, las lecturas exentas: listados de catálogo y autores, universos y sagas, catálogos auxiliares, resumen de colección, capacidades, notificaciones y sus preferencias, `GET /usuarios/me/preferencias-interfaz` (para pintar la aceptación con el tema del usuario), `GET /auth/sessions` y `GET /auth/access-methods`. Cualquier escritura sigue exigiendo la aceptación.
-
-`GET /moderacion/mi-estado-acceso` es el punto de reconciliación para sanciones y políticas. OpenAPI replica en `x-functional-error-codes` los códigos adicionales propios de cada operación y prevalece sobre esta tabla.
+Mientras faltan siguen disponibles, con el token, las lecturas exentas: listados de catálogo y autores, universos y sagas, catálogos auxiliares, resumen de colección, capacidades y el usuario local propio (`GET /usuarios/me`). Cualquier escritura sigue exigiendo la aceptación. OpenAPI replica en `x-functional-error-codes` los códigos propios de cada operación y prevalece sobre esta tabla.

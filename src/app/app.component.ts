@@ -1,12 +1,12 @@
-import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy, effect, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NavbarComponent } from './components/shared/common/navbar/navbar.component';
 import { RouterComponent } from './components/shared/common/main-router/router.component';
 import { FooterComponent } from './components/shared/common/footer/footer.component';
 import { LoaderEmmitterService } from './services/emmitters/loader.service';
-import { SessionService } from './services/auth/session.service';
+import { PlatformSessionService } from './services/auth/platform-session.service';
 import { AuthorStoreService } from './services/stores/author-store.service';
 import { UniverseStoreService } from './services/stores/universe-store.service';
-import { combineLatest, finalize, timeout } from 'rxjs';
+import { combineLatest, finalize, Subscription, timeout } from 'rxjs';
 import { AppToastHostComponent } from './shared/toast/app-toast-host.component';
 import { CatalogService } from './services/entities/catalog.service';
 import { CollectionService } from './services/entities/collection.service';
@@ -18,16 +18,8 @@ import { ConnectivityService } from './services/ui/connectivity.service';
 import { PwaLifecycleService } from './services/ui/pwa-lifecycle.service';
 import { MatIconModule } from '@angular/material/icon';
 import { PresentationModeService } from './services/ui/presentation-mode.service';
-import { NativeAppLinksService } from './services/native/native-app-links.service';
-import { NativeRuntimeService } from './services/native/native-runtime.service';
-import { AndroidReleaseUpdateService } from './services/native/android-release-update.service';
 import { CommandPaletteService } from './services/ui/command-palette.service';
 import { WebCommandPaletteComponent } from './components/web/ui/web-command-palette/web-command-palette.component';
-import { NativeReaderIslandComponent } from './components/mobile/book/native-reader-island/native-reader-island.component';
-import { NativeReaderSessionService } from './services/navigation/native-reader-session.service';
-import { PushNotificationService } from './services/realtime/push-notification.service';
-import { NativeKeyboardFocusService } from './services/native/native-keyboard-focus.service';
-import { NativeNetworkFeedbackService } from './services/native/native-network-feedback.service';
 
 @Component({
     standalone: true,
@@ -39,7 +31,6 @@ import { NativeNetworkFeedbackService } from './services/native/native-network-f
         AppToastHostComponent,
         DecisionNoticeHostComponent,
         MatIconModule,
-        NativeReaderIslandComponent,
         WebCommandPaletteComponent
     ],
     templateUrl: './app.component.html',
@@ -47,7 +38,6 @@ import { NativeNetworkFeedbackService } from './services/native/native-network-f
     styleUrl: './app.component.sass'
 })
 export class AppComponent implements OnInit {
-    readonly networkFeedback = inject(NativeNetworkFeedbackService);
     readonly commandPalette = inject(CommandPaletteService);
     title = 'Memoria bibliográfica';
     building: boolean = true;
@@ -132,10 +122,13 @@ export class AppComponent implements OnInit {
     ];
     private libraryRestored = false;
     private libraryRestorationInFlight = false;
+    /** La cuenta (su generación) para la que se está recuperando la biblioteca, y esa recuperación. */
+    private libraryRestorationGeneration: number | null = null;
+    private libraryRestoration: Subscription | null = null;
 
     constructor(
         private loader: LoaderEmmitterService,
-        private sessionSrv: SessionService,
+        private sessionSrv: PlatformSessionService,
         private collectionSrv: CollectionService,
         private universeStore: UniverseStoreService,
         private catalogSrv: CatalogService,
@@ -144,39 +137,13 @@ export class AppComponent implements OnInit {
         private toasts: AppToastService,
         private adaptiveLayout: AdaptiveLayoutService,
         private presentationMode: PresentationModeService,
-        private nativeAppLinks: NativeAppLinksService,
-        private nativeRuntime: NativeRuntimeService,
-        private nativeKeyboardFocus: NativeKeyboardFocusService,
-        private androidUpdates: AndroidReleaseUpdateService,
-        private nativeReader: NativeReaderSessionService,
-        private pushNotifications: PushNotificationService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
-    ) {
-        effect(() => {
-            const message = this.networkFeedback.message();
-            if (message && this.sessionReady && !this.building) {
-                this.toasts.showSystem(message, { title: 'Buscando otro camino', dedupeKey: 'native:ipv6-fallback', durationMs: 6000 });
-            }
-        });
-    }
-
+    ) { }
 
     ngOnInit(): void {
-        this.nativeKeyboardFocus.initialize();
-        void this.nativeReader.state();
-        void this.pushNotifications.initializeNativeListeners().catch(() => this.toasts.showSystem(
-            'Android no pudo preparar la apertura de notificaciones. Puedes reintentarlo al reiniciar la app.',
-            { title: 'Notificaciones parcialmente disponibles', dedupeKey: 'native:push:listeners', durationMs: 8000 }
-        ));
         void this.adaptiveLayout.snapshot;
         void this.presentationMode.snapshot;
-        void this.nativeAppLinks.initialize();
-        void this.nativeRuntime.initialize().catch(() => this.toasts.showSystem(
-            'Android no pudo preparar todas las integraciones del dispositivo. Puedes continuar y volver a intentarlo al reiniciar la app.',
-            { title: 'Integración nativa parcial', dedupeKey: 'native:runtime:init', durationMs: 8000 }
-        ));
-        void this.androidUpdates.check();
         this.loader.loaderStatus$.subscribe(value => {
             // Un mismo proceso puede emitir varias veces mientras sigue activo (por
             // ejemplo, el guard del libro confirma la carga iniciada desde la
@@ -213,26 +180,37 @@ export class AppComponent implements OnInit {
     }
 
     private restoreLibrary(): void {
-        if (!this.sessionSrv.canAccessLibrary || this.libraryRestored || this.libraryRestorationInFlight)
+        const generation = this.sessionSrv.generation;
+        if (!this.sessionSrv.canAccessLibrary || this.libraryRestored)
             return;
+        // Una recuperación de la cuenta anterior que aún no ha respondido no frena la de la cuenta nueva
+        // (CAMBIO_DE_CUENTA.md): se abandona y se pide la biblioteca de quien está ahora.
+        if (this.libraryRestorationInFlight && this.libraryRestorationGeneration === generation)
+            return;
+        this.libraryRestoration?.unsubscribe();
 
         this.libraryRestorationInFlight = true;
+        this.libraryRestorationGeneration = generation;
         this.loader.activateLoader('library');
+        // Lo que llegue de otra cuenta (CAMBIO_DE_CUENTA.md) no se guarda: el interceptor ya lo descarta, y aquí
+        // tampoco se aplica el catálogo de autores que se pide después.
 
         // La biblioteca es la superficie necesaria para entrar. El catálogo de
         // autores es auxiliar y no debe mantener toda la app bloqueada.
-        this.collectionSrv.getUniverses().pipe(
+        this.libraryRestoration = this.collectionSrv.getUniverses().pipe(
             timeout({ first: 16_000 }),
             finalize(() => {
+                if (this.libraryRestorationGeneration !== generation) return;
                 this.libraryRestorationInFlight = false;
                 this.loader.deactivateLoader();
             })
         ).subscribe({
             next: universes => {
+                if (!this.sessionSrv.isCurrentGeneration(generation)) return;
                 this.universeStore.setUniverses(universes);
                 this.libraryRestored = true;
                 this.catalogSrv.getAuthors().pipe(timeout({ first: 30000 })).subscribe({
-                    next: authors => this.authorStore.setAuthors(authors),
+                    next: authors => { if (this.sessionSrv.isCurrentGeneration(generation)) this.authorStore.setAuthors(authors); },
                     error: () => this.toasts.showSystem('El catálogo de autores tardó demasiado. Se volverá a cargar cuando lo necesites.', {
                         title: 'Catálogo pendiente', dedupeKey: 'library:authors:timeout', durationMs: 6000
                     })
@@ -243,7 +221,7 @@ export class AppComponent implements OnInit {
                 // La autenticación ya terminó correctamente. Un fallo de datos
                 // no invalida la sesión; los errores terminales de auth los
                 // procesa ErrorInterceptorService antes de llegar aquí.
-                if (!this.sessionSrv.userIsLogged)
+                if (!this.sessionSrv.userIsLogged || !this.sessionSrv.isCurrentGeneration(generation))
                     return;
                 const cause = getProductStateMessage(error, 'La API no ha permitido cargar tu biblioteca.');
                 this.toasts.showSystem(`${cause} Tu sesión se conserva.`, {

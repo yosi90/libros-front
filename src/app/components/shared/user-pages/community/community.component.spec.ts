@@ -1,55 +1,50 @@
 import { of } from 'rxjs';
 import { CommunityComponent } from './community.component';
 
-describe('CommunityComponent Mobile people and composer', () => {
-    function create() {
-        const component = Object.create(CommunityComponent.prototype) as any;
-        component.presentation = { snapshot: { isMobilePresentationActive: true } };
-        component.community = jasmine.createSpyObj('CommunityService', ['users']);
-        component.users = [];
-        component.userSearch = '';
-        component.userSearchError = '';
-        component.hasSearchedUsers = false;
-        component.isSearchingUsers = false;
-        component.loadError = false;
-        component.view = 'people';
-        return component;
+describe('CommunityComponent (clubes)', () => {
+    function create(queryTab: string | null = null) {
+        const community = jasmine.createSpyObj('CommunityService', ['discoverClubs', 'clubSocialSummary', 'myClubs', 'myUpcomingClubEvents', 'createClub']);
+        community.discoverClubs.and.returnValue(of({ Clubes: [{ Id: 3 }], SiguienteCursor: null }));
+        community.clubSocialSummary.and.returnValue(of({ TieneClubes: false, ClubesPropios: [], ProximosEventos: [], ClubesPublicosActivos: [] }));
+        // Las pendientes del acceso son de los espacios de la plataforma (fase 4), no de `BandejasAcceso`.
+        const clubAccess = {
+            counters$: of({ Solicitudes: { EnviadasPendientes: 1, RecibidasPendientes: 0 }, Invitaciones: { EnviadasPendientes: 0, RecibidasPendientes: 2 } }),
+            refresh: jasmine.createSpy('refresh').and.returnValue(of({}))
+        };
+        const router = { navigate: jasmine.createSpy('navigate').and.resolveTo(true) };
+        const route = { snapshot: { queryParamMap: { get: () => queryTab } } };
+        const access = { refresh: () => of(null), canUse: () => true, restrictionMessage: () => null };
+        const universes = { getAllBooks: () => [{ Id: 1 }] };
+        const component = new CommunityComponent(community, router as never, route as never, universes as never, access as never, { snapshot: {} } as never, clubAccess as never);
+        return { component, community, router, clubAccess };
     }
 
-    it('does not request or show people before a Mobile search', () => {
-        const component = create();
-        component.users = [{ Id: 1 }];
+    it('carga solo los clubes: sin muro general ni búsqueda de personas', () => {
+        const { component, community, clubAccess } = create();
+        component.ngOnInit();
 
-        component.load();
-
-        expect(component.community.users).not.toHaveBeenCalled();
-        expect(component.users).toEqual([]);
-        expect(component.hasSearchedUsers).toBeFalse();
+        expect(clubAccess.refresh).toHaveBeenCalledTimes(1);
+        expect(component.view).toBe('clubs');
+        expect(community.discoverClubs).toHaveBeenCalledOnceWith({ query: '' });
+        expect(component.clubs.length).toBe(1);
+        expect(component.clubAccessPendingTotal).toBe(3);
         expect(component.isLoading).toBeFalse();
     });
 
-    it('searches only after receiving a non-empty query', () => {
-        const component = create();
-        const result = [{ Id: 9, Nombre: 'Lectora' }];
-        component.community.users.and.returnValue(of(result));
-        component.userSearch = '  lectora  ';
+    it('no abre «Mis clubes» sin clubes y vuelve a descubrir', () => {
+        const { component, router } = create('mine');
+        component.ngOnInit();
 
-        component.searchUsers();
-
-        expect(component.community.users).toHaveBeenCalledOnceWith('lectora');
-        expect(component.users).toBe(result);
-        expect(component.hasSearchedUsers).toBeTrue();
+        expect(component.clubTab).toBe('discover');
+        expect(router.navigate).toHaveBeenCalled();
     });
 
-    it('keeps a publication draft while closing its fullscreen composer', () => {
-        const component = create();
-        component.postContent = 'Borrador sin publicar';
-        component.composerOpen = true;
-        component.isPublishing = false;
+    it('con el acceso a la vista, deja que el centro de acceso cargue sus bandejas', () => {
+        const { component, clubAccess } = create('access');
+        component.ngOnInit();
 
-        component.closeComposer();
-
-        expect(component.composerOpen).toBeFalse();
-        expect(component.postContent).toBe('Borrador sin publicar');
+        expect(component.clubTab).toBe('access');
+        expect(clubAccess.refresh).not.toHaveBeenCalled();
+        component.ngOnDestroy();
     });
 });

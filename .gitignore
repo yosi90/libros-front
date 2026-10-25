@@ -61,3 +61,5 @@ Thumbs.db
 __pycache__/
 *.pyc
 /ecosistema-kit/
+# Configuración privada local (rutas del certificado de desarrollo, nunca el certificado)
+/.runtime/

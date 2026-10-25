@@ -17,7 +17,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `ecosistema/ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md`: adhesión de la web a Yosiftware con el kit vigente y clon exacto de la APK en Kotlin (`android-nativa/`), adherido desde el principio; abierto el 24/10/2026. Maestro y backend en `../Libros API/docs/roadmaps/ACTIVO_adhesion-yosiftware/`.
+- `ecosistema/ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md`: adhesión de la web a Yosiftware con el kit vigente y clon exacto de la APK en Kotlin (`android-nativa/`), adherido desde el principio; abierto el 24/10/2026. Hitos 0, 1 y 5–7 unidos en `main`; hitos 2–4 de la web (acceso, lo social, limpieza al cambiar de cuenta, retirada de Capacitor y de la administración) en la rama `adhesion/web`, lista para unir en el corte con la API. Maestro y backend en `../Libros API/docs/roadmaps/ACTIVO_adhesion-yosiftware/`.
 
 ## Roadmaps pausados
 

@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AppToast, AppToastOptions, AppToastType } from './app-toast';
-import { SessionNotificationStoreService } from '../../services/stores/session-notification-store.service';
 import { resolveNotificationTitle } from './notification-title';
 
 @Injectable({
@@ -14,8 +13,6 @@ export class AppToastService {
     private sequence = 0;
 
     readonly toasts$ = this.toastsSubject.asObservable();
-
-    constructor(private sessionNotifications: SessionNotificationStoreService) { }
 
     showSuccess(message: string, options?: AppToastOptions): void {
         this.show('success', message, options);
@@ -98,8 +95,6 @@ export class AppToastService {
             ? [...this.toastsSubject.value.filter((item) => item.id !== existing.id), toast]
             : [...this.toastsSubject.value, toast]);
 
-        if (options?.storeInSession !== false)
-            this.sessionNotifications.ingest({ dedupeKey: dedupeKey ?? toast.id, type, title, message, occurredAt: now, action: toast.action });
         if (!existing) this.scheduleDismiss(toast.id, toast.durationMs);
     }
 

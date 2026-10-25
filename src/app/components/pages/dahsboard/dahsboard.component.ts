@@ -13,22 +13,18 @@ import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { UserRouterComponent } from '../../user-router/user-router.component';
-import { NotificationStoreService } from '../../../services/stores/notification-store.service';
-import { SessionService } from '../../../services/auth/session.service';
-import { environment } from '../../../../environment/environment';
-import { RealtimeConnectionStates, RealtimeSocketService } from '../../../services/realtime/realtime-socket.service';
+import { PlatformSessionService } from '../../../services/auth/platform-session.service';
 import { ModerationAccessService } from '../../../services/stores/moderation-access.service';
 import { CommunityCapabilitiesService } from '../../../services/stores/community-capabilities.service';
-import { distinctUntilChanged, map, of, skip, Subscription, switchMap, timer } from 'rxjs';
+import { distinctUntilChanged, map, skip, Subscription } from 'rxjs';
 import { ChatStoreService } from '../../../services/stores/chat-store.service';
 import { FloatingWindowHostComponent } from '../../shared/common/floating-window-host/floating-window-host.component';
 import { ChatFloatingCoordinatorService } from '../../../services/stores/chat-floating-coordinator.service';
-import { NotificationBellComponent } from '../../shared/common/notification-bell/notification-bell.component';
-import { SessionNotificationStoreService } from '../../../services/stores/session-notification-store.service';
-import { DecisionNoticeService } from '../../../services/navigation/decision-notice.service';
-import { PolicyPromptService } from '../../../services/navigation/policy-prompt.service';
 import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
 import { MobileDashboardChromeComponent } from '../../mobile/user/mobile-dashboard-chrome/mobile-dashboard-chrome.component';
+import { YosiftwareAccountComponent } from '../../shared/common/yosiftware-account/yosiftware-account.component';
+import { YosiftwareNotificationsComponent } from '../../shared/common/yosiftware-notifications/yosiftware-notifications.component';
+import { YosiftwareWebsComponent } from '../../shared/common/yosiftware-webs/yosiftware-webs.component';
 
 @Component({
     standalone: true,
@@ -36,25 +32,13 @@ import { MobileDashboardChromeComponent } from '../../mobile/user/mobile-dashboa
     imports: [
         ThemeOnboardingComponent,
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
-        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent, WebNavigationComponent, WebReadingWindowComponent
+        RouterLink, RouterLinkActive, UserRouterComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent, WebNavigationComponent, WebReadingWindowComponent, YosiftwareAccountComponent, YosiftwareNotificationsComponent, YosiftwareWebsComponent
     ],
     templateUrl: './dahsboard.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './dahsboard.component.sass'
 })
 export class DahsboardComponent implements OnInit, OnDestroy {
-    imgUrl = environment.getImgUrl;
-    
-    imageCacheBuster: number = Date.now();
-    readonly realtimeStatus$ = this.realtime.status$.pipe(
-        switchMap(states => {
-            if (!this.presentation.snapshot.isNativeMobile || !this.hasRealtimeNotice(states))
-                return of(states);
-            // Android suele suspender los sockets al enviar la WebView al fondo.
-            // Una reconexión breve no debe presentarse como una avería al volver.
-            return timer(1800).pipe(map(() => states));
-        })
-    );
     readonly moderationAccess$ = this.moderationAccess.state$;
     readonly capabilities$ = this.capabilities.state$;
     readonly unreadChatCount$ = this.chatStore.state$.pipe(
@@ -63,18 +47,9 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     );
     private accessSubscription: Subscription;
     private viewInitialized = false;
-    private chatUserId: number | null = null;
 
     get userData() {
         return this.sessionSrv.userObject;
-    }
-
-    get isUserAdmin(): boolean {
-        return this.sessionSrv.isAdmin;
-    }
-
-    get canModerateCatalog(): boolean {
-        return this.sessionSrv.canModerateCatalog;
     }
 
     /** En Wood la instalación vive en la barra lateral en lugar del botón flotante. */
@@ -85,16 +60,11 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     get isWoodPresentation(): boolean { return this.presentation.snapshot.isWoodPresentationActive; }
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get isWebPresentation(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
-    get displayName(): string { return this.userData?.displayName || this.userData?.name || ''; }
+    get displayName(): string { return this.sessionSrv.userName; }
 
-    logoutAndLeave(): void {
-        this.logout();
-        void this.router.navigate(['/home']);
-    }
-    get canUseDesktopAdministration(): boolean { return this.presentation.snapshot.canUseDesktopAdministration; }
-
+    /** Avatar de la cuenta de Yosiftware (miniatura del perfil común); vacío pinta la inicial. */
     get profileImageUrl(): string {
-        return this.imgUrl + 'photo/' + this.userData.image + '?v=' + this.imageCacheBuster;
+        return this.sessionSrv.avatarUrl ?? '';
     }
 
     get pageTitle(): string {
@@ -122,48 +92,32 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return '/dashboard/books/manage/new';
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private presentation: PresentationModeService, readonly pwa?: PwaLifecycleService) {
-        this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
-            if (state && !state.Politicas.some(policy => policy.Pendiente)) this.policyPrompt.clear();
-        });
-        this.accessSubscription.add(this.capabilities.state$.subscribe(state => {
-            this.applyChatCapability(!state.Conservadora && state.Capacidades.chat.Activa);
-        }));
-        this.accessSubscription.add(this.presentation.state$.pipe(skip(1)).subscribe(() => {
+    constructor(private sessionSrv: PlatformSessionService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private router: Router, private presentation: PresentationModeService, readonly pwa?: PwaLifecycleService) {
+        this.accessSubscription = this.presentation.state$.pipe(skip(1)).subscribe(() => {
             if (!this.viewInitialized) return;
             if (this.isWoodPresentation || this.isWebPresentation) {
                 if (!this.chatFloating.isInitialized) this.chatFloating.initialize(this.sessionSrv.userId);
-                this.applyChatCapability(this.isCapabilityActive('chat'));
                 this.chatFloating.handleViewportChange();
             } else {
                 this.chatFloating.closeAll();
             }
-        }));
+        });
     }
 
     accountRestrictionMessage(): string | null { return this.moderationAccess.accountRestrictionMessage(); }
-
-    hasRealtimeNotice(states: RealtimeConnectionStates): boolean {
-        return Object.values(states).some(state => state === 'connecting' || state === 'reconnecting' || state === 'offline');
-    }
-
-    isOffline(states: RealtimeConnectionStates): boolean { return Object.values(states).some(state => state === 'offline'); }
-
-    realtimeMessage(states: RealtimeConnectionStates): string {
-        if (this.isOffline(states))
-            return 'Sin conexión. Conservamos los datos visibles y reintentaremos al recuperar internet.';
-        if (Object.values(states).some(state => state === 'reconnecting'))
-            return 'Reconectando las actualizaciones en directo. Puedes seguir usando la aplicación con normalidad.';
-        return 'Conectando las actualizaciones en directo. Puedes seguir usando la aplicación con normalidad.';
-    }
-
-    retryRealtime(): void { this.realtime.retry(); }
 
     openChat(): void {
         void this.router.navigate(['/dashboard/community/messages']);
     }
 
-    isCapabilityActive(capability: 'notificaciones' | 'feed' | 'chat' | 'clubes'): boolean {
+    /**
+     * El chat y las notificaciones son de la plataforma y están con cualquier sesión. La Comunidad de Libros (resumen y
+     * clubes) también; dentro, los clubes siguen la capacidad `clubes` de la API.
+     */
+    readonly chatEnabled = true;
+    readonly communityEnabled = true;
+
+    isCapabilityActive(capability: 'clubes'): boolean {
         return this.capabilities.isActive(capability);
     }
 
@@ -172,37 +126,17 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         // Las ventanas flotantes (chats y libro) existen en el escritorio de Wood y Web.
         if (this.isWoodPresentation || this.isWebPresentation)
             this.chatFloating.initialize(this.sessionSrv.userId);
-        this.applyChatCapability(this.isCapabilityActive('chat'));
+        this.chatStore.initialize();
     }
 
     ngOnDestroy(): void {
         this.viewInitialized = false;
-        this.chatUserId = null;
         this.accessSubscription.unsubscribe();
         this.chatStore.clear();
         this.chatFloating.clear();
     }
 
-    private applyChatCapability(active: boolean): void {
-        if (!active) {
-            this.chatFloating.closeAll();
-            if (this.chatUserId !== null) this.chatStore.clear();
-            this.chatUserId = null;
-            return;
-        }
-        if (!this.viewInitialized || this.chatUserId === this.sessionSrv.userId) return;
-        this.chatStore.initialize(this.sessionSrv.userId);
-        this.chatUserId = this.sessionSrv.userId;
-    }
-
-    handleProfileImageError(event: any) {
-        event.target.src = 'assets/media/img/error.png';
-    }
-
-    logout(): void {
-        this.notificationStore.clear();
-        this.sessionNotifications.resetSession();
-        this.decisions.reset();
-        this.sessionSrv.logout();
+    handleProfileImageError(event: Event) {
+        (event.target as HTMLImageElement).hidden = true;
     }
 }

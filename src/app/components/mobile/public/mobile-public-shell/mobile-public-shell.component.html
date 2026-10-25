@@ -10,7 +10,7 @@
             </span>
         }
         <a class="mobile-public-shell__brand" routerLink="/home">Memoria Bibliográfica</a>
-        <span class="mobile-public-shell__balance" aria-hidden="true"></span>
+        <span class="mobile-public-shell__balance"><ng-content select="[publicActions]"></ng-content></span>
     </header>
     <main class="mobile-public-shell__content app-scroll-region">
         <ng-content></ng-content>

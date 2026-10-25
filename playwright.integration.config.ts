@@ -1,8 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 import baseConfig from './playwright.config';
 
-// Esta suite sirve el artefacto en localhost, pero consume deliberadamente el runtime QA real.
-// La marca evita que el fixture público sustituya Firebase por su configuración determinista.
+// Esta suite consume deliberadamente el runtime QA real (API y plataforma de QA), sin sesión: la marca evita que el
+// fixture público sustituya el SDK de la plataforma por su doble. Lo autenticado se prueba en local con el doble.
 process.env['PLAYWRIGHT_REAL_QA'] = 'true';
 // Las superficies autenticadas no prueban la PWA. El worker se valida por separado
 // en Chromium y aquí se bloquea para que un despliegue recién publicado no mezcle chunks.
@@ -25,26 +25,14 @@ export default defineConfig({
     use: { ...baseConfig.use, baseURL, serviceWorkers: 'block' },
     projects: [
         {
-            name: 'auth-setup-chromium',
-            testMatch: /auth\.setup\.ts/,
-            use: { ...devices['Desktop Chrome'], trace: 'off', screenshot: 'off', video: 'off' }
-        },
-        {
-            name: 'auth-setup-firefox',
-            testMatch: /auth\.setup\.ts/,
-            use: { ...devices['Desktop Firefox'], trace: 'off', screenshot: 'off', video: 'off' }
-        },
-        {
             name: 'chromium',
             testMatch: /.*\.integration\.spec\.ts/,
-            dependencies: ['auth-setup-chromium'],
-            use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, storageState: 'test-results/auth/chromium-userA.json', trace: 'off', screenshot: 'off', video: 'off' }
+            use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, trace: 'off', screenshot: 'off', video: 'off' }
         },
         {
             name: 'firefox',
             testMatch: /.*\.integration\.spec\.ts/,
-            dependencies: ['auth-setup-firefox'],
-            use: { ...devices['Desktop Firefox'], viewport: { width: 1440, height: 900 }, storageState: 'test-results/auth/firefox-userA.json', trace: 'off', screenshot: 'off', video: 'off' }
+            use: { ...devices['Desktop Firefox'], viewport: { width: 1440, height: 900 }, trace: 'off', screenshot: 'off', video: 'off' }
         }
     ],
     webServer: skipWebServer ? undefined : {

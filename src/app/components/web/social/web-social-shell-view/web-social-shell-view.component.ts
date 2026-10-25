@@ -4,13 +4,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { revealActiveTab } from '../../ui/reveal-active-tab';
+import { YosiftwareMarkComponent } from '../../../shared/common/yosiftware-mark/yosiftware-mark.component';
 import type { SocialShellComponent } from '../../../shared/user-pages/social-shell/social-shell.component';
 
 /** Estructura Web de Comunidad: título, pestañas por sección y el contenido de la ruta hija. */
 @Component({
     selector: 'app-web-social-shell-view',
     standalone: true,
-    imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
+    imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet, YosiftwareMarkComponent],
     templateUrl: './web-social-shell-view.component.html',
     styleUrl: './web-social-shell-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

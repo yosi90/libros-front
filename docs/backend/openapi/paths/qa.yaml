@@ -26,36 +26,24 @@
                   Capabilities: {BeginCampaign: allowed, ContinueCampaign: blocked, Reset: blocked, Cleanup: not-needed}
                   Deployment:
                     Api: {ReleaseId: 0d5d6c92e08e76b4b282b8f8cbd54aa57d768439, SourceDirty: false}
-                    RealtimeGateway: {Status: healthy, ReleaseId: 0d5d6c92e08e76b4b282b8f8cbd54aa57d768439, SourceDirty: false}
                   Components:
                     SqlServer: {Status: healthy}
-                    Nats: {Status: healthy}
-                    RealtimeGateway: {Status: healthy}
-                    OutboxRelay: {Status: healthy}
-                    FirestoreProjectionWorker: {Status: healthy}
-                    PushWorker: {Status: healthy}
-                    RetentionWorker: {Status: healthy}
+                    PlataformaFeedWorker: {Status: healthy}
               degraded:
                 value:
                   success: true
                   Environment: qa
                   DatasetVersion: 2026.08.4
                   Status: degraded
-                  Reasons: [gateway_source_dirty_or_unknown, component_degraded]
+                  Reasons: [component_degraded]
                   Scenario: {Active: realtime-recovery, ResetInProgress: false}
                   Lease: {Active: true, CallerState: active}
                   Capabilities: {BeginCampaign: blocked, ContinueCampaign: allowed, Reset: allowed, Cleanup: allowed}
                   Deployment:
                     Api: {ReleaseId: 0d5d6c92e08e76b4b282b8f8cbd54aa57d768439, SourceDirty: false}
-                    RealtimeGateway: {Status: degraded, ReleaseId: 0d5d6c92e08e76b4b282b8f8cbd54aa57d768439, SourceDirty: null}
                   Components:
                     SqlServer: {Status: healthy}
-                    Nats: {Status: healthy}
-                    RealtimeGateway: {Status: degraded}
-                    OutboxRelay: {Status: healthy}
-                    FirestoreProjectionWorker: {Status: healthy}
-                    PushWorker: {Status: healthy}
-                    RetentionWorker: {Status: healthy}
+                    PlataformaFeedWorker: {Status: degraded}
               blocked:
                 value:
                   success: true
@@ -68,15 +56,9 @@
                   Capabilities: {BeginCampaign: blocked, ContinueCampaign: blocked, Reset: retry, Cleanup: retry}
                   Deployment:
                     Api: {ReleaseId: 0d5d6c92e08e76b4b282b8f8cbd54aa57d768439, SourceDirty: false}
-                    RealtimeGateway: {Status: healthy, ReleaseId: 0d5d6c92e08e76b4b282b8f8cbd54aa57d768439, SourceDirty: false}
                   Components:
                     SqlServer: {Status: healthy}
-                    Nats: {Status: healthy}
-                    RealtimeGateway: {Status: healthy}
-                    OutboxRelay: {Status: healthy}
-                    FirestoreProjectionWorker: {Status: healthy}
-                    PushWorker: {Status: healthy}
-                    RetentionWorker: {Status: healthy}
+                    PlataformaFeedWorker: {Status: healthy}
       '401': {description: Token QA ausente o invalido., content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/QaStatusError'}}}}
       '404': {description: Las herramientas QA no estan habilitadas., content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/QaStatusError'}}}}
       '503': {description: El semaforo no puede confirmar SQL o la marca positiva QA., content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/QaStatusError'}}}}
@@ -113,7 +95,7 @@
             properties:
               Scenario:
                 type: string
-                enum: [baseline, version-conflict, expired-sessions, rate-limited, realtime-recovery]
+                enum: [baseline, expired-sessions, rate-limited, realtime-recovery]
                 default: baseline
     responses:
       '200': {$ref: '../../openapi.yaml#/components/responses/QaResetResponse'}

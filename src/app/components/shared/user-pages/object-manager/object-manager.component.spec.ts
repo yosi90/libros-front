@@ -1,5 +1,5 @@
 import { of } from 'rxjs';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { ObjectManagerComponent } from './object-manager.component';
@@ -19,7 +19,7 @@ describe('ObjectManagerComponent editions', () => {
         component = new ObjectManagerComponent(
             unused, unused, universeStore as never,
             { openSnackBar: jasmine.createSpy('openSnackBar'), openApiError: jasmine.createSpy('openApiError') } as never,
-            unused, { canModerateCatalog: false } as SessionService, catalog, collection
+            unused, {} as PlatformSessionService, catalog, collection
         );
         component.selectedDetailItem = {
             Tipo: 'libro', Id: 9, Nombre: 'Obra', Portada: null, Autores: [], Estados: [],

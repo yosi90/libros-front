@@ -662,92 +662,10 @@
     .m-library__grid
         grid-template-columns: repeat(3, minmax(0, 1fr))
 
-// Android usa el lienzo completo: la propia vista es el único propietario del
-// scroll y la barra de consulta permanece anclada bajo la navegación nativa.
-:host-context(html[data-presentation-active='native-mobile'])
-    .m-library
-        width: 100%
-        max-width: none
-        margin: 0
-        padding: 0 0 var(--mobile-space-8)
-
-        &__search
-            position: sticky
-            z-index: 9
-            top: 0
-            min-height: 56px
-            gap: 0
-            border-bottom: 1px solid transparent
-            background: var(--mobile-color-canvas)
-            transition: border-color 160ms ease, box-shadow 160ms ease
-
-            &.is-scrolled
-                border-bottom-color: color-mix(in srgb, var(--mobile-color-outline-strong) 58%, transparent)
-                box-shadow: 0 8px 16px -18px color-mix(in srgb, var(--mobile-color-ink) 52%, transparent)
-
-        &__filter-button
-            border-radius: 0
-
-        &__filters,
-        &__status-tabs,
-        > .m-library__grid,
-        &__loading,
-        &__empty
-            margin-inline: var(--mobile-space-3)
-
-        &__sections
-            gap: 0
-            margin-top: var(--mobile-space-4)
-
-        &__universe
-            width: 100%
-            border-radius: var(--mobile-radius-lg)
-            transition: margin 180ms ease
-
-            &.is-expanded
-                margin-block: var(--mobile-space-2)
-
-        &__universe-content
-            gap: 0
-            padding: 0 var(--mobile-space-2) var(--mobile-space-3)
-
-        &__saga
-            position: relative
-            gap: 0
-            padding: 0
-            border: 1px solid color-mix(in srgb, var(--universe-accent) 16%, var(--mobile-color-outline))
-            border-radius: var(--mobile-radius-md)
-            box-shadow: inset 0 0 16px color-mix(in srgb, var(--universe-accent) 3%, transparent), 0 0 12px color-mix(in srgb, var(--universe-accent) 5%, transparent)
-            transition: margin 180ms ease, padding 180ms ease, border-radius 180ms ease, box-shadow 180ms ease
-
-            &:not(.is-expanded) + .m-library__saga:not(.is-expanded)
-                margin-top: -8px
-                padding-top: 8px
-                border-top: 0
-                border-radius: 0 0 var(--mobile-radius-md) var(--mobile-radius-md)
-
-            &.is-expanded
-                margin-block: var(--mobile-space-2)
-                box-shadow: inset 0 0 18px color-mix(in srgb, var(--universe-accent) 5%, transparent), 0 6px 18px -16px color-mix(in srgb, var(--universe-accent) 42%, transparent)
-
-            .m-library__grid
-                padding: 0 var(--mobile-space-2) var(--mobile-space-2)
-
-        &__standalone
-            padding-top: var(--mobile-space-2)
-
-@media (prefers-reduced-motion: reduce)
-    :host-context(html[data-presentation-active='native-mobile']) .m-library
-        &__search,
-        &__universe,
-        &__saga
-            transition: none
-
 // ---------- Universos y sagas (diseño portado de la Web) ----------
 // El universo es una tarjeta; sus sagas cuelgan de una línea guía con icono
 // propio, contador y mini-pila de portadas, para no confundirse con universos.
-:host-context(html[data-presentation-active='mobile']),
-:host-context(html[data-presentation-active='native-mobile'])
+:host-context(html[data-presentation-active='mobile'])
     .m-library__sections
         gap: var(--mobile-space-3)
 
@@ -924,15 +842,6 @@
 
     .m-library__standalone
         padding-top: 0
-
-// La APK no tiene relleno lateral en la vista: la tarjeta necesita su margen.
-:host-context(html[data-presentation-active='native-mobile']) .m-library__universe
-    margin-inline: var(--mobile-space-3)
-
-@media (prefers-reduced-motion: reduce)
-    :host-context(html[data-presentation-active='native-mobile']) .m-library__universe
-        transition: none
-
 
 // ---------- Continúa leyendo (como en la Web) ----------
 // Carrusel horizontal con portada, autoría y progreso; toca para abrir.

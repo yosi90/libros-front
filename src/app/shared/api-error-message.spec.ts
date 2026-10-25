@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from './api-error-message';
+import { getApiErrorCode, getApiErrorMessage, getPlatformRestrictionMessage, getProductStateMessage, isPolicyAcceptanceBlock } from './api-error-message';
 
 describe('api error helpers', () => {
     it('reads a stable functional code from an HTTP response body', () => {
@@ -25,21 +25,34 @@ describe('api error helpers', () => {
         expect(getProductStateMessage({ code: 'anthology_section_relation_not_found' })).toBe('Esta sección ya no pertenece a la antología.');
     });
 
-    it('translates an invalid persisted session into an actionable message', () => {
-        expect(getProductStateMessage({ code: 'invalid_token' })).toBe('Tu sesión ya no es válida. Inicia sesión de nuevo.');
-        expect(getProductStateMessage({ code: 'user_not_found' })).toBe('Tu sesión ya no está disponible. Inicia sesión de nuevo.');
+    it('explica lo limitado por la moderación de Yosiftware y hasta cuándo, en la hora local', () => {
+        const hasta = '2026-11-02T17:30:00Z';
+        const error = new HttpErrorResponse({ status: 403, error: {
+            error: 'Tu cuenta tiene limitada la creación hasta el 02/11/2026 a las 17:30 (UTC).',
+            code: 'platform_restriction_active',
+            details: { Alcance: 'creacion', Hasta: hasta }
+        } });
+        const local = new Date(hasta);
+        const expected = `Tu cuenta de Yosiftware tiene limitada la creación de contenido hasta el ${local.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })} a las ${local.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}.`;
+
+        expect(getPlatformRestrictionMessage(error)).toBe(expected);
+        expect(getApiErrorMessage(error, 'No se pudo guardar')).toBe(expected);
+    });
+
+    it('dice cuándo la restricción no tiene fin y deja pasar los demás errores', () => {
+        expect(getPlatformRestrictionMessage({ code: 'platform_restriction_active', details: { Alcance: 'comunidad', Hasta: null } }))
+            .toBe('Tu cuenta de Yosiftware tiene limitada la comunidad sin fecha de fin.');
+        expect(getPlatformRestrictionMessage({ code: 'account_sanctioned' })).toBeNull();
+    });
+
+    it('trata las normas de Libros pendientes como un aviso de normas, no como un error', () => {
+        expect(isPolicyAcceptanceBlock({ code: 'platform_rules_acceptance_required' })).toBeTrue();
+        expect(getProductStateMessage({ code: 'platform_rules_acceptance_required' })).toBe('Acepta las normas de Libros para seguir.');
     });
 
     it('explains that QA deliberately refuses to generate full backups', () => {
         expect(getProductStateMessage({ code: 'admin_backup_unavailable_in_qa' }))
             .toBe('La descarga de backups no está disponible en el entorno de pruebas.');
-    });
-
-    it('explains Firebase failures without codes or technical text', () => {
-        expect(getApiErrorMessage({ code: 'auth/network-request-failed', message: 'Firebase: Error (auth/network-request-failed).' }))
-            .toBe('No se ha podido completar el acceso. Comprueba tu conexión o prueba otra red.');
-        expect(getApiErrorMessage({ code: 'auth/unknown-thing', message: 'Firebase: Error (auth/unknown-thing).' }, 'No se pudo iniciar sesión'))
-            .toBe('No se pudo iniciar sesión');
     });
 
     it('muestra solo `error` del backend, nunca `debug` ni el código', () => {

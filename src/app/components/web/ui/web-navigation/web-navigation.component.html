@@ -3,10 +3,13 @@
     <mat-icon>menu</mat-icon>
   </button>
   <span class="web-topbar__title">Memoria bibliográfica</span>
-  @if (notificationsEnabled) {<app-notification-bell class="web-topbar__bell" placement="navbar"></app-notification-bell>}
-  <a class="web-topbar__avatar" routerLink="/dashboard/profile" aria-label="Perfil">
-    @if (imageUrl) { <img [src]="imageUrl" alt="" (error)="imageError.emit($event)"> } @else { <span>{{initial}}</span> }
-  </a>
+  <!-- Las webs del ecosistema, la campana y la cuenta de Yosiftware (el avatar abre el panel de cuentas). El Perfil de
+       Libros está en el menú. -->
+  @if (compact()) {
+    <app-yosiftware-webs class="web-topbar__platform"></app-yosiftware-webs>
+    <app-yosiftware-notifications class="web-topbar__platform"></app-yosiftware-notifications>
+  }
+  <app-yosiftware-account class="web-topbar__account"></app-yosiftware-account>
 </header>
 
 @if (drawerOpen()) {
@@ -28,20 +31,9 @@
         @if (item.badge) { <span class="web-nav__badge" [attr.aria-label]="item.badge + ' sin leer'">{{item.badge}}</span> }
       </a>
     }
-    @if (notificationsEnabled) {
-      <app-notification-bell class="web-nav__bell" placement="sidebar" label="Notificaciones"
-        [matTooltip]="'Notificaciones'" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right"></app-notification-bell>
-    }
   </nav>
 
   <div class="web-nav__footer">
-    @if (canAdministrate) {
-      <a class="web-nav__item" routerLink="/dashboard/adminpanel" routerLinkActive="is-active"
-        matTooltip="Administración" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right">
-        <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
-        <span class="web-nav__label">Administración</span>
-      </a>
-    }
     <a class="web-nav__profile" routerLink="/dashboard/profile" routerLinkActive="is-active"
       matTooltip="Perfil" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right">
       <span class="web-nav__avatar" aria-hidden="true">
@@ -50,9 +42,11 @@
       <span class="web-nav__label"><strong>{{userName}}</strong><small>Ver perfil</small></span>
     </a>
     <div class="web-nav__actions">
-      <button class="web-nav__icon" type="button" matTooltip="Cerrar sesión" aria-label="Cerrar sesión" (click)="logoutRequested.emit()">
-        <mat-icon>logout</mat-icon>
-      </button>
+      <app-yosiftware-account class="web-nav__account"></app-yosiftware-account>
+      @if (!compact()) {
+        <app-yosiftware-webs class="web-nav__platform"></app-yosiftware-webs>
+        <app-yosiftware-notifications class="web-nav__platform"></app-yosiftware-notifications>
+      }
       <button class="web-nav__icon web-nav__collapse" type="button" (click)="toggleCollapsed()"
         [attr.aria-label]="collapsed() ? 'Expandir navegación' : 'Contraer navegación'" [attr.aria-pressed]="collapsed()">
         <mat-icon>{{collapsed() ? 'last_page' : 'first_page'}}</mat-icon>

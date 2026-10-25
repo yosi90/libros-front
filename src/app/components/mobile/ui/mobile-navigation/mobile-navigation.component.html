@@ -1,13 +1,6 @@
 <nav class="m-navigation" aria-label="Navegación principal">
     @for (item of items; track item.id) {
-        @if (item.id === 'notifications') {
-            @if (layout.state().isMedium) {
-                <div class="m-navigation__notification m-navigation__rail-only">
-                    <app-notification-bell placement="sidebar"></app-notification-bell>
-                    <span>Avisos</span>
-                </div>
-            }
-        } @else if (item.route) {
+        @if (item.route) {
             <a [routerLink]="item.route" routerLinkActive="is-active" [class.m-navigation__rail-only]="item.railOnly"
                 [class.m-navigation__rail-end]="item.id === 'preferences'"
                 [routerLinkActiveOptions]="{ exact: item.id === 'library' }"

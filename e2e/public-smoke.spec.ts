@@ -2,15 +2,31 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from './fixtures/test';
 
 test.describe('superficies publicas @smoke', () => {
-    test('carga Home y expone las dos rutas de acceso', async ({ page }) => {
+    test('carga Home y entra con la cuenta de Yosiftware', async ({ page }) => {
         await page.goto('/');
 
         await expect(page).toHaveTitle('Memoria bibliográfica');
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'web');
         await expect(page.getByRole('heading', { name: 'Cada libro deja una huella.' })).toBeVisible();
-        await expect(page.getByRole('link', { name: /Crear mi biblioteca/ })).toHaveAttribute('href', '/register');
-        await expect(page.getByRole('link', { name: /Ya tengo cuenta/ })).toHaveAttribute('href', '/login');
+        await expect(page.locator('yosi-acceso')).toHaveCount(1);
+        await expect(page.locator('yosi-acceso').getByRole('button', { name: 'Entrar' })).toBeVisible();
+        await expect(page.getByRole('button', { name: /Crear mi biblioteca/ })).toBeVisible();
+        await expect(page.getByRole('button', { name: /Ya tengo cuenta/ })).toBeVisible();
+        await expect(page.getByText('Entra con tu cuenta de Yosiftware')).toBeVisible();
+        // Sin entrar, las normas comunes y la política de privacidad de Yosiftware, con el símbolo (PRIVACIDAD.md).
+        const legal = page.getByRole('link', { name: 'Normas y privacidad de Yosiftware' });
+        await expect(legal).toHaveAttribute('href', /\/\?vista=normas$/);
+        await expect(legal.locator('app-yosiftware-mark')).toHaveCount(1);
+        await expect(page.locator('script[src*="/sdk/v1/yosiftware.js"]')).toHaveAttribute('data-estilos', /\/assets\/yosiftware\.css/);
         await expect(page.locator('[data-testid="admin-health"]')).toHaveCount(0);
+    });
+
+    test('las rutas del inicio de sesión propio llevan a la portada', async ({ page }) => {
+        for (const route of ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/verify-email-pending', '/onboarding']) {
+            await page.goto(route);
+            await expect(page).toHaveURL(/\/home(?:\?.*)?$/);
+            await expect(page.locator('form input[type="password"]')).toHaveCount(0);
+        }
     });
 
     test('conserva la portada Wood cuando el dispositivo la elige en escritorio', async ({ page }) => {
@@ -20,7 +36,9 @@ test.describe('superficies publicas @smoke', () => {
 
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'wood');
         await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible();
-        await expect(page.getByRole('link', { name: /Date de alta/ })).toHaveAttribute('href', '/register');
+        await expect(page.getByRole('button', { name: /Date de alta/ })).toBeVisible();
+        await expect(page.locator('yosi-acceso')).toHaveCount(1);
+        await expect(page.getByRole('link', { name: 'Normas y privacidad de Yosiftware' })).toHaveAttribute('href', /\/\?vista=normas$/);
         const brandIcon = page.locator('.home-brand mat-icon');
         await expect(brandIcon).toHaveCount(1);
         await expect(brandIcon).toHaveCSS('overflow', 'visible');
@@ -47,7 +65,7 @@ test.describe('superficies publicas @smoke', () => {
         test.skip(browserName !== 'chromium' || !baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El recorrido offline se verifica una vez sobre Hosting QA.');
         test.setTimeout(60_000);
         expectedConsoleErrors.push(/net::ERR_INTERNET_DISCONNECTED|Failed to fetch|Load failed/i);
-        expectedConsoleErrors.push(/status (?:of )?504.*qa-api\.yosiftware\.es\/(?:runtime-config|auth\/session\/csrf)/i);
+        expectedConsoleErrors.push(/status (?:of )?504.*qa-cuentas(?:-api)?\.yosiftware\.es/i);
         expectedConsoleErrors.push(/status (?:of )?504.*qa-libros\.yosiftware\.es\/assets\/media\/img\/escritorio_home\.png/i);
         expectedHttpErrors.push(/^http 504: https:\/\/qa-libros\.yosiftware\.es\/assets\/media\/img\/escritorio_home\.png(?:\?.*)?$/i);
         await page.goto('/home');
@@ -70,35 +88,17 @@ test.describe('superficies publicas @smoke', () => {
         }
     });
 
-    test('deja el handler OAuth de Firebase fuera de la navegación SPA', async ({ browser, baseURL }) => {
-        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El handler reservado solo se valida sobre el Hosting QA canónico.');
-        const context = await browser.newContext();
-        try {
-            const page = await context.newPage();
-            const response = await page.goto('/__/auth/handler', { waitUntil: 'domcontentloaded' });
-            expect(response?.status()).toBe(200);
-            expect(page.url()).toContain('/__/auth/handler');
-            await expect(page.locator('script[src*="handler.js"]')).toHaveCount(1);
-            await expect(page.locator('app-root')).toHaveCount(0);
-        } finally {
-            await context.close();
-        }
-    });
-
     test('publica CSP, cabeceras defensivas y CORS exacto en Hosting QA', async ({ page, baseURL, browserName }) => {
         test.skip(browserName !== 'chromium' || !baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'Las cabeceras HTTP se verifican una vez sobre Hosting QA.');
         const documentResponse = await page.request.get(new URL('/', baseURL!).toString());
         const documentHeaders = documentResponse.headers();
         expect(documentHeaders['content-security-policy']).toContain("object-src 'none'");
+        expect(documentHeaders['content-security-policy']).toContain('frame-src https://qa-cuentas.yosiftware.es');
+        expect(documentHeaders['content-security-policy']).toContain('wss://qa-cuentas-ws.yosiftware.es');
         expect(documentHeaders['x-content-type-options']).toBe('nosniff');
         expect(documentHeaders['referrer-policy']).toBe('strict-origin-when-cross-origin');
         expect(documentHeaders['cross-origin-opener-policy']).toBe('same-origin-allow-popups');
-
-        const runtimeResponsePromise = page.waitForResponse(response => response.url().endsWith('/runtime-config'));
-        await page.goto('/login');
-        const runtimeResponse = await runtimeResponsePromise;
-        expect(runtimeResponse.ok()).toBeTruthy();
-        expect(runtimeResponse.headers()['access-control-allow-origin']).toBe(new URL(baseURL!).origin);
+        expect(documentHeaders['cross-origin-embedder-policy']).toBeUndefined();
     });
 
     test('no registra el worker QA durante la integración local', async ({ page, baseURL }) => {
@@ -113,100 +113,14 @@ test.describe('superficies publicas @smoke', () => {
         )).toBe(0);
     });
 
-    test('mantiene accesible el formulario de login y sus enlaces', async ({ page }) => {
-        await page.goto('/login');
-
-        await expect(page.getByRole('heading', { name: 'Bienvenido de nuevo' })).toBeVisible();
-        await expect(page.getByRole('textbox', { name: 'Correo electrónico' })).toBeVisible();
-        await expect(page.locator('input[autocomplete="current-password"]')).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeDisabled();
-        await expect(page.getByRole('link', { name: 'He olvidado mi contraseña' })).toHaveAttribute('href', '/forgot-password');
-        await expect(page.getByRole('link', { name: 'Crea tu biblioteca' })).toHaveAttribute('href', '/register');
-    });
-
-    test('valida las rutas publicas de cuenta sin depender del correo real', async ({ page }) => {
-        await page.goto('/register');
-        await expect(page.getByRole('heading', { name: 'Crea tu biblioteca' })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Crear mi biblioteca' })).toBeDisabled();
-        await expect(page.getByRole('textbox', { name: 'Alias de usuario' })).toHaveCount(0);
-        await page.getByRole('textbox', { name: 'Correo electrónico' }).fill('qa@example.test');
-        await page.locator('input[autocomplete="new-password"]').fill('Segura123!');
-        await expect(page.getByRole('button', { name: 'Crear mi biblioteca' })).toBeEnabled();
-
-        await page.goto('/forgot-password');
-        await expect(page.getByRole('heading', { name: 'Vuelve a tu biblioteca' })).toBeVisible();
-        await expect(page.getByRole('button', { name: /Enviar instrucciones/ })).toBeDisabled();
-
-        await page.goto('/reset-password');
-        await expect(page.getByRole('heading', { name: 'Recuperación completada' })).toBeVisible();
-        await expect(page.getByRole('main').getByRole('link', { name: 'Volver a iniciar sesión' })).toHaveAttribute('href', '/login');
-    });
-
-    test('muestra solo los proveedores habilitados por runtime', async ({ page }) => {
-        await page.route('**/runtime-config', route => route.fulfill({ status: 200, json: {
-            success: true,
-            Environment: 'qa',
-            QaDatasetVersion: 'test',
-            RealtimeWsUrl: 'wss://example.test/ws',
-            Firebase: {
-                ApiKey: 'test-key', AuthDomain: 'qa-libros.yosiftware.es', ProjectId: 'libros-qa',
-                StorageBucket: 'libros-qa.firebasestorage.app', MessagingSenderId: '1', AppId: '1:test:web:test',
-                DatabaseURL: 'https://libros-qa-default-rtdb.europe-west1.firebasedatabase.app',
-                Providers: { Password: true, Google: true, Phone: true }, PhoneTestingMode: true
-            }
-        } }));
-        await page.goto('/login');
-
-        await expect(page.getByRole('button', { name: /Google/i })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Teléfono' })).toBeVisible();
-    });
-
-    test('mantiene utilizables los proveedores en el ancho medium de 800 px', async ({ page, baseURL }) => {
-        await page.setViewportSize({ width: 800, height: 900 });
-        if (!baseURL?.startsWith('https://qa-libros.yosiftware.es')) {
-            await page.route('**/runtime-config', route => route.fulfill({ status: 200, json: {
-                success: true,
-                Environment: 'qa',
-                QaDatasetVersion: 'test',
-                RealtimeWsUrl: 'wss://example.test/ws',
-                Firebase: {
-                    ApiKey: 'test-key', AuthDomain: 'qa-libros.yosiftware.es', ProjectId: 'libros-qa',
-                    StorageBucket: 'libros-qa.firebasestorage.app', MessagingSenderId: '1', AppId: '1:test:web:test',
-                    DatabaseURL: 'https://libros-qa-default-rtdb.europe-west1.firebasedatabase.app',
-                    Providers: { Password: true, Google: true, Phone: true }, PhoneTestingMode: true
-                }
-            } }));
-        }
-
-        await page.goto('/login');
-
-        await expect(page.getByRole('button', { name: /Google/i })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Teléfono' })).toBeVisible();
-        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
-    });
-
-    test('trata igual la respuesta controlada de recuperacion y no revela cuentas', async ({ page, expectedConsoleErrors }) => {
-        expectedConsoleErrors.push(/server responded with a status of 400/i);
-        await page.route('**/v1/accounts:sendOobCode?*', route => route.fulfill({
-            status: 400,
-            json: { error: { code: 400, message: 'EMAIL_NOT_FOUND' } }
-        }));
-        await page.goto('/forgot-password');
-        await page.getByLabel('Correo electrónico').fill('inexistente@example.test');
-        await page.getByRole('button', { name: /Enviar instrucciones/ }).click();
-
-        await expect(page).toHaveURL(/\/login\?resetRequested=true$/);
-        await expect(page.getByText('Si el correo existe, recibirás instrucciones para recuperar la contraseña.')).toBeVisible();
-    });
-
     test('aplica guards publicos y mantiene una salida para rutas desconocidas', async ({ page }) => {
         await page.goto('/dashboard');
-        await expect(page).toHaveURL(/\/home$/);
+        await expect(page).toHaveURL(/\/home\?volver=%2Fdashboard(?:%2Fbooks)?$/);
         await page.goto('/ruta-que-no-existe');
         await expect(page.getByRole('heading', { name: 'Cada libro deja una huella.' })).toBeVisible();
     });
 
-    for (const route of ['/', '/login', '/register', '/forgot-password', '/reset-password']) {
+    for (const route of ['/']) {
         test(`no presenta infracciones automaticas WCAG A/AA en ${route}`, async ({ page }) => {
             await page.goto(route);
             const results = await new AxeBuilder({ page })

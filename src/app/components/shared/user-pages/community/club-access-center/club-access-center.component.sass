@@ -63,20 +63,21 @@
     padding-bottom: 12px
     border-bottom: 1px solid rgba(218, 166, 91, .16)
 
-    label
-        display: inline-flex
-        align-items: center
-        gap: 8px
-        color: #bfa77f
-        font-size: .78rem
 
-    select
-        min-height: 34px
-        padding: 0 9px
-        color: #f0dfc5
-        background: #20170f
-        border: 1px solid rgba(218, 166, 91, .28)
-        border-radius: 6px
+.club-access__reload
+    display: inline-grid
+    place-items: center
+    width: 34px
+    height: 34px
+    color: #e9c78f
+    background: rgba(255, 255, 255, .035)
+    border: 1px solid rgba(218, 166, 91, .24)
+    border-radius: 6px
+    cursor: pointer
+
+    &:disabled
+        cursor: wait
+        opacity: .55
 
 .club-access__row
     display: grid
@@ -189,16 +190,27 @@
 .club-access__error
     color: #e7a090
 
-.club-access__more
-    display: block
+.club-access__notice
+    margin: 14px 0
+    color: #cfe0b4
 
-    button
-        width: 100%
-        min-height: 34px
-        color: #e9c78f
-        background: rgba(255, 255, 255, .035)
-        border: 1px solid rgba(218, 166, 91, .2)
+.club-access__error, .club-access__notice
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 8px
+
+    button, a
+        min-height: 30px
+        padding: 0 9px
+        color: #d8c3a2
+        background: rgba(255, 255, 255, .04)
+        border: 1px solid rgba(218, 166, 91, .24)
         border-radius: 6px
+        font: inherit
+        font-size: .74rem
+        line-height: 28px
+        text-decoration: none
         cursor: pointer
 
 @media (max-width: 760px)

@@ -13,255 +13,6 @@
       '200': {description: Configuracion calculada para el usuario autenticado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityCapabilitiesResponse'}}}}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '503': {description: Configuracion no disponible; el cliente aplica el fallback conservador, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/notificaciones:
-  get:
-    operationId: getNotificaciones
-    tags: [Notificaciones]
-    summary: Lista notificaciones propias
-    description: Disponible con JWT aunque la política de uso esté pendiente. Solo expone notificaciones ya destinadas al usuario y no habilita interacción social.
-    parameters:
-    - name: limit
-      in: query
-      schema: {type: integer, minimum: 1, maximum: 100, default: 50}
-    - name: cursorFecha
-      in: query
-      schema: {type: string, format: date-time}
-    - name: cursorId
-      in: query
-      schema: {type: integer, minimum: 1}
-    - name: categoria
-      in: query
-      schema: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
-    - name: lectura
-      in: query
-      schema: {type: string, enum: [todas, leidas, no_leidas], default: todas}
-    responses:
-      '200':
-        description: Notificaciones propias por cursor estable `(fecha_creacion,id)`.
-        content:
-          application/json:
-            schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationListResponse'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-/notificaciones/{id}:
-  get:
-    operationId: getNotificacionById
-    tags: [Notificaciones]
-    summary: Consulta una notificación propia y el estado actual de biblioteca cuando proceda
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: Notificación propia actual, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/Notification'}}}}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '404': {description: No existe o pertenece a otra cuenta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/notificaciones/{id}/leer:
-  post:
-    operationId: postNotificacionesByIdLeer
-    tags: [Notificaciones]
-    summary: Marca una notificacion como leida
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200':
-        description: Lectura marcada de forma idempotente cuando la notificacion pertenece al usuario.
-        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationReadResponse'}}}
-      '404': {description: La notificacion no pertenece al usuario o no existe, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/notificaciones/leer-todas:
-  post:
-    operationId: postNotificacionesLeerTodas
-    tags: [Notificaciones]
-    summary: Marca todas las notificaciones como leidas
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        description: Todas las notificaciones pendientes se marcaron como leidas.
-        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationReadResponse'}}}
-/notificaciones/leer-lote:
-  post:
-    operationId: postNotificacionesLeerLote
-    tags: [Notificaciones]
-    summary: Marca un lote de notificaciones propias como leidas
-    requestBody:
-      required: true
-      content: {application/json: {schema: {type: object, required: [Ids], properties: {Ids: {type: array, minItems: 1, maxItems: 100, items: {type: integer, minimum: 1}}}}}}
-    responses:
-      '200': {description: Lote procesado idempotentemente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationReadResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-/notificaciones/preferencias:
-  get:
-    operationId: getNotificacionesPreferencias
-    tags: [Notificaciones]
-    summary: Consulta preferencias por categoria y canal
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        description: Preferencias efectivas
-        content:
-          application/json:
-            schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreferencesResponse'}
-  put:
-    operationId: putNotificacionesPreferencias
-    tags: [Notificaciones]
-    summary: Actualiza preferencias de notificacion
-    description: Acepta de 1 a 14 combinaciones unicas de categoria y canal. La matriz completa se guarda en una unica transaccion y repetir el mismo payload es idempotente. No registra, rota ni revoca dispositivos push.
-    x-functional-error-codes:
-      invalid_notification_preferences: "400: el body no contiene exclusivamente un array Preferencias con entre 1 y 14 entradas."
-      invalid_notification_preference: "400: una entrada no tiene exactamente Categoria, Canal y Habilitado o alguno de sus valores no cumple el contrato."
-      duplicate_notification_preference: "400: Categoria y Canal se repiten dentro de la misma peticion."
-      mandatory_notification_category: "409: moderacion y sistema no pueden deshabilitarse en el canal in_app."
-      notification_preferences_internal_error: "500: no se pudo completar la transaccion; conservar las preferencias locales y permitir reintento."
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: false
-            required: [Preferencias]
-            properties:
-              Preferencias: {type: array, minItems: 1, maxItems: 14, uniqueItems: true, items: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreference'}}
-    responses:
-      '200': {description: Preferencias efectivas tras el guardado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreferencesResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '409': {description: Las categorias moderacion y sistema son obligatorias in-app, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-      '500': {description: No se pudieron guardar las preferencias, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/notificaciones/dispositivos:
-  post:
-    operationId: postNotificacionesDispositivos
-    tags: [Notificaciones]
-    summary: Registra o rota un token FCM del dispositivo actual
-    requestBody:
-      required: true
-      content: {application/json: {schema: {type: object, required: [Token], properties: {Token: {type: string, minLength: 1, maxLength: 512}, Plataforma: {type: string, enum: [web, android, ios], default: web}}}}}
-    responses:
-      '201':
-        description: Dispositivo registrado
-        content:
-          application/json:
-            schema:
-              allOf:
-              - $ref: '../../openapi.yaml#/components/schemas/SuccessResponse'
-              - type: object
-                required: [Id]
-                properties: {Id: {type: integer}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-/notificaciones-dispositivos/{id}:
-  delete:
-    operationId: deleteNotificacionesDispositivosById
-    tags: [Notificaciones]
-    summary: Revoca un dispositivo propio de forma idempotente
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        description: Dispositivo revocado
-        content:
-          application/json:
-            schema:
-              allOf:
-              - $ref: '../../openapi.yaml#/components/schemas/SuccessResponse'
-              - type: object
-                properties: {Id: {type: integer}}
-/comunidad/usuarios:
-  get:
-    operationId: getComunidadUsuarios
-    tags: [Comunidad]
-    summary: Directorio publico autenticado
-    parameters: [{name: q, in: query, schema: {type: string, maxLength: 100}, description: Búsqueda parcial pública. Con `@alias` busca coincidencia exacta solo entre perfiles públicos.}]
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200': {description: Hasta 100 perfiles publicos verificados, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityUserListResponse'}}}}
-/comunidad/usuarios/{id}:
-  get:
-    operationId: getComunidadUsuariosById
-    tags: [Comunidad]
-    summary: Perfil individual accesible
-    description: Los perfiles privados, bloqueados, no verificados o inaccesibles responden 404 para no revelar información.
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: Perfil visible, content: {application/json: {schema: {allOf: [{$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}, {type: object, required: [Usuario], properties: {Usuario: {$ref: '../../openapi.yaml#/components/schemas/CommunityUser'}}}]}}}}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-/comunidad/relaciones/{kind}:
-  get:
-    operationId: getComunidadRelacionesByKind
-    tags: [Comunidad]
-    summary: Lista relaciones propias por cursor
-    x-functional-error-codes:
-      invalid_relationship_kind: "400: kind debe ser seguidos, seguidores, amistades o bloqueos."
-      account_sanctioned: "403: gate de cuenta; limpiar realtime y RTDB."
-      capability_sanctioned: "403: gate del alcance comunidad."
-      email_verification_pending: "403: cuenta sin verificar; no es sanción."
-      usage_policy_acceptance_required: "403: falta política de uso."
-      creation_policy_acceptance_required: "403: falta política de creación por la guardia de comunidad."
-    parameters: [{name: kind, in: path, required: true, schema: {type: string, enum: [seguidos, seguidores, amistades, bloqueos]}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: afterId, in: query, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: Relaciones propias, content: {application/json: {schema: {type: object, required: [success, Relaciones, SiguienteAfterId], properties: {success: {type: boolean}, Relaciones: {type: array, items: {type: object, properties: {Usuario: {$ref: '../../openapi.yaml#/components/schemas/UserSummary'}, FechaCreacion: {type: string, format: date-time}}}}, SiguienteAfterId: {type: [integer, 'null']}}}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-/comunidad/usuarios/{id}/relacion:
-  get:
-    operationId: getComunidadUsuariosByIdRelacion
-    tags: [Comunidad]
-    summary: Estado propio respecto a un perfil accesible
-    description: No expone relaciones de perfiles privados o bloqueados; dichos casos responden 404 igual que un perfil inexistente.
-    x-functional-error-codes:
-      community_profile_not_found: "404: perfil inexistente, privado, no verificado o inaccesible por bloqueo."
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: 'Estado de seguimiento, amistad y solicitud pendiente del usuario autenticado', content: {application/json: {schema: {type: object, required: [success, UsuarioId, Siguiendo, MeSigue, Amistad, SolicitudPendiente, PuedeInteractuar], properties: {success: {type: boolean}, UsuarioId: {type: integer}, Siguiendo: {type: boolean}, MeSigue: {type: boolean}, Amistad: {type: boolean}, SolicitudPendiente: {type: [object, 'null'], properties: {Direccion: {type: string, enum: [enviada, recibida]}, Estado: {type: string, enum: [pendiente]}}}, PuedeInteractuar: {type: boolean}}}}}}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-/comunidad/actividad/preferencias:
-  get:
-    operationId: getComunidadActividadPreferencias
-    tags: [Comunidad]
-    summary: Consulta preferencias de publicación automática de actividad lectora
-    responses: {'200': {description: Preferencias propias; sin fila persistida devuelve AudienciaPredeterminada seguidores, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferencesResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
-  put:
-    operationId: putComunidadActividadPreferencias
-    tags: [Comunidad]
-    summary: Actualiza preferencias de publicación automática de actividad lectora
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferences'}}}}
-    responses: {'200': {description: Preferencias actualizadas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferencesResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
-/comunidad/actividad/reconocimientos/{categoria}:
-  post:
-    operationId: postComunidadActividadReconocimientosByCategoria
-    tags: [Comunidad]
-    summary: Marca como explicada una categoría de actividad automática
-    description: Operación idempotente por cuenta. Solo marca el reconocimiento; no modifica opt-ins, audiencia ni crea una publicación.
-    x-functional-error-codes:
-      invalid_activity_acknowledgement_category: "400: categoria debe ser estado, puntuacion o resena."
-    parameters: [{name: categoria, in: path, required: true, schema: {type: string, enum: [estado, puntuacion, resena]}}]
-    responses: {'200': {description: Reconocimiento persistido, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityAcknowledgementResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}}
-/comunidad/publicaciones:
-  get:
-    operationId: getComunidadPublicaciones
-    tags: [Comunidad]
-    summary: Feed social visible para el usuario autenticado
-    description: Aplica audiencia (`publico`, `seguidores`, `amigos` o `club`), privacidad del perfil, membresia y bloqueos en el backend. Pagina con el cursor keyset estable `(fecha_creacion,id)`. Los spoilers se ocultan por defecto según progreso; solo enviar revelarSpoilers=true tras una acción explícita.
-    parameters:
-    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
-    - {name: cursorFecha, in: query, schema: {type: string, format: date-time}}
-    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
-    - {name: revelarSpoilers, in: query, schema: {type: boolean, default: false}, description: Revela spoilers tras una acción explícita.}
-    responses: {'200': {description: Publicaciones visibles, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostListResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
-  post:
-    operationId: postComunidadPublicaciones
-    tags: [Comunidad]
-    summary: Crea una publicacion Markdown con audiencia y vinculo canonico opcionales
-    description: 'Con `Audiencia: club`, `ClubId` es obligatorio y el creador debe ser miembro activo. Para `publico`, `seguidores` y `amigos`, `ClubId` está prohibido. La retirada del club del descubrimiento no afecta a sus miembros activos.'
-    x-functional-error-codes:
-      invalid_post_audience: "400: audiencia desconocida o incompatible con la ruta de club."
-      club_id_required_for_club_audience: "400: falta ClubId con Audiencia club."
-      invalid_post_club_id: "400: ClubId no es un entero positivo."
-      post_club_id_mismatch: "400: ClubId no coincide con la ruta de club."
-      club_id_not_allowed_for_post_audience: "400: ClubId solo es válido con Audiencia club."
-      club_post_target_unavailable: "404: club inexistente, eliminado o sin membresía activa; no distingue la causa."
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateRequest'}}}}
-    responses:
-      '201': {description: Publicacion creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateResponse'}}}}
-      '400': {description: Markdown obligatorio o demasiado largo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /clubes-lectura:
   get:
     operationId: getClubesLectura
@@ -289,13 +40,20 @@
     operationId: postClubesLectura
     tags: [ClubesLectura]
     summary: Crea un club de lectura
-    description: Cada usuario puede ser propietario de un único club y debe tener al menos una obra en su colección personal. El creador se añade como propietario.
+    description: "Cada usuario puede crear un único club y debe tener al menos una obra en su colección personal. Crea también su espacio en la plataforma Yosiftware (`idExterno` `club-<Id>`) a nombre de quien lo crea, que tiene su propiedad, en la misma transacción: si la plataforma falla, no se crea nada. `abierto` es un espacio con `entrada: abierto` y `cerrado`, con `entrada: solicitud` (se pide, y también se invita). La conversación del espacio se pide justo después (`ConversacionId` en el detalle)."
     x-functional-error-codes:
       club_owner_limit_reached: "409: ya eres propietario de un club. Gestiona el existente."
       club_personal_collection_required: "409: la colección personal está vacía. Añade una obra antes de crear un club."
+      club_space_unavailable: "503: la plataforma no responde o la API no tiene credencial de servicio. Reintentar más tarde."
+      club_space_account_restricted: "403: la cuenta de Yosiftware tiene limitada la creación de comunidades."
+      club_space_account_unavailable: "403: la cuenta de Yosiftware no está activa."
+      club_space_account_limit: "409: la cuenta está en demasiados espacios de Yosiftware (300)."
+      club_space_two_steps_required: "409: la plataforma exige la verificación en dos pasos."
+      club_space_daily_limit: "429: la web ha creado demasiados espacios hoy."
+      club_space_rejected: "502: la plataforma rechazó el espacio; `details.Plataforma` lleva su código."
     requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Nombre], properties: {Nombre: {type: string, minLength: 2, maxLength: 150}, DescripcionMarkdown: {type: [string, 'null']}, Visibilidad: {type: string, enum: [abierto, cerrado], default: abierto}, Objetivo: {type: object, properties: {Tipo: {type: string, enum: [libro, saga, universo, antologia]}, Id: {type: integer, minimum: 1}}}}}}}}
     responses:
-      '201': {description: Club creado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Id: {type: integer}}}}}}
+      '201': {description: Club y espacio creados, content: {application/json: {schema: {type: object, required: [success, Id, EspacioId], properties: {success: {type: boolean}, Id: {type: integer}, EspacioId: {type: integer}}}}}}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /clubes-lectura/resumen:
@@ -366,109 +124,16 @@
   post:
     operationId: postClubesLecturaByIdPublicaciones
     tags: [ClubesLectura]
-    summary: Crea una publicación con audiencia club
-    description: 'Equivale a `POST /comunidad/publicaciones` con `Audiencia: club` y el `ClubId` de la ruta. Si se envía ClubId, debe coincidir con la ruta.'
+    summary: Crea una publicación en el club
+    description: 'Solo miembros activos. La audiencia es siempre `club` (omitirla o enviar `club`); si se envía `ClubId`, debe coincidir con la ruta. Es la única forma de publicar: el muro general (`POST /comunidad/publicaciones`) se retiró con las novedades de la plataforma.'
+    x-functional-error-codes:
+      invalid_post_audience: "400: Audiencia distinta de club."
+      invalid_post_club_id: "400: ClubId no es un entero positivo."
+      post_club_id_mismatch: "400: ClubId no coincide con la ruta."
+      club_post_target_unavailable: "404: club inexistente, eliminado o sin membresía activa; no distingue la causa."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateRequest'}}}}
     responses: {'201': {description: Publicación creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
-/chat/conversaciones:
-  get:
-    operationId: getChatConversaciones
-    tags: [Chat]
-    summary: Lista conversaciones activas del usuario autenticado
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        description: Conversaciones activas ordenadas por ultimo mensaje descendente.
-        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ConversationListResponse'}}}
-/chat/ws-ticket:
-  post:
-    operationId: postChatWsTicket
-    tags: [Chat]
-    summary: Emite ticket de un uso para /ws/chat
-    responses:
-      '200': {description: 'Ticket de un uso, valido 60 segundos', content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/WebSocketTicketResponse'}}}}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '500': {description: No se pudo emitir el ticket, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/chat/comunidad-ws-ticket:
-  post:
-    operationId: postChatComunidadWsTicket
-    tags: [Comunidad]
-    summary: Emite ticket de un uso para /ws/community
-    responses:
-      '200': {description: 'Ticket de un uso, valido 60 segundos', content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/WebSocketTicketResponse'}}}}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '500': {description: No se pudo emitir el ticket, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/comunidad/seguimientos:
-  post:
-    operationId: postComunidadSeguimientos
-    tags: [Comunidad]
-    summary: Sigue a un usuario
-    x-functional-error-codes:
-      invalid_social_request: "400: UsuarioId ausente o no numérico."
-      invalid_follow_target: "400: no se permite seguirse a sí mismo."
-      user_blocked: "403: existe un bloqueo bilateral; no revela quién lo creó."
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
-    responses: {'200': {description: Seguimiento idempotente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FollowResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
-  delete:
-    operationId: deleteComunidadSeguimientos
-    tags: [Comunidad]
-    summary: Deja de seguir a un usuario
-    x-functional-error-codes:
-      invalid_social_request: "400: UsuarioId ausente o no numérico."
-      user_blocked: "403: existe un bloqueo bilateral; no revela quién lo creó."
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
-    responses: {'200': {description: Seguimiento eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FollowResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
-/comunidad/amistades/solicitudes:
-  get:
-    operationId: getComunidadAmistadesSolicitudes
-    tags: [Comunidad]
-    summary: Lista solicitudes de amistad propias pendientes por cursor
-    x-functional-error-codes:
-      invalid_friend_request_direction: "400: tipo debe ser recibidas o enviadas."
-    parameters: [{name: tipo, in: query, schema: {type: string, enum: [recibidas, enviadas], default: recibidas}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: afterId, in: query, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: Solicitudes pendientes del usuario autenticado, content: {application/json: {schema: {type: object, required: [success, Solicitudes, SiguienteAfterId], properties: {success: {type: boolean}, Solicitudes: {type: array, items: {type: object, properties: {Id: {type: integer}, Estado: {type: string, enum: [pendiente]}, Mensaje: {type: [string, 'null']}, FechaCreacion: {type: string, format: date-time}, Usuario: {$ref: '../../openapi.yaml#/components/schemas/UserSummary'}}}}, SiguienteAfterId: {type: [integer, 'null']}}}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-  post:
-    operationId: postComunidadAmistadesSolicitudes
-    tags: [Comunidad]
-    summary: Envia una solicitud de amistad
-    x-functional-error-codes:
-      invalid_friend_target: "400: no se permite solicitar amistad a uno mismo."
-      user_blocked: "403: existe un bloqueo bilateral; no revela quién lo creó."
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FriendRequestCreateRequest'}}}}
-    responses: {'201': {description: Solicitud creada o ya existente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
-/comunidad/amistades/solicitudes/{id}:
-  patch:
-    operationId: patchComunidadAmistadesSolicitudesById
-    tags: [Comunidad]
-    summary: Acepta o rechaza una solicitud propia
-    x-functional-error-codes:
-      invalid_friend_state: "400: Estado debe ser aceptada o rechazada."
-      friend_request_not_found: "404: no existe, no es recibida o ya fue resuelta."
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateRequest'}}}}
-    responses: {'200': {description: Solicitud resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
-/comunidad/bloqueos:
-  post:
-    operationId: postComunidadBloqueos
-    tags: [Comunidad]
-    summary: Bloquea un usuario y revoca relaciones activas
-    x-functional-error-codes:
-      invalid_block_target: "400: no se permite bloquearse a uno mismo."
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
-    responses: {'200': {description: Bloqueo idempotente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/BlockResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
-  delete:
-    operationId: deleteComunidadBloqueos
-    tags: [Comunidad]
-    summary: Desbloquea un usuario
-    x-functional-error-codes:
-      invalid_social_request: "400: UsuarioId ausente o no numérico."
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
-    responses: {'200': {description: Bloqueo eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/BlockResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
 /comunidad/denuncias:
   post:
     operationId: postComunidadDenuncias
@@ -488,7 +153,7 @@
             type: object
             required: [TipoEntidad, EntidadId, Motivo]
             properties:
-              TipoEntidad: {type: string, enum: [publicacion, comentario, perfil, mensaje, club]}
+              TipoEntidad: {type: string, enum: [publicacion, comentario, club], description: 'Los perfiles y los mensajes se denuncian en la plataforma (yosiftware.denunciar()).'}
               EntidadId: {type: integer, minimum: 1}
               Motivo: {type: string, minLength: 1, maxLength: 1000}
     responses:
@@ -501,7 +166,7 @@
   patch:
     operationId: patchComunidadPublicacionesById
     tags: [Comunidad]
-    summary: Edita una publicacion propia
+    summary: Edita una publicacion propia de un club
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostEditRequest'}}}}
     responses: {'200': {description: Publicacion editada y auditada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityMutationResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
@@ -515,7 +180,7 @@
   get:
     operationId: getComunidadPublicacionesByIdComentarios
     tags: [Comunidad]
-    summary: Lista comentarios visibles de una publicacion accesible
+    summary: Lista comentarios visibles de una publicacion de un club accesible
     description: Los spoilers se ocultan por defecto según progreso; solo enviar revelarSpoilers=true tras una acción explícita.
     parameters:
     - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
@@ -527,7 +192,7 @@
   post:
     operationId: postComunidadPublicacionesByIdComentarios
     tags: [Comunidad]
-    summary: Comenta una publicacion accesible
+    summary: Comenta una publicacion de un club accesible
     description: Si la publicacion tiene spoiler estructurado y se omite `Spoiler`, el comentario persiste y devuelve el rango y libro efectivos heredados. Un contexto explicito debe usar ese mismo libro y abarcar el rango del padre; no se admiten antologias ni libros alternativos. Esta validacion no revela progreso de otras personas.
     x-functional-error-codes:
       invalid_comment_spoiler: "400: estructura de spoiler invalida o falta libro efectivo. Corregir el cuerpo."
@@ -586,329 +251,11 @@
   delete:
     operationId: deleteClubesLecturaById
     tags: [ClubesLectura]
-    summary: Elimina lógicamente el club propio
-    description: Conserva miembros, chat e histórico, pero revoca el acceso hasta una restauración explícita.
+    summary: Elimina lógicamente el club propio y borra su espacio
+    description: "Borra el espacio del club en la plataforma (sus miembros, invitaciones, solicitudes, conversación y canal) dentro de la misma transacción; si la plataforma falla (`503 club_space_unavailable`), el club no se borra. El contenido del club se conserva hasta una restauración explícita."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     responses:
       '200': {description: Club eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
-/clubes-lectura/{id}/unirse:
-  post:
-    operationId: postClubesLecturaByIdUnirse
-    tags: [ClubesLectura]
-    summary: Se une idempotentemente a un club abierto
-    x-functional-error-codes:
-      club_access_unavailable: "404: club no disponible por una causa no enumerable. Retirar la vista y refrescar bandejas o descubrimiento."
-      club_request_or_invitation_required: "403: club cerrado accesible; mostrar el flujo de solicitud o invitacion."
-      club_membership_limit_reached: "409: limite de tres clubes activos. Mostrar mensaje de producto."
-    description: Se rechaza para clubes cerrados y cuando el usuario ya tiene tres membresías activas.
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: Membresía activa, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
-/clubes-lectura/{id}/solicitudes:
-  get:
-    operationId: getClubesLecturaByIdSolicitudes
-    tags: [ClubesLectura]
-    summary: Lista solicitudes de acceso del club por cursor
-    description: Solo propietario o moderador activo. No expone solicitantes afectados por bloqueo bilateral ni solicitudes de un club eliminado.
-    x-functional-error-codes:
-      invalid_club_inbox_limit: "400: limit debe estar entre 1 y 100."
-      invalid_club_cursor: "400: cursorId no es válido."
-      invalid_club_inbox_state: "400: estado debe ser pendiente, aceptada, rechazada, cancelada o todas."
-      club_access_unavailable: "404: club no disponible por una causa no enumerable. Retirar la vista y refrescar la bandeja."
-      club_moderator_required: "403: se requiere rol activo de propietario o moderador."
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: Solicitudes del club ordenadas por Id descendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubJoinRequestListResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-  post:
-    operationId: postClubesLecturaByIdSolicitudes
-    tags: [ClubesLectura]
-    summary: Solicita acceso a un club cerrado
-    x-functional-error-codes:
-      club_access_unavailable: "404: club no disponible por una causa no enumerable. Retirar la vista y refrescar descubrimiento."
-      club_is_open: "409: el club es abierto. Refrescar el detalle y usar unirse."
-      user_blocked: "403: existe un bloqueo bilateral sin revelar su direccion. Mostrar mensaje de producto."
-      club_already_member: "409: ya existe membresia activa. Refrescar clubes propios."
-      duplicate_club_join_request: "409: ya existe solicitud pendiente. Refrescar la bandeja propia."
-      club_join_request_message_too_long: "400: Mensaje supera 500 caracteres. Corregir el cuerpo sin reintento automatico."
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {content: {application/json: {schema: {type: object, properties: {Mensaje: {type: string, maxLength: 500}}}}}}
-    responses:
-      '201': {description: Solicitud creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
-/bandejas/clubes/solicitudes:
-  get:
-    operationId: getClubesLecturaSolicitudesMias
-    tags: [ClubesLectura]
-    summary: Lista solicitudes de acceso enviadas o recibidas
-    description: La direccion es obligatoria. Recibidas se limita a clubes donde la cuenta conserva rol activo de propietario o moderador. No enumera clubes eliminados, clubes retirados sin membresia ni contrapartes bloqueadas.
-    x-functional-error-codes:
-      invalid_club_inbox_direction: "400: direccion debe ser enviadas o recibidas."
-      invalid_club_inbox_limit: "400: limit debe estar entre 1 y 100."
-      invalid_club_cursor: "400: cursorId no es valido."
-      invalid_club_inbox_state: "400: estado debe ser pendiente, aceptada, rechazada, cancelada o todas."
-    parameters:
-    - {name: direccion, in: query, required: true, schema: {type: string, enum: [enviadas, recibidas]}}
-    - {name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}
-    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
-    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
-    responses:
-      '200': {description: Bandeja solicitada por ID descendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubJoinRequestOwnListResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-/bandejas/clubes/solicitudes/{requestId}:
-  patch:
-    operationId: patchClubesLecturaSolicitudesMiasByRequestId
-    tags: [ClubesLectura]
-    summary: Cancela una solicitud propia pendiente
-    description: Solo la persona solicitante puede cancelarla. Un registro resuelto, bloqueado, eliminado o no visible se responde sin enumerarlo.
-    x-functional-error-codes:
-      invalid_club_request_cancellation_state: "400: Estado debe ser cancelada."
-      club_join_request_not_found: "404: solicitud pendiente propia no disponible. Refrescar la bandeja."
-      club_join_request_cancel_internal_error: "500: no se pudo completar la cancelacion. Reconciliar por GET antes de reintentar."
-    parameters: [{name: requestId, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [Estado], properties: {Estado: {type: string, const: cancelada}}}}}}
-    responses:
-      '200': {description: Solicitud cancelada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CancellationStateResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-/chat/conversaciones/directa:
-  post:
-    operationId: postChatConversacionesDirecta
-    tags: [Chat]
-    summary: Crea o recupera una conversacion directa permitida
-    requestBody:
-      required: true
-      content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}
-    responses:
-      '201': {description: Conversacion creada o recuperada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ConversationCreatedResponse'}}}}
-      '403': {description: 'No hay amistad ni permiso de mensajes, o existe bloqueo', content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/chat/directos/elegibilidad/{user_id}:
-  get:
-    operationId: getChatDirectosElegibilidadByUserId
-    tags: [Chat]
-    summary: Consulta si se puede iniciar un directo con una persona
-    description: No revela quién bloqueó a quién. El resultado puede cambiar antes de crear la conversación; la creación sigue siendo la autoridad final.
-    parameters: [{name: user_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: Elegibilidad actual, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/DirectEligibilityResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-/chat/conversaciones/{id}/mensajes:
-  get:
-    operationId: getChatConversacionesByIdMensajes
-    tags: [Chat]
-    summary: Historial actual de mensajes
-    description: Devuelve hasta `limit` mensajes ordenados de forma ascendente. `beforeId` es cursor keyset hacia mensajes anteriores.
-    parameters:
-    - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
-    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
-    - {name: beforeId, in: query, schema: {type: integer, minimum: 1}}
-    responses:
-      '200': {description: Mensajes de una conversacion accesible, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/MessageListResponse'}}}}
-      '403': {description: No es participante activo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-  post:
-    operationId: postChatConversacionesByIdMensajes
-    tags: [Chat]
-    summary: Envia un mensaje Markdown
-    description: >-
-      ClientMessageId UUID es obligatorio y hace la escritura idempotente por conversacion/remitente.
-      Cada mensaje humano nuevo crea, dentro de la misma transaccion, una notificacion persistente
-      `chat.message_created` para cada destinatario con acceso efectivo. La notificacion usa
-      `chat_conversation` con los identificadores canonicos de conversacion y mensaje; el outbox FCM
-      solo se crea cuando `chat/push` esta habilitado. En Android se entrega como push `data-only`
-      de prioridad alta con nombre del remitente, vista previa acotada y copia publica generica para
-      que la APK construya una notificacion privada. Los reintentos deduplicados no vuelven a emitirla.
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatMessageCreateRequest'}}}}
-    responses:
-      '201': {description: Mensaje persistido, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatMessageCreateResponse'}}}}
-      '400': {description: Cuerpo obligatorio, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-      '403': {description: No es participante activo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/chat/conversaciones/{id}/leer:
-  post:
-    operationId: postChatConversacionesByIdLeer
-    tags: [Chat]
-    summary: Actualiza lectura monotona
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatReadRequest'}}}}
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        description: Lectura actualizada sin retroceder con cursor y no leidos derivados
-        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}
-/chat/conversaciones/{id}/mensajes/{message_id}:
-  parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: message_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-  patch:
-    operationId: patchChatConversacionesByIdMensajesByMessageId
-    tags: [Chat]
-    summary: Edita un mensaje propio durante quince minutos
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [CuerpoMarkdown], properties: {CuerpoMarkdown: {type: string, minLength: 1, maxLength: 4000}}}}}}
-    responses: {'200': {description: Mensaje actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
-  delete:
-    operationId: deleteChatConversacionesByIdMensajesByMessageId
-    tags: [Chat]
-    summary: Hace tombstone de un mensaje propio durante quince minutos
-    responses: {'200': {description: Mensaje eliminado logicamente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
-/chat/conversaciones/{id}/mensajes/{message_id}/ocultar:
-  post:
-    operationId: postChatConversacionesByIdMensajesByMessageIdOcultar
-    tags: [Chat]
-    summary: Oculta un mensaje de club para propietarios o moderadores
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: message_id, in: path, required: true, schema: {type: integer}}]
-    responses: {'200': {description: Mensaje ocultado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
-/chat/conversaciones/{id}/mensajes/{message_id}/reaccion:
-  put:
-    operationId: putChatConversacionesByIdMensajesByMessageIdReaccion
-    tags: [Chat]
-    summary: Guarda una reaccion propia por mensaje
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: message_id, in: path, required: true, schema: {type: integer}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Tipo], properties: {Tipo: {type: string, enum: [me_gusta, risa, sorpresa, triste, apoyo]}}}}}}
-    responses: {'200': {description: Reaccion actualizada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
-/chat/conversaciones/{id}/mensajes/buscar:
-  get:
-    operationId: getChatConversacionesByIdMensajesBuscar
-    tags: [Chat]
-    summary: Busca mensajes accesibles por cursor keyset
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: q, in: query, required: true, schema: {type: string, minLength: 2}}, {name: beforeId, in: query, schema: {type: integer}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 30}}]
-    responses: {'200': {description: Resultados de busqueda, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/MessageListResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
-/chat/clubes/{id}:
-  post:
-    operationId: postChatClubesById
-    tags: [Chat]
-    summary: Prepara o recupera el chat de un club
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: Conversacion de club disponible, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ConversationCreatedResponse'}}}}
-      '403': {description: Se requiere membresia activa, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/clubes-lectura/{id}/invitaciones:
-  post:
-    operationId: postClubesLecturaByIdInvitaciones
-    tags: [ClubesLectura]
-    summary: Invita a una persona al club
-    x-functional-error-codes:
-      club_access_unavailable: "404: club no disponible por una causa no enumerable. Retirar la vista y refrescar clubes propios."
-      club_moderator_required: "403: membresia activa sin rol de propietario o moderador. Conservar la vista en solo lectura."
-      club_invitation_target_already_member: "409: la persona ya es miembro. Refrescar el detalle."
-      invalid_club_invitation_target: "400: UsuarioId no es un entero valido."
-      club_invitation_candidate_unavailable: "404: la persona no es elegible o accesible. Refrescar candidatos sin inferir la causa."
-      duplicate_club_invitation: "409: ya existe una invitacion pendiente; no se crea otra fila ni notificacion."
-      club_invitation_internal_error: "500: resultado incierto; reconciliar la bandeja antes de reintentar."
-    description: Solo propietario o moderador. La invitación queda pendiente para la persona invitada.
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [UsuarioId], properties: {UsuarioId: {type: integer, minimum: 1}}}}}}
-    responses:
-      '201': {description: Invitación creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
-      '500': {description: No se pudo gestionar la invitacion, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/clubes-lectura/{id}/invitaciones/candidatos:
-  get:
-    operationId: getClubesLecturaByIdInvitacionesCandidatos
-    tags: [ClubesLectura]
-    summary: Busca personas elegibles para invitar al club
-    description: Solo propietario o moderador activo. Prioriza amistad, seguidores del gestor y perfiles publicos. Los perfiles privados requieren amistad o seguir al gestor; el resultado nunca incluye email ni explica una exclusión.
-    x-functional-error-codes:
-      club_invitation_candidates_filter_invalid: "400: q supera 100 caracteres o limit queda fuera de 1..50."
-      club_invitation_candidates_cursor_invalid: "400: cursorTipo, cursorNombre y cursorId deben enviarse juntos y ser validos."
-      club_access_unavailable: "404: club inexistente, eliminado o sin membresia activa del actor."
-      club_moderator_required: "403: la membresia activa no tiene rol de propietario o moderador."
-      club_invitation_candidates_internal_error: "500: no se pudo completar la consulta; no reutilizar un cursor parcial."
-    parameters:
-    - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
-    - {name: q, in: query, schema: {type: string, maxLength: 100}}
-    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 50, default: 20}}
-    - {name: cursorTipo, in: query, schema: {type: string, enum: [amistad, seguidor, publico]}}
-    - {name: cursorNombre, in: query, schema: {type: string}}
-    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
-    responses:
-      '200': {description: Candidatos ordenados y paginados, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubInvitationCandidatesResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-      '500': {description: No se pudieron obtener candidatos, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/bandejas/clubes/invitaciones:
-  get:
-    operationId: getClubesLecturaInvitaciones
-    tags: [ClubesLectura]
-    summary: Lista invitaciones enviadas o recibidas por cursor
-    description: La direccion es obligatoria. Enviadas incluye todos los clubes que la cuenta administra actualmente, aunque invitara otro gestor. REST no enumera clubes eliminados, clubes retirados sin membresia ni contrapartes bloqueadas.
-    x-functional-error-codes:
-      invalid_club_inbox_limit: "400: limit debe estar entre 1 y 100."
-      invalid_club_cursor: "400: cursorId no es válido."
-      invalid_club_inbox_state: "400: estado debe ser pendiente, aceptada, rechazada, cancelada o todas."
-      invalid_club_inbox_direction: "400: direccion debe ser enviadas o recibidas."
-    parameters: [{name: direccion, in: query, required: true, schema: {type: string, enum: [enviadas, recibidas]}}, {name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
-    responses:
-      '200': {description: Invitaciones propias ordenadas por Id descendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubInvitationListResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-/bandejas/clubes/invitaciones/{invitationId}:
-  patch:
-    operationId: patchClubesLecturaInvitacionesByInvitationId
-    tags: [ClubesLectura]
-    summary: Cancela una invitacion pendiente de un club administrado
-    description: Reevalua el rol activo de propietario o moderador. Notifica a la persona invitada y emite club.updated.
-    x-functional-error-codes:
-      invalid_club_invitation_cancellation_state: "400: Estado debe ser cancelada."
-      club_access_unavailable: "404: el club ya no es administrable por la cuenta."
-      club_moderator_required: "403: la membresia activa no tiene rol gestor."
-      club_invitation_not_found: "404: invitacion pendiente no disponible o contraparte bloqueada."
-      club_invitation_cancel_internal_error: "500: fallo incierto; reconciliar por GET antes de reintentar."
-    parameters: [{name: invitationId, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [Estado], properties: {Estado: {type: string, const: cancelada}}}}}}
-    responses:
-      '200': {description: Invitacion cancelada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CancellationStateResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-/clubes-lectura/{id}/invitaciones/{invitationId}:
-  patch:
-    operationId: patchClubesLecturaByIdInvitacionesByInvitationId
-    tags: [ClubesLectura]
-    summary: Acepta o rechaza una invitación propia pendiente
-    x-functional-error-codes:
-      invalid_invitation_state: "400: Estado debe ser aceptada o rechazada."
-      club_invitation_not_found: "404: invitacion pendiente propia no disponible o bloqueada."
-      club_invitation_candidate_not_eligible: "409: cuenta no verificada, inactiva o sancionada para clubes."
-      club_membership_limit_reached: "409: la persona ya ocupa tres membresias activas."
-      club_invitation_internal_error: "500: resultado incierto; reconciliar la invitacion antes de reintentar."
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: invitationId, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
-    responses:
-      '200': {description: Invitación resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
-      '500': {description: No se pudo gestionar la invitacion, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/clubes-lectura/{id}/solicitudes/{requestId}:
-  patch:
-    operationId: patchClubesLecturaByIdSolicitudesByRequestId
-    tags: [ClubesLectura]
-    summary: Resuelve una solicitud pendiente de acceso
-    description: Solo propietario o moderador. Una aceptación sigue respetando el límite de tres clubes activos de la persona solicitante.
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: requestId, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
-    responses:
-      '200': {description: Solicitud resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
@@ -936,11 +283,12 @@
     club_owner_required: "403: membresia activa sin ser propietario. Conservar la vista en solo lectura."
     invalid_club_role: "400 PATCH: rol invalido. Corregir el formulario."
     club_member_not_found: "404: miembro ya no esta activo. Refrescar la lista de miembros."
+    club_space_unavailable: "503: la plataforma no responde. Reintentar más tarde."
   patch:
     operationId: patchClubesLecturaByIdMiembrosByUserId
     tags: [ClubesLectura]
     summary: Cambia el rol de un miembro activo
-    description: Solo el propietario puede alternar entre miembro y moderador; no puede modificar al propietario.
+    description: "Solo el propietario puede alternar entre miembro y moderador (roles `miembro` y `moderacion` del espacio); no puede modificar al propietario. Cambia el rol en la plataforma (`PUT /v1/servicio/espacios/club-<id>/miembros/{cuenta}`) en la misma transacción."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: userId, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Rol], properties: {Rol: {type: string, enum: [moderador, miembro]}}}}}}
     responses: {'200': {description: Rol actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
@@ -948,26 +296,15 @@
     operationId: deleteClubesLecturaByIdMiembrosByUserId
     tags: [ClubesLectura]
     summary: Expulsa a un miembro activo
-    description: Solo el propietario; revoca inmediatamente el acceso al chat y a las vistas privadas del club.
+    description: "Solo el propietario. Saca a la persona del espacio con la credencial de servicio (`DELETE /v1/servicio/espacios/club-<id>/miembros/{cuenta}`, `motivo: expulsado`): pierde el acceso a la conversación y a las vistas privadas y solo vuelve con una invitación. Le llega la notificación `club.expulsion`."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: userId, in: path, required: true, schema: {type: integer, minimum: 1}}]
     responses: {'200': {description: Miembro expulsado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
-/clubes-lectura/{id}/salir:
-  x-functional-error-codes:
-    club_access_unavailable: "404: club no disponible. Retirar la vista y refrescar clubes propios."
-    club_owner_cannot_leave: "409: el propietario debe transferir o eliminar el club. Mostrar mensaje de producto."
-  post:
-    operationId: postClubesLecturaByIdSalir
-    tags: [ClubesLectura]
-    summary: Abandona un club como miembro o moderador
-    description: El propietario no puede abandonar su propio club.
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses: {'200': {description: Salida registrada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /clubes-lectura/{id}/restaurar:
   post:
     operationId: postClubesLecturaByIdRestaurar
     tags: [ClubesLectura]
     summary: Restaura un club eliminado lógicamente
-    description: Solo el propietario. Recupera miembros e histórico, sin reactivar invitaciones o solicitudes canceladas.
+    description: "Solo el propietario. Recupera el contenido del club y crea un espacio nuevo con quien lo tiene como único miembro: los demás vuelven entrando o con una invitación de la plataforma. `503 club_space_unavailable` si la plataforma falla."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     responses: {'200': {description: Club restaurado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /clubes-lectura/{id}/lecturas:
@@ -1098,40 +435,6 @@
 /clubes-lectura/{id}/debates/{debateId}:
   get: {operationId: getClubesLecturaByIdDebatesByDebateId, tags: [ClubesLectura], summary: Devuelve un debate y sus comentarios aplicando spoilers, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: debateId, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: revelarSpoilers, in: query, schema: {type: boolean, default: false}}], responses: {'200': {description: Debate y comentarios, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubDebateDetailResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
   post: {operationId: postClubesLecturaByIdDebatesByDebateId, tags: [ClubesLectura], summary: Comenta un debate, description: Los comentarios no tienen edición ni borrado expuestos y heredan el spoiler del debate cuando no declaran uno., parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: debateId, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [ContenidoMarkdown], properties: {ContenidoMarkdown: {type: string, minLength: 1, maxLength: 4000}, Spoiler: {$ref: '../../openapi.yaml#/components/schemas/ClubSpoiler'}}}}}}, responses: {'201': {description: Comentario creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
-/moderacion/comunidad/denuncias:
-  get:
-    operationId: getModeracionComunidadDenuncias
-    tags: [Moderacion]
-    summary: Lista grupos de denuncias de contenido comunitario
-    description: Requiere rol moderador o administrador. Cada grupo incluye contexto moderable mínimo generado por backend y nunca crea por sí mismo una sanción de cuenta.
-    parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, todos], default: pendiente}}]
-    responses:
-      '200': {description: Grupos de denuncias, content: {application/json: {schema: {type: object, required: [success, Grupos], properties: {success: {type: boolean}, Grupos: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/CommunityReportGroup'}}}}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-/moderacion/comunidad/denuncias/{id}/resolver:
-  post: &resolveCommunityReport
-    operationId: postModeracionComunidadDenunciasByIdResolver
-    tags: [Moderacion]
-    summary: Resuelve un grupo de denuncias comunitarias
-    description: Requiere rol moderador o administrador. La medida nunca sanciona automáticamente la cuenta. Para mensaje y club admite ocultar/restaurar mensaje o retirar/restaurar el club del descubrimiento.
-    x-functional-error-codes:
-      moderator_required: "403: solo moderador o administrador."
-      invalid_content_report_resolution: "400: Estado debe ser aceptada o rechazada."
-      invalid_content_report_measure: "400: medida desconocida o incompatible con el tipo denunciado."
-      community_report_group_not_found: "404: grupo inexistente."
-      reported_content_not_found: "404: la entidad denunciada ya no existe."
-      community_report_group_already_resolved: "409: otra resolución ya reclamó o cerró el grupo; no se repite la medida ni las notificaciones."
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}, Comentario: {type: string, maxLength: 1000}, Medida: {type: string, enum: [ninguna, mensaje_ocultado, mensaje_restaurado, club_retirado_descubrimiento, club_restaurado_descubrimiento]}}}}}}
-    responses:
-      '200': {description: Grupo resuelto, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Id: {type: integer}, Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
-      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
-      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
-  patch: *resolveCommunityReport
-
 /comunidad/resumen:
   get:
     operationId: getComunidadResumen
@@ -1144,114 +447,3 @@
           application/json:
             schema: {$ref: '../../openapi.yaml#/components/schemas/SocialSummaryResponse'}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-/chat/conversaciones/{id}:
-  get:
-    operationId: getChatConversation
-    tags: [Chat]
-    summary: Detalle y participantes activos de una conversación propia
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    x-functional-error-codes: {chat_membership_required: '403: no existe membresía activa; no revela conversación ajena.'}
-    responses: {'200': {description: Conversación accesible, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatConversationDetailResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
-/chat/grupos:
-  post:
-    operationId: postChatGroups
-    tags: [Chat]
-    summary: Crea un grupo privado y genera invitaciones consentidas
-    description: Solo el creador entra como administrador. `Invitados` nunca produce altas directas.
-    x-functional-error-codes: {chat_group_title_invalid: '400: título de 2 a 150 caracteres.', chat_group_invitees_invalid: '400: Invitados debe ser una lista de IDs.', chat_group_capacity_reached: '400: se superan 50 plazas.', chat_group_candidate_not_eligible: '409: una persona no cumple relación, cuenta, sanción o bloqueo.', chat_group_history_policy_invalid: '400: política distinta de desde_ingreso o completo.'}
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupCreateRequest'}}}}
-    responses:
-      '201': {description: Grupo creado con sus invitaciones, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupCreatedResponse'}}}}
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
-/chat/grupos/{id}:
-  patch:
-    operationId: patchChatGroup
-    tags: [Chat]
-    summary: Edita título o política para futuras incorporaciones
-    description: Cambiar `HistorialNuevosMiembros` no altera la concesión de participantes existentes.
-    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente.', chat_membership_required: '403: no hay membresía activa.', chat_group_admin_required: '403: requiere admin activo.', chat_group_title_invalid: '400: título de 2 a 150 caracteres.', chat_group_history_policy_invalid: '400: política inválida.', chat_group_update_empty: '400: no se envió un campo mutable.'}
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, minProperties: 1, additionalProperties: false, properties: {Titulo: {type: string, minLength: 2, maxLength: 150}, HistorialNuevosMiembros: {type: string, enum: [desde_ingreso, completo]}}}}}}
-    responses: {'200': {description: Grupo actualizado}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
-  delete:
-    operationId: deleteChatGroupMembership
-    tags: [Chat]
-    summary: Sale del grupo; el último administrador debe delegar antes
-    x-functional-error-codes: {chat_membership_required: '403: no hay membresía activa.', chat_group_last_admin: '409: promocionar otro admin antes de salir.'}
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
-    responses: {'200': {description: Salida aplicada}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
-/chat/grupos/candidatos:
-  get:
-    operationId: getChatGroupCandidates
-    tags: [Chat]
-    summary: Busca candidatos para crear o administrar un grupo
-    description: Con `ConversacionId` exige administrador y excluye miembros e invitaciones pendientes. La elegibilidad coincide con chat directo y añade cuenta activa/verificada y ausencia de sanción de chat.
-    parameters: [{name: ConversacionId, in: query, schema: {type: integer, minimum: 1}}, {name: q, in: query, schema: {type: string, maxLength: 100}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 50, default: 20}}, {name: cursorNombre, in: query, schema: {type: string}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
-    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente o actor sin rol admin.', chat_group_candidates_filter_invalid: '400: ConversacionId o limit inválido.', chat_group_candidates_cursor_invalid: '400: cursorNombre y cursorId deben enviarse juntos.'}
-    responses: {'200': {description: Candidatos privados, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupCandidatesResponse'}}}}}
-/chat/grupos/{id}/invitaciones:
-  post:
-    operationId: postChatGroupInvitations
-    tags: [Chat]
-    summary: Invita candidatos elegibles; solo administrador
-    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente o actor sin rol admin.', chat_group_invitees_required: '400: lista no vacía obligatoria.', chat_group_invitees_invalid: '400: IDs inválidos.', chat_group_candidate_not_eligible: '409: pérdida de elegibilidad.', chat_group_candidate_already_member: '409: ya es miembro activo.', chat_group_invitation_already_pending: '409: ya existe invitación pendiente.', chat_group_capacity_reached: '409: activos y pendientes ocupan las 50 plazas.'}
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [Invitados], properties: {Invitados: {type: array, minItems: 1, maxItems: 49, uniqueItems: true, items: {type: integer, minimum: 1}}}}}}}
-    responses: {'201': {description: Invitaciones persistidas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationsCreatedResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
-/bandejas/chat/grupos/invitaciones:
-  get:
-    operationId: getMyChatGroupInvitations
-    tags: [Chat]
-    summary: Bandeja propia de invitaciones a grupos
-    x-functional-error-codes: {chat_group_invitation_state_invalid: '400: estado inválido.', chat_group_invitations_cursor_invalid: '400: limit o cursorId inválido.'}
-    parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
-    responses: {'200': {description: Invitaciones propias, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationListResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}}
-/bandejas/chat/grupos/invitaciones/{invitationId}:
-  patch:
-    operationId: patchMyChatGroupInvitation
-    tags: [Chat]
-    summary: Acepta o rechaza una invitación propia
-    description: Aceptar revalida vigencia, relación, bloqueo, sanción y capacidad; solo entonces concede membresía, historial y realtime.
-    x-functional-error-codes: {chat_group_invitation_state_invalid: '400: solo aceptada o rechazada.', chat_group_invitation_not_found: '404: no es una invitación pendiente propia.', chat_group_invitation_expired: '409: superó los 30 días.', chat_group_candidate_not_eligible: '409: se perdió elegibilidad.', chat_group_capacity_reached: '409: el grupo ya ocupa 50 plazas.'}
-    parameters: [{name: invitationId, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
-    responses: {'200': {description: Invitación resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationResolutionResponse'}}}}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
-/chat/grupos/{id}/invitaciones/{invitationId}:
-  patch:
-    operationId: patchChatGroupInvitationCancellation
-    tags: [Chat]
-    summary: Cancela una invitación pendiente; solo administrador
-    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente o actor sin rol admin.', chat_group_invitation_not_found: '404: invitación no pendiente en ese grupo.'}
-    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: invitationId, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses: {'200': {description: Invitación cancelada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationResolutionResponse'}}}}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
-/chat/grupos/{id}/participantes/{user_id}:
-  delete:
-    operationId: deleteChatGroupParticipant
-    tags: [Chat]
-    summary: Expulsa a un participante; requiere administrador
-    x-functional-error-codes: {chat_group_admin_required: '403: requiere admin activo.', chat_group_member_not_found: '404: participante no activo.'}
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: user_id, in: path, required: true, schema: {type: integer}}]
-    responses: {'200': {description: Participante retirado}}
-/chat/grupos/{id}/participantes/{user_id}/rol:
-  patch:
-    operationId: patchChatGroupParticipantRole
-    tags: [Chat]
-    summary: Promueve o degrada administrador; debe quedar uno activo
-    x-functional-error-codes: {chat_group_admin_required: '403: requiere admin activo.', chat_group_member_not_found: '404: participante no activo.', chat_group_last_admin: '409: debe quedar un admin activo.'}
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: user_id, in: path, required: true, schema: {type: integer}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Rol], properties: {Rol: {type: string, enum: [admin, miembro]}}}}}}
-    responses: {'200': {description: Rol actualizado}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
-/chat/preferencias-flotantes:
-  get:
-    operationId: getChatFloatingPreferences
-    tags: [Chat]
-    summary: Preferencias privadas versionadas del chat flotante
-    responses: {'200': {description: Preferencias efectivas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatFloatingPreferencesResponse'}}}}}
-  patch:
-    operationId: patchChatFloatingPreferences
-    tags: [Chat]
-    summary: Actualización parcial; campos omitidos se preservan y null elimina una geometría
-    x-functional-error-codes: {chat_preferences_version_required: '400: Version es obligatoria.', chat_preferences_conflict: '409: recargar y reaplicar la intención.', chat_preferences_invalid: '400: modo, ventana o valor inválido.', chat_preferences_geometry_invalid: '400: posición/tamaño solo admite claves numéricas no negativas.', chat_float_windows_limit: '400: máximo cinco ventanas.', chat_membership_required: '403: una ventana solo puede ser de una conversación activa propia.'}
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Version], properties: {Version: {type: integer, minimum: 1}, AutoabrirListado: {type: boolean}, PermitirBurbujas: {type: boolean}, ModoListado: {type: string, enum: [normal, minimizado]}, PosicionListado: {oneOf: [{$ref: '../../openapi.yaml#/components/schemas/ChatFloatGeometryPosition'}, {type: 'null'}]}, TamanoListado: {oneOf: [{$ref: '../../openapi.yaml#/components/schemas/ChatFloatGeometrySize'}, {type: 'null'}]}, ConversacionesFlotantes: {type: array, maxItems: 5, items: {$ref: '../../openapi.yaml#/components/schemas/ChatFloatWindow'}}}}}}}
-    responses: {'200': {description: Preferencias guardadas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatFloatingPreferencesResponse'}}}}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}

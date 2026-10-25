@@ -1,38 +1,29 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { environment } from '../../../../../environment/environment';
-import { User } from '../../../../interfaces/user';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { YosiftwareAccountComponent } from '../yosiftware-account/yosiftware-account.component';
+import { YosiftwareNotificationsComponent } from '../yosiftware-notifications/yosiftware-notifications.component';
+import { YosiftwareWebsComponent } from '../yosiftware-webs/yosiftware-webs.component';
 
 @Component({
     standalone: true,
     selector:  'app-navbar',
-    imports: [RouterLink, MatButtonModule, MatIconModule, MatTooltipModule, NotificationBellComponent],
+    imports: [RouterLink, MatButtonModule, MatIconModule, MatTooltipModule, YosiftwareAccountComponent, YosiftwareNotificationsComponent, YosiftwareWebsComponent],
     templateUrl: './navbar.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './navbar.component.sass'
 })
 export class NavbarComponent implements OnInit {
-    imgUrl = environment.getImgUrl;
-    userData!: User;
-
-    imageCacheBuster: number = Date.now();
-
     canAccessLibrary: boolean = false;
 
-    get isUserAdmin(): boolean {
-        return this.sessionSrv.isAdmin;
-    }
-
-    constructor(private sessionSrv: SessionService, private loader: LoaderEmmitterService, public router: Router, private adaptiveLayout: AdaptiveLayoutService,
+    constructor(private sessionSrv: PlatformSessionService, private loader: LoaderEmmitterService, public router: Router, private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService) { }
 
     get showLegacyLoggedNav(): boolean {
@@ -42,28 +33,12 @@ export class NavbarComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.sessionSrv.userIsLogged$.subscribe(logged => {
-            this.canAccessLibrary = logged && this.sessionSrv.canAccessLibrary;
-            if (this.canAccessLibrary) {
-                this.userData = this.sessionSrv.userObject;
-                this.imageCacheBuster = Date.now();
-            }
-        });
-
-        this.userData = this.sessionSrv.userObject;
-    }
-
-    handleProfileImageError(event: any) {
-        event.target.src = 'assets/media/img/error.png';
+        this.sessionSrv.userIsLogged$.subscribe(logged => this.canAccessLibrary = logged);
     }
 
     openLibrary(event: MouseEvent): void {
         event.preventDefault();
         this.loader.activateLoader();
         requestAnimationFrame(() => void this.router.navigate(['/dashboard']));
-    }
-
-    logout(): void {
-        this.sessionSrv.logout();
     }
 }

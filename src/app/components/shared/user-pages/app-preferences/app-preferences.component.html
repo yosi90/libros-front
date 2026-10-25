@@ -5,11 +5,8 @@
         </nav>
         <section class="m-preferences__content">
             @if (activeSection === 'appearance' && isWebPresentation) {<app-appearance-preferences></app-appearance-preferences>}
-            @if (activeSection === 'privacy') {<app-profile-privacy-preferences [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacy($event)"></app-profile-privacy-preferences>}
-            @if (activeSection === 'activity') {<app-profile-activity-preferences [profilePublic]="user.perfilPublico ?? false" (openPrivacy)="openPrivacy()"></app-profile-activity-preferences>}
-            @if (activeSection === 'notifications') {<app-profile-notification-preferences></app-profile-notification-preferences>}
+            @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
             @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
-            @if (activeSection === 'permissions' && isNativeMobile) {<app-mobile-app-permissions></app-mobile-app-permissions>}
         </section>
     </main>
 } @else if (isWebView) {
@@ -22,9 +19,7 @@
             <section class="web-settings__panel">
                 <header class="web-settings__panel-head"><div><h2>{{activeSectionInfo.label}}</h2><p>{{activeSectionInfo.description}}</p></div></header>
                 @if (activeSection === 'appearance') {<app-appearance-preferences></app-appearance-preferences>}
-                @if (activeSection === 'privacy') {<app-profile-privacy-preferences [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacy($event)"></app-profile-privacy-preferences>}
-                @if (activeSection === 'activity') {<app-profile-activity-preferences [profilePublic]="user.perfilPublico ?? false" (openPrivacy)="openPrivacy()"></app-profile-activity-preferences>}
-                @if (activeSection === 'notifications') {<app-profile-notification-preferences></app-profile-notification-preferences>}
+                @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
                 @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
             </section>
         </div>
@@ -37,9 +32,7 @@
         </nav>
         <p class="preferences__intro">{{activeSectionInfo.description}}</p>
         @if (activeSection === 'appearance' && isWebPresentation) {<app-appearance-preferences></app-appearance-preferences>}
-        @if (activeSection === 'privacy') {<app-profile-privacy-preferences [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacy($event)"></app-profile-privacy-preferences>}
-        @if (activeSection === 'activity') {<app-profile-activity-preferences [profilePublic]="user.perfilPublico ?? false" (openPrivacy)="openPrivacy()"></app-profile-activity-preferences>}
-        @if (activeSection === 'notifications') {<app-profile-notification-preferences></app-profile-notification-preferences>}
+        @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
         @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
     </section>
 }

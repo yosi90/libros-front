@@ -1,6 +1,7 @@
 import { expect, test } from './fixtures/test';
 
-const PUBLIC_ROUTES = ['/', '/login', '/register', '/forgot-password', '/reset-password'];
+// Entrar y crear la cuenta son de la plataforma Yosiftware: la única ruta pública propia es la portada.
+const PUBLIC_ROUTES = ['/'];
 const TEXTURE_VARIABLES = [
     '--app-texture-home',
     '--app-texture-login',
@@ -50,8 +51,8 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
                 return {
                     fits: root.scrollWidth <= root.clientWidth,
                     textures: textureVariables.map(variable => styles.getPropertyValue(variable).trim()),
-                    hasMobileTree: !!document.querySelector('.mobile-ui, app-login-mobile-view, app-register-mobile-view, app-forgot-password-mobile-view, app-reset-password-mobile-view'),
-                    hasWoodTree: !!document.querySelector('app-login-wood-view, app-register-wood-view, app-forgot-password-wood-view, app-reset-password-wood-view')
+                    hasMobileTree: !!document.querySelector('.mobile-ui, app-home-mobile-view'),
+                    hasWoodTree: !!document.querySelector('app-home-wood-view')
                 };
             }, TEXTURE_VARIABLES);
             expect(contract.fits, `${route} no debe producir overflow horizontal`).toBeTruthy();
@@ -65,32 +66,19 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
         }
     });
 
-    test('conserva ruta y formulario al rotar y sustituye la presentación cuando corresponde', async ({ page }) => {
-        await page.goto('/login');
-        const resolveEmailInput = async () => {
-            const expectedPresentation = page.viewportSize()!.width <= 1050 ? 'mobile' : 'wood';
-            await expect(page.locator('html')).toHaveAttribute('data-presentation-active', expectedPresentation);
-            const input = page.getByRole('textbox', { name: 'Correo electrónico' });
-            const mobileMethod = page.locator('[data-native-back-overlay]');
-            if (expectedPresentation === 'mobile' && !await mobileMethod.isVisible())
-                await page.getByRole('button', { name: 'Acceder con correo electrónico' }).click();
-            await expect(input).toBeVisible();
-            return input;
-        };
-        const email = await resolveEmailInput();
-        await email.fill('rotacion@example.test');
-
+    test('conserva la ruta al rotar y sustituye la presentación cuando corresponde', async ({ page }) => {
+        await page.goto('/home');
         const original = page.viewportSize()!;
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', original.width <= 1050 ? 'mobile' : 'wood');
+        await expect(page.locator('yosi-acceso')).toHaveCount(1);
 
         await page.setViewportSize({ width: original.height, height: original.width });
-        await expect(page).toHaveURL(/\/login(?:[?#].*)?$/);
-        await expect(await resolveEmailInput()).toHaveValue('rotacion@example.test');
+        await expect(page).toHaveURL(/\/home(?:[?#].*)?$/);
         await expect(page.locator('html')).toHaveAttribute('data-orientation', original.height < original.width ? 'portrait' : 'landscape');
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', original.height <= 1050 ? 'mobile' : 'wood');
+        await expect(page.locator('yosi-acceso')).toHaveCount(1);
 
         await page.setViewportSize(original);
-        await expect(await resolveEmailInput()).toHaveValue('rotacion@example.test');
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', original.width <= 1050 ? 'mobile' : 'wood');
     });
 });

@@ -4,7 +4,6 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { Book } from '../../interfaces/book';
 import { BookStoreService } from '../stores/book-store.service';
-import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 
 /** Libro que se estaba leyendo al salir al panel principal. */
 export interface ParkedReading {
@@ -29,9 +28,8 @@ const SECTION_LABELS: Record<string, string> = {
 };
 
 /**
- * Versión navegador de la píldora del lector de la APK: al salir de un libro
- * hacia el panel se recuerda dónde estaba para volver con un clic. En la APK lo
- * hace `NativeReaderSessionService`.
+ * Al salir de un libro hacia el panel se recuerda dónde estaba para volver con
+ * un clic (ventana «Estabas leyendo»).
  */
 @Injectable({ providedIn: 'root' })
 export class ReadingReturnService {
@@ -42,10 +40,8 @@ export class ReadingReturnService {
     constructor(
         private router: Router,
         private books: BookStoreService,
-        @Inject(DOCUMENT) private document: Document,
-        @Inject(NATIVE_MOBILE_PLATFORM) nativeMobile: boolean
+        @Inject(DOCUMENT) private document: Document
     ) {
-        if (nativeMobile) return;
         this.parkedSignal.set(this.readStored());
         this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
             .subscribe(event => this.observe(event.urlAfterRedirects));

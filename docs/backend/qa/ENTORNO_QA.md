@@ -1,10 +1,12 @@
 # Entorno QA determinista
 
+> **Adhesión a Yosiftware (fase 3, rama `adhesion/api-identidad`).** QA ya no tiene WebSocket propio (`wss://qa-ws.yosiftware.es`), NATS, gateway, workers de tiempo real, Firebase Authentication, Firestore, RTDB ni FCM: la sesión es la cuenta de Yosiftware de la plataforma de QA y sus cuentas de prueba (`scripts/qa-plataforma-smoke.py`), y las contraseñas `QA_*_PASSWORD` y `QA_PHONE_TEST_*` ya no sirven para entrar. El perfil `realtime-recovery` se conserva como fixture SQL, sin entrega en directo. Lo que sigue documenta el contrato anterior donde no se ha actualizado; prevalecen `../api/ADHESION_YOSIFTWARE.md`, `README.md` y `ENTORNO_QA.md`.
+
 ## Servidor disponible
 
 Esta guía define el contrato de reset y consumo del front. La operación del servidor está en `docs/backend/qa/README.md`; el `qa/README.md` junto a los scripts solo sirve como acceso rápido.
 
-`qa/` levanta en Windows el stack aislado sin Docker: API `http://127.0.0.1:5101`, WebSocket `ws://127.0.0.1:8101`, SQL `libros_qa` y NATS `:4322`. Cloudflare publica únicamente `https://qa-api.yosiftware.es` y `wss://qa-ws.yosiftware.es`; SQL y NATS permanecen privados. Firebase puede operar con emuladores locales o con el proyecto remoto exclusivo `libros-qa`; el modo se selecciona mediante `qa/configure-firebase.ps1`.
+`qa/` levanta en Windows el stack aislado sin Docker: API `http://127.0.0.1:5101`, SQL `libros_qa` y el lector del feed de la plataforma de QA. Cloudflare publica únicamente `https://qa-api.yosiftware.es`; SQL permanece privado. Desde la adhesión a Yosiftware no hay WebSocket propio, NATS ni Firebase: la sesión es la cuenta de Yosiftware de la plataforma de QA.
 
 ## Uso del front
 
@@ -28,9 +30,9 @@ El incidente del run front `31709604641` no fue un checkout sucio. El snapshot Q
 
 ## Reset y fixtures
 
-`POST /qa/reset` acepta opcionalmente `{ "Scenario": "baseline" }`. Antes de restaurar SQL elimina de Firebase QA toda identidad ajena a la allowlist cerrada de nueve UIDs baseline; si el proyecto no es `libros-qa`/emulador QA o Firebase falla, el reset falla cerrado y puede reintentarse de forma idempotente. Los perfiles permitidos son `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`. Además del bloqueo breve de reset existe una lease SQL auditable de campaña, con propietarios cerrados `backend-smoke`, `frontend-playwright` y `manual`. Adquirir, renovar y liberar quedan auditados; una lease abandonada expira automáticamente.
+`POST /qa/reset` acepta opcionalmente `{ "Scenario": "baseline" }`. Ya no toca Firebase: la sesión es de la plataforma. Los perfiles permitidos son `baseline`, `expired-sessions`, `rate-limited` y `realtime-recovery` (`version-conflict` se retiró en la fase 4 de la adhesión con los clubes de la provisión). Además del bloqueo breve de reset existe una lease SQL auditable de campaña, con propietarios cerrados `backend-smoke`, `frontend-playwright` y `manual`. Adquirir, renovar y liberar quedan auditados; una lease abandonada expira automáticamente.
 
-El resultado y `GET /qa/fixtures` entregan 37 aliases, nunca contraseñas, números ni OTP. `auth.phone.member-a` identifica el vínculo técnico estable sin revelar su sujeto; el resto cubre las cuatro cuentas, seis estados de colección, narrativa, relaciones, comunidad, chat, clubes, notificaciones, políticas, reportes, sanciones, alegaciones y auditoría. `PLAYWRIGHT_FRONT.md` enumera la matriz y las aserciones observables de cada perfil.
+El resultado y `GET /qa/fixtures` entregan 26 aliases (desde la fase 4 de la adhesión, sin los de los clubes), nunca contraseñas, números ni OTP. `auth.phone.member-a` identifica el vínculo técnico estable sin revelar su sujeto; el resto cubre las cuatro cuentas, seis estados de colección, narrativa, relaciones, comunidad, chat, notificaciones, políticas, reportes, sanciones, alegaciones y auditoría. `PLAYWRIGHT_FRONT.md` enumera la matriz y las aserciones observables de cada perfil.
 
 ## Operación y seguridad
 

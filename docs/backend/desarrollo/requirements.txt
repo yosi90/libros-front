@@ -2,15 +2,11 @@
 Flask
 waitress
 Flask-Cors
-Flask-JWT-Extended
+# Validacion de los tokens de la plataforma Yosiftware (utils/yosiftware_tokens.py, kit 1.53).
+PyJWT[crypto]>=2.10
 nltk
 pyodbc
 Pillow
-bcrypt
 python-dotenv
-firebase-admin>=6.5,<8
-phonenumbers>=9,<10
-starlette>=0.48,<1
-uvicorn>=0.35,<1
+# Aviso opcional del feed de la plataforma (YOSIFTWARE_NATS_URL), en realtime/plataforma_feed_worker.py.
 nats-py>=2.11,<3
-websockets>=15,<16

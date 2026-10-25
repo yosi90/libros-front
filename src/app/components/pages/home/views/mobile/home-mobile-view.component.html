@@ -1,19 +1,31 @@
 <app-mobile-public-shell>
+    <!-- Las webs del ecosistema, la campana (sin sesión no enseña nada) y la cuenta de Yosiftware. -->
+    <app-yosiftware-webs publicActions></app-yosiftware-webs>
+    <app-yosiftware-notifications publicActions></app-yosiftware-notifications>
+    <app-yosiftware-account publicActions></app-yosiftware-account>
     <div class="mobile-home">
         <section class="mobile-home__hero" aria-labelledby="mobile-home-title">
             <p class="m-eyebrow">Tu memoria lectora</p>
             <h1 class="m-display" id="mobile-home-title">Cada libro deja una huella.</h1>
             <p class="m-supporting">Guarda tus lecturas, vuelve a las ideas que te acompañaron y descubre el relato que forman juntas.</p>
-            <div class="mobile-home__actions">
-                <a class="m-button" routerLink="/register">
-                    <mat-icon aria-hidden="true">person_add</mat-icon>
-                    Crear mi biblioteca
-                </a>
-                <a class="m-button m-button--outline" routerLink="/login">
-                    <mat-icon aria-hidden="true">login</mat-icon>
-                    Ya tengo cuenta
-                </a>
-            </div>
+            @if (notice) {
+                <p class="mobile-home__notice m-card" role="status">
+                    <span>{{ notice }}</span>
+                    @if (canRetry) { <button class="m-button m-button--outline" type="button" (click)="retry.emit()">Reintentar</button> }
+                </p>
+            } @else {
+                <div class="mobile-home__actions">
+                    <button class="m-button" type="button" (click)="entrar.emit('registro')">
+                        <mat-icon aria-hidden="true">person_add</mat-icon>
+                        Crear mi biblioteca
+                    </button>
+                    <button class="m-button m-button--outline" type="button" (click)="entrar.emit('entrar')">
+                        <mat-icon aria-hidden="true">login</mat-icon>
+                        Ya tengo cuenta
+                    </button>
+                </div>
+            }
+            <p class="mobile-home__account"><app-yosiftware-mark></app-yosiftware-mark> Entra con tu cuenta de Yosiftware: la misma para todas sus webs.</p>
         </section>
 
         <aside class="mobile-home__quote m-card" aria-label="Cita literaria">

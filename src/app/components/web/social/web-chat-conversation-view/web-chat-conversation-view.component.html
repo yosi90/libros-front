@@ -2,7 +2,7 @@
   <header class="conversation__bar">
     @if (!c.floating) {<a class="icon-button conversation__back" routerLink="/dashboard/community/messages" aria-label="Volver a conversaciones"><mat-icon>arrow_back</mat-icon></a>}
     <div class="conversation__title">
-      <strong>{{c.conversation?.EsSistema ? 'Yosiftware' : (c.conversation?.Titulo || 'Chat')}}</strong>
+      <strong>{{c.conversation?.Titulo || 'Chat'}}</strong>
       <small>@if (c.typingUserIds.size) { {{c.typingLabel()}} } @else { {{c.conversation?.Participantes?.length || 0}} participantes }</small>
     </div>
     @if (c.canFloat) {<button class="icon-button" type="button" aria-label="Abrir en ventana flotante" title="Abrir en ventana" (click)="c.openInWindow()"><mat-icon>picture_in_picture_alt</mat-icon></button>}
@@ -28,7 +28,7 @@
         <div #messageList class="conversation__messages">
           @if (c.nextBeforeId) {<button class="web-button web-button--small conversation__more" type="button" (click)="c.loadMore()" [disabled]="c.isLoadingMore">{{c.isLoadingMore ? 'Cargando…' : 'Mensajes anteriores'}}</button>}
           @for (message of (c.searchResults || c.messages); track message.Id) {
-            <article class="message" [attr.data-message-id]="message.Id" [attr.data-request-state]="message.PeticionCatalogo?.Estado" [class.is-own]="c.isOwn(message)" [class.is-system]="message.TipoRemitente === 'sistema'" [class.is-highlighted]="c.highlightedMessageId === message.Id" [class.is-important]="message.SeveridadSistema === 'importante'" [class.is-critical]="message.SeveridadSistema === 'critico'">
+            <article class="message" [attr.data-message-id]="message.Id" [class.is-own]="c.isOwn(message)" [class.is-system]="message.TipoRemitente === 'sistema'" [class.is-highlighted]="c.highlightedMessageId === message.Id">
               <div class="message__bubble">
                 <small class="message__meta">
                   @if (!c.isOwn(message)) {<b>{{message.TipoRemitente === 'sistema' ? 'Yosiftware' : (message.Remitente?.Nombre || 'Usuario')}}</b>}
@@ -37,17 +37,14 @@
                   @if (c.deliveryLabel(message); as delivery) {· {{delivery}}}
                 </small>
                 @if (!message.Eliminado) {
-                  @if (message.MensajeRespondido; as replied) {<div class="message__reply"><mat-icon aria-hidden="true">reply</mat-icon><span>{{replied.Eliminado ? 'Mensaje eliminado' : replied.CuerpoMarkdown}}</span></div>}
+                  @if (message.MensajeRespondido; as replied) {<div class="message__reply"><mat-icon aria-hidden="true">reply</mat-icon><span>{{replied.Eliminado ? 'Mensaje eliminado' : replied.Texto}}</span></div>}
                   @if (c.editingMessageId !== message.Id) {
-                    @if (message.PeticionCatalogo; as request) {<div class="message__content">{{request.Texto}}</div>} @else {<div class="message__content" [innerHTML]="c.renderMarkdown(message.CuerpoMarkdown)"></div>}
+                    <div class="message__content" [innerHTML]="c.renderText(message.Texto)"></div>
                   } @else {
                     <form class="message__edit" (submit)="$event.preventDefault(); c.saveEdit(message)">
                       <textarea class="field" [(ngModel)]="c.editContent" [name]="'wEdit-' + message.Id" maxlength="4000" rows="3" aria-label="Editar mensaje" required></textarea>
                       <span><button class="web-button web-button--small" type="button" (click)="c.cancelEdit()">Cancelar</button><button class="web-button web-button--small web-button--primary" type="submit" [disabled]="!c.editContent.trim() || c.isSavingEdit">Guardar</button></span>
                     </form>
-                  }
-                  @if (message.TipoRemitente === 'sistema' && message.Accion && message.Accion.ContextoTipo !== 'none' && (!message.PeticionCatalogo || (message.PeticionCatalogo.Id && message.PeticionCatalogo.Estado !== 'no_disponible'))) {
-                    <button class="web-button web-button--small" type="button" (click)="c.openSystemAction(message)"><mat-icon>open_in_new</mat-icon>Ver detalle</button>
                   }
                 } @else {<em class="message__deleted">Mensaje eliminado</em>}
               </div>
@@ -57,6 +54,9 @@
                     @for (reaction of c.reactionOptions; track reaction.type) {
                       <button class="reaction" type="button" (click)="c.react(message, reaction.type)" [class.is-active]="message.Reacciones.MiReaccion === reaction.type" [attr.aria-label]="reaction.label" [title]="reaction.label"><mat-icon>{{reaction.icon}}</mat-icon>@if (message.Reacciones.PorTipo[reaction.type]) {<span>{{message.Reacciones.PorTipo[reaction.type]}}</span>}</button>
                     }
+                  }
+                  @for (other of message.Reacciones.Otras; track other.Emoji) {
+                    <button class="reaction" type="button" (click)="c.reactWithEmoji(message, other.Emoji)" [disabled]="!message.Permisos.PuedeReaccionar" [class.is-active]="c.isMyEmoji(message, other.Emoji)" [attr.aria-label]="'Reacción ' + other.Emoji" [title]="other.Emoji"><span aria-hidden="true">{{other.Emoji}}</span><span>{{other.Total}}</span></button>
                   }
                   @if (message.Permisos.PuedeResponder) {<button class="tool" type="button" (click)="c.reply(message)" aria-label="Responder" title="Responder"><mat-icon>reply</mat-icon></button>}
                   @if (message.Permisos.PuedeEditar) {<button class="tool" type="button" (click)="c.startEdit(message)" aria-label="Editar" title="Editar"><mat-icon>edit</mat-icon></button>}
@@ -73,7 +73,7 @@
         @if (c.actionError) {<p class="error" role="alert">{{c.actionError}}</p>}
         @if (c.conversation?.PuedeEnviar !== false) {
           <form class="composer" (submit)="$event.preventDefault(); c.send()">
-            @if (c.replyingTo) {<div class="composer__reply"><mat-icon aria-hidden="true">reply</mat-icon><span>{{c.replyingTo.CuerpoMarkdown}}</span><button class="tool" type="button" (click)="c.cancelReply()" aria-label="Cancelar respuesta"><mat-icon>close</mat-icon></button></div>}
+            @if (c.replyingTo) {<div class="composer__reply"><mat-icon aria-hidden="true">reply</mat-icon><span>{{c.replyingTo.Texto}}</span><button class="tool" type="button" (click)="c.cancelReply()" aria-label="Cancelar respuesta"><mat-icon>close</mat-icon></button></div>}
             <div class="composer__row">
               <textarea class="field" [(ngModel)]="c.draft" (input)="c.onDraftInput()" (keydown.enter)="sendOnEnter($event)" name="wDraft" maxlength="4000" rows="1" placeholder="Escribe un mensaje" aria-label="Nuevo mensaje" required></textarea>
               <button class="send" type="submit" [disabled]="!c.draft.trim() || c.isSending" aria-label="Enviar"><mat-icon>send</mat-icon></button>

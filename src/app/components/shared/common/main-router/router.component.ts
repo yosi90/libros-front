@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 
 @Component({
     standalone: true,
@@ -11,5 +11,5 @@ import { SessionService } from '../../../../services/auth/session.service';
     styleUrl: './router.component.sass'
 })
 export class RouterComponent {
-    constructor(public session: SessionService) { }
+    constructor(public session: PlatformSessionService) { }
 }

@@ -38,6 +38,12 @@
     min-height: 70px
     padding: 16px clamp(42px, 6vw, 108px)
 
+// Las webs del ecosistema, la campana y la cuenta de Yosiftware, juntas a la derecha de la barra.
+.home-landing__platform
+    display: inline-flex
+    align-items: center
+    gap: 10px
+
 .home-brand
     color: #f5d69a
     text-decoration: none
@@ -101,6 +107,9 @@
     gap: 20px
 
 .home-action
+    appearance: none
+    font: inherit
+    cursor: pointer
     display: flex
     flex-direction: column
     justify-content: center
@@ -150,6 +159,50 @@
 
     small
         color: rgba(247, 234, 212, .82)
+
+.home-notice
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 14px
+    max-width: 460px
+    margin: 0
+    padding: 14px 18px
+    color: #f7ead4
+    background: rgba(20, 17, 13, .76)
+    border: 1px solid rgba(218, 166, 91, .3)
+    border-radius: 8px
+
+    button
+        appearance: none
+        color: #f0c875
+        font: inherit
+        font-weight: 700
+        background: transparent
+        border: 1px solid rgba(240, 200, 117, .42)
+        border-radius: 8px
+        padding: 6px 14px
+        cursor: pointer
+
+// Dónde dice Libros que usa la cuenta de Yosiftware: con el símbolo del ecosistema (MARCA.md).
+.home-account,
+.home-legal
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 18px 0 0
+    color: #d8c3a2
+    font-size: .9rem
+
+// Sin entrar, la web sigue enlazando las normas y la política de privacidad comunes (PRIVACIDAD.md).
+.home-legal
+    width: fit-content
+    margin-top: 8px
+    text-underline-offset: 3px
+
+    &:hover,
+    &:focus-visible
+        color: #f2c77c
 
 .home-quote
     align-self: center

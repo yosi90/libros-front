@@ -11,49 +11,14 @@ app-mobile-app-bar
     align-items: center
     gap: 0
 
-    &__button
-        position: relative
-        width: 48px
-        height: 48px
+    // La cuenta (`<yosi-acceso>`), las webs del ecosistema (`<yosi-webs>`) y la campana (`<yosi-notificaciones>`), con
+    // las variables `--yosi-*` de Mobile y un objetivo táctil de 48 px.
+    &__account,
+    &__platform
         display: grid
         place-items: center
-        flex: 0 0 48px
-        padding: 0
-        border: 0
-        border-radius: 50%
-        color: var(--mobile-color-ink)
-        background: transparent
-        text-decoration: none
-
-        &:hover
-            color: var(--mobile-color-primary)
-            background: var(--mobile-color-primary-container)
-
-        &:disabled
-            opacity: .55
-
-        img
-            width: 34px
-            height: 34px
-            object-fit: cover
-            border: 2px solid color-mix(in srgb, var(--mobile-color-primary) 34%, transparent)
-            border-radius: 50%
-            background: var(--mobile-color-surface-container)
-
-        &.has-unread-messages
-            img
-                border-color: var(--mobile-color-error)
-
-            &::after
-                content: ''
-                position: absolute
-                bottom: 5px
-                left: 5px
-                width: 9px
-                height: 9px
-                border: 2px solid var(--mobile-color-surface)
-                border-radius: 50%
-                background: var(--mobile-color-error)
+        min-width: 48px
+        min-height: 48px
 
 .m-more-backdrop
     position: fixed
@@ -141,6 +106,17 @@ app-mobile-app-bar
             color: var(--mobile-color-ink)
             font-family: var(--mobile-font-display)
             font-size: 1.15rem
+
+        // Sin avatar en el perfil de Yosiftware: la inicial del nombre.
+        .m-more-sheet__initial
+            display: grid
+            place-items: center
+            width: 52px
+            height: 52px
+            color: var(--mobile-color-on-primary-container)
+            font: 700 1.3rem/1 var(--mobile-font-display)
+            background: var(--mobile-color-primary-container)
+            border-radius: 50%
 
     &__links
         display: grid
@@ -296,10 +272,3 @@ app-mobile-app-bar
 
         &__links
             grid-template-columns: repeat(2, minmax(0, 1fr))
-
-    :host-context(html[data-presentation-active='native-mobile'])
-        app-mobile-app-bar
-            display: none
-
-        .m-more-backdrop
-            padding-top: max(var(--mobile-space-4), var(--app-safe-top))

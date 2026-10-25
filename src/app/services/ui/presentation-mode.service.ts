@@ -4,7 +4,7 @@ import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable }
 import { environment } from '../../../environment/environment';
 import { AdaptiveLayoutService, AdaptiveLayoutState } from './adaptive-layout.service';
 
-export type PresentationMode = 'wood' | 'mobile' | 'native-mobile' | 'web';
+export type PresentationMode = 'wood' | 'mobile' | 'web';
 export type WebThemeChoice = 'light' | 'dark' | 'wood';
 
 export interface PresentationState {
@@ -16,38 +16,14 @@ export interface PresentationState {
     isMobileTarget: boolean;
     isWoodPresentationActive: boolean;
     isMobilePresentationActive: boolean;
-    isNativeMobile: boolean;
-    canUseDesktopAdministration: boolean;
     /** Navegador bajo el modelo Web (flag activa): el tema lo decide WebThemeService. */
     isWebPresentation: boolean;
     webThemeChoice: WebThemeChoice | null;
 }
 
-interface CapacitorRuntime {
-    isNativePlatform?: () => boolean;
-}
-
-interface GlobalWithCapacitor {
-    Capacitor?: CapacitorRuntime;
-}
-
-export function detectNativeMobile(): boolean {
-    const runtime = (globalThis as typeof globalThis & GlobalWithCapacitor).Capacitor;
-    try {
-        return runtime?.isNativePlatform?.() === true;
-    } catch {
-        return false;
-    }
-}
-
 export const MOBILE_PRESENTATION_ENABLED = new InjectionToken<boolean>('MOBILE_PRESENTATION_ENABLED', {
     providedIn: 'root',
     factory: () => environment.mobilePresentationEnabled
-});
-
-export const NATIVE_MOBILE_PLATFORM = new InjectionToken<boolean>('NATIVE_MOBILE_PLATFORM', {
-    providedIn: 'root',
-    factory: detectNativeMobile
 });
 
 export const WEB_PRESENTATION_ENABLED = new InjectionToken<boolean>('WEB_PRESENTATION_ENABLED', {
@@ -82,8 +58,6 @@ const DEFAULT_STATE: PresentationState = {
     isMobileTarget: false,
     isWoodPresentationActive: true,
     isMobilePresentationActive: false,
-    isNativeMobile: false,
-    canUseDesktopAdministration: true,
     isWebPresentation: false,
     webThemeChoice: null
 };
@@ -101,7 +75,6 @@ export class PresentationModeService {
         private adaptiveLayout: AdaptiveLayoutService,
         @Inject(MOBILE_PRESENTATION_ENABLED) private mobilePresentationEnabled: boolean,
         @Inject(MOBILE_PRESENTATION_PREVIEW) private mobilePresentationPreview: boolean,
-        @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean,
         @Inject(DOCUMENT) private document: Document
     ) {
         this.refresh(this.adaptiveLayout.snapshot, null);
@@ -109,7 +82,6 @@ export class PresentationModeService {
             map(([layout, choice]) => this.createState(layout, choice)),
             distinctUntilChanged((previous, current) =>
                 previous.targetMode === current.targetMode
-                && previous.canUseDesktopAdministration === current.canUseDesktopAdministration
                 && previous.webThemeChoice === current.webThemeChoice
                 && previous.activeMode === current.activeMode
             )
@@ -120,9 +92,8 @@ export class PresentationModeService {
         return this.stateSignal();
     }
 
-    /** WebThemeService se engancha aquí; la APK nunca lo hace. */
+    /** WebThemeService se engancha aquí. */
     attachWebTheme(choice$: Observable<WebThemeChoice>): void {
-        if (this.nativeMobile) return;
         choice$.subscribe(choice => this.webChoiceSubject.next(choice));
     }
 
@@ -131,21 +102,19 @@ export class PresentationModeService {
     }
 
     /**
-     * APK → native-mobile. Navegador con la presentación Web: Wood si el
-     * dispositivo lo eligió y la pantalla es de escritorio; si no, Web. Sin la
-     * presentación Web (solo local, para regresiones): Wood o Mobile por ancho.
+     * Con la presentación Web: Wood si el dispositivo lo eligió y la pantalla
+     * es de escritorio; si no, Web. Sin la presentación Web (solo local, para
+     * regresiones): Wood o Mobile (compacta y media) por ancho.
      */
     private createState(layout: AdaptiveLayoutState, choice: WebThemeChoice | null): PresentationState {
         const isWebPresentation = choice !== null;
         const woodChosen = !isWebPresentation || choice === 'wood';
-        const targetMode: PresentationMode = this.nativeMobile
-            ? 'native-mobile'
-            : layout.isDesktop && woodChosen
-                ? 'wood'
-                : isWebPresentation ? 'web' : 'mobile';
+        const targetMode: PresentationMode = layout.isDesktop && woodChosen
+            ? 'wood'
+            : isWebPresentation ? 'web' : 'mobile';
         const isWoodTarget = targetMode === 'wood';
         const mobilePresentationActive = !isWoodTarget && targetMode !== 'web'
-            && (this.nativeMobile || this.mobilePresentationEnabled || this.mobilePresentationPreview);
+            && (this.mobilePresentationEnabled || this.mobilePresentationPreview);
         const activeMode: PresentationMode = targetMode === 'web' ? 'web' : mobilePresentationActive ? targetMode : 'wood';
         return {
             targetMode,
@@ -153,11 +122,9 @@ export class PresentationModeService {
             mobilePresentationEnabled: this.mobilePresentationEnabled,
             mobilePresentationPreview: this.mobilePresentationPreview,
             isWoodTarget,
-            isMobileTarget: targetMode === 'mobile' || targetMode === 'native-mobile',
+            isMobileTarget: targetMode === 'mobile',
             isWoodPresentationActive: activeMode === 'wood',
-            isMobilePresentationActive: activeMode === 'mobile' || activeMode === 'native-mobile',
-            isNativeMobile: targetMode === 'native-mobile',
-            canUseDesktopAdministration: (isWoodTarget || targetMode === 'web') && layout.isDesktop && layout.hasFinePointer,
+            isMobilePresentationActive: activeMode === 'mobile',
             isWebPresentation,
             webThemeChoice: choice
         };

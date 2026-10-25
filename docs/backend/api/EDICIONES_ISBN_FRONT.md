@@ -2,6 +2,8 @@
 
 Contrato completo: [ENDPOINTS.md](ENDPOINTS.md) y [OpenAPI](../openapi.yaml). Esta guía contiene la respuesta al front y el estado de publicación necesarios para integrar los cambios.
 
+> **Desde la adhesión a Yosiftware (rama `adhesion/api-identidad`, 2026-10-24):** las rutas de administración que cita esta guía (`/catalogo/admin/*`, `PATCH /peticiones/catalogo/{id}/resolver`) ya no están en la API pública: son acciones del plugin de la administración de la plataforma, por la propia máquina. La web retira su página de administración. Equivalencias: [ENDPOINTS.md](ENDPOINTS.md#plugin-de-la-administración) y [RUTAS_RETIRADAS.md](RUTAS_RETIRADAS.md).
+
 ## Respuesta al front y estado de publicación — 2026-10-01
 
 La petición de documentar la resolución contra una obra existente está **aceptada e implementada**. El contrato completo está en [Resolver desde la web contra una obra existente](#resolver-desde-la-web-contra-una-obra-existente): método y autenticación, cuerpos para libros y antologías, origen del ISBN, fecha y portada, permisos para compartir ediciones, respuesta y errores.

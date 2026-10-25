@@ -2,21 +2,18 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { environment } from '../../../environment/environment';
-import { SessionService } from '../auth/session.service';
+import { PlatformSessionService } from '../auth/platform-session.service';
 import { BookService } from './book.service';
-import { NewBook } from '../../interfaces/creation/newBook';
 
 describe('BookService', () => {
     let service: BookService;
     let httpMock: HttpTestingController;
-    const apiUrl = environment.apiUrl + 'libros';
-    const catalogAdminUrl = environment.apiUrl + 'catalogo/admin/libros';
 
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
                 BookService,
-                { provide: SessionService, useValue: { userId: 1 } },
+                { provide: PlatformSessionService, useValue: { userId: 1 } },
                 provideHttpClient(withXhr()),
                 provideHttpClientTesting()
             ]
@@ -28,57 +25,6 @@ describe('BookService', () => {
 
     afterEach(() => {
         httpMock.verify();
-    });
-
-    it('updates books through the catalog admin endpoint and refreshes the canonical detail', () => {
-        const book: NewBook = {
-            Id: 7,
-            Nombre: 'El imperio final',
-            Autores: [{ Id: 2, Nombre: 'Brandon Sanderson' }],
-            Universo: { Id: 3, Nombre: 'Cosmere', Autores: [], Sagas: [], Libros: [], Antologias: [] },
-            Saga: { Id: 4, Nombre: 'Nacidos de la bruma', Autores: [], Libros: [], Antologias: [] },
-            Orden: 1,
-            Paginas: 672
-        };
-
-        service.updateBook(book).subscribe(response => {
-            expect(response.Id).toBe(7);
-            expect(response.Nombre).toBe(book.Nombre);
-        });
-
-        const updateRequest = httpMock.expectOne(`${catalogAdminUrl}/7`);
-        expect(updateRequest.request.method).toBe('PATCH');
-        expect(updateRequest.request.body).toEqual({
-            Nombre: 'El imperio final',
-            ISBN: undefined,
-            Paginas: 672,
-            Sinopsis: undefined,
-            FechaPublicacion: undefined,
-            Orden: 1,
-            Autores: [2],
-            Estilos: undefined,
-            SagaId: 4
-        });
-        updateRequest.flush({ Id: 7, TipoEntidad: 'libro' });
-
-        const detailRequest = httpMock.expectOne(`${apiUrl}/7`);
-        expect(detailRequest.request.method).toBe('GET');
-        detailRequest.flush({ Id: 7, Nombre: 'El imperio final' });
-    });
-
-    it('replaces book languages through the catalog admin endpoint', () => {
-        service.updateBookLanguages(7, { Idiomas: [1, { Id: 2 }] }).subscribe(response => {
-            expect(response.Id).toBe(7);
-        });
-
-        const updateRequest = httpMock.expectOne(`${catalogAdminUrl}/7`);
-        expect(updateRequest.request.method).toBe('PATCH');
-        expect(updateRequest.request.body).toEqual({ Idiomas: [1, 2] });
-        updateRequest.flush({ Id: 7, TipoEntidad: 'libro' });
-
-        const detailRequest = httpMock.expectOne(`${apiUrl}/7`);
-        expect(detailRequest.request.method).toBe('GET');
-        detailRequest.flush({ Id: 7, Nombre: 'El imperio final' });
     });
 
     it('loads an anthology section through its contextual endpoint', () => {
@@ -107,33 +53,5 @@ describe('BookService', () => {
             PaginaInicio: '89',
             PaginaFinal: '176'
         });
-    });
-
-    it('creates a book sending its data and cover together as multipart', () => {
-        const book: NewBook = {
-            Id: 0,
-            Nombre: 'La mano izquierda de la oscuridad',
-            Autores: [{ Id: 4, Nombre: 'Ursula K. Le Guin' }],
-            Universo: { Id: 3, Nombre: 'Ekumen', Autores: [], Sagas: [], Libros: [], Antologias: [] },
-            Saga: { Id: 0, Nombre: 'Sin saga', Autores: [], Libros: [], Antologias: [] },
-            Orden: -1
-        };
-        const cover = new File(['cover'], 'cover.webp', { type: 'image/webp' });
-
-        service.addBook(book, cover).subscribe(response => expect(response.Id).toBe(13));
-
-        const createRequest = httpMock.expectOne(catalogAdminUrl);
-        expect(createRequest.request.method).toBe('POST');
-        const body = createRequest.request.body as FormData;
-        expect(JSON.parse(body.get('payload') as string)).toEqual(jasmine.objectContaining({
-            Nombre: book.Nombre,
-            Autores: [4],
-            UniversoId: 3
-        }));
-        expect(body.get('image')).toBe(cover);
-        createRequest.flush({ Id: 13, TipoEntidad: 'libro', Portada: 'la_mano_izquierda.png' });
-
-        httpMock.expectOne(`${apiUrl}/13`).flush({ Id: 13, Nombre: book.Nombre, Portada: 'la_mano_izquierda.png' });
-        httpMock.expectNone(request => request.url.includes('image/set/cover'));
     });
 });

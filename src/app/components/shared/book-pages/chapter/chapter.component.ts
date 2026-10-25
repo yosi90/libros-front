@@ -10,7 +10,7 @@ import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
 import { Scene, SceneCharacterDetail } from '../../../../interfaces/scene';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { catchError, debounceTime, finalize, forkJoin, map, merge, Observable, of, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
+import { catchError, debounceTime, EMPTY, finalize, forkJoin, map, merge, Observable, of, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSelectModule } from '@angular/material/select';
@@ -33,6 +33,8 @@ import { WebChapterViewComponent } from '../../../web/book/web-chapter-view/web-
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 import { foldText } from '../../../../shared/text';
 import { CharacterGroup, groupCharactersByGroup } from '../../../../shared/character-groups';
+import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
+import { AppToastService } from '../../../../shared/toast/app-toast.service';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -56,6 +58,18 @@ interface ChapterPersistBatch {
 
 type ChapterCharacterUsage = 'present' | 'named' | null;
 
+/** Lo que un capítulo no había guardado cuando cambió la cuenta: el formulario tal cual y las escenas borradas. */
+interface ChapterDraft {
+    form: {
+        name: string | null;
+        order: string | null;
+        page: string | null;
+        endPage: string | null;
+        scenes: Array<{ id: number; nombre: string; localizacion: number | ''; descripcion: string; personajes: Array<{ Id: number; Nombrado?: boolean }> }>;
+    };
+    deletedSceneIds: number[];
+}
+
 @Component({
     standalone: true,
     selector: 'app-chapter',
@@ -65,7 +79,7 @@ type ChapterCharacterUsage = 'present' | 'named' | null;
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chapter.component.sass'
 })
-export class ChapterComponent implements OnInit, OnDestroy, PendingChangesComponent {
+export class ChapterComponent implements OnInit, OnDestroy, PendingChangesComponent, PendingWorkOwner {
     book: Book = {
         Id: 0,
         Nombre: '',
@@ -152,7 +166,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     @HostListener('window:beforeunload', ['$event'])
     onBeforeUnload(event: BeforeUnloadEvent) {
-        if (!this.hasPendingChanges())
+        if (this.abandoned || !this.hasPendingChanges())
             return;
         event.preventDefault();
         event.returnValue = '';
@@ -169,6 +183,11 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     private skipNextBookStoreSync = false;
     private activeChapterId: number | null = null;
     private formRevision = 0;
+    /** La cuenta (con su entorno) con la que se abrió el capítulo: sus cambios sin enviar son suyos. */
+    private accountScope: string | null = null;
+    /** La cuenta ha cambiado: el capítulo ya no envía nada (el token es de otra cuenta). */
+    private abandoned = false;
+    private readonly stopPendingWork: () => void;
 
     constructor(
         private bookStore: BookStoreService,
@@ -181,8 +200,11 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private characterOrderRefreshSrv: CharacterOrderRefreshService,
         private fontPreferences: NarrativeEditorFontPreferenceService,
         private presentation: PresentationModeService,
-        private saveIndicator: BookSaveIndicatorService
+        private saveIndicator: BookSaveIndicatorService,
+        private pendingWork: PendingWorkService,
+        private toasts: AppToastService
     ) {
+        this.stopPendingWork = this.pendingWork.register(this);
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -237,8 +259,25 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     ngOnDestroy(): void {
+        this.stopPendingWork();
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    /**
+     * Cambio de cuenta, cierre de sesión o revocación (CAMBIO_DE_CUENTA.md): lo que no se había guardado se aparta para
+     * la cuenta que lo escribió y no se envía nunca con la nueva. Esa cuenta lo recupera al volver a abrir el capítulo.
+     */
+    abandon(): void {
+        if (this.abandoned) return;
+        const pending = this.hasPendingChanges();
+        this.abandoned = true;
+        this.autosaveQueued = false;
+        if (pending && this.accountScope && this.book.Id > 0)
+            this.pendingWork.stash<ChapterDraft>(this.accountScope, this.draftKey(), {
+                form: this.fgChapter.getRawValue() as ChapterDraft['form'],
+                deletedSceneIds: [...this.deletedSceneIds]
+            });
     }
 
     private syncChapterFromBook(): void {
@@ -268,6 +307,44 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             }
         }
         this.initializeForm();
+        this.restorePendingDraft();
+    }
+
+    private draftKey(): string {
+        const kind = this.isInterludeChapter ? `interludio:${this.currentInterludeId ?? 'nuevo'}` : 'capitulo';
+        return `capitulo:${this.book.Id}:${kind}:${this.chapter.Id || 'nuevo'}`;
+    }
+
+    /** Si esta misma cuenta dejó cambios sin enviar en este capítulo, vuelven al formulario y se guardan con ella. */
+    private restorePendingDraft(): void {
+        this.accountScope = this.pendingWork.scope;
+        if (!this.accountScope || this.abandoned || this.book.Id <= 0) return;
+        const stashed = this.pendingWork.take<ChapterDraft>(this.accountScope, this.draftKey());
+        const draft = stashed?.borrador;
+        if (!draft?.form) return;
+        this.isInitializingForm = true;
+        this.fgChapter.patchValue({
+            name: draft.form.name, order: draft.form.order, page: draft.form.page, endPage: draft.form.endPage
+        }, { emitEvent: false });
+        this.scenesControls.clear();
+        for (const scene of draft.form.scenes ?? []) {
+            const group = this.createSceneGroup();
+            const characters = group.get('personajes') as FormArray;
+            for (const character of scene.personajes ?? [])
+                characters.push(this.createSceneCharacterGroup({ Id: Number(character.Id), Nombrado: !!character.Nombrado } as SceneCharacterDetail));
+            group.patchValue({ id: scene.id, nombre: scene.nombre, localizacion: scene.localizacion, descripcion: scene.descripcion }, { emitEvent: false });
+            this.scenesControls.push(group);
+        }
+        if (this.scenesControls.length === 0)
+            this.appendScene();
+        this.deletedSceneIds = (draft.deletedSceneIds ?? []).filter(id => Number.isInteger(id) && id > 0);
+        this.isInitializingForm = false;
+        this.formRevision++;
+        this.fgChapter.markAsDirty();
+        this.toasts.showSystem('Hemos recuperado los cambios que no se guardaron en este capítulo antes de cambiar de cuenta.', {
+            title: 'Cambios recuperados', dedupeKey: `capitulo:recuperado:${this.draftKey()}`, durationMs: 8000
+        });
+        this.queueAutosave();
     }
 
     private hasSameActiveChapter(book: Book): boolean {
@@ -728,7 +805,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     canDeactivate(): boolean | Observable<boolean> {
-        if (!this.hasPendingChanges())
+        // Tras un cambio de cuenta no se guarda nada al salir: los cambios ya están apartados para su cuenta.
+        if (this.abandoned || !this.hasPendingChanges())
             return true;
 
         const editableScenes = this.getEditableScenes();
@@ -757,6 +835,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     setChapter(): void {
+        if (this.abandoned) return;
         const editableScenes = this.getEditableScenes();
         const validationError = this.validateChapterForSave(editableScenes);
         if (validationError) {
@@ -780,7 +859,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     private queueAutosave(): void {
-        if (this.isInitializingForm || this.chapter.Id <= 0 || !this.hasPendingChanges())
+        if (this.abandoned || this.isInitializingForm || this.chapter.Id <= 0 || !this.hasPendingChanges())
             return;
 
         const editableScenes = this.getEditableScenes();
@@ -872,7 +951,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
                 this.lastSavedChapterSnapshot = batch.chapterSnapshot;
                 this.applyChapterToLocalBook(savedChapter);
             }),
-            switchMap(savedChapter => this.saveScenesRequest(savedChapter, batch)),
+            // Si la cuenta cambia entre el capítulo y sus escenas, las escenas no se envían con la nueva.
+            switchMap(savedChapter => this.abandoned ? EMPTY : this.saveScenesRequest(savedChapter, batch)),
             map(() => this.book),
             tap(() => {
                 this.skipNextBookStoreSync = true;

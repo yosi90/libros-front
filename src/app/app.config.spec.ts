@@ -1,36 +1,24 @@
-import { fakeAsync, flushMicrotasks } from '@angular/core/testing';
-import { startApplicationRestoration } from './app.config';
+import { startApplicationSession } from './app.config';
 
 describe('arranque de la aplicación', () => {
-    it('inicia la restauración sin esperar la configuración auxiliar', fakeAsync(() => {
-        const runtime = { load: jasmine.createSpy().and.returnValue(new Promise<void>(() => void 0)) };
-        const session = { initialize: jasmine.createSpy().and.resolveTo(), needsStartupRestoration: true };
+    it('arranca la limpieza por cuenta antes que la sesión de Yosiftware', () => {
+        const order: string[] = [];
+        const accountScope = { start: jasmine.createSpy('accountScope.start').and.callFake(() => order.push('limpieza')) };
+        const session = { start: jasmine.createSpy('session.start').and.callFake(() => order.push('sesion')) };
 
-        const result = startApplicationRestoration(runtime as never, session as never);
+        startApplicationSession(accountScope, session);
 
-        expect(result).toBeUndefined();
-        expect(runtime.load).toHaveBeenCalled();
-        expect(session.initialize).toHaveBeenCalled();
-    }));
+        expect(order).toEqual(['limpieza', 'sesion']);
+    });
 
-    it('intenta restaurar la sesión aunque falle la configuración remota', fakeAsync(() => {
-        const runtime = { load: jasmine.createSpy().and.rejectWith(new Error('offline')) };
-        const session = { initialize: jasmine.createSpy().and.resolveTo(), needsStartupRestoration: true };
+    it('lee los enlaces de invitación a clubes antes de arrancar la sesión', () => {
+        const order: string[] = [];
+        const accountScope = { start: () => order.push('limpieza') };
+        const session = { start: () => order.push('sesion') };
+        const links = { start: () => order.push('invitaciones') };
 
-        expect(() => startApplicationRestoration(runtime as never, session as never)).not.toThrow();
-        flushMicrotasks();
+        startApplicationSession(accountScope, session, links);
 
-        expect(session.initialize).toHaveBeenCalled();
-    }));
-
-    it('libera inmediatamente el login nativo cuando no hay sesión que restaurar', fakeAsync(() => {
-        const runtime = { load: jasmine.createSpy().and.returnValue(new Promise<void>(() => void 0)) };
-        const session = { initialize: jasmine.createSpy().and.resolveTo(), needsStartupRestoration: false };
-
-        startApplicationRestoration(runtime as never, session as never);
-        flushMicrotasks();
-
-        expect(runtime.load).toHaveBeenCalled();
-        expect(session.initialize).toHaveBeenCalled();
-    }));
+        expect(order).toEqual(['limpieza', 'invitaciones', 'sesion']);
+    });
 });

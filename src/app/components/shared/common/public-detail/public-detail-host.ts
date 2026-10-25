@@ -10,9 +10,10 @@ import {
 } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { SessionService } from '../../../../services/auth/session.service';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
+import { ReportService } from '../../../../services/entities/report.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
 import { getApiErrorField } from '../../../../shared/backend-field-error';
@@ -40,6 +41,8 @@ export abstract class PublicDetailHost implements PublicDetailController {
     publicReviewPage = 0;
     expandedOwnReview = false;
     expandedPublicReviews = new Set<string>();
+    /** Reseñas denunciadas en esta visita (o en curso): no se ofrece denunciarlas otra vez. */
+    reportedReviewKeys = new Set<string>();
 
     selectedCollectionItem: CatalogItem | null = null;
     selectedCollectionStatus: ReadingStatusId | null = null;
@@ -56,8 +59,9 @@ export abstract class PublicDetailHost implements PublicDetailController {
         protected catalogSrv: CatalogService,
         protected collectionSrv: CollectionService,
         protected universeStore: UniverseStoreService,
-        protected sessionSrv: SessionService,
-        protected snackBar: SnackbarModule
+        protected sessionSrv: PlatformSessionService,
+        protected snackBar: SnackbarModule,
+        protected reportSrv?: ReportService
     ) { }
 
     abstract openReadingFromDetail(): void;
@@ -426,6 +430,37 @@ export abstract class PublicDetailHost implements PublicDetailController {
         this.expandedPublicReviews.clear();
     }
 
+    /**
+     * «Denunciar» a la vista en cada reseña ajena (MODERACION.md): las reseñas son de Libros y se denuncian con su
+     * propia denuncia (`POST /reportes`), que revisa su moderación. Lo que se denuncia de la plataforma (personas,
+     * mensajes) va por `yosiftware.denunciar`.
+     */
+    canReportReview(review: CatalogPublicReview): boolean {
+        const item = this.selectedDetailItem;
+        return !!this.reportSrv && !!item && Number.isInteger(review.UsuarioId) && (review.UsuarioId ?? 0) > 0
+            && review.UsuarioId !== this.sessionSrv.userId && !this.reportedReviewKeys.has(this.reviewKey(review));
+    }
+
+    reportReview(review: CatalogPublicReview): void {
+        const item = this.selectedDetailItem;
+        if (!item || !this.reportSrv || !this.canReportReview(review)) return;
+        const reason = window.prompt('¿Por qué denuncias esta reseña? (máximo 1.000 caracteres)')?.trim();
+        if (!reason) return;
+        const key = this.reviewKey(review);
+        this.reportedReviewKeys.add(key);
+        this.reportSrv.create({ TipoFuente: 'resena', EntidadTipo: item.Tipo, EntidadId: item.Id, UsuarioFuenteId: review.UsuarioId!, Motivo: reason.slice(0, 1000) }).subscribe({
+            next: () => this.snackBar.openSnackBar('Denuncia enviada. La revisaremos.', 'successBar'),
+            error: error => {
+                this.reportedReviewKeys.delete(key);
+                this.snackBar.openApiError(error, 'No se pudo enviar la denuncia');
+            }
+        });
+    }
+
+    private reviewKey(review: CatalogPublicReview): string {
+        return `${this.selectedDetailItem?.Tipo}:${this.selectedDetailItem?.Id}:${review.UsuarioId}`;
+    }
+
     publicReviewAuthorLabel(review: CatalogPublicReview): string {
         return review.Usuario?.Nombre || 'Usuario';
     }
@@ -435,7 +470,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
     }
 
     publicOwnReviewAuthorHandle(): string {
-        return this.toUserHandle(this.sessionSrv.username ?? this.sessionSrv.displayName ?? (this.sessionSrv.userName || 'Usuario'));
+        return this.toUserHandle(this.sessionSrv.userName || 'Usuario');
     }
 
     publicReviewDate(review: CatalogPublicReview): string | null {

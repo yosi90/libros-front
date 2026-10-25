@@ -1,35 +1,17 @@
-@if (false) {
-  <nav id="notlogged" class="navbar navbar-expand-lg navbar-dark px-4 pb-0">
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <a class="text-uppercase text-white text-decoration-none me-3" routerLink="/home"><mat-icon>home</mat-icon></a>
-      <a class="grande text-uppercase text-white text-decoration-none me-3"
-        routerLink="/login"><mat-icon>power_settings_new</mat-icon></a>
-      </div>
-      <div class="flex-grow-1">
-        <a class="w-100 text-uppercase text-end text-white fw-bold text-decoration-none"
-        routerLink="/home">Memoria bibliográfica</a>
-      </div>
-    </nav>
-  }
-  @if (showLegacyLoggedNav) {
-    <nav id="logged" class="topbar" aria-label="Navegación principal">
-      <div class="topbar__actions">
-        <a routerLink="/dashboard" matTooltip="Biblioteca" matTooltipClass="tt-accent" (click)="openLibrary($event)">
-          <mat-icon>home</mat-icon>
-        </a>
-        <a class="topbar__profile" routerLink="/dashboard/profile" matTooltip="Perfil" matTooltipClass="tt-accent">
-            <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
-        </a>
-        <app-notification-bell placement="navbar"></app-notification-bell>
-        @if (isUserAdmin) {
-<a routerLink="/dashboard/adminpanel" matTooltip="Administración" matTooltipClass="tt-accent">
-            <mat-icon>admin_panel_settings</mat-icon>
-        </a>
-}
-        <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent">
-            <mat-icon>logout</mat-icon>
-        </a>
+@if (showLegacyLoggedNav) {
+  <nav id="logged" class="topbar" aria-label="Navegación principal">
+    <div class="topbar__actions">
+      <a routerLink="/dashboard" matTooltip="Biblioteca" matTooltipClass="tt-accent" (click)="openLibrary($event)">
+        <mat-icon>home</mat-icon>
+      </a>
+      <a routerLink="/dashboard/profile" matTooltip="Perfil" matTooltipClass="tt-accent" aria-label="Perfil">
+        <mat-icon>person</mat-icon>
+      </a>
+      <app-yosiftware-notifications></app-yosiftware-notifications>
+      <!-- Las webs del ecosistema y la cuenta de Yosiftware: el avatar abre el panel de cuentas (cambiar, añadir y salir). -->
+      <app-yosiftware-webs></app-yosiftware-webs>
+      <app-yosiftware-account class="topbar__account"></app-yosiftware-account>
     </div>
     <a class="topbar__brand" routerLink="/dashboard">Memoria Bibliográfica</a>
-</nav>
+  </nav>
 }

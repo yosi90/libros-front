@@ -41,17 +41,3 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
       '403':
         $ref: '../../openapi.yaml#/components/responses/Forbidden'
-/image/set/photo:
-  post:
-    operationId: postImageSetPhoto
-    tags:
-    - Imagenes
-    summary: Sube foto
-    description: Genera u_<id_usuario>.png desde el JWT, actualiza usuarios.imagen, borra avatares anteriores y normaliza
-      a PNG max 256x256.
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/ImageUpload'
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        $ref: '../../openapi.yaml#/components/responses/Message'

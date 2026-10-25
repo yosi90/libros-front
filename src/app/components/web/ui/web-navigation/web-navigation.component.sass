@@ -111,7 +111,7 @@
         font-size: 12px
         font-weight: 400
 
-.web-nav__avatar, .web-topbar__avatar
+.web-nav__avatar
     display: grid
     flex: none
     place-items: center
@@ -139,29 +139,17 @@
     background: var(--web-color-primary)
     border-radius: 999px
 
-.web-nav__bell ::ng-deep
-    .notification-bell__trigger
-        display: flex
-        align-items: center
-        justify-content: flex-start
-        gap: var(--web-space-3)
-        width: 100%
-        height: auto
-        min-height: 40px
-        padding: 0 var(--web-space-3)
-        font: 500 14px/1.3 var(--web-font-ui)
-
-    .notification-bell__label
-        display: inline
-
-    .notification-bell__dot
-        position: static
-        margin-left: auto
-
 .web-nav__actions
     display: flex
+    align-items: center
     justify-content: space-between
+    gap: var(--web-space-2)
     margin-top: var(--web-space-2)
+
+// La cuenta (`<yosi-acceso>`), las webs del ecosistema (`<yosi-webs>`) y la campana (`<yosi-notificaciones>`), con
+// las variables `--yosi-*` de la presentación Web.
+.web-nav__account, .web-topbar__account, .web-nav__platform, .web-topbar__platform
+    flex: none
 
 .web-nav__icon, .web-topbar__button
     display: grid
@@ -196,6 +184,7 @@
             padding-inline: 0
 
         .web-nav__actions
+            flex-direction: column
             justify-content: center
 
 // Compact: app bar y cajón lateral.
@@ -254,41 +243,3 @@
 @media (prefers-reduced-motion: reduce)
     .web-nav
         transition: none
-
-// Campana: en el carril o la navegación plegada, solo icono centrado.
-.web-nav.is-collapsed .web-nav__bell ::ng-deep
-    .notification-bell__label
-        display: none
-
-    .notification-bell__trigger
-        justify-content: center
-        padding-inline: 0
-
-// Compact: la campana va en la barra superior, no en el cajón.
-@media (max-width: 599px)
-    .web-nav__bell
-        display: none
-
-@media (min-width: 600px)
-    .web-topbar__bell
-        display: none
-
-@media (max-width: 1050px) and (min-width: 600px)
-    .web-nav__bell ::ng-deep
-        .notification-bell__label
-            display: none !important
-
-        .notification-bell__trigger
-            justify-content: center
-            padding-inline: 0
-
-.web-nav.is-collapsed .web-nav__bell ::ng-deep .notification-bell__dot
-    position: absolute
-    top: 5px
-    right: 7px
-
-@media (max-width: 1050px) and (min-width: 600px)
-    .web-nav__bell ::ng-deep .notification-bell__dot
-        position: absolute
-        top: 5px
-        right: 7px
