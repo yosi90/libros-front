@@ -17,6 +17,7 @@ import es.yosiftware.libros.ui.adaptable.rememberVentana
 import es.yosiftware.libros.ui.componentes.Avisador
 import es.yosiftware.libros.ui.libro.ContenidoDelLibro
 import es.yosiftware.libros.ui.libro.BusquedaViewModel
+import es.yosiftware.libros.ui.libro.CapituloViewModel
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.NotasViewModel
 import es.yosiftware.libros.ui.libro.VistaDelLibro
@@ -40,7 +41,7 @@ import org.json.JSONObject
  * las cifras se parecen, no son las mismas), `notas-vacias`, `notas-con-notas` (las dos de «El ritmo de la guerra» de
  * la captura y dos más, con el buscador), `nota-nueva` (el formulario con los avisos), `nota-borrar` (la confirmación),
  * `busqueda-vacia`, `busqueda-sin-resultados` («Vin» en «El imperio final», como la captura), `busqueda-con-resultados`
- * («citra» en «Siega») y `busqueda-aproximada` («citrra»).
+ * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 1 de «Siega», con sus escenas) y `capitulo-nuevo`.
  */
 class MuestrasDeLibro : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,13 +53,19 @@ class MuestrasDeLibro : ComponentActivity() {
         val vm = LibroViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, app.datos.coleccion, Avisador.Mudo)
         val notas = NotasViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, Avisador.Mudo)
         val busqueda = BusquedaViewModel(AmbitoDeCuenta("muestra", lifecycleScope))
+        // Sin cuenta no hay carpeta de borradores ni red: el capítulo se ve y se edita, pero no se guarda.
+        val capitulo = CapituloViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, Avisador.Mudo, cacheDir)
         val conPartes = vista == "indice-partes-interludios" || vista == "estructura"
-        val conDatos = vista == "resumen-con-datos" || vista == "busqueda-con-resultados" || vista == "busqueda-aproximada"
+        val conDatos = vista == "resumen-con-datos" || vista == "busqueda-con-resultados" || vista == "busqueda-aproximada" || vista.startsWith("capitulo")
         vm.mostrarMuestra(if (conDatos) siega() else if (conPartes) camino else imperio)
         when (vista) {
             "indice-abierto", "indice-partes-interludios" -> vm.alternarIndice()
             "hoja-elementos" -> vm.alternarElementos()
             "estructura" -> vm.abrirEstructura(TipoDeGrupo.PARTE, 1)
+        }
+        when (vista) {
+            "capitulo" -> vm.ir(VistaDelLibro.DeCapitulo(1))
+            "capitulo-nuevo" -> vm.ir(VistaDelLibro.NuevoCapitulo)
         }
         if (vista.startsWith("busqueda")) {
             vm.ir(VistaDelLibro.Busqueda)
@@ -81,7 +88,7 @@ class MuestrasDeLibro : ComponentActivity() {
         setContent {
             TemaLibros(tema) {
                 CompositionLocalProvider(LocalVentana provides rememberVentana()) {
-                    Box(Modifier.fillMaxSize()) { PantallaLibro(vm) { ContenidoDelLibro(vm, notas, busqueda, it) } }
+                    Box(Modifier.fillMaxSize()) { PantallaLibro(vm) { ContenidoDelLibro(vm, notas, busqueda, { capitulo }, it) } }
                 }
             }
         }
@@ -114,6 +121,7 @@ class MuestrasDeLibro : ComponentActivity() {
                     .put(JSONObject().put("Id", 1).put("EstadoId", 3).put("Nombre", "Por comprar").put("Fecha", "2025-09-11T00:00:00"))
                     .put(JSONObject().put("Id", 2).put("EstadoId", 1).put("Nombre", "En marcha").put("Fecha", "2026-07-12T10:00:00")))
                 .put("Capitulos", capitulos).put("Partes", org.json.JSONArray()).put("Interludios", org.json.JSONArray())
+                .put("Localizaciones", org.json.JSONArray().put(JSONObject().put("Id", 1).put("Nombre", "Sin localización")).put(JSONObject().put("Id", 2).put("Nombre", "Palco de la ópera")))
                 .put("Personajes", personajes))
         }
 

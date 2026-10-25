@@ -184,6 +184,16 @@ private fun Barra(vm: LibroViewModel, nombre: String, portada: String?) {
             Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(0.94), fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // `.m-book-bar__saved`: 3 s tras guardar, la nube en un círculo del primario con su halo.
+            if (vm.recienGuardado) {
+                Box(
+                    Modifier.padding(end = 2.dp).size(40.dp)
+                        .drawBehind { drawCircle(mezclar(colores.primario, 0.24f), radius = size.minDimension / 2 + 3.dp.toPx()) }
+                        .clip(CircleShape).background(colores.primario)
+                        .semantics { contentDescription = "Guardado" },
+                    contentAlignment = Alignment.Center,
+                ) { Icon(painterResource(Iconos.cloudDone), contentDescription = null, tint = colores.sobrePrimario, modifier = Modifier.size(24.dp)) }
+            }
             Herramienta(Iconos.queryStats, "Estadísticas", vm.estaActiva(VistaDelLibro.Estadisticas)) { vm.ir(VistaDelLibro.Estadisticas) }
             Herramienta(Iconos.stickyNote2, "Notas del libro", vm.estaActiva(VistaDelLibro.Notas)) { vm.ir(VistaDelLibro.Notas) }
             val wiki = vm.wiki
@@ -562,7 +572,7 @@ private fun SelectorDeParte(vm: LibroViewModel, editor: EditorDeEstructura, modi
 /**
  * Lo que enseña el contenido mientras no está clonado: el nombre de la vista y en qué paso llega.
  *
- * TODO(clon): los capítulos llegan en los pasos siguientes del hito 9, y los
+ * TODO(clon): los
  * elementos, en el hito 10.
  */
 @Composable
@@ -584,8 +594,15 @@ fun ContenidoPendiente(vista: VistaDelLibro) {
 
 /** Lo que enseña el contenido del libro en cada vista (`app-book-router`). */
 @Composable
-fun ContenidoDelLibro(vm: LibroViewModel, notas: NotasViewModel, busqueda: BusquedaViewModel, vista: VistaDelLibro) {
+fun ContenidoDelLibro(
+    vm: LibroViewModel,
+    notas: NotasViewModel,
+    busqueda: BusquedaViewModel,
+    capitulo: @Composable (VistaDelLibro) -> CapituloViewModel,
+    vista: VistaDelLibro,
+) {
     when (vista) {
+        is VistaDelLibro.DeCapitulo, VistaDelLibro.NuevoCapitulo, is VistaDelLibro.NuevoCapituloDeInterludio -> PantallaCapitulo(vm, vista, capitulo(vista))
         VistaDelLibro.Estadisticas -> PantallaResumenDelLibro(vm)
         VistaDelLibro.Notas -> PantallaNotasDelLibro(vm.abierto?.id ?: 0, notas)
         VistaDelLibro.Busqueda -> PantallaBusquedaDelLibro(vm, busqueda)

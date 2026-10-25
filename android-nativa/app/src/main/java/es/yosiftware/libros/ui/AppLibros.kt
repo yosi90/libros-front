@@ -28,6 +28,9 @@ import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.ui.estadisticas.EstadisticasViewModel
 import es.yosiftware.libros.ui.libro.ContenidoDelLibro
 import es.yosiftware.libros.ui.libro.BusquedaViewModel
+import es.yosiftware.libros.ui.libro.CapituloViewModel
+import es.yosiftware.libros.ui.libro.VistaDelLibro
+import java.io.File
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.NotasViewModel
 import es.yosiftware.libros.ui.libro.PantallaLibro
@@ -106,6 +109,17 @@ fun AppLibros(app: LibrosApp) {
     }
     val notas: NotasViewModel = viewModel { NotasViewModel(app.datos.ambito, app.datos.libro, avisos) }
     val busqueda: BusquedaViewModel = viewModel { BusquedaViewModel(app.datos.ambito) }
+    // Un ViewModel por capítulo y cuenta: el capítulo se queda con lo suyo aunque se vaya a otra vista. Cada visita a
+    // «Nuevo capítulo» empieza uno nuevo.
+    val capituloPara: @Composable (VistaDelLibro) -> CapituloViewModel = { vista ->
+        val cuenta = app.datos.ambito.clave("capitulo") ?: "sin-cuenta"
+        val sitio = when (vista) {
+            is VistaDelLibro.DeCapitulo -> "${vista.id}-${vista.deInterludio}"
+            is VistaDelLibro.NuevoCapituloDeInterludio -> "nuevo-${vista.interludioId}-${libro.visitaDeNuevo}"
+            else -> "nuevo-${libro.visitaDeNuevo}"
+        }
+        viewModel(key = "$cuenta-${libro.abierto?.id}-$sitio") { CapituloViewModel(app.datos.ambito, app.datos.libro, avisos, File(app.filesDir, "borradores")) }
+    }
     val abrirLibro: (Obra) -> Unit = libro::abrir
     TemaLibros(temaViewModel.tema) {
         CompositionLocalProvider(LocalVentana provides rememberVentana(), LocalCuenta provides cuenta, LocalAvisos provides avisos) {
@@ -201,7 +215,7 @@ fun AppLibros(app: LibrosApp) {
                         },
                     )
                     CapasDeCatalogo(catalogo, alAbrirLectura = abrirLibro)
-                    PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, notas, busqueda, vista) }
+                    PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, notas, busqueda, capituloPara, vista) }
                 }
                 AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
 

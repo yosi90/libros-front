@@ -119,6 +119,9 @@ object Iconos {
     @DrawableRes val calendarToday = R.drawable.mi_calendar_today
     @DrawableRes val analytics = R.drawable.mi_analytics
     @DrawableRes val delete = R.drawable.mi_delete
+    @DrawableRes val unfoldMore = R.drawable.mi_unfold_more
+    @DrawableRes val alternateEmail = R.drawable.mi_alternate_email
+    @DrawableRes val save = R.drawable.mi_save
     @DrawableRes val formatBold = R.drawable.mi_format_bold
     @DrawableRes val formatItalic = R.drawable.mi_format_italic
     @DrawableRes val formatUnderlined = R.drawable.mi_format_underlined

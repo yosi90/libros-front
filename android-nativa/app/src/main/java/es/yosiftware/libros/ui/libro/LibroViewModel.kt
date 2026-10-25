@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
+import es.yosiftware.libros.datos.modelos.Capitulo
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
@@ -15,7 +16,9 @@ import es.yosiftware.libros.datos.repositorios.ParteAGuardar
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 import es.yosiftware.libros.datos.repositorios.RepositorioLibro
 import es.yosiftware.libros.ui.componentes.Avisador
+import androidx.lifecycle.viewModelScope
 import java.time.Instant
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /** Lo que enseña el contenido del libro (las rutas hijas de `/book/:id`). */
@@ -89,6 +92,13 @@ class LibroViewModel(
         private set
     var guardandoEstructura by mutableStateOf(false)
         private set
+    /** La nube de «Guardado» de la barra, 3 s tras cada guardado (`BookSaveIndicatorService`). */
+    var recienGuardado by mutableStateOf(false)
+        private set
+    /** Cada visita a «Nuevo capítulo» empieza un formulario nuevo (en la web, un componente nuevo por ruta). */
+    var visitaDeNuevo by mutableStateOf(0)
+        private set
+    private var nube: kotlinx.coroutines.Job? = null
 
     val ordenMaximo: Int get() = libro?.let(IndiceDelLibro::ordenMaximo) ?: 0
     val enMarcha: Boolean get() = libro?.let(IndiceDelLibro::enMarcha) ?: false
@@ -123,6 +133,7 @@ class LibroViewModel(
 
     /** Cambia lo que enseña el contenido; el índice y la hoja de Elementos se cierran (`navigateBookChild`). */
     fun ir(nueva: VistaDelLibro) {
+        if (nueva is VistaDelLibro.NuevoCapitulo || nueva is VistaDelLibro.NuevoCapituloDeInterludio) visitaDeNuevo++
         vista = nueva
         vistaElegida = true
         elementosAbiertos = false
@@ -183,6 +194,26 @@ class LibroViewModel(
             guardandoCompra = false
             if (abierto?.id == actual.id) ponerLibro(nuevo)
             avisos.exito("Fecha de compra añadida")
+        }
+    }
+
+    /** Un capítulo recién guardado entra en el libro (en su sitio por orden) y la barra enseña la nube. */
+    fun ponerCapitulo(capitulo: Capitulo) {
+        val actual = libro ?: return
+        fun encajar(lista: List<Capitulo>) = (lista.filter { it.id != capitulo.id } + capitulo).sortedBy { it.orden }
+        ponerLibro(
+            if (capitulo.esInterludio) actual.copy(interludios = actual.interludios.map { if (it.id == capitulo.idInterludio) it.copy(capitulos = encajar(it.capitulos)) else it })
+            else actual.copy(capitulos = encajar(actual.capitulos)),
+        )
+        avisarDeGuardado()
+    }
+
+    fun avisarDeGuardado() {
+        recienGuardado = true
+        nube?.cancel()
+        nube = viewModelScope.launch {
+            kotlinx.coroutines.delay(3000)
+            recienGuardado = false
         }
     }
 
