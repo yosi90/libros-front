@@ -66,6 +66,24 @@ Solo propuestas: no se toca el backend.
   - **Peligros si se mantiene como estaba:** bajo mientras los catálogos no cambien.
   - **Peligros del cambio:** los iconos y el orden son de presentación y seguirían en el frontend.
 
+## Lo nuevo de la adhesión (rama `adhesion/web`, 25/10/2026)
+
+Revisor en modo `corregir` sobre lo que la adhesión añade a la web (`478fc8e..33989c0`, sin lo que trae `main` ni `android-nativa/`). Lo seguro se aplicó en la rama (commits `e2a3316` a `af0c459`); esto queda como propuesta. Las líneas citadas son las de `af0c459`.
+
+- [ ] **9. Una sola guardia de generación para lo que no pasa por `HttpClient`**
+  - **Descripción:** lo que habla con el SDK sin pasar por `PlatformTokenInterceptor` ni `PlatformApiService` repite a mano «guardar `session.generation` y comprobar `isCurrentGeneration` antes de aplicar»: `ChatFloatingSettingsService` (`assertGeneration`), `ClubAccessService.refresh`, `PlatformSpacesService.openChannel`, `PlatformRealtimeService.start` (con su propia generación además de la de la sesión), `club-detail.component.ts` (dos veces) y `app.component.ts` (la carga inicial). Propuesta: `PlatformSessionService.whileCurrent(): () => boolean` (o un operador `takeWhileCurrentAccount()`) que cada uno use en lugar de las dos líneas.
+  - **Por qué se necesita:** es la obligación 2 de `CAMBIO_DE_CUENTA.md` escrita siete veces; la APK Kotlin la portaría igual.
+  - **Qué se espera lograr:** una sola forma de descartar lo que llega de otra cuenta, fácil de buscar y de probar.
+  - **Peligros si se mantiene como estaba:** que un servicio nuevo se olvide de la comprobación.
+  - **Peligros del cambio:** son guardias de dos líneas con matices (el tiempo real se para y arranca con su propia generación; los ajustes lanzan `cambio_de_cuenta` para cortar el reintento): unificarlas sin cuidado cambiaría cuándo se descarta algo. Hacerlo con las pruebas de `account-switch.spec.ts` delante.
+
+- [ ] **10. Dos dobles del SDK de la plataforma (Karma y Playwright)**
+  - **Descripción:** `src/app/services/auth/yosiftware-sdk.testing.ts` (clase con espías de Jasmine) y `e2e/support/yosiftware-sdk-double.ts` (módulo que se inyecta como guion en la página) imitan cada uno el mismo SDK: estado y `alCambiar`, tokens (y uno por cuenta), `ajustes` con versión y conflicto, canales de los espacios y tiempo real. No se pueden unir dentro del proyecto sin escribir el doble en JavaScript plano y cargarlo en los dos sitios.
+  - **Por qué se necesita:** cada cambio del SDK (kit nuevo) obliga a tocar dos imitaciones que pueden divergir del SDK y entre sí.
+  - **Qué se espera lograr:** un doble oficial del SDK en el kit (`ecosistema-kit/`), con su comportamiento probado por la plataforma, que Libros cargue en Karma y en Playwright. Es lo que el kit debería dar: pedirlo con una petición a la plataforma antes de rehacerlo aquí.
+  - **Peligros si se mantiene como estaba:** pruebas verdes con un doble que ya no se comporta como el SDK.
+  - **Peligros del cambio:** depende de la plataforma; mientras no exista, el doble de Playwright sigue siendo el que manda en las pruebas del cambio de cuenta.
+
 ## Fuera de alcance (se retira con la adhesión)
 
 Se citan para que nadie los porte a Kotlin:
