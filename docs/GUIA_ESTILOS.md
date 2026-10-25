@@ -5,27 +5,29 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 ## Dirección visual
 
 > **Estado (27/9/2026).** El navegador usa la presentación `web` (claro/oscuro) en todas las rutas, zona pública incluida, y Wood cuando el dispositivo lo elige por encima de 1050 px. El mecanismo de transición por ruta se retiró; Mobile en navegador solo existe con la presentación Web desactivada en local, para las regresiones.
+>
+> **Corte de la adhesión (hito 4, 25/10/2026).** La APK de Capacitor (`native-mobile`) se retiró de la web: queda sin soporte y su código está en la etiqueta `apk-capacitor-final`. La APK nueva es la nativa en Kotlin de `android-nativa/`, clon exacto de la de Capacitor, con su tema sacado de los tokens Mobile (`_tokens.sass`). Lo que esta guía dice de la APK o de Android describe la de Capacitor y sirve de referencia para el clon. La administración tampoco está ya en la web: es el plugin de la administración de la plataforma.
 
-- La aplicación tiene tres presentaciones, no temas intercambiables: `web`, `wood` y `native-mobile` (Mobile).
+- La web tiene tres presentaciones, no temas intercambiables: `web`, `wood` y `mobile` (solo en local, para las regresiones y como referencia del clon Kotlin).
 - `web` es la presentación del navegador a cualquier ancho: estándar, moderna, limpia y centrada en la usabilidad y la lectura, sin renunciar a la estética. Ofrece tema claro y oscuro.
 - `wood` es la alternativa estética y rompedora del navegador de escritorio: cuero, papel envejecido, dorados apagados, navegación flotante y profundidad sutil. Solo es elegible por encima de 1050 px y conserva una única apariencia.
-- `native-mobile` es la APK Android. Se considera terminada: ninguna decisión Web o Wood modifica sus vistas, tokens, navegación ni comportamiento. Conserva claro/oscuro desde su app bar.
+- `mobile` es el aspecto de la APK (antes `native-mobile` con Capacitor, retirado en el hito 4). Se considera terminado: ninguna decisión Web o Wood modifica sus vistas, tokens, navegación ni comportamiento. Conserva claro/oscuro desde su app bar.
 - Rutas, permisos, contratos, estado, autosave y lógica son compartidos. Cada presentación tiene componentes, HTML, Sass, navegación, cabeceras y composición independientes; Web no reutiliza vistas ni tokens de Mobile ni de Wood.
 - Nunca se adapta Wood mediante una cascada de media queries ni se construye una presentación como recoloreado del markup de otra.
 - Solo se instancia una vista de cada feature. Su container/fachada conserva estado al cambiar de ancho, tema, orientación o plataforma.
 
 ## Modos de presentación
 
-- **Selección.** Capacitor → `native-mobile`. Navegador → `wood` si el tema elegido en ese dispositivo es Wood y el ancho supera 1050 px; en cualquier otro caso `web` con el tema claro u oscuro del dispositivo.
+- **Selección.** `wood` si el tema elegido en ese dispositivo es Wood y el ancho supera 1050 px; en cualquier otro caso `web` con el tema claro u oscuro del dispositivo. Sin la presentación Web (solo en local), `mobile` por debajo de 1051 px.
 - **Tema por dispositivo.** Cada navegador recuerda su elección (Claro, Oscuro o Wood) y la conserva al cambiar de cuenta. Con la cuenta de Yosiftware el tema no se guarda en la cuenta (`ACCESO.md`, «Los ajustes de la web»); la bienvenida «Elige tu estilo» sale en un dispositivo que aún no ha elegido.
 - **Wood por debajo de 1051 px** se sustituye por Claro sin olvidar la elección: al volver a escritorio se recupera Wood.
-- **El selector de tema** vive en Preferencias, con las tres opciones y una muestra visual. Wood aparece deshabilitado, con su motivo, por debajo de 1051 px. La APK conserva su interruptor sol/luna.
+- **El selector de tema** vive en Preferencias, con las tres opciones y una muestra visual. Wood aparece deshabilitado, con su motivo, por debajo de 1051 px. Mobile conserva su interruptor sol/luna.
 - Rangos de ancho Web: `compact` `320-599px`, `medium` `600-1050px`, `desktop` desde `1051px`, `wide` desde `1600px`, `ultrawide` desde `2560px`. Wood solo existe en `desktop` y superiores, con los mismos modificadores `wide`/`ultrawide`.
-- La selección usa ancho disponible, plataforma Capacitor y la elección del dispositivo; nunca marca/modelo o user-agent.
+- La selección usa el ancho disponible y la elección del dispositivo; nunca marca/modelo o user-agent.
 - Orientación, altura, `hover`, puntero y teclado virtual complementan el layout sin crear otros shells globales.
-- Administración existe en Web (claro y oscuro) y en Wood, y requiere puntero preciso. En la APK el enlace se oculta y el guard rechaza la navegación directa.
+- La administración no existe en la web: es el plugin de Libros de la administración de la plataforma (hito 4 de la adhesión). `/adminpanel` y `/dashboard/adminpanel` llevan a la Biblioteca.
 - El chat flotante existe en Web `desktop` y en Wood; en anchos menores y en la APK se usa navegación de página completa o maestro-detalle. Mensajes ofrece «Abrir en ventana» (lista y conversación) cuando el escritorio lo admite. Desde la adhesión (hito 3) el chat es el de la plataforma (`/v1/chat/…` y su tiempo real) pintado con la interfaz de siempre: texto plano, las cinco reacciones de Libros por su emoji (❤️ 😂 😮 😢 👍) y las demás reacciones tal cual, los susurros marcados junto a la fecha y los avisos del chat como mensajes de sistema. Cómo quedan las ventanas va en los ajustes de Libros de la cuenta (`yosiftware.ajustes`, clave `chatFlotante`).
-- **Lectura en curso.** Al salir de un libro al panel se recuerda dónde estaba: en Web `desktop` y en Wood, ventana flotante «Estabas leyendo» plegable a píldora; en Web `compact`, chip inferior como la de la APK; en la APK, su propia píldora nativa.
+- **Lectura en curso.** Al salir de un libro al panel se recuerda dónde estaba: en Web `desktop` y en Wood, ventana flotante «Estabas leyendo» plegable a píldora; en Web `compact`, chip inferior (como la píldora de la APK).
 - En plegables se prioriza reflow continuo. La bisagra solo puede tratarse como mejora progresiva.
 
 ## Separación de responsabilidades
@@ -70,7 +72,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 ## Mobile (APK)
 
-> Las reglas de esta sección se aplican a `native-mobile` (la APK). El navegador pequeño usa la presentación Web.
+> Las reglas de esta sección describen el aspecto de la APK: la de Capacitor (`native-mobile`, retirada en el hito 4) y, como referencia, el clon Kotlin. El navegador pequeño usa la presentación Web; `mobile` solo existe en local.
 
 
 - Material 3 y CDK aportan infraestructura, accesibilidad y overlays; la identidad visual es propia, no el tema prebuilt de Material.
@@ -91,7 +93,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - La navegación compacta fija Biblioteca, Catálogo, Comunidad y Más. El alta es contextual; Más agrupa perfil, seguridad, preferencias, estadísticas y gestores. El cierre de sesión vive en Cuenta y seguridad, junto a la gestión de dispositivos, y no compite con los destinos de navegación.
 - En `medium`, el rail aprovecha el alto disponible: Perfil abre la navegación, Estadísticas acompaña a los destinos principales antes de Más y Preferencias cierra la navegación al pie. La app bar autenticada muestra el avatar como acceso directo a Perfil y reserva el selector de tema para Más.
 - Medium usa rail y solo muestra dos paneles cuando no comprime formularios, listas o acciones.
-- El laboratorio `/__mobile-design/:screen` solo existe para revisión local en `localhost`/`127.0.0.1`, rechaza Capacitor y no activa la feature flag. Sus referencias iniciales son `login`, `library`, `chapter`, `community` y `security` a 390/800 px.
+- El laboratorio `/__mobile-design/:screen` solo existe para revisión local en `localhost`/`127.0.0.1` y no activa la feature flag. Sus referencias son `login`, `library`, `chapter`, `community`, `security` y `onboarding` a 390/800 px (la isla del lector nativo se retiró con Capacitor).
 
 ## Sass, CSS y librerías
 
@@ -157,7 +159,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 ### Gestores
 
-- En Web y Wood los gestores son listados de consulta alcanzables desde el Perfil. Las altas directas viven en vistas propias enlazadas desde Administración; los usuarios sin rol de administración proponen desde Catálogo mediante `/peticiones/catalogo`.
+- En Web y Wood los gestores son listados de consulta alcanzables desde el Perfil. El catálogo canónico se edita en el plugin de administración de la plataforma; desde la web se propone desde Catálogo mediante `/peticiones/catalogo`.
 
 - Wood conserva tabla, métricas y formulario lateral histórico.
 - Mobile usa listas/cards y editor de ruta completa en compact; medium puede usar maestro-detalle.
@@ -207,13 +209,12 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Los toast Mobile se anclan sobre la navegación inferior y la safe area, dentro del alcance del pulgar. Un arrastre suficiente, hacia abajo o hacia arriba, los cierra; un gesto corto vuelve a su posición. Ya no hay campana propia a la que entregarlos. Los gestos y transiciones respetan `prefers-reduced-motion` y siempre conservan una alternativa táctil accesible.
 - Los switches Mobile consumen siempre tokens `light`/`dark`: pista, indicador, texto e iconos no reutilizan colores Wood fijos. El selector de tema representa ambos estados con sol/luna y mantiene nombre accesible de la acción resultante.
 - En Android, el fondo de la barra de estado acompaña al tema Mobile y sus iconos usan siempre el contraste inverso: oscuros sobre `light`, claros sobre `dark`.
-- No existe composición Mobile de administración ni backup.
-- Wood mantiene confirmación, progreso, prevención de doble envío y errores recuperables del backup.
+- La administración (también las copias de seguridad) es el plugin de la plataforma: la web no la pinta en ninguna presentación.
 
 ## Zona pública y autenticación
 
 - **La cuenta es la de Yosiftware** (adhesión, 24/10/2026): entrar, crear la cuenta, recuperar la contraseña, verificar el correo y cambiar de cuenta los pinta el SDK de la plataforma (`<yosi-acceso>` y sus ventanas). Libros no tiene formularios de acceso propios ni rutas `/login`, `/register`…, que llevan a la portada.
-- La zona pública es la portada: Web usa `WebPublicShellComponent` (marca, `<yosi-acceso>` en las acciones y claro/oscuro del dispositivo), Wood su composición histórica con el botón en la barra superior, y Mobile `MobilePublicShellComponent` con el botón a la derecha de la marca. «Crear mi biblioteca» y «Ya tengo cuenta» abren el acceso de Yosiftware (registro o entrar), y la línea «Entra con tu cuenta de Yosiftware» lleva el símbolo del ecosistema (`YosiftwareMarkComponent`, `MARCA.md`).
+- La zona pública es la portada: Web usa `WebPublicShellComponent` (marca, `<yosi-acceso>` en las acciones y claro/oscuro del dispositivo), Wood su composición histórica con el botón en la barra superior, y Mobile `MobilePublicShellComponent` con el botón a la derecha de la marca. «Crear mi biblioteca» y «Ya tengo cuenta» abren el acceso de Yosiftware (registro o entrar), y la línea «Entra con tu cuenta de Yosiftware» lleva el símbolo del ecosistema (`YosiftwareMarkComponent`, `MARCA.md`). Debajo, en Web y Wood, «Normas y privacidad de Yosiftware» (con el símbolo) enlaza las normas comunes y la política de privacidad, que se ven sin entrar (`?vista=normas` de la web social, `PRIVACIDAD.md`).
 - **`<yosi-acceso>` en cada cabecera** (`YosiftwareAccountComponent`), con `<yosi-webs>` (`YosiftwareWebsComponent`) y `<yosi-notificaciones>` (`YosiftwareNotificationsComponent`, que abre sin recargar los enlaces de Libros): barra lateral de Wood y su barra superior del libro, navegación Web (barra compacta y pie de la lateral), cabecera del libro Web y app bar de Mobile. Su aspecto sale de las variables `--yosi-*` de cada presentación (`assets/css/<presentación>/_yosiftware.sass`, declaradas junto a sus tokens); nunca se restila su HTML. Las ventanas de la plataforma reciben `assets/yosiftware.css` (paleta Web en claro y oscuro) y siguen el tema de `<html>` (`dataset.theme`; Wood es oscuro).
 - Todo enlace a la web social («Gestionar tu cuenta de Yosiftware») lleva el símbolo del ecosistema delante.
 - Links secundarios son `<a>` semánticos; no usar `span` con `routerLink`.
@@ -221,10 +222,10 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 ## PWA, Android y conectividad
 
 - PWA y APK son online-first. Sin red muestran una superficie clara y no prometen lectura o escritura offline de datos privados.
-- Angular Service Worker controla la raíz web. El push es el de la plataforma (se activa en la web social): el push web propio se retiró en el hito 2 y el de la APK de Capacitor deja de registrarse en el hito 3; `firebase-messaging-sw.js` queda sin uso hasta retirar Capacitor (hito 4).
+- Angular Service Worker controla la raíz web. El push es el de la plataforma (se activa en la web social): el push web propio se retiró en el hito 2, el de la APK de Capacitor en el hito 3 y `firebase-messaging-sw.js`, con Capacitor, en el hito 4.
 - La caché web contiene shell y recursos públicos, nunca API, imágenes privadas, tokens o datos de cuenta.
 - La web anuncia una versión nueva y requiere acción explícita para activarla, de modo que la persona pueda terminar cualquier cambio pendiente.
-- En la APK Android, una versión de recursos web ya preparada por Angular Service Worker se activa automáticamente tras mostrar una barrera interna bloqueante, breve y sin confirmación. Este flujo no sustituye la instalación de una nueva APK.
+- Lo que sigue sobre Android describe la APK de Capacitor (retirada en el hito 4, etiqueta `apk-capacitor-final`) y queda como referencia del clon Kotlin; la web ya no tiene adaptadores nativos. En la APK de Capacitor, una versión de recursos web ya preparada por Angular Service Worker se activaba tras una barrera interna breve; en la Kotlin cada cambio es una APK nueva.
 - Android usa la misma UI Mobile con adaptadores nativos para auth, sesión, push, links, red y ciclo de vida.
 - Android no intenta mantener WebSocket ni WebView activos cuando queda suspendido. FCM entrega en segundo plano los eventos que requieren atención; al volver, la app reconecta y reconcilia el estado canónico mediante REST. Los estados transitorios de conexión disponen de un breve periodo de gracia antes de convertirse en aviso visible.
 - El push Android de chat admite una versión privada con remitente/vista previa y una versión pública genérica para bloqueo seguro. Android y los ajustes del usuario deciden cuál mostrar. En primer plano se usa la notificación interna deduplicada; tocar el aviso consulta la notificación canónica y abre su conversación, sin interpretar URLs del payload.
