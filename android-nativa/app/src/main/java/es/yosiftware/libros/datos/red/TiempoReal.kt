@@ -4,6 +4,7 @@ import es.yosiftware.libros.datos.ErrorDeLibros
 import es.yosiftware.libros.datos.json.texto
 import es.yosiftware.libros.datos.repositorios.TicketDeTiempoReal
 import java.net.URLEncoder
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -53,6 +54,14 @@ sealed interface Llegada {
     data class ErrorDelEspacio(val espacio: Long, val codigo: String) : Llegada
 }
 
+/** Lo que necesita quien escucha el tiempo real: sus llegadas y abrirlo, cerrarlo u olvidar la cuenta. */
+interface ConexionEnVivo {
+    val eventos: SharedFlow<Llegada>
+    fun iniciar()
+    fun parar()
+    fun olvidar()
+}
+
 /**
  * El tiempo real de la plataforma: un WebSocket por app y cuenta, abierto mientras la app está a la vista y con sesión
  * (en segundo plano lo cubre el push, que la plataforma no manda mientras haya un socket abierto). Se abre con un
@@ -73,9 +82,9 @@ class TiempoReal(
     private val esperas: List<Long> = ESPERAS,
     private val esperaPorExceso: Long = 60_000,
     private val latido: Long = 25_000,
-) {
+) : ConexionEnVivo {
     private val llegadas = MutableSharedFlow<Llegada>(extraBufferCapacity = 256)
-    val eventos: SharedFlow<Llegada> = llegadas.asSharedFlow()
+    override val eventos: SharedFlow<Llegada> = llegadas.asSharedFlow()
 
     private val abierto = MutableStateFlow(false)
 
@@ -92,7 +101,7 @@ class TiempoReal(
     private val espacios = linkedMapOf<Long, Long?>()
 
     /** Abre el socket si no lo está (idempotente). */
-    fun iniciar() {
+    override fun iniciar() {
         synchronized(cerrojo) {
             if (bucle?.isActive == true) return
             bucle = alcance.launch { mantener() }
@@ -100,7 +109,7 @@ class TiempoReal(
     }
 
     /** Cierra el socket (al pasar a segundo plano); conserva el cursor y los canales para la vuelta. */
-    fun parar() {
+    override fun parar() {
         synchronized(cerrojo) {
             bucle?.cancel()
             bucle = null
@@ -111,7 +120,7 @@ class TiempoReal(
     }
 
     /** Al cambiar de cuenta o cerrar la sesión: lo de la anterior no sirve. */
-    fun olvidar() {
+    override fun olvidar() {
         parar()
         synchronized(cerrojo) {
             secuencia = null
@@ -164,13 +173,17 @@ class TiempoReal(
         while (alcance.isActive) {
             val cierre: Int = try {
                 conectar(ticket())
-            } catch (e: ErrorDeLibros) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // La plataforma lanza `ErrorSesion`; sin red, `sin_conexion`.
+                val error = ErrorDeLibros.de(e)
                 when {
-                    e.sinSesion -> {
+                    error.sinSesion -> {
                         llegadas.tryEmit(Llegada.SesionCerrada)
                         return
                     }
-                    e.estadoHttp == 429 -> 4429
+                    error.estadoHttp == 429 -> 4429
                     else -> CIERRE_DE_RED
                 }
             }

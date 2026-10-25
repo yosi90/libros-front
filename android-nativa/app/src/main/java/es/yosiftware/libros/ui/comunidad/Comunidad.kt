@@ -6,10 +6,7 @@ import es.yosiftware.libros.datos.modelos.ResumenDeComunidad
 import es.yosiftware.libros.datos.modelos.ResumenSocial
 import es.yosiftware.libros.ui.tema.Iconos
 
-/**
- * Las secciones propias de la pestaña Comunidad (`SocialShellComponent.items`). Mensajes es el chat de la plataforma
- * (hito 12): abre su destino.
- */
+/** Las secciones propias de la pestaña Comunidad (`SocialShellComponent.items`). Mensajes es el chat de la plataforma. */
 enum class SeccionDeComunidad(val etiqueta: String, @param:DrawableRes val icono: Int) {
     RESUMEN("Resumen", Iconos.dashboard),
     /** Lo que comparten desde Libros las amistades y los seguidos (el feed de novedades de la plataforma). */
@@ -30,6 +27,7 @@ sealed interface DestinoDeTarjeta {
     /** Una vista de la web social, en el navegador. */
     data class WebSocial(val vista: String) : DestinoDeTarjeta
     data class Clubes(val pestana: PestanaDeClubes) : DestinoDeTarjeta
+    data object Mensajes : DestinoDeTarjeta
 }
 
 /** Una tarjeta del resumen (`SocialSummaryComponent.cards`); [resaltada] si hay algo pendiente. */
@@ -46,7 +44,8 @@ object ResumenSocialDeComunidad {
 
     /**
      * Las tarjetas, en su orden: las cuatro de la plataforma si llegó su resumen; «Clubes activos» si llegó el de Libros;
-     * «Invitaciones a clubes» si llegaron. «Mensajes sin leer» llega con el chat (hito 12).
+     * «Invitaciones a clubes» si llegaron. «Mensajes sin leer» se añade al pintar ([conMensajes]), porque cambia con el
+     * tiempo real.
      *
      * Distinto de la web, a propósito: «Invitaciones a clubes» lleva al centro de acceso, a las recibidas, y no a
      * Descubrir, donde no se ven.
@@ -63,6 +62,10 @@ object ResumenSocialDeComunidad {
             add(TarjetaDeResumen("Invitaciones a clubes", invitaciones, Iconos.markEmailUnread, DestinoDeTarjeta.Clubes(PestanaDeClubes.ACCESO), invitaciones > 0))
         }
     }
+
+    /** «Mensajes sin leer», siempre la última, si hay tarjetas (sin ninguna, el resumen es un error). */
+    fun conMensajes(tarjetas: List<TarjetaDeResumen>, sinLeer: Int): List<TarjetaDeResumen> =
+        if (tarjetas.isEmpty()) tarjetas else tarjetas + TarjetaDeResumen("Mensajes sin leer", sinLeer, Iconos.forum, DestinoDeTarjeta.Mensajes, sinLeer > 0)
 
     /** Falta alguna parte: un aviso arriba, y el resto se enseña. */
     fun parcial(social: ResumenSocial?, comunidad: ResumenDeComunidad?, invitaciones: Int?): Boolean =

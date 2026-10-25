@@ -57,6 +57,8 @@ fun Armazon(
     avatar: String? = null,
     alAbrirCuentas: () -> Unit = {},
     aviso: (@Composable () -> Unit)? = null,
+    /** Los mensajes sin leer del chat: el punto del avatar, en el rail y en la app bar. */
+    mensajesSinLeer: Int = 0,
     /** Con la hoja «Más» ya abierta (las muestras de depuración). */
     masAbiertaAlPrincipio: Boolean = false,
     contenido: @Composable (Destino) -> Unit = { PantallaVacia(it) },
@@ -71,7 +73,7 @@ fun Armazon(
     // La hoja «Más» registra el suyo después, así que Atrás la cierra antes que volver.
     BackHandler(enabled = nav.puedeVolver) { nav.volver() }
 
-    val estado = EstadoDeNavegacion(actual = nav.actual, masAbierta = masAbierta)
+    val estado = EstadoDeNavegacion(actual = nav.actual, masAbierta = masAbierta, mensajesSinLeer = mensajesSinLeer)
     val elegir: (Destino) -> Unit = { destino -> nav.irA(destino) }
     val alternarMas = { masAbierta = !masAbierta }
 
@@ -110,7 +112,7 @@ fun Armazon(
             // La app bar va encima del contenido, como la `fixed` de la web (con z-index 20).
             BarraSuperior(nav.actual.titulo, Modifier.align(Alignment.TopStart)) {
                 BotonDeCampana(abierta = nav.actual == Destino.Avisos, sinLeer = false, alPulsar = { elegir(Destino.Avisos) })
-                BotonDePerfil(mensajesSinLeer = 0, avatar = avatar, nombre = nombre) {
+                BotonDePerfil(mensajesSinLeer = mensajesSinLeer, avatar = avatar, nombre = nombre) {
                     masAbierta = false
                     elegir(Destino.Perfil)
                 }

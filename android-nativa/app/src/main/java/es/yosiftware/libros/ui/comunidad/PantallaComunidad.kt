@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.ui.adaptable.LocalVentana
@@ -61,8 +63,8 @@ import es.yosiftware.libros.ui.tema.rem
 class AccionesDeComunidad(
     /** Una vista de la web social, en el navegador (`personas`, `amistades`, `seguridad`…). */
     val abrirWebSocial: (String) -> Unit,
-    /** Mensajes: el chat de la plataforma (hito 12). */
-    val abrirMensajes: () -> Unit,
+    /** La sección Mensajes: el chat de la plataforma ([es.yosiftware.libros.ui.mensajes.PantallaMensajes]). */
+    val mensajes: @Composable () -> Unit,
     /** «Entrar con otra cuenta»: el panel de cuentas. */
     val cambiarDeCuenta: () -> Unit,
     /** Si hay obras en la colección: sin ellas no se puede crear un club. */
@@ -73,10 +75,20 @@ class AccionesDeComunidad(
     val abrirEnlace: (String) -> Unit = {},
     /** Una imagen de la plataforma (avatar o cabecera), completa: la ruta es relativa a su API. */
     val avatar: (String?) -> String? = { it },
+    /** Al pulsar Mensajes: vuelve a la bandeja, como el enlace `messages` de la web. */
+    val alElegirMensajes: () -> Unit = {},
 )
 
 @Composable
-fun PantallaComunidad(comunidad: ComunidadViewModel, clubes: ClubesViewModel, acceso: CentroDeAccesoViewModel, actividad: ActividadViewModel, acciones: AccionesDeComunidad) {
+fun PantallaComunidad(
+    comunidad: ComunidadViewModel,
+    clubes: ClubesViewModel,
+    acceso: CentroDeAccesoViewModel,
+    actividad: ActividadViewModel,
+    acciones: AccionesDeComunidad,
+    /** Los mensajes sin leer de la bandeja del chat: la insignia de Mensajes y la tarjeta del Resumen. */
+    sinLeer: Int = 0,
+) {
     val colores = LocalColores.current
     val ancha = LocalVentana.current.anchoDp >= 600
     LaunchedEffect(Unit) { comunidad.alEntrar() }
@@ -86,7 +98,8 @@ fun PantallaComunidad(comunidad: ComunidadViewModel, clubes: ClubesViewModel, ac
             when (comunidad.seccion) {
                 SeccionDeComunidad.CLUBES -> comunidad.clubAbierto?.let { acciones.detalleDelClub(it) } ?: PantallaClubes(comunidad, clubes, acceso, acciones)
                 SeccionDeComunidad.ACTIVIDAD -> PantallaActividad(actividad, acciones)
-                else -> PantallaResumen(comunidad, clubes, acceso, acciones)
+                SeccionDeComunidad.MENSAJES -> acciones.mensajes()
+                else -> PantallaResumen(comunidad, clubes, acceso, acciones, sinLeer)
             }
         }
     }
@@ -97,7 +110,7 @@ fun PantallaComunidad(comunidad: ComunidadViewModel, clubes: ClubesViewModel, ac
                     .drawBehind { drawLine(mezclar(colores.contorno, 0.58f), Offset(size.width, 0f), Offset(size.width, size.height), 1.dp.toPx()) }
                     .verticalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = Espacios.e2),
                 verticalArrangement = Arrangement.spacedBy(Espacios.e1),
-            ) { Secciones(comunidad, acciones, ancha = true) }
+            ) { Secciones(comunidad, acciones, sinLeer, ancha = true) }
             Box(Modifier.weight(1f).fillMaxHeight()) { contenido() }
         }
     } else {
@@ -107,7 +120,7 @@ fun PantallaComunidad(comunidad: ComunidadViewModel, clubes: ClubesViewModel, ac
                     .drawBehind { drawLine(mezclar(colores.contorno, 0.58f), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
                     .horizontalScroll(rememberScrollState()).padding(horizontal = Espacios.e3, vertical = Espacios.e1),
                 horizontalArrangement = Arrangement.spacedBy(Espacios.e1),
-            ) { Secciones(comunidad, acciones, ancha = false) }
+            ) { Secciones(comunidad, acciones, sinLeer, ancha = false) }
             Box(Modifier.weight(1f)) { contenido() }
         }
     }
@@ -115,11 +128,13 @@ fun PantallaComunidad(comunidad: ComunidadViewModel, clubes: ClubesViewModel, ac
 
 /** Las secciones propias y las de la web social (`.m-social-shell__navigation`). */
 @Composable
-private fun Secciones(comunidad: ComunidadViewModel, acciones: AccionesDeComunidad, ancha: Boolean) {
+private fun Secciones(comunidad: ComunidadViewModel, acciones: AccionesDeComunidad, sinLeer: Int, ancha: Boolean) {
     SeccionDeComunidad.entries.forEach { seccion ->
         val disponible = seccion != SeccionDeComunidad.CLUBES || comunidad.clubesDisponibles
-        ElementoDeSeccion(seccion.icono, seccion.etiqueta, activo = comunidad.seccion == seccion, disponible = disponible, ancha = ancha) {
-            if (seccion == SeccionDeComunidad.MENSAJES) acciones.abrirMensajes() else comunidad.abrir(seccion)
+        val insignia = if (seccion == SeccionDeComunidad.MENSAJES) sinLeer else 0
+        ElementoDeSeccion(seccion.icono, seccion.etiqueta, activo = comunidad.seccion == seccion, disponible = disponible, ancha = ancha, insignia = insignia) {
+            if (seccion == SeccionDeComunidad.MENSAJES) acciones.alElegirMensajes()
+            comunidad.abrir(seccion)
         }
     }
     EnlaceSocial.entries.forEach { enlace ->
@@ -128,7 +143,16 @@ private fun Secciones(comunidad: ComunidadViewModel, acciones: AccionesDeComunid
 }
 
 @Composable
-private fun ElementoDeSeccion(@DrawableRes icono: Int, etiqueta: String, activo: Boolean, disponible: Boolean, ancha: Boolean, simbolo: Boolean = false, alPulsar: () -> Unit) {
+private fun ElementoDeSeccion(
+    @DrawableRes icono: Int,
+    etiqueta: String,
+    activo: Boolean,
+    disponible: Boolean,
+    ancha: Boolean,
+    simbolo: Boolean = false,
+    insignia: Int = 0,
+    alPulsar: () -> Unit,
+) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.sm)
     Column(
@@ -150,6 +174,18 @@ private fun ElementoDeSeccion(@DrawableRes icono: Int, etiqueta: String, activo:
             ) {
                 Icon(painterResource(icono), contentDescription = null, tint = colores.primario.copy(alpha = alfa))
             }
+            // `em`: la insignia de los no leídos, sobre la esquina del icono (en el Sass, `margin: -34px 0 0 34px`, o 30 en
+            // compacto, desde el centro de la entrada).
+            if (insignia > 0) {
+                Text(
+                    if (insignia > 99) "99+" else "$insignia",
+                    Modifier.align(Alignment.TopEnd).offset(x = if (ancha) 14.dp else 12.dp, y = (-6).dp)
+                        .widthIn(min = 20.dp).clip(RoundedCornerShape(50)).background(colores.primario).padding(horizontal = 6.dp, vertical = 4.dp),
+                    color = colores.sobrePrimario,
+                    style = Textos.cuerpo.copy(fontSize = rem(0.65), fontWeight = FontWeight.ExtraBold, lineHeight = rem(0.65)),
+                    textAlign = TextAlign.Center,
+                )
+            }
             // En el rail de 88 dp, el símbolo delante de la etiqueta la cortaba («Perso…»): va sobre el icono.
             if (simbolo && ancha) {
                 Box(Modifier.align(Alignment.BottomEnd).size(16.dp).clip(CircleShape).background(colores.lienzo), contentAlignment = Alignment.Center) {
@@ -167,7 +203,7 @@ private fun ElementoDeSeccion(@DrawableRes icono: Int, etiqueta: String, activo:
 // --- Resumen. ---
 
 @Composable
-private fun PantallaResumen(comunidad: ComunidadViewModel, clubes: ClubesViewModel, acceso: CentroDeAccesoViewModel, acciones: AccionesDeComunidad) {
+private fun PantallaResumen(comunidad: ComunidadViewModel, clubes: ClubesViewModel, acceso: CentroDeAccesoViewModel, acciones: AccionesDeComunidad, sinLeer: Int) {
     val ancha = LocalVentana.current.anchoDp >= 600
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(if (ancha) Espacios.e4 else Espacios.e3),
@@ -183,7 +219,7 @@ private fun PantallaResumen(comunidad: ComunidadViewModel, clubes: ClubesViewMod
                 Iconos.cloudOff, comunidad.errorDelResumen, titulo = "No pudimos cargar el resumen", error = true, alturaMinima = 240,
                 boton = "Reintentar" to comunidad::cargarResumen,
             )
-            else -> Rejilla(comunidad.tarjetas, columnas = if (ancha) 2 else 1) { tarjeta ->
+            else -> Rejilla(ResumenSocialDeComunidad.conMensajes(comunidad.tarjetas, sinLeer), columnas = if (ancha) 2 else 1) { tarjeta ->
                 ElementoDeLista(
                     tarjeta.icono, "${tarjeta.valor}", tarjeta.etiqueta,
                     alPulsar = {
@@ -193,6 +229,10 @@ private fun PantallaResumen(comunidad: ComunidadViewModel, clubes: ClubesViewMod
                                 comunidad.abrir(SeccionDeComunidad.CLUBES)
                                 clubes.elegir(destino.pestana)
                                 if (destino.pestana == PestanaDeClubes.ACCESO) acceso.ir(TipoDeAcceso.INVITACIONES, DireccionDeAcceso.RECIBIDAS)
+                            }
+                            DestinoDeTarjeta.Mensajes -> {
+                                acciones.alElegirMensajes()
+                                comunidad.abrir(SeccionDeComunidad.MENSAJES)
                             }
                         }
                     },

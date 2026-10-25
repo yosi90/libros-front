@@ -48,6 +48,12 @@ import es.yosiftware.libros.ui.comunidad.AccionesDelClub
 import es.yosiftware.libros.ui.comunidad.ClubViewModel
 import es.yosiftware.libros.ui.comunidad.PantallaClub
 import es.yosiftware.libros.ui.comunidad.PantallaComunidad
+import es.yosiftware.libros.ui.comunidad.SeccionDeComunidad
+import es.yosiftware.libros.ui.mensajes.MensajesViewModel
+import es.yosiftware.libros.ui.mensajes.PantallaMensajes
+import es.yosiftware.libros.ui.mensajes.ConversacionViewModel
+import es.yosiftware.libros.ui.mensajes.PantallaConversacion
+import kotlinx.coroutines.flow.emptyFlow
 import es.yosiftware.libros.ui.perfil.FuenteDelPerfil
 import es.yosiftware.libros.ui.perfil.IdentidadDelPerfil
 import es.yosiftware.libros.ui.perfil.PantallaPerfil
@@ -132,6 +138,14 @@ fun AppLibros(app: LibrosApp) {
     val clubes: ClubesViewModel = viewModel { ClubesViewModel(app.datos.ambito, app.datos.clubes) }
     val centroDeAcceso: CentroDeAccesoViewModel = viewModel { CentroDeAccesoViewModel(app.datos.ambito, app.datos.espacios) }
     val actividad: ActividadViewModel = viewModel { ActividadViewModel(app.datos.ambito, app.datos.novedades) }
+    val mensajes: MensajesViewModel = viewModel { MensajesViewModel(app.datos.ambito, app.datos.bandeja, app.datos.chat) }
+    val sinLeer by app.datos.bandeja.sinLeer.collectAsStateWithLifecycle()
+    // Abre Comunidad › Mensajes y, con [id], esa conversación (el chat de un club, un aviso).
+    val abrirMensajes: (Long?) -> Unit = { id ->
+        comunidad.abrir(SeccionDeComunidad.MENSAJES)
+        if (id != null) mensajes.abrir(id) else mensajes.cerrar()
+        nav.irA(Destino.Comunidad)
+    }
     clubes.alCrear = comunidad::abrirClub
     centroDeAcceso.alCambiarElAcceso = clubes::refrescar
     catalogo.alVerEnBiblioteca = { obra ->
@@ -194,6 +208,7 @@ fun AppLibros(app: LibrosApp) {
                             avatar = perfiles.avatar(activaId),
                             alAbrirCuentas = { panelAbierto = true },
                             nav = nav,
+                            mensajesSinLeer = sinLeer,
                             contenido = { destino ->
                                 when (destino) {
                                     Destino.Biblioteca -> PantallaBiblioteca(
@@ -215,7 +230,23 @@ fun AppLibros(app: LibrosApp) {
                                             comunidad, clubes, centroDeAcceso, actividad,
                                             AccionesDeComunidad(
                                                 abrirWebSocial = { vista -> acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial(vista)) } },
-                                                abrirMensajes = { nav.irA(Destino.Mensajes) },
+                                                mensajes = {
+                                                    PantallaMensajes(mensajes, app.datos.bandeja) { id ->
+                                                        // Una por cuenta y conversación: el borrador y la posición se quedan al ir y volver.
+                                                        val clave = app.datos.ambito.clave("chat") ?: "sin-cuenta"
+                                                        val conversacion: ConversacionViewModel = viewModel(key = "$clave-chat-$id") {
+                                                            ConversacionViewModel(
+                                                                app.datos.ambito, id, app.datos.chat, app.datos.bandeja,
+                                                                eventos = app.datos.tiempoReal?.eventos ?: emptyFlow(),
+                                                                avisarEscribiendo = { app.datos.tiempoReal?.escribiendo(it) },
+                                                                borradores = File(app.filesDir, "borradores"),
+                                                            )
+                                                        }
+                                                        conversacion.alPerderAcceso = mensajes::cerrar
+                                                        PantallaConversacion(conversacion, volver = { mensajes.cerrar() }, resaltado = mensajes.resaltado)
+                                                    }
+                                                },
+                                                alElegirMensajes = mensajes::cerrar,
                                                 cambiarDeCuenta = { panelAbierto = true },
                                                 tieneObras = { CreacionDeClub.tieneObras(biblioteca.universos) },
                                                 abrirEnlace = { direccion -> Enlaces.abrir(contexto, direccion) },
@@ -239,12 +270,13 @@ fun AppLibros(app: LibrosApp) {
                                                         AccionesDelClub(
                                                             volver = comunidad::cerrarClub,
                                                             abrirWebSocial = { vista -> acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial(vista)) } },
-                                                            abrirChat = { nav.irA(Destino.Mensajes) },
+                                                            abrirChat = { id -> abrirMensajes(id) },
                                                             avatar = { ruta -> ruta?.let { r -> app.datos.apiPlataforma?.let { it.trimEnd('/') + "/" + r.trimStart('/') } } },
                                                         ),
                                                     )
                                                 },
                                             ),
+                                            sinLeer = sinLeer,
                                         )
                                     }
                                     Destino.Preferencias -> {
@@ -276,6 +308,12 @@ fun AppLibros(app: LibrosApp) {
                                             },
                                             alVolverDeEditar = { perfiles.releer(activaId) },
                                         )
+                                    }
+                                    // «Más › Mensajes» es Comunidad con Mensajes abierta.
+                                    Destino.Mensajes -> LaunchedEffect(Unit) {
+                                        comunidad.abrir(SeccionDeComunidad.MENSAJES)
+                                        mensajes.cerrar()
+                                        nav.reemplazar(Destino.Comunidad)
                                     }
                                     else -> PantallaVacia(destino)
                                 }

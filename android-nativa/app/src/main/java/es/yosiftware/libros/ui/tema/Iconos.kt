@@ -39,6 +39,13 @@ object Iconos {
     @DrawableRes val password = R.drawable.mi_password
     @DrawableRes val bugReport = R.drawable.mi_bug_report
     @DrawableRes val chevronRight = R.drawable.mi_chevron_right
+    @DrawableRes val addComment = R.drawable.mi_add_comment
+    @DrawableRes val reply = R.drawable.mi_reply
+    @DrawableRes val sentimentVerySatisfied = R.drawable.mi_sentiment_very_satisfied
+    @DrawableRes val sentimentVeryDissatisfied = R.drawable.mi_sentiment_very_dissatisfied
+    @DrawableRes val sentimentDissatisfied = R.drawable.mi_sentiment_dissatisfied
+    @DrawableRes val volunteerActivism = R.drawable.mi_volunteer_activism
+    @DrawableRes val send = R.drawable.mi_send
     @DrawableRes val article = R.drawable.mi_article
     @DrawableRes val eventBusy = R.drawable.mi_event_busy
 

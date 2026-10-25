@@ -8,6 +8,7 @@ import es.yosiftware.libros.datos.cuenta.PerfilesDeLaPlataforma
 import es.yosiftware.libros.datos.red.ClienteLibros
 import es.yosiftware.libros.datos.red.ClientePlataforma
 import es.yosiftware.libros.datos.red.EstadoDeRed
+import es.yosiftware.libros.datos.red.TiempoReal
 import es.yosiftware.libros.datos.red.TokensDeLaSesion
 import es.yosiftware.libros.datos.repositorios.RepositorioCatalogo
 import es.yosiftware.libros.datos.repositorios.RepositorioClubes
@@ -22,6 +23,7 @@ import es.yosiftware.libros.datos.repositorios.RepositorioNovedades
 import es.yosiftware.libros.datos.repositorios.RepositorioPeticiones
 import es.yosiftware.libros.datos.repositorios.RepositorioReportes
 import es.yosiftware.libros.datos.repositorios.RepositorioUsuario
+import es.yosiftware.libros.ui.mensajes.BandejaDeChat
 import es.yosiftware.sesion.SesionYosiftware
 import kotlinx.coroutines.CoroutineScope
 
@@ -70,4 +72,10 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
 
     /** El chat de la plataforma: la bandeja, las conversaciones y el ticket del tiempo real. */
     val chat = RepositorioChat(llamadaDePlataforma)
+
+    /** El socket del tiempo real de la plataforma (chat y canales de los clubes); sin sesión, no hay. */
+    val tiempoReal: TiempoReal? = plataforma?.let { TiempoReal({ chat.ticket() }, alcance) }
+
+    /** La bandeja del chat de la cuenta, de la que salen los contadores de mensajes sin leer. */
+    val bandeja = BandejaDeChat(chat.takeIf { plataforma != null }, tiempoReal, ambito, alcance)
 }

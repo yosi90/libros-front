@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.ui.tema.Alturas
@@ -53,6 +54,8 @@ fun Boton(
     variante: VarianteDeBoton = VarianteDeBoton.Primario,
     @DrawableRes icono: Int? = null,
     habilitado: Boolean = true,
+    /** El `padding-inline` del Sass: 20 dp, o lo que lo cambie la vista (8 en las acciones de Mensajes). */
+    rellenoHorizontal: Dp = 20.dp,
 ) {
     val colores = LocalColores.current
     val (fondo, tinta, borde) = when (variante) {
@@ -71,7 +74,7 @@ fun Boton(
             .border(1.dp, borde, Radios.pildora)
             .clickable(interaccion, ripple(color = tinta), enabled = habilitado, role = Role.Button, onClick = alPulsar)
             // El borde de 1 dp va dentro de la caja, como el `border-box` del Sass: 1 + 10 y 1 + 20.
-            .padding(horizontal = 21.dp, vertical = 11.dp),
+            .padding(horizontal = rellenoHorizontal + 1.dp, vertical = 11.dp),
         horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {

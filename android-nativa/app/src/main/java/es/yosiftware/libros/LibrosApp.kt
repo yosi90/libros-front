@@ -1,6 +1,8 @@
 package es.yosiftware.libros
 
+import android.app.Activity
 import android.app.Application
+import android.os.Bundle
 import android.content.Context
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -9,7 +11,10 @@ import es.yosiftware.libros.datos.Datos
 import es.yosiftware.libros.datos.portadas.Portadas
 import es.yosiftware.sesion.ConfiguracionSesion
 import es.yosiftware.sesion.SesionYosiftware
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -33,6 +38,7 @@ class LibrosApp : Application(), SingletonImageLoader.Factory {
         // El ámbito de la cuenta escucha la sesión antes de iniciarla, para no perderse el primer estado.
         datos = Datos(this, sesion, alcance)
         sesion?.let { alcance.launch { it.iniciar() } }
+        registerActivityLifecycleCallbacks(PrimerPlano(alcance) { datos.bandeja.alVerse(it) })
     }
 
     /** Las portadas (`AsyncImage`) se cargan con el cliente de la app y su caché en disco (datos/portadas/). */
@@ -56,4 +62,45 @@ class LibrosApp : Application(), SingletonImageLoader.Factory {
 
         fun datos(contexto: Context): Datos = (contexto.applicationContext as LibrosApp).datos
     }
+}
+
+/**
+ * Si la app está a la vista: alguna actividad iniciada. Al salir espera [margen] milisegundos, como
+ * `ProcessLifecycleOwner`, para que girar o plegar el móvil (que recrea la actividad) no cierre y abra el socket.
+ */
+private class PrimerPlano(
+    private val alcance: CoroutineScope,
+    private val margen: Long = 700,
+    private val alCambiar: (Boolean) -> Unit,
+) : Application.ActivityLifecycleCallbacks {
+    private var iniciadas = 0
+    private var salida: Job? = null
+    private var visible = false
+
+    override fun onActivityStarted(activity: Activity) {
+        iniciadas++
+        salida?.cancel()
+        if (!visible) {
+            visible = true
+            alCambiar(true)
+        }
+    }
+
+    override fun onActivityStopped(activity: Activity) {
+        iniciadas = (iniciadas - 1).coerceAtLeast(0)
+        if (iniciadas > 0) return
+        salida = alcance.launch {
+            delay(margen)
+            if (iniciadas == 0 && visible) {
+                visible = false
+                alCambiar(false)
+            }
+        }
+    }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+    override fun onActivityResumed(activity: Activity) = Unit
+    override fun onActivityPaused(activity: Activity) = Unit
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+    override fun onActivityDestroyed(activity: Activity) = Unit
 }

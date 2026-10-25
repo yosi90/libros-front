@@ -26,6 +26,17 @@ class NavegacionViewModel(private val guardado: SavedStateHandle) : ViewModel() 
         guardar()
     }
 
+    /**
+     * Cambia el destino de ahora por [destino] sin apilarlo (Mensajes de la hoja «Más» es Comunidad con su sección
+     * abierta); si el anterior ya era [destino], vuelve a él.
+     */
+    fun reemplazar(destino: Destino) {
+        if (destino == actual) return
+        if (historial.size > 1 && historial[historial.lastIndex - 1] == destino) historial.removeAt(historial.lastIndex)
+        else historial[historial.lastIndex] = destino
+        guardar()
+    }
+
     /** `true` si ha vuelto; `false` si no había adónde, y entonces Atrás es del sistema. */
     fun volver(): Boolean {
         if (!puedeVolver) return false

@@ -1,11 +1,15 @@
 package es.yosiftware.libros.ui.mensajes
 
 import es.yosiftware.libros.datos.modelos.ConversacionDePlataforma
+import es.yosiftware.libros.datos.modelos.DetalleDeConversacion
 import es.yosiftware.libros.datos.modelos.MensajeDePlataforma
 import es.yosiftware.libros.datos.modelos.PersonaDeYosiftware
+import androidx.annotation.DrawableRes
 import es.yosiftware.libros.ui.comunidad.FechasDeClubes
+import es.yosiftware.libros.ui.tema.Iconos
 import java.time.Instant
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 // Traduce el contrato del chat de la plataforma a lo que pinta Libros (`shared/platform-chat.ts` y
 // `shared/chat-display.ts` de la web). Los textos de los avisos y de la vista previa siguen a los del SDK, para que la
@@ -85,6 +89,24 @@ data class MensajeDelChat(
     val envio: EstadoDeEnvio? = null,
 )
 
+/** Un participante del detalle: la persona y si administra. */
+data class ParticipanteDelChat(val persona: PersonaDelChat, val admin: Boolean)
+
+/** El detalle de una conversación ya traducido (`ChatConversationDetail`): siempre trae título. */
+data class DetalleDelChat(
+    val id: Long,
+    val tipo: String,
+    val titulo: String,
+    /** El título que puso el grupo (para renombrarlo); `null` si no tiene. */
+    val tituloPropio: String?,
+    val contraparte: PersonaDelChat?,
+    val puedeEnviar: Boolean,
+    /** Solo en grupos y si se administra (`PuedeGestionarParticipantes`). */
+    val puedeGestionar: Boolean,
+    val cerrada: Boolean,
+    val participantes: List<ParticipanteDelChat>,
+)
+
 /** El filtro de la bandeja: `club` son las conversaciones de los clubes (tipo `web` en la plataforma). */
 enum class FiltroDeChat(val etiqueta: String) { TODAS("Todas"), DIRECTA("Directos"), CLUB("Clubes"), GRUPO("Grupos") }
 
@@ -93,6 +115,7 @@ object TextosDelChat {
     const val VENTANA_DE_EDICION_MS = 15 * 60_000L
     private const val BORRADA = "Cuenta borrada"
     private const val NO_DISPONIBLE = "Mensaje no disponible"
+    private val FORMATO_DE_LISTA = DateTimeFormatter.ofPattern("dd/MM · HH:mm")
 
     fun persona(persona: PersonaDeYosiftware?): PersonaDelChat? {
         if (persona == null || persona.id.isEmpty()) return null
@@ -187,12 +210,38 @@ object TextosDelChat {
         else -> "Conversación directa"
     }
 
+    fun detalle(detalle: DetalleDeConversacion, yo: String?): DetalleDelChat {
+        val conversacion = conversacion(detalle.conversacion, yo)
+        return DetalleDelChat(
+            id = conversacion.id,
+            tipo = conversacion.tipo,
+            titulo = tituloDelDetalle(conversacion),
+            tituloPropio = detalle.conversacion.titulo?.trim()?.takeIf { it.isNotEmpty() },
+            contraparte = conversacion.contraparte,
+            puedeEnviar = conversacion.puedeEnviar,
+            puedeGestionar = detalle.conversacion.tipo == "grupo" && detalle.conversacion.permisos.administrar,
+            cerrada = conversacion.cerrada,
+            participantes = detalle.participantes.mapNotNull { p -> persona(p.persona)?.let { ParticipanteDelChat(it, p.rol == "admin") } },
+        )
+    }
+
     /** El título del detalle: siempre lo hay (`toChatConversationDetail`). */
     fun tituloDelDetalle(conversacion: ConversacionDelChat): String = conversacion.titulo ?: when (conversacion.tipo) {
         "web" -> "Chat de club"
         "grupo" -> "Grupo"
         else -> "Conversación directa"
     }
+
+    /** El icono de la fila (`chatConversationIcon`): `groups` el club, `group` el grupo y `person` la directa. */
+    @DrawableRes
+    fun icono(conversacion: ConversacionDelChat): Int = when (conversacion.tipo) {
+        "web" -> Iconos.groups
+        "grupo" -> Iconos.group
+        else -> Iconos.person
+    }
+
+    /** La fecha de la fila: `dd/MM · HH:mm`, en la hora local. */
+    fun fechaDeLista(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = FechasDeClubes.leer(iso, zona)?.format(FORMATO_DE_LISTA).orEmpty()
 
     fun cumple(conversacion: ConversacionDelChat, filtro: FiltroDeChat): Boolean = when (filtro) {
         FiltroDeChat.TODAS -> true
