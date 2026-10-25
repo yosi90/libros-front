@@ -11,11 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.modelos.Libro
+import es.yosiftware.libros.datos.modelos.Nota
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.rememberVentana
 import es.yosiftware.libros.ui.componentes.Avisador
 import es.yosiftware.libros.ui.libro.ContenidoDelLibro
 import es.yosiftware.libros.ui.libro.LibroViewModel
+import es.yosiftware.libros.ui.libro.NotasViewModel
+import es.yosiftware.libros.ui.libro.VistaDelLibro
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.libro.TipoDeGrupo
 import es.yosiftware.libros.ui.tema.TemaLibros
@@ -32,8 +35,9 @@ import org.json.JSONObject
  *
  * Vistas: `indice-cerrado` y `indice-abierto` («El imperio final», sin capítulos ni en marcha), `hoja-elementos`,
  * `indice-partes-interludios` («El camino de los reyes», en marcha, con partes e interludios), `estructura` (el
- * editor de una parte) y `resumen-con-datos` (un libro como «Siega» de la captura, con capítulos, escenas y personajes;
- * las cifras se parecen, no son las mismas).
+ * editor de una parte), `resumen-con-datos` (un libro como «Siega» de la captura, con capítulos, escenas y personajes;
+ * las cifras se parecen, no son las mismas), `notas-vacias`, `notas-con-notas` (las dos de «El ritmo de la guerra» de
+ * la captura y dos más, con el buscador), `nota-nueva` (el formulario con los avisos) y `nota-borrar` (la confirmación).
  */
 class MuestrasDeLibro : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +47,7 @@ class MuestrasDeLibro : ComponentActivity() {
         val tema = if (intent.getStringExtra("tema") == "oscuro") TemaMobile.Oscuro else TemaMobile.Claro
         val app = application as LibrosApp
         val vm = LibroViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, app.datos.coleccion, Avisador.Mudo)
+        val notas = NotasViewModel(AmbitoDeCuenta("muestra", lifecycleScope), app.datos.libro, Avisador.Mudo)
         val conPartes = vista == "indice-partes-interludios" || vista == "estructura"
         vm.mostrarMuestra(if (vista == "resumen-con-datos") siega() else if (conPartes) camino else imperio)
         when (vista) {
@@ -50,10 +55,18 @@ class MuestrasDeLibro : ComponentActivity() {
             "hoja-elementos" -> vm.alternarElementos()
             "estructura" -> vm.abrirEstructura(TipoDeGrupo.PARTE, 1)
         }
+        if (vista.startsWith("nota")) {
+            vm.ir(VistaDelLibro.Notas)
+            notas.mostrarMuestra(imperio.id, if (vista == "notas-vacias") emptyList() else ritmo)
+            when (vista) {
+                "nota-nueva" -> { notas.crear(); notas.guardar() }
+                "nota-borrar" -> notas.pedirBorrar(ritmo[1])
+            }
+        }
         setContent {
             TemaLibros(tema) {
                 CompositionLocalProvider(LocalVentana provides rememberVentana()) {
-                    Box(Modifier.fillMaxSize()) { PantallaLibro(vm) { ContenidoDelLibro(vm, it) } }
+                    Box(Modifier.fillMaxSize()) { PantallaLibro(vm) { ContenidoDelLibro(vm, notas, it) } }
                 }
             }
         }
@@ -88,6 +101,13 @@ class MuestrasDeLibro : ComponentActivity() {
                 .put("Capitulos", capitulos).put("Partes", org.json.JSONArray()).put("Interludios", org.json.JSONArray())
                 .put("Personajes", personajes))
         }
+
+        val ritmo = listOf(
+            Nota(1, "Nota 1", "Ojalá Dabbid se convierta en el forjador de vínculos de el hermano.", "2026-07-06T10:00:00", 1),
+            Nota(2, "Nota 2", "Lift dijo que curar a Kaladin le costó más que curar en su día a Gawx. El problema de esa afirmación es que a Gawx prácticamente lo resucitó, así que hasta cierto punto puede que haya convertido a Kaladin en una sombra cognitiva.", "2026-07-06T11:00:00", 1),
+            Nota(3, "Teoría vieja", "{\\rtf1\\ansi{\\fonttbl{\\f0 Microsoft Sans Serif;}}\\f0\\fs24 Una nota antigua en RTF con tilde: canci\\'f3n.\\par Y otra l\\'ednea.}", "2025-03-02T09:00:00", 1),
+            Nota(4, "Dudas", "¿Quién es realmente el Lanzador de Hierro en este libro?", "2025-01-15T09:00:00", 1),
+        )
 
         fun capitulo(id: Int, orden: Int, nombre: String) = """{"Id": $id, "Nombre": "$nombre", "Orden": $orden, "Pagina": 1}"""
 

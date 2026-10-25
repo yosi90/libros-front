@@ -28,6 +28,7 @@ import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.ui.estadisticas.EstadisticasViewModel
 import es.yosiftware.libros.ui.libro.ContenidoDelLibro
 import es.yosiftware.libros.ui.libro.LibroViewModel
+import es.yosiftware.libros.ui.libro.NotasViewModel
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
 import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
@@ -102,6 +103,7 @@ fun AppLibros(app: LibrosApp) {
     val libro: LibroViewModel = viewModel {
         LibroViewModel(app.datos.ambito, app.datos.libro, app.datos.coleccion, avisos)
     }
+    val notas: NotasViewModel = viewModel { NotasViewModel(app.datos.ambito, app.datos.libro, avisos) }
     val abrirLibro: (Obra) -> Unit = libro::abrir
     TemaLibros(temaViewModel.tema) {
         CompositionLocalProvider(LocalVentana provides rememberVentana(), LocalCuenta provides cuenta, LocalAvisos provides avisos) {
@@ -197,7 +199,7 @@ fun AppLibros(app: LibrosApp) {
                         },
                     )
                     CapasDeCatalogo(catalogo, alAbrirLectura = abrirLibro)
-                    PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, vista) }
+                    PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, notas, vista) }
                 }
                 AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
 

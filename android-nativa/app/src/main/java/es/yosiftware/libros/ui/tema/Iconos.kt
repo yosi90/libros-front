@@ -118,6 +118,7 @@ object Iconos {
     @DrawableRes val insights = R.drawable.mi_insights
     @DrawableRes val calendarToday = R.drawable.mi_calendar_today
     @DrawableRes val analytics = R.drawable.mi_analytics
+    @DrawableRes val delete = R.drawable.mi_delete
 
     /** El símbolo del ecosistema (ecosistema-kit/marca/simbolo-trazo.svg), en todo enlace a la web social (MARCA.md). */
     @DrawableRes val simboloYosiftware = R.drawable.simbolo_yosiftware

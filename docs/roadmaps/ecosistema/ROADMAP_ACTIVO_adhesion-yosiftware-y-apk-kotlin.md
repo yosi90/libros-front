@@ -293,7 +293,10 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - [x] Estadísticas del libro (2026-10-25): «Tu lectura» (medidor o página, fechas y «Establecer fecha» de compra), las cifras, los destacados y los cuatro gráficos en Compose (ritmo, mapa de presencia, reparto y grupos), en dos columnas desde 900 dp.
     - Lógica en `ui/libro/ResumenDelLibro.kt` con sus pruebas, y gráficos en `GraficosDelLibro.kt`. Muestra `resumen-con-datos`; comparada con las capturas en el Honor desplegado.
     - Sin pulir de más a propósito: el propietario quiere rediseñarla tras el clon (hito 15).
-  - [ ] Notas.
+  - [x] Notas (2026-10-25): la lista (las más recientes primero), el formulario de crear y editar con sus avisos y los del servidor, el buscador desde cuatro notas y el borrado confirmado en la tarjeta. Las notas antiguas en RTF se enseñan como texto (`datos/Rtf.kt`, un conversor solo de texto; el completo es del editor, hito 10).
+    - Lógica en `ui/libro/NotasDelLibro.kt` con sus pruebas. Muestras `notas-vacias`, `notas-con-notas`, `nota-nueva` y `nota-borrar`; comparada con la captura real en el Honor desplegado.
+    - **Corregido a propósito:** en la APK actual, el botón de la vista activa de la barra no llevaba el `is-active` del Sass (salía el gris del `:hover` que se queda pegado). Aquí lleva el del Sass.
+    - **Pendiente, en todas las pantallas:** el texto del cuerpo sale entre un 4 y un 7 % más ancho que en la WebView del Honor (escala de letra 1,0). La web pide Inter, que no viene en el paquete, y cae en `system-ui`; Compose usa la letra del sistema. Hay que ver qué letra pinta la WebView y usar esa.
   - [ ] Búsqueda avanzada.
 - [ ] Capítulos y escenas, con autoguardado y cambios pendientes.
 - [ ] Lector persistente.

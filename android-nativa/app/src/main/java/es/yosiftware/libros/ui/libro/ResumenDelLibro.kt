@@ -94,7 +94,8 @@ object ResumenDelLibro {
             .firstOrNull()?.value
     }
 
-    private fun instante(iso: String?): Instant? {
+    /** El instante de una fecha de la API, con zona, sin ella o solo el día (como la parsea el `Date` de la web). */
+    internal fun instante(iso: String?): Instant? {
         val texto = iso?.takeIf { it.isNotBlank() } ?: return null
         return runCatching { Instant.parse(texto) }.getOrNull()
             ?: runCatching { OffsetDateTime.parse(texto).toInstant() }.getOrNull()
