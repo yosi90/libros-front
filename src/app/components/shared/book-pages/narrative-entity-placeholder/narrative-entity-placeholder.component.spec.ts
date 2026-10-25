@@ -65,6 +65,9 @@ describe('NarrativeEntityPlaceholderComponent', () => {
                         get: of({ Id: 12, Nombre: 'Kaladin' } as any),
                         createAlias: of({ Id: 1 } as any),
                         createRelation: of({ Id: 1 } as any),
+                        updateRelation: of({ Id: 1 } as any),
+                        deleteRelation: of({} as any),
+                        deleteAlias: of({} as any),
                         updateBookState: of({ Id: 1 } as any),
                         createState: of({ Id: 1 } as any),
                         updateRoot: of({ Id: 12 } as any),
@@ -134,6 +137,34 @@ describe('NarrativeEntityPlaceholderComponent', () => {
 
         expect(characterService.changeNarrativeAlias).toHaveBeenCalledWith(12, 1, { Apodo: 'Bendito por la tormenta' });
         expect(characterService.correctAlias).not.toHaveBeenCalled();
+    });
+
+    it('guarda y borra las relaciones por su RelacionId y no borra el apodo que es el nombre actual', () => {
+        component.book = createBook();
+        component.routePath = 'characters';
+        component.formMode = 'update';
+        // La API: `Id` es el personaje relacionado; `RelacionId`, la fila de la relación. Y el nombre va entre los apodos.
+        const item = {
+            Id: 12, Nombre: 'Kaladin',
+            Relaciones: [
+                { Id: 5, RelacionId: 77, PersonajeRelacionadoId: 5, Nombre: 'Tien', Parentesco: 'Hermano', Origen: 1, Orden: null, Reflejada: false },
+                { Id: 6, RelacionId: 78, PersonajeRelacionadoId: 6, Nombre: 'Lirin', Parentesco: 'Padre', Origen: 1, Orden: null, Reflejada: false }
+            ],
+            Apodos: [
+                { Id: 1, ApodoId: 40, Apodo: 'Kaladin', Origen: 1, Orden: null, Borrado: false },
+                { Id: 2, ApodoId: 41, Apodo: 'Kal', Origen: 1, Orden: null, Borrado: false }
+            ]
+        } as any;
+        component.selectedItem = item;
+        (component as any).populateCharacterDrafts(item);
+        component.createCharacterRelations = component.createCharacterRelations.filter(relation => relation.id !== 6);
+        component.characterAliases = [];
+
+        (component as any).syncCharacterRelationsFromForm(12).subscribe();
+
+        expect(characterService.updateRelation).toHaveBeenCalledWith(12, 77, jasmine.objectContaining({ PersonajeRelacionadoId: 5, Parentesco: 'Hermano' }));
+        expect(characterService.deleteRelation).toHaveBeenCalledOnceWith(12, 78);
+        expect(characterService.deleteAlias).toHaveBeenCalledOnceWith(12, 41);
     });
 
     it('autosaves the entity and its entries before leaving the route', done => {

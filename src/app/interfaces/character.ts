@@ -48,7 +48,10 @@ export interface CharacterStatus {
     Orden: number | null;
 }
 export interface CharacterRelation {
+    /** En la API es el id del personaje relacionado (como `PersonajeRelacionadoId`), no el de la relación. */
     Id: number;
+    /** El id de la fila de relación: el que piden `PUT` y `DELETE personajes/{id}/relaciones/{idRelacion}`. */
+    RelacionId?: number;
     Relativo?: CharacterSimple;
     PersonajeRelacionadoId?: number;
     /** Nombre del personaje relacionado resuelto por la API en el libro consultado. */

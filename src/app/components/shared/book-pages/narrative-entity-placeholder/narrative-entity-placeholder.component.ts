@@ -88,6 +88,15 @@ interface EntityDraft {
     organizationRelations: Array<{ kind: 'character' | 'location'; id: number; value: string }>;
 }
 
+/**
+ * El id de la fila de una relación de personaje. La API manda en `Id` el del personaje relacionado y en `RelacionId` el
+ * de la relación, que es el que piden `PUT` y `DELETE`; con `Id`, el guardado de una ficha con relaciones fallaba.
+ */
+function relationRowId(relation: CharacterRelation): number | null {
+    const id = Number(relation.RelacionId ?? relation.Id);
+    return Number.isFinite(id) && id > 0 ? id : null;
+}
+
 @Component({
     standalone: true,
     selector: 'app-narrative-entity-placeholder',
@@ -2033,7 +2042,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             .map(relation => {
                 const characterId = relation.Relativo?.Id ?? relation.PersonajeRelacionadoId ?? 0;
                 return {
-                    relationId: relation.Id,
+                    relationId: relationRowId(relation) ?? undefined,
                     id: characterId,
                     name: relation.Relativo?.Nombre ?? this.getCharacterName(characterId, relation.Nombre),
                     relation: new FormControl(relation.Parentesco ?? '', [Validators.required, Validators.minLength(2), Validators.maxLength(100)])
@@ -2167,8 +2176,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             .filter((id): id is number => !!id);
         const normalizedAliases = this.characterAliases.map(alias => foldText(alias).trim());
         const relationDeleteRequests = originalRelations
-            .filter(relation => relation.Id && !currentRelationIds.includes(relation.Id))
-            .map(relation => this.characterSrv.deleteRelation(entityId, relation.Id));
+            .map(relation => relationRowId(relation))
+            .filter((id): id is number => !!id && !currentRelationIds.includes(id))
+            .map(id => this.characterSrv.deleteRelation(entityId, id));
         const relationUpsertRequests = this.createCharacterRelations.map(relation => {
             const payload = {
                 LibroId: this.book.Id,
@@ -2180,8 +2190,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 ? this.characterSrv.updateRelation(entityId, relation.relationId, payload)
                 : this.characterSrv.createRelation(entityId, payload);
         });
+        // El apodo que es el nombre actual no se borra: la API lo rechaza (409 `nickname_used_as_contextual_name`) y
+        // con él fallaba todo el guardado. El nombre se cambia con su campo.
+        const currentName = foldText(this.selectedItem?.Nombre ?? '').trim();
         const aliasDeleteRequests = originalAliases
-            .filter(alias => alias.ApodoId && !normalizedAliases.includes(foldText(alias.Apodo).trim()))
+            .filter(alias => alias.ApodoId && !normalizedAliases.includes(foldText(alias.Apodo).trim()) && foldText(alias.Apodo).trim() !== currentName)
             .map(alias => this.characterSrv.deleteAlias(entityId, alias.ApodoId));
         const aliasCreateRequests = this.characterAliases
             .filter(alias => !originalAliases.some(original => foldText(original.Apodo).trim() === foldText(alias).trim()))
