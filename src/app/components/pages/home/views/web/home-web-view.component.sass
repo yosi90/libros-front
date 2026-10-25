@@ -46,13 +46,23 @@
     border-radius: var(--web-radius-md)
 
 // Dónde dice Libros que usa la cuenta de Yosiftware: con el símbolo del ecosistema (MARCA.md).
-.home__account
+.home__account,
+.home__legal
     display: flex
     align-items: center
     gap: var(--web-space-2)
     margin: 0
     color: var(--web-color-ink-muted)
     font-size: 14px
+
+// Sin entrar, la web sigue enlazando las normas y la política de privacidad comunes (PRIVACIDAD.md).
+.home__legal
+    width: fit-content
+    text-underline-offset: 3px
+
+    &:hover,
+    &:focus-visible
+        color: var(--web-color-ink)
 
 .home__quote
     display: grid

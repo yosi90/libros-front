@@ -20,6 +20,8 @@ export class HomeWoodViewComponent {
     /** Por qué todavía no se puede entrar en la biblioteca (cargando, sin conexión, cuenta borrada…). */
     @Input() notice: string | null = null;
     @Input() canRetry = false;
+    /** Las normas comunes y la política de privacidad de Yosiftware (se ven sin entrar). */
+    @Input() normsUrl = '';
     /** Abre el acceso de Yosiftware: entrar o crear la cuenta. */
     @Output() readonly entrar = new EventEmitter<'entrar' | 'registro'>();
     @Output() readonly retry = new EventEmitter<void>();

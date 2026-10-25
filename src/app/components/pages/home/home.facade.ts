@@ -35,6 +35,8 @@ export class HomeFacade {
     private readonly route = inject(ActivatedRoute, { optional: true });
 
     readonly readingQuote = signal(getRandomReadingQuote());
+    /** Las normas comunes y la política de privacidad de Yosiftware, públicas y sin entrar (PRIVACIDAD.md). */
+    readonly normsUrl = this.session.socialUrl('normas');
     readonly access = toSignal(this.session.access$, { initialValue: this.session.access });
 
     constructor() {

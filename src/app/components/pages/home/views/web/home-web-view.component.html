@@ -21,6 +21,7 @@
         </div>
       }
       <p class="home__account"><app-yosiftware-mark></app-yosiftware-mark> Entra con tu cuenta de Yosiftware: la misma para todas sus webs.</p>
+      @if (normsUrl) { <a class="home__legal" [href]="normsUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark> Normas y privacidad de Yosiftware</a> }
     </section>
 
     <figure class="home__quote">

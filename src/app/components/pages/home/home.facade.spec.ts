@@ -11,7 +11,8 @@ describe('HomeFacade', () => {
             access$: new BehaviorSubject<LibraryAccessState>('sin_sesion'),
             userIsLogged$: new BehaviorSubject(false),
             entrar: jasmine.createSpy('entrar').and.resolveTo(true),
-            retry: jasmine.createSpy('retry')
+            retry: jasmine.createSpy('retry'),
+            socialUrl: (vista?: string) => `https://social.test/?vista=${vista}`
         };
         const router = { navigateByUrl: jasmine.createSpy('navigateByUrl').and.resolveTo(true) };
         TestBed.configureTestingModule({

@@ -185,13 +185,24 @@
         cursor: pointer
 
 // Dónde dice Libros que usa la cuenta de Yosiftware: con el símbolo del ecosistema (MARCA.md).
-.home-account
+.home-account,
+.home-legal
     display: flex
     align-items: center
     gap: 8px
     margin: 18px 0 0
     color: #d8c3a2
     font-size: .9rem
+
+// Sin entrar, la web sigue enlazando las normas y la política de privacidad comunes (PRIVACIDAD.md).
+.home-legal
+    width: fit-content
+    margin-top: 8px
+    text-underline-offset: 3px
+
+    &:hover,
+    &:focus-visible
+        color: #f2c77c
 
 .home-quote
     align-self: center

@@ -13,13 +13,13 @@ import { HomeWebViewComponent } from './views/web/home-web-view.component';
     template: `
         @if (presentation.state().activeMode === 'web') {
             <app-home-web-view [readingQuote]="facade.readingQuote()" [notice]="facade.notice()" [canRetry]="facade.canRetry()"
-                (entrar)="facade.entrar($event)" (retry)="facade.retry()"></app-home-web-view>
+                [normsUrl]="facade.normsUrl" (entrar)="facade.entrar($event)" (retry)="facade.retry()"></app-home-web-view>
         } @else if (presentation.state().isMobilePresentationActive) {
             <app-home-mobile-view [readingQuote]="facade.readingQuote()" [notice]="facade.notice()" [canRetry]="facade.canRetry()"
                 (entrar)="facade.entrar($event)" (retry)="facade.retry()"></app-home-mobile-view>
         } @else {
             <app-home-wood-view [readingQuote]="facade.readingQuote()" [notice]="facade.notice()" [canRetry]="facade.canRetry()"
-                (entrar)="facade.entrar($event)" (retry)="facade.retry()"></app-home-wood-view>
+                [normsUrl]="facade.normsUrl" (entrar)="facade.entrar($event)" (retry)="facade.retry()"></app-home-wood-view>
         }
     `,
     changeDetection: ChangeDetectionStrategy.Eager,

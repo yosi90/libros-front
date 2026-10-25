@@ -13,6 +13,10 @@ test.describe('superficies publicas @smoke', () => {
         await expect(page.getByRole('button', { name: /Crear mi biblioteca/ })).toBeVisible();
         await expect(page.getByRole('button', { name: /Ya tengo cuenta/ })).toBeVisible();
         await expect(page.getByText('Entra con tu cuenta de Yosiftware')).toBeVisible();
+        // Sin entrar, las normas comunes y la política de privacidad de Yosiftware, con el símbolo (PRIVACIDAD.md).
+        const legal = page.getByRole('link', { name: 'Normas y privacidad de Yosiftware' });
+        await expect(legal).toHaveAttribute('href', /\/\?vista=normas$/);
+        await expect(legal.locator('app-yosiftware-mark')).toHaveCount(1);
         await expect(page.locator('script[src*="/sdk/v1/yosiftware.js"]')).toHaveAttribute('data-estilos', /\/assets\/yosiftware\.css/);
         await expect(page.locator('[data-testid="admin-health"]')).toHaveCount(0);
     });
@@ -34,6 +38,7 @@ test.describe('superficies publicas @smoke', () => {
         await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible();
         await expect(page.getByRole('button', { name: /Date de alta/ })).toBeVisible();
         await expect(page.locator('yosi-acceso')).toHaveCount(1);
+        await expect(page.getByRole('link', { name: 'Normas y privacidad de Yosiftware' })).toHaveAttribute('href', /\/\?vista=normas$/);
         const brandIcon = page.locator('.home-brand mat-icon');
         await expect(brandIcon).toHaveCount(1);
         await expect(brandIcon).toHaveCSS('overflow', 'visible');
