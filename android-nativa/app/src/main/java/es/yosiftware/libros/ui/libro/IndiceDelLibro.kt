@@ -20,13 +20,24 @@ sealed interface EntradaDelIndice {
 enum class TipoDeGrupo { PARTE, INTERLUDIO }
 
 /** Una acción de la hoja de Elementos (`entityToolbarActions`). */
-enum class Elemento(val etiqueta: String, val lista: String, val crear: String) {
-    PERSONAJES("Personajes", "characters", "character"),
-    ORGANIZACIONES("Organizaciones", "organizations", "organization"),
-    EVENTOS("Eventos", "events", "event"),
-    LOCALIZACIONES("Localizaciones", "locations", "location"),
-    CONCEPTOS("Conceptos", "concepts", "concept"),
-    CITAS("Citas", "quotes", "quote"),
+/**
+ * Los seis elementos narrativos (`entityToolbarActions` y la configuración de narrative-entity-placeholder): su nombre en
+ * plural y en singular, sus rutas en la web y si el singular es femenino (para «creada» o «creado»).
+ */
+enum class Elemento(val etiqueta: String, val lista: String, val crear: String, val singular: String, val femenino: Boolean) {
+    PERSONAJES("Personajes", "characters", "character", "personaje", false),
+    ORGANIZACIONES("Organizaciones", "organizations", "organization", "organización", true),
+    EVENTOS("Eventos", "events", "event", "evento", false),
+    LOCALIZACIONES("Localizaciones", "locations", "location", "localización", true),
+    CONCEPTOS("Conceptos", "concepts", "concept", "concepto", false),
+    CITAS("Citas", "quotes", "quote", "cita", true),
+    ;
+
+    /** «Personaje», «Organización»… */
+    val singularConMayuscula: String get() = singular.replaceFirstChar { it.uppercase() }
+
+    /** «creado» o «creada», concordando con el singular (la web decía «Organización creado»). */
+    fun participio(raiz: String): String = raiz + if (femenino) "a" else "o"
 }
 
 object IndiceDelLibro {
