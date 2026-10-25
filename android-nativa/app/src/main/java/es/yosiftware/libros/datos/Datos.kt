@@ -12,7 +12,9 @@ import es.yosiftware.libros.datos.red.TokensDeLaSesion
 import es.yosiftware.libros.datos.repositorios.RepositorioCatalogo
 import es.yosiftware.libros.datos.repositorios.RepositorioClubes
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
+import es.yosiftware.libros.datos.repositorios.LlamadaDePlataforma
 import es.yosiftware.libros.datos.repositorios.RepositorioEntidades
+import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
 import es.yosiftware.libros.datos.repositorios.RepositorioEstadisticas
 import es.yosiftware.libros.datos.repositorios.RepositorioLibro
 import es.yosiftware.libros.datos.repositorios.RepositorioPeticiones
@@ -50,4 +52,9 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
     val peticiones = RepositorioPeticiones(api)
     val reportes = RepositorioReportes(api)
     val clubes = RepositorioClubes(api)
+
+    /** La pertenencia a los clubes (los espacios) y el resumen social, en la plataforma. Sin sesión, `sin_sesion`. */
+    val espacios = RepositorioEspacios(LlamadaDePlataforma { metodo, ruta, cuerpo ->
+        plataforma?.llamar(metodo, ruta, cuerpo) ?: throw ErrorDeLibros.sinSesion()
+    })
 }

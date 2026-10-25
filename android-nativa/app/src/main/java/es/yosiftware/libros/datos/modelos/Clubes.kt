@@ -9,8 +9,9 @@ import es.yosiftware.libros.datos.json.texto
 import org.json.JSONObject
 
 // El contenido propio de los clubes de lectura (`/clubes-lectura`), que se queda en Libros. La pertenencia (entrar,
-// salir, invitar, las solicitudes y las bandejas) pasa a los espacios de la plataforma (`sesion.espacios`, decisión 5
-// del roadmap) y su conversación al chat de la plataforma (decisión 6): no se modelan aquí.
+// salir, invitar, las solicitudes y las bandejas) pasa a los espacios de la plataforma (datos/modelos/Espacios.kt,
+// decisión 5 del roadmap) y su conversación al chat de la plataforma (decisión 6). Cada club tiene su espacio
+// (`EspacioId`, con `idExterno` `club-<Id>`).
 
 /** Lo que lee un club: un libro, una saga, un universo o una antología (`ClubTarget`). */
 data class ObjetivoDeClub(val tipo: String, val id: Int?) {
@@ -41,6 +42,8 @@ data class ResumenDeClub(
     val estadoMembresia: String? = null,
     val actividad30Dias: ActividadDeClub? = null,
     val ultimaActividad: String? = null,
+    /** El espacio del club en la plataforma; `null` solo en un club anterior a los espacios. */
+    val espacioId: Long? = null,
 ) {
     companion object {
         fun de(json: JSONObject) = ResumenDeClub(
@@ -58,6 +61,7 @@ data class ResumenDeClub(
             estadoMembresia = json.texto("EstadoMembresia"),
             actividad30Dias = json.objeto("Actividad30Dias")?.let(ActividadDeClub::de),
             ultimaActividad = json.texto("UltimaActividad"),
+            espacioId = json.entero("EspacioId")?.toLong(),
         )
     }
 }
@@ -183,6 +187,10 @@ data class DetalleDeClub(
     val miembrosActivos: Int,
     val publicaciones: Int,
     val mensajes: Int,
+    /** El espacio del club en la plataforma: entrar, pedir entrar, invitar, salir y el canal. */
+    val espacioId: Long? = null,
+    /** La conversación del espacio en el chat de la plataforma; `null` hasta que la plataforma la da. */
+    val conversacionId: Long? = null,
 ) {
     companion object {
         fun de(json: JSONObject): DetalleDeClub {
@@ -198,6 +206,8 @@ data class DetalleDeClub(
                 miembrosActivos = metricas?.entero("MiembrosActivos") ?: 0,
                 publicaciones = metricas?.entero("Publicaciones") ?: 0,
                 mensajes = metricas?.entero("Mensajes") ?: 0,
+                espacioId = json.entero("EspacioId")?.toLong(),
+                conversacionId = json.entero("ConversacionId")?.toLong(),
             )
         }
     }
@@ -370,6 +380,73 @@ data class EncuestaDeClub(
             miVotoId = json.entero("MiVotoId"),
             miVotoVersion = json.texto("MiVotoVersion"),
             opciones = json.lista("Opciones", OpcionDeEncuesta::de),
+        )
+    }
+}
+
+/** El club recién creado y su espacio (`201 { Id, EspacioId }`). */
+data class ClubCreado(val id: Int, val espacioId: Long?) {
+    companion object {
+        fun de(json: JSONObject) = ClubCreado(json.entero("Id") ?: 0, json.entero("EspacioId")?.toLong())
+    }
+}
+
+/** Una publicación de un club, de solo lectura (`ClubPublication`); [contenidoMarkdown] es `null` si la oculta un spoiler. */
+data class PublicacionDeClub(
+    val id: Int,
+    val titulo: String?,
+    val contenidoMarkdown: String?,
+    val autor: Persona,
+    val spoilerOculto: Boolean,
+    val fechaCreacion: String?,
+) {
+    companion object {
+        fun de(json: JSONObject) = PublicacionDeClub(
+            id = json.entero("Id") ?: 0,
+            titulo = json.texto("Titulo"),
+            contenidoMarkdown = json.texto("ContenidoMarkdown"),
+            autor = Persona.de(json.objeto("Autor") ?: JSONObject()),
+            spoilerOculto = json.objeto("Spoiler")?.booleano("Oculto") ?: false,
+            fechaCreacion = json.texto("FechaCreacion"),
+        )
+    }
+}
+
+/** Una página de publicaciones (`{ Publicaciones, SiguienteCursor }`), con el cursor del descubrimiento. */
+data class PaginaDePublicaciones(val publicaciones: List<PublicacionDeClub>, val siguiente: CursorDeClubes?) {
+    companion object {
+        fun de(json: JSONObject) = PaginaDePublicaciones(json.lista("Publicaciones", PublicacionDeClub::de), CursorDeClubes.de(json.objeto("SiguienteCursor")))
+    }
+}
+
+/**
+ * El resumen de la pestaña Comunidad de Libros (`GET /comunidad/resumen`): solo los clubes activos. [activos] es `null`
+ * si ese bloque falló ([parcial]).
+ */
+data class ResumenDeComunidad(val parcial: Boolean, val activos: Int?) {
+    companion object {
+        fun de(json: JSONObject) = ResumenDeComunidad(
+            parcial = json.booleano("Parcial") ?: false,
+            activos = json.objeto("Resumen")?.objeto("Clubes")?.entero("Activos"),
+        )
+    }
+}
+
+/**
+ * Las capacidades de la comunidad (`GET /comunidad/capacidades`): solo se mira `clubes`. Con [conservadora], todo
+ * apagado. Se vuelven a pedir pasados [ttlSegundos].
+ */
+data class CapacidadesDeComunidad(val clubes: Boolean, val conservadora: Boolean, val ttlSegundos: Int) {
+    val clubesActivos: Boolean get() = !conservadora && clubes
+
+    companion object {
+        /** Lo que se usa si no se pueden pedir: todo apagado, cinco minutos. */
+        val CONSERVADORAS = CapacidadesDeComunidad(clubes = false, conservadora = true, ttlSegundos = 300)
+
+        fun de(json: JSONObject) = CapacidadesDeComunidad(
+            clubes = json.objeto("Capacidades")?.objeto("clubes")?.booleano("Activa") ?: false,
+            conservadora = json.booleano("Conservadora") ?: false,
+            ttlSegundos = json.entero("CacheTtlSegundos") ?: 300,
         )
     }
 }

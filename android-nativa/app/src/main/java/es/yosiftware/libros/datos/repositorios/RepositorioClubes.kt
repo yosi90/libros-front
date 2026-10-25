@@ -1,9 +1,10 @@
 package es.yosiftware.libros.datos.repositorios
 
-import es.yosiftware.libros.datos.json.entero
 import es.yosiftware.libros.datos.json.json
 import es.yosiftware.libros.datos.json.lista
 import es.yosiftware.libros.datos.json.objeto
+import es.yosiftware.libros.datos.modelos.CapacidadesDeComunidad
+import es.yosiftware.libros.datos.modelos.ClubCreado
 import es.yosiftware.libros.datos.modelos.CursorDeClubes
 import es.yosiftware.libros.datos.modelos.CursorDeEventos
 import es.yosiftware.libros.datos.modelos.DebateDeClub
@@ -16,26 +17,32 @@ import es.yosiftware.libros.datos.modelos.LecturaDeClub
 import es.yosiftware.libros.datos.modelos.MisClubes
 import es.yosiftware.libros.datos.modelos.PaginaDeClubes
 import es.yosiftware.libros.datos.modelos.PaginaDeEventos
+import es.yosiftware.libros.datos.modelos.PaginaDePublicaciones
 import es.yosiftware.libros.datos.modelos.ProgresoEnClub
 import es.yosiftware.libros.datos.modelos.ResumenDeClub
 import es.yosiftware.libros.datos.modelos.ResumenDeClubes
+import es.yosiftware.libros.datos.modelos.ResumenDeComunidad
 import es.yosiftware.libros.datos.modelos.SpoilerDeClub
 import es.yosiftware.libros.datos.red.ClienteLibros
 import org.json.JSONObject
 
 /**
- * El contenido propio de los clubes de lectura (`community.service.ts`, la parte de `/clubes-lectura`): resumen, mis
- * clubes, descubrimiento, detalle, lecturas, progreso, hitos, calendario, debates y encuestas.
+ * El contenido propio de los clubes de lectura (`community.service.ts`): el resumen de Comunidad y las capacidades,
+ * resumen de clubes, mis clubes, descubrimiento, detalle, crear, borrar y restaurar, el rol y la expulsión de un
+ * miembro, lecturas, progreso, hitos, calendario, publicaciones, debates, encuestas y las denuncias.
  *
- * Lo que no está aquí, a propósito (decisiones 5 y 6 del roadmap):
- * - la pertenencia (unirse, pedir entrar, invitar, aceptar, salir, cambiar el rol o quitar a un miembro, y las
- *   bandejas de solicitudes e invitaciones) va por los espacios de la plataforma, con `sesion.espacios`;
- * - la conversación del club (`/chat/clubes/{id}`) es la del chat de la plataforma (hito 12).
- *
- * TODO(contrato): la fase 4 de la API (clubes con espacios) puede cambiar las rutas de crear, borrar y restaurar un club
- * y los miembros del detalle; hoy son las del OpenAPI actual.
+ * Lo que no está aquí: la pertenencia (entrar, pedir entrar, invitar, aceptar, salir y las bandejas de solicitudes e
+ * invitaciones), que va por los espacios de la plataforma ([RepositorioEspacios]), y la conversación del club, que es la
+ * del chat de la plataforma (hito 12). Cambiar el rol y expulsar siguen en Libros: la API lo pasa al espacio.
  */
 class RepositorioClubes(private val api: ClienteLibros) {
+    /** El resumen de la pestaña Comunidad: los clubes activos (`GET /comunidad/resumen`). */
+    suspend fun resumenDeComunidad(): ResumenDeComunidad = api.get("comunidad/resumen").objeto(ResumenDeComunidad::de)
+
+    /** Qué partes de la comunidad están activas para esta versión de la app (solo cuenta `clubes`). */
+    suspend fun capacidades(): CapacidadesDeComunidad =
+        api.get("comunidad/capacidades", mapOf("clientVersion" to VERSION_DEL_CLIENTE)).objeto(CapacidadesDeComunidad::de)
+
     suspend fun resumen(): ResumenDeClubes = api.get("clubes-lectura/resumen").objeto(ResumenDeClubes::de)
 
     suspend fun mios(): MisClubes = api.get("clubes-lectura/mios").objeto(MisClubes::de)
@@ -66,9 +73,11 @@ class RepositorioClubes(private val api: ClienteLibros) {
 
     suspend fun club(id: Int): DetalleDeClub = DetalleDeClub.de(api.get("clubes-lectura/$id").objeto().objeto("Club") ?: JSONObject())
 
-    /** Crea un club (`abierto` o `cerrado`) y devuelve su id. */
-    suspend fun crear(nombre: String, visibilidad: String, descripcionMarkdown: String? = null): Int =
-        api.post("clubes-lectura", json("Nombre" to nombre, "DescripcionMarkdown" to descripcionMarkdown, "Visibilidad" to visibilidad)).objeto().entero("Id") ?: 0
+    /** Crea un club (`abierto` o `cerrado`) con su espacio en la plataforma. */
+    suspend fun crear(nombre: String, visibilidad: String, descripcionMarkdown: String? = null): ClubCreado = api.post(
+        "clubes-lectura",
+        JSONObject().put("Nombre", nombre).put("Visibilidad", visibilidad).put("DescripcionMarkdown", descripcionMarkdown ?: JSONObject.NULL),
+    ).objeto(ClubCreado::de)
 
     suspend fun borrar(id: Int) {
         api.delete("clubes-lectura/$id")
@@ -76,6 +85,16 @@ class RepositorioClubes(private val api: ClienteLibros) {
 
     suspend fun restaurar(id: Int) {
         api.post("clubes-lectura/$id/restaurar", JSONObject())
+    }
+
+    /** Solo quien tiene la propiedad: `moderador` o `miembro`. */
+    suspend fun cambiarRol(id: Int, usuarioId: Int, rol: String) {
+        api.patch("clubes-lectura/$id/miembros/$usuarioId", json("Rol" to rol))
+    }
+
+    /** Solo quien tiene la propiedad: lo saca también del espacio y le avisa. */
+    suspend fun expulsar(id: Int, usuarioId: Int) {
+        api.delete("clubes-lectura/$id/miembros/$usuarioId")
     }
 
     // ---------- Lecturas y progreso ----------
@@ -135,6 +154,18 @@ class RepositorioClubes(private val api: ClienteLibros) {
         api.delete("clubes-lectura/$id/eventos/$eventoId")
     }
 
+    // ---------- Publicaciones (solo lectura) ----------
+
+    suspend fun publicaciones(id: Int, cursor: CursorDeClubes? = null): PaginaDePublicaciones = api.get(
+        "clubes-lectura/$id/publicaciones",
+        mapOf("limit" to 20, "cursorFecha" to cursor?.fecha, "cursorId" to cursor?.id),
+    ).objeto(PaginaDePublicaciones::de)
+
+    /** Denuncia un club o una publicación (`club` o `publicacion`) a moderación; [motivo], hasta 1000 caracteres. */
+    suspend fun denunciar(tipoEntidad: String, entidadId: Int, motivo: String) {
+        api.post("comunidad/denuncias", json("TipoEntidad" to tipoEntidad, "EntidadId" to entidadId, "Motivo" to motivo.trim().take(1000)))
+    }
+
     // ---------- Debates ----------
 
     suspend fun debates(id: Int, revelarSpoilers: Boolean = false): List<DebateDeClub> =
@@ -165,6 +196,11 @@ class RepositorioClubes(private val api: ClienteLibros) {
     /** Vota [opcionId]; para cambiar un voto, con la [version] de la encuesta (`MiVotoVersion`). */
     suspend fun votar(id: Int, encuestaId: Int, opcionId: Int, version: String? = null) {
         api.put("clubes-lectura/$id/encuestas/$encuestaId/voto", json("OpcionId" to opcionId, "Version" to version))
+    }
+
+    companion object {
+        /** La versión que declara la app al pedir las capacidades (`environment.clientVersion` de la web). */
+        const val VERSION_DEL_CLIENTE = "1.0.0"
     }
 
     private fun spoilerJson(spoiler: SpoilerDeClub): JSONObject = json(

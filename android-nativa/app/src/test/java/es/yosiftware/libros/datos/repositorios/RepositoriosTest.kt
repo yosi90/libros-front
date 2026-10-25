@@ -190,4 +190,36 @@ class RepositoriosTest {
         clubes.votar(1, 5, 2, "0a1b2c3d4e5f6789")
         assertEquals(mapa("""{"OpcionId": 2, "Version": "0a1b2c3d4e5f6789"}"""), mapa(cuerpo(pedidas[2])))
     }
+
+    @Test
+    fun losClubesConSusEspaciosYLoQueSeAnadioConLaAdhesion() = runTest {
+        responde("POST /clubes-lectura", """{"success": true, "Id": 8, "EspacioId": 41}""", 201)
+        responde("GET /clubes-lectura/8", """{"success": true, "Club": {"Id": 8, "EspacioId": 41, "ConversacionId": null, "Nombre": "C", "Visibilidad": "cerrado", "PropietarioId": 5, "MiembrosDetalle": [], "Metricas": {}}}""")
+        responde("GET /comunidad/capacidades", """{"success": true, "Conservadora": false, "CacheTtlSegundos": 120, "Capacidades": {"clubes": {"Activa": true, "VersionMinima": null}}}""")
+        responde("GET /comunidad/resumen", """{"success": true, "Parcial": false, "BloquesFallidos": [], "Resumen": {"Clubes": {"Activos": 2}}}""")
+        responde("GET /clubes-lectura/8/publicaciones", """{"success": true, "Publicaciones": [{"Id": 3, "Titulo": null, "ContenidoMarkdown": null, "Autor": {"Id": 2, "Nombre": "Ana"}, "Spoiler": {"Oculto": true}, "FechaCreacion": "2026-10-20T10:00:00Z"}], "SiguienteCursor": {"cursorFecha": "2026-10-20T10:00:00Z", "cursorId": 3}}""")
+        responde("PATCH /clubes-lectura/8/miembros/2", """{"success": true}""")
+        responde("DELETE /clubes-lectura/8/miembros/2", """{"success": true}""")
+        responde("POST /comunidad/denuncias", """{"success": true, "GrupoId": 1}""")
+        val clubes = RepositorioClubes(api)
+
+        val creado = clubes.crear("C", "cerrado")
+        assertEquals(8, creado.id)
+        assertEquals(41L, creado.espacioId)
+        assertTrue(cuerpo(pedidas[0]).isNull("DescripcionMarkdown"))
+        val club = clubes.club(8)
+        assertEquals(41L, club.espacioId)
+        assertNull(club.conversacionId)
+        assertTrue(clubes.capacidades().clubesActivos)
+        assertEquals("1.0.0", pedidas[2].url.queryParameter("clientVersion"))
+        assertEquals(2, clubes.resumenDeComunidad().activos)
+        val pagina = clubes.publicaciones(8)
+        assertTrue(pagina.publicaciones.single().spoilerOculto)
+        assertEquals(3, pagina.siguiente?.id)
+        clubes.cambiarRol(8, 2, "moderador")
+        assertEquals(mapa("""{"Rol": "moderador"}"""), mapa(cuerpo(pedidas[5])))
+        clubes.expulsar(8, 2)
+        clubes.denunciar("club", 8, " Spam ")
+        assertEquals(mapa("""{"TipoEntidad": "club", "EntidadId": 8, "Motivo": "Spam"}"""), mapa(cuerpo(pedidas[7])))
+    }
 }
