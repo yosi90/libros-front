@@ -16,6 +16,7 @@ import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 import es.yosiftware.libros.datos.repositorios.RepositorioLibro
 import es.yosiftware.libros.ui.componentes.Avisador
 import java.time.Instant
+import java.time.LocalDate
 
 /** Lo que enseña el contenido del libro (las rutas hijas de `/book/:id`). */
 sealed interface VistaDelLibro {
@@ -163,6 +164,27 @@ class LibroViewModel(
         }
     }
 
+    var guardandoCompra by mutableStateOf(false)
+        private set
+
+    /** «Establecer fecha» de compra en el resumen: un estado «Por comprar» con esa fecha (`savePurchaseDate`). */
+    fun ponerFechaDeCompra(dia: LocalDate) {
+        val actual = libro ?: return
+        if (guardandoCompra) return
+        guardandoCompra = true
+        cargar({
+            coleccion.cambiarEstadoDeLibro(actual.id, EstadoAGuardar(TipoDeEstado.POR_COMPRAR.id, fecha = ResumenDelLibro.fechaParaLaApi(dia)))
+            repositorio.libro(actual.id)
+        }, alFallar = { error ->
+            guardandoCompra = false
+            avisos.deError(error, "Error al guardar la fecha de compra")
+        }) { nuevo ->
+            guardandoCompra = false
+            if (abierto?.id == actual.id) ponerLibro(nuevo)
+            avisos.exito("Fecha de compra añadida")
+        }
+    }
+
     // --- Partes e interludios. ---
 
     /** El editor de una parte o un interludio: con lo suyo, o con un nombre propuesto al crear (`openStructureEditor`). */
@@ -248,6 +270,7 @@ class LibroViewModel(
         cerrar()
         poniendoEnMarcha = false
         guardandoEstructura = false
+        guardandoCompra = false
     }
 
     private fun ponerLibro(nuevo: Libro) {

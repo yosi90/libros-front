@@ -581,3 +581,12 @@ fun ContenidoPendiente(vista: VistaDelLibro) {
         Text(if (vista is VistaDelLibro.DeElemento) "Llegan en el hito 10 del clon." else "Llegan en el hito 9 del clon.", style = Textos.cuerpo.copy(color = colores.tintaSuave, textAlign = TextAlign.Center))
     }
 }
+
+/** Lo que enseña el contenido del libro en cada vista (`app-book-router`). */
+@Composable
+fun ContenidoDelLibro(vm: LibroViewModel, vista: VistaDelLibro) {
+    when (vista) {
+        VistaDelLibro.Estadisticas -> PantallaResumenDelLibro(vm)
+        else -> ContenidoPendiente(vista)
+    }
+}

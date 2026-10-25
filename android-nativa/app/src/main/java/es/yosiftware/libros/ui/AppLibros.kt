@@ -26,7 +26,7 @@ import es.yosiftware.libros.ui.catalogo.CatalogoViewModel
 import es.yosiftware.libros.ui.catalogo.PantallaCatalogo
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.ui.estadisticas.EstadisticasViewModel
-import es.yosiftware.libros.ui.libro.ContenidoPendiente
+import es.yosiftware.libros.ui.libro.ContenidoDelLibro
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
@@ -197,7 +197,7 @@ fun AppLibros(app: LibrosApp) {
                         },
                     )
                     CapasDeCatalogo(catalogo, alAbrirLectura = abrirLibro)
-                    PantallaLibro(libro) { vista -> ContenidoPendiente(vista) }
+                    PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, vista) }
                 }
                 AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
 

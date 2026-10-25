@@ -290,6 +290,11 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - Se abre desde la Biblioteca, las secciones de una antología y «Abrir lectura» del Catálogo. El contenido de cada vista (estadísticas, notas, búsqueda, capítulos) llega en los pasos siguientes; la flecha de minimizar cierra el libro hasta el lector persistente.
   - **Corregido a propósito:** el índice de la web sacaba con `splice(-1, 1)` el último capítulo cuando faltaba un orden; aquí cada capítulo se busca por su orden (el orden visible es el mismo; un interludio podía colgarse de otro capítulo).
 - [ ] Notas, búsqueda avanzada y estadísticas del libro.
+  - [x] Estadísticas del libro (2026-10-25): «Tu lectura» (medidor o página, fechas y «Establecer fecha» de compra), las cifras, los destacados y los cuatro gráficos en Compose (ritmo, mapa de presencia, reparto y grupos), en dos columnas desde 900 dp.
+    - Lógica en `ui/libro/ResumenDelLibro.kt` con sus pruebas, y gráficos en `GraficosDelLibro.kt`. Muestra `resumen-con-datos`; comparada con las capturas en el Honor desplegado.
+    - Sin pulir de más a propósito: el propietario quiere rediseñarla tras el clon (hito 15).
+  - [ ] Notas.
+  - [ ] Búsqueda avanzada.
 - [ ] Capítulos y escenas, con autoguardado y cambios pendientes.
 - [ ] Lector persistente.
 
@@ -390,7 +395,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - Lista del propietario (2026-10-24, vista en el móvil desplegado), para cuando termine el clon:
   - [ ] La inserción de personajes está mal diseñada, y en general la de todas las entradas.
   - [ ] Espacio desperdiciado en los capítulos.
-  - [ ] Espacio desperdiciado en las estadísticas personales del libro.
+  - [ ] Espacio desperdiciado en las estadísticas personales del libro: ocupan demasiado y muestran poco, sobre todo «Tu lectura» (propietario, 2026-10-25).
   - [ ] Función nueva: el campo `titulo` del libro pasa a `usuario_libros`, propio de cada persona, y se puede generar con IA por la pasarela de la plataforma (Anthropic primero, kit 1.54). Detalle en el roadmap de la IA de la API (`Libros API/docs/roadmaps/PAUSADO_ia/`, IA2).
   - [ ] Función nueva: dictado por voz a los editores RTF de escenas y entradas, con la transcripción de la pasarela y una clave de IA para un modelo mejor (mismo roadmap, IA3).
 - Añadido por el propietario el 2026-10-25, fuera del clon: las peticiones de alta de libros resueltas por la IA con su clave (`PAUSADO_ia`, IA1) y la auditoría de los estilos literarios (`Libros API/docs/roadmaps/PAUSADO_auditoria-estilos/`). Son del backend; la web solo enseña las aprobaciones automáticas.

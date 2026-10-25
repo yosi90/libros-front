@@ -112,6 +112,12 @@ object Iconos {
     @DrawableRes val coPresent = R.drawable.mi_co_present
     @DrawableRes val myLocation = R.drawable.mi_my_location
     @DrawableRes val formatQuote = R.drawable.mi_format_quote
+    @DrawableRes val movieFilter = R.drawable.mi_movie_filter
+    @DrawableRes val theaterComedy = R.drawable.mi_theater_comedy
+    @DrawableRes val recordVoiceOver = R.drawable.mi_record_voice_over
+    @DrawableRes val insights = R.drawable.mi_insights
+    @DrawableRes val calendarToday = R.drawable.mi_calendar_today
+    @DrawableRes val analytics = R.drawable.mi_analytics
 
     /** El símbolo del ecosistema (ecosistema-kit/marca/simbolo-trazo.svg), en todo enlace a la web social (MARCA.md). */
     @DrawableRes val simboloYosiftware = R.drawable.simbolo_yosiftware
