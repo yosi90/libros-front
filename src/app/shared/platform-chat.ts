@@ -13,6 +13,7 @@ import {
     PlataformaMensaje
 } from '../interfaces/platform-chat';
 import { PlataformaPersona } from '../interfaces/platform-person';
+import { escapeHtml } from './html';
 import { platformAssetUrl } from './platform';
 
 // Traduce el contrato del chat de la plataforma (docs/publica/ENDPOINTS.md, «Chat») al modelo que pintan las vistas
@@ -249,11 +250,5 @@ export function toChatFriendship(persona: PlataformaPersona): ChatFriendship | n
 
 /** Texto plano del chat como HTML seguro: sin marcas, con sus saltos de línea. */
 export function renderPlainChatText(value: string | null | undefined): string {
-    return (value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/\r?\n/g, '<br>');
+    return escapeHtml(value ?? '').replace(/\r?\n/g, '<br>');
 }
