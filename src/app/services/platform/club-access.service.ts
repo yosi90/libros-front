@@ -56,7 +56,7 @@ export class ClubAccessService {
                     toArray(),
                     map(results => ({
                         invitationsReceived: received
-                            .map(invitation => ({ club: { EspacioId: invitation.espacio.id, Id: clubIdFromSpace(invitation.espacio.idExterno), Nombre: invitation.espacio.nombre, DosPasos: invitation.espacio.dosPasos }, invitation }))
+                            .map(invitation => ({ club: clubOfSpace(invitation.espacio), invitation }))
                             .filter(item => item.club.Id !== null),
                         invitationsSent: results.flatMap(result => result.invitations),
                         requestsReceived: results.flatMap(result => result.requests),
@@ -82,7 +82,7 @@ export class ClubAccessService {
     clear(): void { this.inboxSubject.next(EMPTY_INBOX); }
 
     private managedInbox(space: EspacioPlataforma): Observable<{ invitations: ClubAccessInbox['invitationsSent']; requests: ClubAccessInbox['requestsReceived']; failed: boolean }> {
-        const club: ClubAccessClub = { EspacioId: space.id, Id: clubIdFromSpace(space.idExterno), Nombre: space.nombre, DosPasos: space.dosPasos };
+        const club = clubOfSpace(space);
         if (club.Id === null) return of({ invitations: [], requests: [], failed: false });
         let failed = false;
         const soft = <T>(request: Observable<T[]>) => request.pipe(catchError(() => { failed = true; return of([] as T[]); }));
@@ -96,6 +96,11 @@ export class ClubAccessService {
             failed
         })));
     }
+}
+
+/** El club de un espacio (el de una invitación o uno de los de la persona). */
+function clubOfSpace(space: { id: number; idExterno: string; nombre: string; dosPasos: boolean }): ClubAccessClub {
+    return { EspacioId: space.id, Id: clubIdFromSpace(space.idExterno), Nombre: space.nombre, DosPasos: space.dosPasos };
 }
 
 function countersOf(inbox: ClubAccessInbox): ClubAccessInboxCounters {
