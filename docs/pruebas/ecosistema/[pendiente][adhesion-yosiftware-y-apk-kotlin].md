@@ -36,15 +36,15 @@
 ## Chat, espacios y notificaciones (web)
 
 - [ ] Sin chat ni mensajes propios guardados: las conversaciones y los mensajes son de la plataforma, pintados con la interfaz actual de Libros (decisión del propietario, 2026-10-24) e idénticos a las capturas de antes. *(Rama sin unir: hecho y probado con dobles (Karma y `web-platform-social.spec.ts`); falta compararlo con una cuenta real en QA.)*
-- [ ] Las conversaciones de los clubes las crea el backend como conversación del espacio.
-- [ ] Clubes con espacios: crear, invitar a otra cuenta de prueba, aceptar desde la web (`#yosi-invitaciones`), pedir entrar y aprobar, sacar a alguien y comprobar que pierde el acceso.
+- [ ] Las conversaciones de los clubes las crea el backend como conversación del espacio. *(API en QA `a15560f`; la web incrusta `ConversacionId` con el chat de Libros y «Abrir chat» vuelve (rama sin unir, 2026-10-25, Karma y `web-platform-clubs.spec.ts`); falta verlo con una cuenta real.)*
+- [ ] Clubes con espacios: crear, invitar a otra cuenta de prueba, aceptar desde la web (`#yosi-invitaciones`), pedir entrar y aprobar, sacar a alguien y comprobar que pierde el acceso. *(Rama sin unir, 2026-10-25: hecho con interfaz propia (`data-invitaciones="propias"`) y probado con dobles (Karma y `web-platform-clubs.spec.ts`) y en `libros.dev` sin sesión; falta con cuentas reales en QA.)*
 - [x] `<yosi-notificaciones>` en la cabecera; retirados la campana, el centro y las preferencias propias. *(Rama sin unir, hito 3; e2e y `libros.dev`.)*
 
 ## Moderación, privacidad y cabeceras (web)
 
 - [ ] Respeta `restricciones` (`creacion`, `comunidad`) y explica hasta cuándo.
 - [ ] Normas propias (si las hay) publicadas por el propietario; la API rechaza mientras haya `normasPendientes`.
-- [ ] «Denunciar» a la vista en clubes, reseñas y actividad. *(Rama sin unir: clubes y mensajes del chat; en las reseñas, listo pero la API aún no lista reseñas ajenas; el muro de actividad se retiró.)*
+- [ ] «Denunciar» a la vista en clubes, reseñas y actividad. *(Rama sin unir: clubes, sus publicaciones (2026-10-25) y mensajes del chat; en las reseñas, listo pero la API aún no lista reseñas ajenas; el muro de actividad se retiró.)*
 - [x] `<yosi-privacidad>` donde la persona espera su cuenta. *(Rama sin unir: «Cuenta y seguridad › Privacidad y normas» y Preferencias.)*
 - [x] CSP del kit (SDK, API, `wss://cuentas-ws…`, acceso en `frame-src`, avatares en `img-src`); sin COOP `same-origin` ni COEP `require-corp`. *(Rama sin unir: `firebase.json`, la de QA por `prepare-hosting-config.mjs` y la del servidor de desarrollo; pruebas en `scripts/qa`.)*
 
@@ -83,3 +83,11 @@
 
 - Karma: 591/591 (637 en `b91fbec`). Nuevas: `platform-api.service` (4), `platform-chat.service` (6), `platform-realtime.service` (4), `chat-floating-settings.service` (3), `shared/platform-chat` (9), `yosiftware-notifications` (2), `chat-store.service` (4, rehecha), `social-summary` (4, rehecha) y adaptaciones (preferencias de chat, ventanas flotantes, Cuenta y seguridad, comunidad, panel, toasts). Retiradas por lo que ya no existe: campana, centro y almacenes de notificaciones (24), push propio (5), tiempo real propio (9), chat propio (5 de `ChatService` y 1 de `ChatStoreService`), normas propias (5 de `PolicyPromptService`), moderación de cuentas y métricas (3 + 4 + 3), diagnóstico `/health/realtime` (1), ficha `/admin/usuarios/{id}` (1), identidad editable (1), personas y muro (2) y gestos hacia la campana (2).
 - e2e: `web-platform-social.spec.ts` (6, Chromium). Chromium de escritorio 59 correctas y 9 omitidas; `compact-390` 11 de 12 (la de «Home cabe sin scroll…», 722 > 695 px, ya fallaba en `b91fbec`). Retiradas 13: chat con peticiones de catálogo (1), avatar propio (1), normas propias (7), campana propia (3) y error por campo del alias propio (1). Doble del SDK ampliado (`tokenPlataforma`, `ajustes`, `tiempoReal`, `chat` y `<yosi-webs>`, `<yosi-notificaciones>`, `<yosi-privacidad>`, `<yosi-reportar>`).
+
+## Pruebas de los clubes en los espacios (rama `adhesion/web`, 2026-10-25)
+
+- `docs/backend` sincronizado con la API `adhesion/api-identidad` en `a15560f` (commit `6f85f3b`).
+- Karma: 640/640 (591 antes). Nuevas: `platform-spaces.service` (9), `club-access.service` (4), `club-invitation-link.service` (9), `shared/club-spaces` (7), `club-detail` (16), `club-access-center` (7, rehecha), `community.component` (+1), `community.service` (+3) y `app.config` (+1). Retiradas por lo que ya no existe: 5 de `community.service` (solicitudes propias y su cancelación, pedir acceso, candidatos e invitar por Libros) y las 3 antiguas de `club-access-center` (bandejas con estado y cursor).
+- `npm run build`, `npm run build:qa` y `npm run e2e:typecheck` correctos (`CI=true`, `NG_BUILD_MAX_WORKERS=2`).
+- e2e en Chromium, un trabajador: `web-platform-clubs.spec.ts` 5/5 (nueva: centro de acceso, `#yosi-invitacion=`, `#yosi-invitaciones`, entrar con espera del feed, chat del espacio y canal, y Wood) y `web-platform-social.spec.ts` 6/6. Retiradas: ninguna. El doble del SDK tiene `yosiftware.espacios.canal`.
+- `https://libros.dev.yosiftware.es` sin entrar (API de QA `a15560f`, SDK 1.23.0): pestaña de clubes en Web y Wood, `#yosi-invitacion=` y `#yosi-invitaciones`: fragmento quitado, aviso de Libros pidiendo entrar, sin la ventana del SDK, ninguna violación de la CSP ni llamada a rutas retiradas; solo el 401 esperado de `POST /v1/sesion/token`.
