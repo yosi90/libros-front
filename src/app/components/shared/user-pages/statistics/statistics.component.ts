@@ -32,6 +32,7 @@ import { CommunityActivity30Days, CommunityCatalogGrowth, CommunityStatistics } 
 import { catchError, forkJoin, of } from 'rxjs';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { READING_PACE_SINCE, ReadingPaceUser, paceHourBandRows, paceMonthRows, paceWeekdayRows } from '../../../../shared/reading-pace';
+import { RATING_HISTORY_SINCE, RatingHistoryUser, ratingAverageRows, ratingCountRows, ratingReviewTotal } from '../../../../shared/rating-history';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 export type StatisticsTab = 'personal' | 'general';
@@ -105,6 +106,18 @@ export class StatisticsComponent implements OnInit {
     get paceMonths(): StatRow[] { return this.readingPace ? paceMonthRows(this.readingPace.PaginasPorMes) : []; }
     get paceWeekdays(): StatRow[] { return this.readingPace ? paceWeekdayRows(this.readingPace.PaginasPorDiaSemana) : []; }
     get paceHourBands(): StatRow[] { return this.readingPace ? paceHourBandRows(this.readingPace.PaginasPorHora) : []; }
+
+    /** Mis puntuaciones y reseñas en el tiempo; null hasta puntuar o reseñar algo desde que se guarda la fecha. */
+    ratingHistory: RatingHistoryUser | null = null;
+    readonly ratingSince = RATING_HISTORY_SINCE;
+
+    get ratingMonths(): StatRow[] { return ratingCountRows(this.ratingHistory?.PorMes); }
+    get ratingAverages(): StatRow[] { return ratingAverageRows(this.ratingHistory?.PorMes); }
+    get ratingReviews(): number { return ratingReviewTotal(this.ratingHistory?.PorMes); }
+
+    /** Las puntuaciones de la comunidad por mes y su nota media (con umbral). */
+    get communityRatingMonths(): StatRow[] { return ratingCountRows(this.community?.ValoracionesComunidad?.PorMes); }
+    get communityRatingAverages(): StatRow[] { return ratingAverageRows(this.community?.ValoracionesComunidad?.PorMes); }
 
     /** El ritmo de la comunidad (con umbral): las filas de los meses con dato. */
     get communityPaceMonths(): StatRow[] {
@@ -320,6 +333,7 @@ export class StatisticsComponent implements OnInit {
             this.stylesRead = readStyles(results.Coleccion);
             this.ratings = ratingDistribution(results.Coleccion);
             this.readingPace = results.RitmoLectura ?? null;
+            this.ratingHistory = results.Valoraciones ?? null;
 
             this.actualizarChart(results.DistribucionEstados);
             this.configurarFastestBooksChart(results.TopLibrosMasRapidos);

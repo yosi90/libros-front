@@ -108,6 +108,32 @@
           </article>
         </section>
       }
+
+      <!-- Las puntuaciones y reseñas en el tiempo: la última vez que cambiaste cada una (meses de Madrid). -->
+      <header class="web-stats__section">
+        <h2><mat-icon aria-hidden="true">hotel_class</mat-icon>Tus puntuaciones en el tiempo</h2>
+        <p>Cuenta la última vez que puntuaste o reseñaste cada obra. Se mide desde el {{controller.ratingSince}}.</p>
+      </header>
+      @if (controller.ratingHistory; as history) {
+        <section class="web-stats__metrics" aria-label="Resumen de tus puntuaciones">
+          <div><strong>{{history.NotaMedia === null ? '—' : (history.NotaMedia | number:'1.0-2')}}</strong><span>Tu nota media</span></div>
+          <div><strong>{{controller.ratingReviews}}</strong><span>Reseñas en el último año</span></div>
+        </section>
+        <section class="web-stats__charts">
+          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Puntuaciones por mes', subtitle: 'Obras que puntuaste cada mes', chart: ratingsByMonth, empty: 'Aún no hay meses con puntuaciones.' }"></ng-container>
+          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Tu nota media por mes', subtitle: 'La media de lo que puntuaste ese mes', chart: ratingAverage, empty: 'Sin datos.' }"></ng-container>
+        </section>
+      } @else {
+        <section class="web-stats__charts">
+          <article class="web-stats__card web-stats__card--wide web-stats__soon">
+            <mat-icon aria-hidden="true">schedule</mat-icon>
+            <div>
+              <h2>Tus puntuaciones aparecerán en cuanto puntúes o reseñes</h2>
+              <p>Cada puntuación y reseña desde el {{controller.ratingSince}} cuenta: por meses y tu nota media en el tiempo.</p>
+            </div>
+          </article>
+        </section>
+      }
     }
   } @else {
     @if (controller.generalLoading) {
@@ -156,6 +182,12 @@
           }
           @if (communityPace) {
             <ng-container *ngTemplateOutlet="barCard; context: { title: 'Páginas leídas por mes', subtitle: 'Lo que avanzó la comunidad cada mes; sin barra, menos de tres lectores', chart: communityPace, empty: '' }"></ng-container>
+          }
+          @if (communityRatingsByMonth) {
+            <ng-container *ngTemplateOutlet="barCard; context: { title: 'Puntuaciones por mes', subtitle: 'Obras puntuadas cada mes; sin barra, menos de tres personas', chart: communityRatingsByMonth, empty: '' }"></ng-container>
+          }
+          @if (communityRatingAverage) {
+            <ng-container *ngTemplateOutlet="barCard; context: { title: 'Nota media por mes', subtitle: 'La media de las puntuaciones de cada mes', chart: communityRatingAverage, empty: '' }"></ng-container>
           }
           @for (card of communityCards; track card.title) {
             <ng-container *ngTemplateOutlet="barCard; context: card"></ng-container>

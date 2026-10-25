@@ -15,7 +15,7 @@ describe('reading-pace', () => {
         expect(paceMonthRows([
             { Anio: 2026, Mes: 10, Paginas: 120 },
             { Anio: 2026, Mes: 11, Paginas: null }
-        ])).toEqual([{ label: '10/2026', value: 120 }]);
+        ])).toEqual([{ label: 'oct 2026', value: 120 }]);
     });
 
     it('los días de la semana van de lunes a domingo y rellenan con cero', () => {

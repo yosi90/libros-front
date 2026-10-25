@@ -48,6 +48,10 @@ export class WebStatisticsViewComponent implements DoCheck {
     paceWeekdays: any = null;
     paceHours: any = null;
     communityPace: any = null;
+    ratingsByMonth: any = null;
+    ratingAverage: any = null;
+    communityRatingsByMonth: any = null;
+    communityRatingAverage: any = null;
     communityMonthly: any = null;
     communityCards: Array<{ title: string; subtitle: string; chart: any; empty: string }> = [];
     biggestClubs: any = null;
@@ -105,6 +109,10 @@ export class WebStatisticsViewComponent implements DoCheck {
         this.paceWeekdays = this.bars(c.paceWeekdays, palette, palette.status[2], 'Páginas', false);
         this.paceHours = this.bars(c.paceHourBands, palette, palette.accent, 'Páginas', false);
         this.communityPace = this.bars(c.communityPaceMonths, palette, palette.primary, 'Páginas', false);
+        this.ratingsByMonth = this.bars(c.ratingMonths, palette, palette.status[0], 'Puntuaciones', false);
+        this.ratingAverage = this.bars(c.ratingAverages, palette, palette.accent, 'Nota media', false);
+        this.communityRatingsByMonth = this.bars(c.communityRatingMonths, palette, palette.status[0], 'Puntuaciones', false);
+        this.communityRatingAverage = this.bars(c.communityRatingAverages, palette, palette.accent, 'Nota media', false);
         // Comunidad: solo se muestran los rankings con datos (la privacidad oculta grupos pequeños).
         const community: Array<[string, string, StatRow[], string, string]> = [
             ['Libros más leídos', 'Por número de lectores', c.communityBooks, palette.primary, 'Lectores'],

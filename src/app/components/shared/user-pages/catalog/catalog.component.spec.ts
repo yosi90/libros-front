@@ -324,6 +324,19 @@ describe('CatalogComponent', () => {
         expect(component.publicDetailPaceRows()).toEqual([]);
     });
 
+    it('enseña la evolución de la nota solo en los meses con dato', () => {
+        const { component } = createComponent();
+        const stats = { UsuariosEnBiblioteca: 4, PuntuacionMedia: 4, TotalPuntuaciones: 4, TotalLeidos: 3, TotalEnMarcha: 0, TotalQuieroLeer: 0, TotalPorComprar: 0, TotalDescartados: 0, DistribucionEstados: [] };
+        component.selectedPublicDetail = { ...book, Estadisticas: { ...stats, EvolucionNota: [
+            { Anio: 2026, Mes: 10, NotaMedia: null, Puntuaciones: null },
+            { Anio: 2026, Mes: 11, NotaMedia: 4.25, Puntuaciones: 4 }
+        ] } } as any;
+        expect(component.publicDetailRatingEvolution()).toEqual([{ label: 'nov 2026', value: '4,25' }]);
+
+        component.selectedPublicDetail = { ...book, Estadisticas: { ...stats, EvolucionNota: null } } as any;
+        expect(component.publicDetailRatingEvolution()).toEqual([]);
+    });
+
     it('uses EstadoActual from public detail when the personal status history is empty', () => {
         const { component, catalogSrv } = createComponent();
         component.items = [book];

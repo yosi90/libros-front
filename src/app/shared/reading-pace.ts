@@ -45,10 +45,23 @@ const HOUR_BANDS: Array<{ label: string; from: number; to: number }> = [
     { label: 'Noche (18–24 h)', from: 18, to: 24 }
 ];
 
+const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
+
+/** «oct 2026», para las filas y los ejes por mes. */
+export function monthLabel(month: { Anio: number; Mes: number }): string {
+    return `${MONTHS[month.Mes - 1] ?? month.Mes} ${month.Anio}`;
+}
+
+/** Quita los meses a cero del principio: los doce meses empiezan antes de que se guardara nada. */
+export function withoutLeadingZeros(rows: StatRow[]): StatRow[] {
+    const first = rows.findIndex(row => row.value !== 0);
+    return first < 0 ? [] : rows.slice(first);
+}
+
 export function paceMonthRows(months: Array<{ Anio: number; Mes: number; Paginas: number | null }>): StatRow[] {
-    return months
+    return withoutLeadingZeros(months
         .filter(month => month.Paginas !== null)
-        .map(month => ({ label: `${month.Mes}/${month.Anio}`, value: month.Paginas as number }));
+        .map(month => ({ label: monthLabel(month), value: month.Paginas as number })));
 }
 
 export function paceWeekdayRows(pages: number[]): StatRow[] {

@@ -68,6 +68,8 @@ describe('WebBookStatisticsViewComponent', () => {
             finishedDate: null,
             startedDateLabel: 'Sin dato',
             readDateLabel: 'Lectura actual',
+            ratedDate: '2026-10-26T18:00:00+01:00',
+            reviewedDate: null,
             canAddPurchaseDate: true,
             isSavingPurchaseDate: false,
             mostFrequentCharacter: { Nombre: 'Iria', Apariciones: 4 },
@@ -86,10 +88,11 @@ describe('WebBookStatisticsViewComponent', () => {
         expect(fixture.componentInstance.progressOptions).toBeNull();
     });
 
-    it('marks the reached steps of the reading journey', () => {
+    it('marks the reached steps of the reading journey, also when it was rated and reviewed', () => {
         const steps = [...fixture.nativeElement.querySelectorAll('.journey li')] as HTMLElement[];
 
-        expect(steps.map(step => step.classList.contains('is-done'))).toEqual([false, true, false]);
+        expect(steps.map(step => step.classList.contains('is-done'))).toEqual([false, true, false, true, false]);
+        expect(steps[4].textContent).toContain('Sin dato');
     });
 
     it('saves a purchase date picked in the journey', () => {

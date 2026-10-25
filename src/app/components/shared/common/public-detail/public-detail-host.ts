@@ -21,6 +21,7 @@ import { ownedEditionIds, preferredEdition } from '../../../../shared/edition-se
 import { getLatestStatus, getLatestStatusName, readingStatusOptions } from '../../../../shared/reading-status';
 import { collectionStateRequests, CollectionStateValues } from '../../../../shared/collection-state';
 import { catalogEntryText } from '../../../../shared/catalog-entry';
+import { ratingEvolutionRows } from '../../../../shared/rating-history';
 import { PublicDetailController } from './public-detail.model';
 
 /**
@@ -335,6 +336,11 @@ export abstract class PublicDetailHost implements PublicDetailController {
 
     publicDetailStats(): CatalogPublicStats | null {
         return this.selectedPublicDetail?.Estadisticas ?? null;
+    }
+
+    /** La nota media de la obra al final de cada mes, solo los meses con dato (umbral de tres personas). */
+    publicDetailRatingEvolution(): Array<{ label: string; value: string }> {
+        return ratingEvolutionRows(this.publicDetailStats()?.EvolucionNota);
     }
 
     /** Ritmo de los lectores y días para terminar: la API los deja en null con menos de tres lectores que comparten. */

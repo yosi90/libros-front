@@ -175,8 +175,19 @@
               }
             </article>
           }
-          @if (stats.Popularidad || stats.ActividadAgregada || controller.publicDetailPaceRows().length > 0) {
+          @if (stats.Popularidad || stats.ActividadAgregada || controller.publicDetailPaceRows().length > 0 || controller.publicDetailRatingEvolution().length > 0) {
             <div class="public-detail-insights__stack">
+              @if (controller.publicDetailRatingEvolution().length > 0) {
+                <article>
+                  <h4><mat-icon>trending_up</mat-icon>Evolución de la nota</h4>
+                  @for (row of controller.publicDetailRatingEvolution(); track row.label) {
+                    <div class="distribution-row">
+                      <span>{{row.label}}</span>
+                      <strong>{{row.value}}</strong>
+                    </div>
+                  }
+                </article>
+              }
               @if (controller.publicDetailPaceRows().length > 0) {
                 <article>
                   <h4><mat-icon>speed</mat-icon>Ritmo de los lectores</h4>

@@ -27,6 +27,13 @@ import { getLatestStatusId, readingStatusOptions } from '../../shared/reading-st
 import { CollectionItem } from '../../interfaces/catalog';
 import { UniverseMetricsResponse } from '../../interfaces/universe';
 import { ReadingPaceUser } from '../../shared/reading-pace';
+import { RatingHistoryUser } from '../../shared/rating-history';
+
+/** Lo propio que sale de las métricas de la colección y tiene fecha. */
+export interface PersonalTrends {
+    RitmoLectura: ReadingPaceUser | null;
+    Valoraciones: RatingHistoryUser | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class StatisticsService {
@@ -76,7 +83,7 @@ export class StatisticsService {
                 historialLectura: tolerant(this.getReadingHistory(), [] as MonthlyCount[]),
                 promedioDiasCompraLectura: tolerant(this.getAverageReadingTime().pipe(map(metric => metric.promedio_dias)), null),
                 collectionItems: tolerant(this.collectionSrv.getItems(), [] as CollectionItem[]),
-                ritmoLectura: tolerant(this.getReadingPace(), null as ReadingPaceUser | null)
+                tendencias: tolerant(this.getPersonalTrends(), { RitmoLectura: null, Valoraciones: null } as PersonalTrends)
             };
 
             return forkJoin(requests).pipe(
@@ -94,7 +101,8 @@ export class StatisticsService {
                     PromedioDiasCompraLectura: results.promedioDiasCompraLectura,
                     DistribucionEstados: this.getReadingStatusDistribution(results.collectionItems),
                     Coleccion: results.collectionItems,
-                    RitmoLectura: results.ritmoLectura,
+                    RitmoLectura: results.tendencias.RitmoLectura,
+                    Valoraciones: results.tendencias.Valoraciones,
                     MetricasSolicitadas: Object.keys(requests).length,
                     MetricasNoDisponibles: failed
                 }))
@@ -152,9 +160,12 @@ export class StatisticsService {
         return this.http.get<MonthlyCount[]>(`${this.baseUrl}libros/historial_leidos`);
     }
 
-    /** El ritmo de lectura propio (`RitmoLectura` de las métricas de la colección). */
-    getReadingPace(): Observable<ReadingPaceUser | null> {
-        return this.http.get<UniverseMetricsResponse>(`${this.baseUrl}universos/metricas`).pipe(map(metrics => metrics.RitmoLectura ?? null));
+    /** El ritmo de lectura y las puntuaciones en el tiempo propios (`RitmoLectura` y `Valoraciones` de las métricas de la colección). */
+    getPersonalTrends(): Observable<PersonalTrends> {
+        return this.http.get<UniverseMetricsResponse>(`${this.baseUrl}universos/metricas`).pipe(map(metrics => ({
+            RitmoLectura: metrics.RitmoLectura ?? null,
+            Valoraciones: metrics.Valoraciones ?? null
+        })));
     }
 
     getAverageReadingTime() {

@@ -87,6 +87,14 @@
               <div><strong>{{row.value}}</strong><span>{{row.label}}</span></div>
             }
           </div>
+          @if (controller.publicDetailRatingEvolution(); as evolution) {
+            @if (evolution.length) {
+              <h3 class="web-eyebrow detail__subhead">Evolución de la nota</h3>
+              <dl class="detail__meta">
+                @for (row of evolution; track row.label) {<div><dt>{{row.label}}</dt><dd>{{row.value}}</dd></div>}
+              </dl>
+            }
+          }
         </section>
       }
 

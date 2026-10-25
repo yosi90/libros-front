@@ -2364,10 +2364,11 @@ components:
     CommunityStatisticsResponse:
       type: object
       additionalProperties: false
-      required: [UmbralPrivacidad, Resumen, EstilosMasLeidos, AutoresMasLeidos, IdiomasMasLeidos, SagasMasLeidas, UniversosMasLeidos, LibrosMasLeidos, MejorValorados, AntologiasMasLeidas, LecturasPorMes, ActividadComunidad30Dias, ClubesMasAmplios, ClubesMasActivos, Catalogo, RitmoComunidad]
+      required: [UmbralPrivacidad, Resumen, EstilosMasLeidos, AutoresMasLeidos, IdiomasMasLeidos, SagasMasLeidas, UniversosMasLeidos, LibrosMasLeidos, MejorValorados, AntologiasMasLeidas, LecturasPorMes, ActividadComunidad30Dias, ClubesMasAmplios, ClubesMasActivos, Catalogo, RitmoComunidad, ValoracionesComunidad]
       properties:
         UmbralPrivacidad: {type: integer, const: 3}
         RitmoComunidad: {$ref: '#/components/schemas/ReadingPaceCommunity'}
+        ValoracionesComunidad: {$ref: '#/components/schemas/RatingHistoryCommunity'}
         Catalogo:
           type: object
           additionalProperties: false
@@ -2470,6 +2471,19 @@ components:
         DiasMediosParaTerminar:
           type: [number, 'null']
           description: Días medios desde el último «En marcha» hasta «Leído» de quienes comparten. null con menos de tres.
+        EvolucionNota:
+          type: [array, 'null']
+          description: La nota media al final de cada uno de los últimos 12 meses, con las puntuaciones de antes de guardarse la fecha como punto de partida. null si ninguna puntuación tiene fecha.
+          minItems: 12
+          maxItems: 12
+          items:
+            type: object
+            required: [Anio, Mes, NotaMedia, Puntuaciones]
+            properties:
+              Anio: {type: integer}
+              Mes: {type: integer, minimum: 1, maximum: 12}
+              NotaMedia: {type: [number, 'null'], description: null con menos de tres puntuaciones hasta ese mes.}
+              Puntuaciones: {type: [integer, 'null'], minimum: 3}
         UsuariosEnBiblioteca:
           type: integer
         PuntuacionMedia:
@@ -3507,14 +3521,68 @@ components:
               Paginas: {type: [integer, 'null'], minimum: 0, description: null si ese mes leyeron una o dos personas; 0 si nadie.}
         RitmoMedio: {type: [number, 'null'], description: 'Páginas por día con lectura de los últimos 90 días, de media por persona.'}
         Lectores: {type: [integer, 'null'], minimum: 3}
+    RatingHistoryUser:
+      type: object
+      additionalProperties: false
+      description: Mis puntuaciones y reseñas por mes desde que se guarda cuándo se hacen (meses de Madrid). Cuenta la última vez que se cambió cada una.
+      required: [Desde, PorMes, NotaMedia]
+      properties:
+        Desde: {type: string, format: date}
+        PorMes:
+          type: array
+          minItems: 12
+          maxItems: 12
+          items:
+            type: object
+            required: [Anio, Mes, Puntuaciones, Resenas, NotaMedia]
+            properties:
+              Anio: {type: integer}
+              Mes: {type: integer, minimum: 1, maximum: 12}
+              Puntuaciones: {type: integer, minimum: 0}
+              Resenas: {type: integer, minimum: 0}
+              NotaMedia: {type: [number, 'null'], description: La media de las puntuaciones de ese mes; null si no hubo.}
+        NotaMedia: {type: [number, 'null'], description: La media de todas las puntuaciones con fecha.}
+    RatingHistoryCommunity:
+      type: object
+      additionalProperties: false
+      description: Puntuaciones y reseñas por mes de quienes comparten sus estadísticas. Un mes con una o dos personas sale en null (también la fecha); las reseñas ocultas por moderación no cuentan.
+      required: [Desde, PorMes]
+      properties:
+        Desde: {type: [string, 'null'], format: date}
+        PorMes:
+          type: array
+          minItems: 12
+          maxItems: 12
+          items:
+            type: object
+            required: [Anio, Mes, Puntuaciones, Resenas, NotaMedia]
+            properties:
+              Anio: {type: integer}
+              Mes: {type: integer, minimum: 1, maximum: 12}
+              Puntuaciones: {type: [integer, 'null'], minimum: 0}
+              Resenas: {type: [integer, 'null'], minimum: 0}
+              NotaMedia: {type: [number, 'null']}
+    RatingOwn:
+      type: object
+      additionalProperties: false
+      description: Mi puntuación de la obra y cuándo la puntué y la reseñé por última vez (hora de Madrid); null en lo de antes de guardarse.
+      required: [Puntuacion, FechaPuntuacion, FechaResena]
+      properties:
+        Puntuacion: {type: [integer, 'null'], minimum: 1, maximum: 5}
+        FechaPuntuacion: {type: [string, 'null'], format: date-time}
+        FechaResena: {type: [string, 'null'], format: date-time}
     UniverseMetricsResponse:
       type: object
       additionalProperties: false
-      required: [RitmoLectura, Resumen, ComprasUltimosMeses, LibroMasRapido, TopLibrosMasRapidos, LibroMasTiempoPendiente, PersonajeMasRecurrente, PorUniverso]
+      required: [RitmoLectura, Valoraciones, Resumen, ComprasUltimosMeses, LibroMasRapido, TopLibrosMasRapidos, LibroMasTiempoPendiente, PersonajeMasRecurrente, PorUniverso]
       properties:
         RitmoLectura:
           oneOf:
           - {$ref: '#/components/schemas/ReadingPaceUser'}
+          - {type: 'null'}
+        Valoraciones:
+          oneOf:
+          - {$ref: '#/components/schemas/RatingHistoryUser'}
           - {type: 'null'}
         Resumen: {$ref: '#/components/schemas/UniverseMetricsSummary'}
         ComprasUltimosMeses: {type: array, items: {$ref: '#/components/schemas/UniverseMonthlyPurchases'}}
@@ -3741,6 +3809,10 @@ components:
               Ritmo:
                 oneOf:
                 - {$ref: '#/components/schemas/ReadingPaceBook'}
+                - {type: 'null'}
+              Valoracion:
+                oneOf:
+                - {$ref: '#/components/schemas/RatingOwn'}
                 - {type: 'null'}
           Ediciones:
             type: array

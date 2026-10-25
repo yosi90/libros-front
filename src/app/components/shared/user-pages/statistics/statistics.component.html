@@ -154,6 +154,22 @@
         <article class="detail-panel"><h2><mat-icon>schedule</mat-icon>Tu ritmo aparecerá en cuanto registres capítulos</h2><p>Cada capítulo que anotes desde el {{ paceSince }} cuenta: rachas, páginas por día y a qué hora lees.</p></article>
       </section>
     }
+    <h2 class="stats-section"><mat-icon>hotel_class</mat-icon>Tus puntuaciones en el tiempo</h2>
+    <p class="stats-section-note">Cuenta la última vez que puntuaste o reseñaste cada obra. Se mide desde el {{ ratingSince }}.</p>
+    @if (ratingHistory; as history) {
+      <section class="metric-grid" aria-label="Resumen de tus puntuaciones">
+        <article class="metric-tile"><mat-icon>star_half</mat-icon><strong>{{ history.NotaMedia ?? '—' }}</strong><span>Tu nota media</span></article>
+        <article class="metric-tile"><mat-icon>rate_review</mat-icon><strong>{{ ratingReviews }}</strong><span>Reseñas en el último año</span></article>
+      </section>
+      <section class="details-grid">
+        <article class="detail-panel"><h2><mat-icon>calendar_month</mat-icon>Puntuaciones por mes</h2><app-stat-rows [rows]="ratingMonths" empty="Aún no hay meses con puntuaciones."></app-stat-rows></article>
+        <article class="detail-panel"><h2><mat-icon>star</mat-icon>Tu nota media por mes</h2><app-stat-rows [rows]="ratingAverages"></app-stat-rows></article>
+      </section>
+    } @else {
+      <section class="details-grid">
+        <article class="detail-panel"><h2><mat-icon>schedule</mat-icon>Tus puntuaciones aparecerán en cuanto puntúes o reseñes</h2><p>Cada puntuación y reseña desde el {{ ratingSince }} cuenta: por meses y tu nota media en el tiempo.</p></article>
+      </section>
+    }
     } @else {
       @if (generalLoading) {
         <div class="empty-state" role="status">Cargando el catálogo…</div>
@@ -185,6 +201,12 @@
           <section class="details-grid">
             @if (communityPaceMonths.length) {
               <article class="detail-panel"><h2><mat-icon>auto_stories</mat-icon>Páginas leídas por mes</h2><app-stat-rows [rows]="communityPaceMonths"></app-stat-rows></article>
+            }
+            @if (communityRatingMonths.length) {
+              <article class="detail-panel"><h2><mat-icon>hotel_class</mat-icon>Puntuaciones por mes</h2><app-stat-rows [rows]="communityRatingMonths"></app-stat-rows></article>
+            }
+            @if (communityRatingAverages.length) {
+              <article class="detail-panel"><h2><mat-icon>star</mat-icon>Nota media por mes</h2><app-stat-rows [rows]="communityRatingAverages"></app-stat-rows></article>
             }
             @if (communityMonthlyRows.length) {
               <article class="detail-panel"><h2><mat-icon>calendar_month</mat-icon>Lecturas por mes</h2><app-stat-rows [rows]="communityMonthlyRows"></app-stat-rows></article>

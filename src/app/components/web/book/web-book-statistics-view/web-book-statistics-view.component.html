@@ -29,6 +29,8 @@
           </li>
           <li [class.is-done]="!!c.startedDate"><span>Comenzado</span><strong [class.is-muted]="!c.startedDate">{{c.startedDate ? (c.startedDate | date:'d MMM y') : c.startedDateLabel}}</strong></li>
           <li [class.is-done]="!!c.finishedDate"><span>Leído</span><strong [class.is-muted]="!c.finishedDate">{{c.finishedDate ? (c.finishedDate | date:'d MMM y') : c.readDateLabel}}</strong></li>
+          <li [class.is-done]="!!c.ratedDate"><span>Puntuado</span><strong [class.is-muted]="!c.ratedDate">{{c.ratedDate ? (c.ratedDate | date:'d MMM y') : 'Sin dato'}}</strong></li>
+          <li [class.is-done]="!!c.reviewedDate"><span>Reseñado</span><strong [class.is-muted]="!c.reviewedDate">{{c.reviewedDate ? (c.reviewedDate | date:'d MMM y') : 'Sin dato'}}</strong></li>
         </ol>
       </section>
 

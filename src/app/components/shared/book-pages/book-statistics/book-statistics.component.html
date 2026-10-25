@@ -67,6 +67,16 @@
             <dt>Leído</dt>
             <dd>{{ finishedDate ? (finishedDate | date:'dd/MM/yyyy') : readDateLabel }}</dd>
           </div>
+          <hr class="info-separator">
+          <div>
+            <dt>Puntuado</dt>
+            <dd>{{ ratedDate ? (ratedDate | date:'dd/MM/yyyy') : 'Sin dato' }}</dd>
+          </div>
+          <hr class="info-separator">
+          <div>
+            <dt>Reseñado</dt>
+            <dd>{{ reviewedDate ? (reviewedDate | date:'dd/MM/yyyy') : 'Sin dato' }}</dd>
+          </div>
         </dl>
       </article>
       <article class="info-panel">

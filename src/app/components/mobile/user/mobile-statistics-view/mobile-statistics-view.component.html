@@ -45,6 +45,19 @@
     } @else {
     <section class="m-stats__panel m-card m-stats__soon"><h2><mat-icon>schedule</mat-icon>Tu ritmo aparecerá en cuanto registres capítulos</h2><p class="m-supporting">Cada capítulo que anotes desde el {{controller.paceSince}} cuenta: rachas, páginas por día y a qué hora lees.</p></section>
     }
+
+    <h2 class="m-stats__section"><mat-icon>hotel_class</mat-icon>Tus puntuaciones en el tiempo</h2>
+    <p class="m-supporting m-stats__section-note">Cuenta la última vez que puntuaste o reseñaste cada obra. Se mide desde el {{controller.ratingSince}}.</p>
+    @if (controller.ratingHistory; as history) {
+    <section class="m-stats__metrics" aria-label="Resumen de tus puntuaciones">
+        <article class="m-card"><mat-icon>star_half</mat-icon><strong>{{history.NotaMedia ?? '—'}}</strong><span>Tu nota media</span></article>
+        <article class="m-card"><mat-icon>rate_review</mat-icon><strong>{{controller.ratingReviews}}</strong><span>Reseñas en el año</span></article>
+    </section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>calendar_month</mat-icon>Puntuaciones por mes</h2><app-stat-rows [rows]="controller.ratingMonths" empty="Aún no hay meses con puntuaciones."></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>star</mat-icon>Tu nota media por mes</h2><app-stat-rows [rows]="controller.ratingAverages"></app-stat-rows></section>
+    } @else {
+    <section class="m-stats__panel m-card m-stats__soon"><h2><mat-icon>schedule</mat-icon>Tus puntuaciones aparecerán en cuanto puntúes o reseñes</h2><p class="m-supporting">Cada puntuación y reseña desde el {{controller.ratingSince}} cuenta: por meses y tu nota media en el tiempo.</p></section>
+    }
     }
     } @else {
     @if (controller.generalLoading) {
@@ -73,6 +86,12 @@
     </section>
     @if (controller.communityPaceMonths.length) {
     <section class="m-stats__panel m-card"><h2><mat-icon>auto_stories</mat-icon>Páginas leídas por mes</h2><app-stat-rows [rows]="controller.communityPaceMonths"></app-stat-rows></section>
+    }
+    @if (controller.communityRatingMonths.length) {
+    <section class="m-stats__panel m-card"><h2><mat-icon>hotel_class</mat-icon>Puntuaciones por mes</h2><app-stat-rows [rows]="controller.communityRatingMonths"></app-stat-rows></section>
+    }
+    @if (controller.communityRatingAverages.length) {
+    <section class="m-stats__panel m-card"><h2><mat-icon>star</mat-icon>Nota media por mes</h2><app-stat-rows [rows]="controller.communityRatingAverages"></app-stat-rows></section>
     }
     @if (controller.communityMonthlyRows.length) {
     <section class="m-stats__panel m-card"><h2><mat-icon>calendar_month</mat-icon>Lecturas por mes</h2><app-stat-rows [rows]="controller.communityMonthlyRows"></app-stat-rows></section>

@@ -203,6 +203,15 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
 
     readonly paceSince = READING_PACE_SINCE;
 
+    /** Cuándo la puntué y la reseñé por última vez (se guarda desde la F3); null en lo de antes. */
+    get ratedDate(): string | null {
+        return this.book.Metricas?.Valoracion?.FechaPuntuacion ?? null;
+    }
+
+    get reviewedDate(): string | null {
+        return this.book.Metricas?.Valoracion?.FechaResena ?? null;
+    }
+
     get canAddPurchaseDate(): boolean {
         return !!this.book.Id && !this.boughtDate;
     }

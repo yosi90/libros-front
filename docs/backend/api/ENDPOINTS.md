@@ -77,6 +77,10 @@ Este bloque es el contrato recomendado para las nuevas pantallas del front.
   - `GET /universos/metricas` trae `RitmoLectura` (`ReadingPaceUser`): páginas por mes, días con lectura, racha actual y mejor racha, páginas por día de la semana y por hora, y capítulos por semana. Es `null` sin capítulos fechados.
   - `GET /libros/{id}` trae `Metricas.Ritmo` (`ReadingPaceBook`): la curva, las páginas por día activo, el mejor día y la media propia para comparar. Es `null` sin capítulos fechados en esa obra.
   - `GET /estadisticas/comunidad` trae `RitmoComunidad`, y los detalles públicos traen `Estadisticas.RitmoLectores` y `Estadisticas.DiasMediosParaTerminar`. Todos son agregados de quienes comparten sus estadísticas, con el umbral de tres personas.
+- **Las puntuaciones y reseñas en el tiempo** (`utils/rating_history.py`). `usuario_libros` y `usuario_antologias` guardan desde el 2026-10-25 cuándo se puntuó y se reseñó por última vez; repetir la misma puntuación o el mismo texto no mueve la fecha, y borrar la reseña la deja en `null`. Lo de antes no tiene fecha.
+  - `GET /universos/metricas` trae `Valoraciones` (`RatingHistoryUser`): puntuaciones, reseñas y nota media de cada uno de los últimos 12 meses. Es `null` sin nada fechado.
+  - `GET /libros/{id}` trae `Metricas.Valoracion` (`RatingOwn`): mi puntuación y cuándo la puntué y la reseñé.
+  - `GET /estadisticas/comunidad` trae `ValoracionesComunidad` (`RatingHistoryCommunity`), y los detalles públicos, `Estadisticas.EvolucionNota`: la nota media de la obra al final de cada mes. Agregados de quienes comparten, con el umbral de tres personas; las reseñas ocultas no cuentan.
 - Usuarios normales no deben crear/editar catalogo directamente. Deben crear peticiones en `/peticiones/catalogo`.
 - Crear y editar el catalogo, resolver peticiones y moderar las denuncias de resenas y de clubes se hace desde el plugin de la administracion (`/admin/v1/*`), que solo usa el propietario. El rol `moderador` sigue existiendo, pero hoy no tiene donde moderar (decision 14 de la peticion de migracion).
 

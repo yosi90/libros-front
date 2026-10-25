@@ -3,6 +3,7 @@ import { Author } from "./author";
 import { BookSimple } from "./book";
 import { Saga } from "./saga";
 import type { ReadingPaceUser } from "../shared/reading-pace";
+import type { RatingHistoryUser } from "../shared/rating-history";
 
 export interface Universe {
     Id: number;
@@ -87,6 +88,7 @@ export interface UniverseMetricsBreakdown {
 export interface UniverseMetricsResponse extends UniverseMetricsBreakdown {
     /** El ritmo de lectura propio; null sin capítulos registrados desde que se guarda la fecha. */
     RitmoLectura?: ReadingPaceUser | null;
+    Valoraciones?: RatingHistoryUser | null;
     TopLibrosMasRapidos: UniverseFastestBook[];
     PorUniverso: Record<string, UniverseMetricsBreakdown>;
 }

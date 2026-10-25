@@ -5,6 +5,7 @@ import { SceneCharacterDetail } from "./scene";
 import { ReadingStatusId } from "./read-status";
 import { CollectionItem } from "./catalog";
 import type { ReadingPaceCommunity, ReadingPaceUser } from "../shared/reading-pace";
+import type { RatingHistoryCommunity, RatingHistoryUser } from "../shared/rating-history";
 
 export type MetricValue = number | string | null;
 export type MetricObject = Record<string, MetricValue>;
@@ -118,6 +119,8 @@ export interface GlobalStatisticsSnapshot {
     Coleccion: CollectionItem[];
     /** El ritmo de lectura propio; null sin capítulos registrados desde que se guarda la fecha. */
     RitmoLectura: ReadingPaceUser | null;
+    /** Mis puntuaciones y reseñas por mes; null hasta puntuar o reseñar algo desde que se guarda la fecha. */
+    Valoraciones: RatingHistoryUser | null;
     MetricasSolicitadas: number;
     MetricasNoDisponibles: number;
 }
@@ -292,6 +295,7 @@ export interface CommunityStatistics {
     Catalogo?: CommunityCatalogGrowth;
     /** El ritmo de quienes comparten sus estadísticas, con umbral. */
     RitmoComunidad?: ReadingPaceCommunity;
+    ValoracionesComunidad?: RatingHistoryCommunity;
 }
 
 export interface CommunityCatalogGrowth {
