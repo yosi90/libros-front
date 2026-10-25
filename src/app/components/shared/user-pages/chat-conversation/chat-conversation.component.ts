@@ -506,8 +506,8 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
 
     /** Por entorno y cuenta de Yosiftware: la posición de una cuenta nunca se aplica a otra. */
     private scrollStorageKey(): string | null {
-        const scope = this.session.storageScope;
-        return scope && this.conversationId ? `chat-scroll:${scope}:${this.conversationId}` : null;
+        const base = this.session.accountStorageKey('chat-scroll:');
+        return base && this.conversationId ? `${base}:${this.conversationId}` : null;
     }
 
     private clearTyping(): void {

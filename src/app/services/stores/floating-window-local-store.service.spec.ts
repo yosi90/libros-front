@@ -4,11 +4,15 @@ import { FloatingWindowLocalStoreService } from './floating-window-local-store.s
 
 describe('FloatingWindowLocalStoreService', () => {
     let service: FloatingWindowLocalStoreService;
-    let session: { userId: number; storageScope: string | null };
+    let session: { userId: number; storageScope: string | null; accountStorageKey(prefix: string): string | null };
 
     beforeEach(() => {
         localStorage.clear();
-        session = { userId: 1, storageScope: 'qa:cuenta-a' };
+        session = {
+            userId: 1,
+            storageScope: 'qa:cuenta-a',
+            accountStorageKey(prefix: string) { return this.storageScope ? `${prefix}${this.storageScope}` : null; }
+        };
         TestBed.configureTestingModule({ providers: [FloatingWindowLocalStoreService, { provide: PlatformSessionService, useValue: session }] });
         service = TestBed.inject(FloatingWindowLocalStoreService);
     });

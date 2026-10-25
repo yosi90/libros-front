@@ -29,10 +29,10 @@ export class FloatingWindowLocalStoreService {
     }
 
     private key(actorId: number, windowId: string): string {
-        const scope = this.session.storageScope;
-        if (!Number.isInteger(actorId) || actorId < 1 || actorId !== this.session.userId || !scope || !windowId.trim())
+        const base = this.session.accountStorageKey('book-front:floating-window:v2:');
+        if (!Number.isInteger(actorId) || actorId < 1 || actorId !== this.session.userId || !base || !windowId.trim())
             throw new Error('La persistencia flotante requiere la cuenta activa y una ventana válida.');
-        return `book-front:floating-window:v2:${scope}:${windowId.trim()}`;
+        return `${base}:${windowId.trim()}`;
     }
 
     private normalize(value: unknown): PersistedFloatingWindowState | null {
