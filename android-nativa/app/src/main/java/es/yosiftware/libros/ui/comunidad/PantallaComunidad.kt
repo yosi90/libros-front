@@ -1,5 +1,7 @@
 package es.yosiftware.libros.ui.comunidad
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -435,6 +437,7 @@ private fun CentroDeAcceso(comunidad: ComunidadViewModel, acceso: CentroDeAcceso
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TarjetaDeAcceso(comunidad: ComunidadViewModel, acceso: CentroDeAccesoViewModel, fila: FilaDeAcceso, ancha: Boolean) {
     val colores = LocalColores.current
@@ -465,7 +468,12 @@ private fun TarjetaDeAcceso(comunidad: ComunidadViewModel, acceso: CentroDeAcces
                 fila.caduca?.let { "Caduca el ${FechasDeClubes.dia(it)}" },
             ).joinToString(" · ") + if (fila.club.dosPasos) " · exige la verificación en dos pasos" else ""
             if (fechas.isNotBlank()) Text(fechas.removePrefix(" · "), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
+            // Los botones saltan de línea si no caben (en la rejilla de dos columnas, «Rechazar» se partía letra a letra).
+            FlowRow(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End),
+                verticalArrangement = Arrangement.spacedBy(Espacios.e2),
+            ) {
                 val anchoBoton = if (ancha) Modifier else Modifier.weight(1f)
                 if (acceso.direccion == DireccionDeAcceso.RECIBIDAS) {
                     Boton(acceso.textoDeAceptar, { acceso.aceptar(fila) }, anchoBoton, icono = Iconos.check, habilitado = !ocupada)

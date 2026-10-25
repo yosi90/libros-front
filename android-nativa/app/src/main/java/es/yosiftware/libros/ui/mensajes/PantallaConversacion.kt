@@ -1,5 +1,24 @@
 package es.yosiftware.libros.ui.mensajes
 
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Animatable
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,6 +57,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,15 +101,6 @@ import kotlinx.coroutines.delay
 // La conversación: mobile-chat-conversation-view.component.html con el controlador chat-conversation.component.ts y el
 // Sass de la APK de Capacitor (5dc3120). Rejilla de cinco filas: la app bar, la búsqueda, los mensajes (o la gestión del
 // grupo encima, que tapa también el campo), la franja de error o de solo lectura y el campo de escribir.
-
-/** Las cinco reacciones de Libros con su icono (`reactionOptions`): «Sorpresa» y «Triste» llevan los de la web. */
-private val ICONOS_DE_REACCION = mapOf(
-    TipoDeReaccion.ME_GUSTA to Iconos.favorite,
-    TipoDeReaccion.RISA to Iconos.sentimentVerySatisfied,
-    TipoDeReaccion.SORPRESA to Iconos.sentimentVeryDissatisfied,
-    TipoDeReaccion.TRISTE to Iconos.sentimentDissatisfied,
-    TipoDeReaccion.APOYO to Iconos.volunteerActivism,
-)
 
 @Composable
 fun PantallaConversacion(vm: ConversacionViewModel, volver: () -> Unit, resaltado: Long? = null) {
@@ -214,6 +225,25 @@ private fun ListaDeMensajes(vm: ConversacionViewModel, compacta: Boolean, resalt
     DisposableEffect(estado) {
         onDispose { vm.posicion = estado.firstVisibleItemIndex to estado.firstVisibleItemScrollOffset }
     }
+    // Lo que llega con la lista al final, la baja (la web no lo hacía: el mensaje nuevo se quedaba debajo, sin verse);
+    // si se está leyendo más arriba, no se mueve. Los «Mensajes anteriores» se añaden arriba y tampoco la mueven.
+    LaunchedEffect(estado) {
+        var antes: Pair<Int, Boolean>? = null
+        snapshotFlow {
+            val info = estado.layoutInfo
+            val ultimo = info.visibleItemsInfo.lastOrNull()
+            info.totalItemsCount to (ultimo == null || (ultimo.index >= info.totalItemsCount - 1 && ultimo.offset + ultimo.size <= info.viewportEndOffset + 8))
+        }.collect { ahora ->
+            val previo = antes
+            antes = ahora
+            if (previo != null && ahora.first > previo.first && previo.second && !ahora.second) estado.animateScrollToItem(ahora.first - 1)
+        }
+    }
+    // Lo que manda la persona, siempre a la vista.
+    val ultimo = visibles.lastOrNull()
+    LaunchedEffect(ultimo?.id) {
+        if (ultimo != null && ultimo.id < 0) estado.animateScrollToItem(estado.layoutInfo.totalItemsCount.coerceAtLeast(1) - 1)
+    }
     // El mensaje de un aviso, al centro.
     LaunchedEffect(resaltado, visibles.size) {
         val indice = visibles.indexOfFirst { it.id == resaltado }
@@ -255,8 +285,16 @@ private fun ListaDeMensajes(vm: ConversacionViewModel, compacta: Boolean, resalt
     }
 }
 
-/** `.m-message`: la burbuja, con su cabecera, la cita, el texto (o su edición) y el pie de acciones. */
-@OptIn(ExperimentalLayoutApi::class)
+/** Lo que se abre sobre un mensaje: sus reacciones (al tocarlo) o todas sus opciones (al mantenerlo pulsado). */
+private enum class MenuDelMensaje { REACCIONES, OPCIONES }
+
+/**
+ * Un mensaje, como en WhatsApp (lo pidió el propietario; la web ponía una fila de iconos bajo cada uno): tocarlo enseña
+ * las reacciones, mantenerlo pulsado enseña todas las opciones y deslizarlo a la derecha lo responde. Debajo, solo las
+ * reacciones que ya tiene. La burbuja se ajusta a lo que dice, hasta el ancho del Sass (`min(86 %, 620)`, 91 % en
+ * compacto); su forma, sus colores, la cabecera y la cita son los de `.m-message`.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Burbuja(vm: ConversacionViewModel, mensaje: MensajeDelChat, compacta: Boolean, resaltada: Boolean, ahora: Instant) {
     val colores = LocalColores.current
@@ -265,42 +303,193 @@ private fun Burbuja(vm: ConversacionViewModel, mensaje: MensajeDelChat, compacta
         propio -> RoundedCornerShape(Radios.md, Radios.md, 4.dp, Radios.md)
         else -> RoundedCornerShape(Radios.md, Radios.md, Radios.md, 4.dp)
     }
+    val tactil = LocalHapticFeedback.current
+    var menu by remember { mutableStateOf<MenuDelMensaje?>(null) }
+    val desplazamiento = remember { Animatable(0f) }
+    val alcance = rememberCoroutineScope()
+    val umbral = with(LocalDensity.current) { 64.dp.toPx() }
+    val interactivo = !mensaje.sistema && !mensaje.eliminado && mensaje.id > 0 && vm.editando != mensaje.id
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val ancho = if (compacta) maxWidth * 0.91f else min(maxWidth * 0.86f, 620.dp)
         val alineacion = when {
-            mensaje.sistema -> Alignment.Center
-            propio -> Alignment.CenterEnd
-            else -> Alignment.CenterStart
+            mensaje.sistema -> Alignment.CenterHorizontally
+            propio -> Alignment.End
+            else -> Alignment.Start
         }
-        Box(Modifier.fillMaxWidth(), contentAlignment = alineacion) {
-            Column(
-                Modifier.width(ancho)
-                    .then(if (resaltada) Modifier.drawBehind { contorno(colores.primario) } else Modifier)
-                    .sombra1(forma, colores)
-                    .clip(forma)
-                    .background(if (propio) colores.contenedorPrimario else colores.superficie)
-                    .then(
-                        when {
-                            propio -> Modifier
-                            mensaje.sistema -> Modifier.drawBehind { bordeDiscontinuo(colores.contorno) }
-                            else -> Modifier.border(1.dp, colores.contorno, forma)
-                        },
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = alineacion) {
+            Box {
+                // Al deslizar, la flecha de responder asoma por la izquierda.
+                if (desplazamiento.value > 0f) {
+                    Icon(
+                        painterResource(Iconos.reply), contentDescription = null,
+                        tint = colores.primario.copy(alpha = (desplazamiento.value / umbral).coerceIn(0f, 1f)),
+                        modifier = Modifier.align(Alignment.CenterStart).padding(start = Espacios.e2),
                     )
-                    .padding(Espacios.e3),
-                verticalArrangement = Arrangement.spacedBy(Espacios.e2),
+                }
+                // La burbuja y, montadas sobre su borde de abajo por el lado de dentro del chat, sus reacciones.
+                Column(Modifier.widthIn(max = ancho).offset { IntOffset(desplazamiento.value.roundToInt(), 0) }) {
+                    Column(
+                        Modifier.align(if (propio) Alignment.End else Alignment.Start)
+                            .then(if (resaltada) Modifier.drawBehind { contorno(colores.primario) } else Modifier)
+                            .sombra1(forma, colores)
+                            .clip(forma)
+                            .background(if (propio) colores.contenedorPrimario else colores.superficie)
+                            .then(
+                                when {
+                                    propio -> Modifier
+                                    mensaje.sistema -> Modifier.drawBehind { bordeDiscontinuo(colores.contorno) }
+                                    else -> Modifier.border(1.dp, colores.contorno, forma)
+                                },
+                            )
+                            .then(
+                                if (!interactivo) Modifier else Modifier
+                                    .combinedClickable(
+                                        onClickLabel = "Reaccionar",
+                                        onLongClickLabel = "Más opciones",
+                                        onClick = { if (mensaje.permisos.reaccionar) menu = MenuDelMensaje.REACCIONES },
+                                        onLongClick = {
+                                            tactil.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menu = MenuDelMensaje.OPCIONES
+                                        },
+                                    )
+                                    .pointerInput(mensaje.id, mensaje.permisos.responder) {
+                                        if (!mensaje.permisos.responder) return@pointerInput
+                                        var avisado = false
+                                        detectHorizontalDragGestures(
+                                            onDragEnd = {
+                                                if (desplazamiento.value >= umbral) vm.responder(mensaje)
+                                                avisado = false
+                                                alcance.launch { desplazamiento.animateTo(0f, spring()) }
+                                            },
+                                            onDragCancel = { alcance.launch { desplazamiento.animateTo(0f, spring()) } },
+                                        ) { cambio, arrastre ->
+                                            cambio.consume()
+                                            val nuevo = (desplazamiento.value + arrastre).coerceIn(0f, umbral * 1.4f)
+                                            if (!avisado && nuevo >= umbral) {
+                                                avisado = true
+                                                tactil.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            }
+                                            alcance.launch { desplazamiento.snapTo(nuevo) }
+                                        }
+                                    },
+                            )
+                            .padding(Espacios.e3),
+                        verticalArrangement = Arrangement.spacedBy(Espacios.e2),
+                    ) {
+                        Text(TextosDelChat.cabecera(mensaje), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.66)))
+                        if (mensaje.eliminado) {
+                            Text("Mensaje eliminado", color = colores.tinta, style = Textos.cuerpo.copy(fontStyle = FontStyle.Italic))
+                        } else {
+                            mensaje.respondido?.let { Cita(TextosDelChat.textoDeCita(it)) }
+                            if (vm.editando == mensaje.id) Edicion(vm, mensaje) else Text(mensaje.texto, color = colores.tinta, style = Textos.cuerpo)
+                        }
+                    }
+                    if (!mensaje.eliminado) {
+                        ReaccionesDelMensaje(vm, mensaje, Modifier.align(if (propio) Alignment.Start else Alignment.End))
+                    }
+                }
+                menu?.let { abierto ->
+                    MenuSobreElMensaje(vm, mensaje, abierto, ahora) { menu = null }
+                }
+            }
+            if (mensaje.envio == EstadoDeEnvio.FALLIDO) {
+                Box(
+                    Modifier.heightIn(min = 40.dp).clickable(role = Role.Button) { vm.reintentar(mensaje) }.padding(horizontal = Espacios.e2),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("Reintentar", color = colores.error, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, lineHeight = rem(0.72)))
+                }
+            }
+        }
+    }
+}
+
+/** Las cinco reacciones de Libros, en emoji, como la barra de WhatsApp; la mía, marcada. */
+@Composable
+private fun BarraDeReacciones(vm: ConversacionViewModel, mensaje: MensajeDelChat, alElegir: () -> Unit) {
+    val colores = LocalColores.current
+    Row(Modifier.padding(horizontal = Espacios.e2), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        TipoDeReaccion.entries.forEach { tipo ->
+            val mia = mensaje.reacciones.mia == tipo
+            Box(
+                Modifier.size(44.dp).clip(CircleShape)
+                    .background(if (mia) colores.contenedorPrimario else Color.Transparent)
+                    .clickable(role = Role.Button, onClickLabel = tipo.etiqueta) {
+                        vm.reaccionar(mensaje, tipo.emoji)
+                        alElegir()
+                    },
+                contentAlignment = Alignment.Center,
             ) {
-                Text(TextosDelChat.cabecera(mensaje), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.66)))
-                if (mensaje.eliminado) {
-                    Text("Mensaje eliminado", color = colores.tinta, style = Textos.cuerpo.copy(fontStyle = FontStyle.Italic))
-                    return@Column
-                }
-                mensaje.respondido?.let { Cita(TextosDelChat.textoDeCita(it)) }
-                if (vm.editando == mensaje.id) {
-                    Edicion(vm, mensaje)
-                } else {
-                    Text(mensaje.texto, color = colores.tinta, style = Textos.cuerpo)
-                }
-                Pie(vm, mensaje, ahora)
+                Text(tipo.emoji, style = Textos.cuerpo.copy(fontSize = rem(1.4)))
+            }
+        }
+    }
+}
+
+/** El menú de un mensaje: las reacciones y, al mantenerlo pulsado, también responder, copiar, editar, borrar o denunciar. */
+@Composable
+private fun MenuSobreElMensaje(vm: ConversacionViewModel, mensaje: MensajeDelChat, modo: MenuDelMensaje, ahora: Instant, alCerrar: () -> Unit) {
+    val colores = LocalColores.current
+    val portapapeles = LocalClipboardManager.current
+    val permisos = mensaje.permisos
+    DropdownMenu(expanded = true, onDismissRequest = alCerrar, containerColor = colores.superficie, shape = RoundedCornerShape(Radios.md)) {
+        if (permisos.reaccionar) BarraDeReacciones(vm, mensaje, alCerrar)
+        if (modo == MenuDelMensaje.OPCIONES) {
+            val opcion: @Composable (Int, String, Color, () -> Unit) -> Unit = { icono, texto, color, accion ->
+                DropdownMenuItem(
+                    text = { Text(texto, color = color, style = Textos.cuerpo) },
+                    leadingIcon = { Icon(painterResource(icono), contentDescription = null, tint = color) },
+                    onClick = {
+                        alCerrar()
+                        accion()
+                    },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                )
+            }
+            if (permisos.responder) opcion(Iconos.reply, "Responder", colores.tinta) { vm.responder(mensaje) }
+            if (mensaje.texto.isNotBlank()) opcion(Iconos.contentCopy, "Copiar", colores.tinta) { portapapeles.setText(AnnotatedString(mensaje.texto)) }
+            if (vm.puedeEditar(mensaje, ahora)) opcion(Iconos.edit, "Editar", colores.tinta) { vm.empezarAEditar(mensaje) }
+            if (permisos.denunciar) opcion(Iconos.flag, "Denunciar", colores.tinta) { vm.pedirDenuncia(mensaje) }
+            if (permisos.borrar) opcion(Iconos.deleteOutline, "Borrar", colores.error) { vm.pedirBorrar(mensaje) }
+        }
+    }
+}
+
+/**
+ * Como en WhatsApp: solo las reacciones que tiene, con cuántas, montadas sobre el borde de abajo de la burbuja
+ * (invaden 10 dp del mensaje y no dejan hueco debajo); tocar una pone o quita la mía.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ReaccionesDelMensaje(vm: ConversacionViewModel, mensaje: MensajeDelChat, modifier: Modifier = Modifier) {
+    val colores = LocalColores.current
+    val todas = TipoDeReaccion.entries.mapNotNull { tipo -> (mensaje.reacciones.porTipo[tipo] ?: 0).takeIf { it > 0 }?.let { tipo.emoji to it } } +
+        mensaje.reacciones.otras
+    if (todas.isEmpty()) return
+    FlowRow(
+        modifier
+            .layout { medible, restricciones ->
+                val pieza = medible.measure(restricciones)
+                val solape = 10.dp.roundToPx()
+                layout(pieza.width, (pieza.height - solape).coerceAtLeast(0)) { pieza.place(0, -solape) }
+            }
+            .padding(horizontal = Espacios.e3),
+        horizontalArrangement = Arrangement.spacedBy(Espacios.e1),
+    ) {
+        todas.forEach { (emoji, cuantas) ->
+            val mia = vm.esMiEmoji(mensaje, emoji)
+            val forma = RoundedCornerShape(50)
+            Row(
+                Modifier.heightIn(min = 24.dp).clip(forma)
+                    .background(if (mia) colores.contenedorPrimario else colores.superficie)
+                    .border(1.dp, if (mia) colores.primario else colores.contorno, forma)
+                    .clickable(enabled = mensaje.permisos.reaccionar, role = Role.Button, onClickLabel = "Reacción $emoji") { vm.reaccionar(mensaje, emoji) }
+                    .padding(horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(emoji, style = Textos.cuerpo.copy(fontSize = rem(0.78), lineHeight = rem(0.9)))
+                if (cuantas > 1) Text("$cuantas", color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.66), lineHeight = rem(0.8)))
             }
         }
     }
@@ -350,85 +539,6 @@ private fun Edicion(vm: ConversacionViewModel, mensaje: MensajeDelChat) {
             Boton("Cancelar", vm::cancelarEdicion, variante = VarianteDeBoton.Contorno)
             Boton("Guardar", { vm.guardarEdicion(mensaje) }, habilitado = vm.textoDeEdicion.isNotBlank() && !vm.guardandoEdicion)
         }
-    }
-}
-
-/** El pie (`footer`): responder, las reacciones, denunciar, reintentar, editar y borrar, en ese orden. */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun Pie(vm: ConversacionViewModel, mensaje: MensajeDelChat, ahora: Instant) {
-    val colores = LocalColores.current
-    val permisos = mensaje.permisos
-    val fallido = mensaje.envio == EstadoDeEnvio.FALLIDO
-    val editar = vm.puedeEditar(mensaje, ahora)
-    FlowRow(
-        Modifier.fillMaxWidth()
-            .drawBehind { drawLine(colores.contorno, Offset(0f, 0.5f), Offset(size.width, 0.5f), 1.dp.toPx()) }
-            .padding(top = Espacios.e1 + 1.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        if (permisos.responder) BotonPequeno(Iconos.reply, "Responder") { vm.responder(mensaje) }
-        if (permisos.reaccionar) {
-            TipoDeReaccion.entries.forEach { tipo ->
-                Reaccion(
-                    activa = mensaje.reacciones.mia == tipo, descripcion = tipo.etiqueta, habilitada = true,
-                    alPulsar = { vm.reaccionar(mensaje, tipo.emoji) }, cuantas = mensaje.reacciones.porTipo[tipo] ?: 0, icono = ICONOS_DE_REACCION.getValue(tipo),
-                )
-            }
-        }
-        mensaje.reacciones.otras.forEach { (emoji, total) ->
-            Reaccion(
-                activa = vm.esMiEmoji(mensaje, emoji), descripcion = "Reacción $emoji", habilitada = permisos.reaccionar,
-                alPulsar = { vm.reaccionar(mensaje, emoji) }, cuantas = total, emoji = emoji,
-            )
-        }
-        if (permisos.denunciar) BotonPequeno(Iconos.flag, "Denunciar mensaje") { vm.pedirDenuncia(mensaje) }
-        if (fallido) {
-            Box(
-                Modifier.heightIn(min = 40.dp).clickable(role = Role.Button) { vm.reintentar(mensaje) }.padding(horizontal = Espacios.e2),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("Reintentar", color = colores.error, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, lineHeight = rem(0.72)))
-            }
-        }
-        if (editar) BotonPequeno(Iconos.edit, "Editar") { vm.empezarAEditar(mensaje) }
-        if (permisos.borrar) BotonPequeno(Iconos.deleteOutline, "Borrar", colores.error) { vm.pedirBorrar(mensaje) }
-    }
-}
-
-/** `.m-icon-button` del pie: 40 dp. */
-@Composable
-private fun BotonPequeno(@DrawableRes icono: Int, descripcion: String, color: Color = LocalColores.current.tinta, alPulsar: () -> Unit) {
-    Box(Modifier.size(40.dp).clip(CircleShape).clickable(role = Role.Button, onClick = alPulsar), contentAlignment = Alignment.Center) {
-        Icon(painterResource(icono), contentDescription = descripcion, tint = color, modifier = Modifier.size(24.dp))
-    }
-}
-
-/** `.m-message__reaction`: la píldora de 40 dp con el icono (o el emoji) y el total; la mía, en el primario. */
-@Composable
-private fun Reaccion(
-    activa: Boolean,
-    descripcion: String,
-    habilitada: Boolean,
-    alPulsar: () -> Unit,
-    cuantas: Int,
-    @DrawableRes icono: Int? = null,
-    emoji: String? = null,
-) {
-    val colores = LocalColores.current
-    val tinta = if (activa) colores.primario else colores.tintaSuave
-    Row(
-        Modifier.widthIn(min = 40.dp).heightIn(min = 40.dp).clip(RoundedCornerShape(50))
-            .background(if (activa) colores.contenedorPrimario else Color.Transparent)
-            .clickable(enabled = habilitada, role = Role.Button, onClickLabel = descripcion, onClick = alPulsar)
-            .padding(horizontal = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally),
-    ) {
-        if (icono != null) Icon(painterResource(icono), contentDescription = descripcion, tint = tinta, modifier = Modifier.size(20.dp))
-        if (emoji != null) Text(emoji, style = Textos.cuerpo)
-        if (cuantas > 0) Text("$cuantas", color = tinta, style = Textos.cuerpo.copy(fontSize = rem(0.66)))
     }
 }
 

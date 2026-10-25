@@ -41,6 +41,7 @@ object Iconos {
     @DrawableRes val chevronRight = R.drawable.mi_chevron_right
     @DrawableRes val addComment = R.drawable.mi_add_comment
     @DrawableRes val reply = R.drawable.mi_reply
+    @DrawableRes val contentCopy = R.drawable.mi_content_copy
     @DrawableRes val sentimentVerySatisfied = R.drawable.mi_sentiment_very_satisfied
     @DrawableRes val sentimentVeryDissatisfied = R.drawable.mi_sentiment_very_dissatisfied
     @DrawableRes val sentimentDissatisfied = R.drawable.mi_sentiment_dissatisfied
