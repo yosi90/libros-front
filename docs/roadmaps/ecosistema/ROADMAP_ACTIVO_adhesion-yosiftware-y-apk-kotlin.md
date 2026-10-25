@@ -203,7 +203,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - [x] Limpieza A → B → A probada.
 - [x] Unido en `main` (`2ef421a`, 2026-10-24). La plataforma dio de alta los paquetes, las huellas y el cliente OAuth (petición de migración); con los `google-services` de `.runtime/plataforma/`, el selector de Google se abre en el Xiaomi sin `DEVELOPER_ERROR`. Hay una pantalla por cada estado de la librería con el aspecto de las públicas de Capacitor, sin teléfono; el panel de cuentas se abre desde «Más › Cuenta» y el avatar del rail sigue llevando a Perfil, como en Capacitor. 127 pruebas JVM, entre ellas 8 de limpieza al cambiar de cuenta: A → B → A, salir, revocación, sin conexión y respuesta tardía. Capturas de las pantallas nuevas en `referencias-apk-capacitor\_kotlin\cuenta\`.
 - [ ] Que el propietario entre en QA (contraseña o Google) con la APK Kotlin del Xiaomi, cuando la API de QA acepte los tokens de la plataforma (ya lo hace en la rama de la adhesión).
-- [ ] Perfil de la plataforma (`/v1/perfil`) y avatar con cámara o galería: pasan al hito 11, con el resto del Perfil.
+- [x] Perfil de la plataforma (`/v1/perfil`) y avatar con cámara o galería: pasan al hito 11, con el resto del Perfil. Resuelto allí: se editan en la web social, como en la web.
 
 ### Hito 7. APK Kotlin: datos y red
 
@@ -353,7 +353,10 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 
 - [ ] Clubes con espacios.
 - [ ] Actividad (según decisión).
-- [ ] Perfil, Mis peticiones y Mis reportes.
+- [ ] Perfil, Mis peticiones y Mis reportes. Hecho, pendiente de compararlo en el Honor con las capturas (`MuestrasDePerfil`: `resumen`, `perfil`, `peticiones`, `reportes` y sus vacías).
+  - El perfil de Yosiftware (nombre, alias y avatar) se edita en la web social (`?vista=perfil`), como ofrece el kit: la librería no tiene `editarPerfil()` y una pantalla propia con `/v1/perfil` duplicaría la de la plataforma. Al volver a la app se relee el perfil. Así queda resuelto el punto del hito 6 sobre `/v1/perfil` y el avatar.
+  - Fallos de la web corregidos en los dos (front `7958a9e`): reenviar las peticiones «otro» (la API solo admite `Texto` y `Titulo`), el doble envío de «Reenviar» y las antologías de «Actividad reciente», que llevaban a una ruta inexistente; en la APK, una antología se abre en la Biblioteca.
+  - Mejora sobre la web: un fallo de carga se dice como tal, no como «Aún no has enviado peticiones.».
 - [ ] Preferencias y permisos.
 
 ### Hito 12. APK Kotlin: push, avisos, chat y actualizaciones

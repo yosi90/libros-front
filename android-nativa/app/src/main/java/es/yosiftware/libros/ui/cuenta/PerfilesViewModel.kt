@@ -57,6 +57,17 @@ class PerfilesViewModel(
         return perfil.avatar
     }
 
+    /**
+     * Vuelve a leer el perfil de [id], al volver de editarlo en la web social (como la web relee `yosiftware.perfil()`
+     * tras `editarPerfil()`). El de antes se sigue viendo hasta que llega el nuevo.
+     */
+    fun releer(id: String?) {
+        val fuente = fuente ?: return
+        if (id == null || ambito.identidad.value == null) return
+        pedidos += id
+        cargar({ fuente.perfil(id) }) { perfil -> perfiles = perfiles + (id to perfil) }
+    }
+
     override fun alCambiarDeCuenta(identidad: Identidad?) {
         perfiles = emptyMap()
         pedidos.clear()

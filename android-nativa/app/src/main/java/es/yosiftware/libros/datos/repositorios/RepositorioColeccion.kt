@@ -3,6 +3,7 @@ package es.yosiftware.libros.datos.repositorios
 import es.yosiftware.libros.datos.json.json
 import es.yosiftware.libros.datos.json.nulo
 import es.yosiftware.libros.datos.json.objeto
+import es.yosiftware.libros.datos.modelos.ActividadReciente
 import es.yosiftware.libros.datos.modelos.ContextoDeSeccion
 import es.yosiftware.libros.datos.modelos.EdicionesDeObra
 import es.yosiftware.libros.datos.modelos.EstadoDeLectura
@@ -24,6 +25,10 @@ data class EstadoAGuardar(val estadoId: Int, val fecha: String? = null, val publ
  * de cada libro o antología (ediciones, estados, puntuación y reseña), y de cada sección de una antología.
  */
 class RepositorioColeccion(private val api: ClienteLibros) {
+    /** Los últimos movimientos de la colección, para el Perfil (`limit` de 1 a 50). */
+    suspend fun actividadReciente(limite: Int = 4): List<ActividadReciente> =
+        api.get("biblioteca/actividad_reciente", mapOf("limit" to limite)).lista(ActividadReciente::de)
+
     /** Las obras de la colección; con [tipo] (`libro` o `antologia`), solo las de ese tipo. */
     suspend fun obras(tipo: String? = null): List<Obra> = api.get("coleccion/items", mapOf("tipo" to tipo)).lista(Obra::de)
 

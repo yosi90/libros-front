@@ -44,3 +44,33 @@ data class ContextoDeSeccion(
         )
     }
 }
+
+/**
+ * El último movimiento de una obra de la colección (`RecentLibraryActivity`, `GET /biblioteca/actividad_reciente`): su
+ * último estado, de lo más reciente a lo más antiguo. El Perfil enseña los cuatro últimos.
+ */
+data class ActividadReciente(
+    /** `libro` o `antologia`. */
+    val tipo: String,
+    val id: Int,
+    val nombre: String,
+    val autores: List<Autor>,
+    val portada: String?,
+    val estado: EstadoDeLectura?,
+) {
+    val esAntologia: Boolean get() = tipo == Obra.ANTOLOGIA
+
+    /** La obra, para abrirla: el libro en su pantalla y la antología en la Biblioteca. */
+    fun comoObra(): Obra = Obra(tipo, id, nombre, portada, autores, listOfNotNull(estado))
+
+    companion object {
+        fun de(json: JSONObject) = ActividadReciente(
+            tipo = json.texto("Tipo").orEmpty(),
+            id = json.entero("Id") ?: 0,
+            nombre = json.texto("Nombre").orEmpty(),
+            autores = json.lista("Autores", Autor::de),
+            portada = json.texto("Portada"),
+            estado = json.objeto("Estado")?.let(EstadoDeLectura::de),
+        )
+    }
+}

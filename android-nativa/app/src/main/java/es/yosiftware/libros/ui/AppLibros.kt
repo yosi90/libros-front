@@ -38,6 +38,13 @@ import es.yosiftware.libros.ui.libro.Elemento
 import es.yosiftware.libros.ui.libro.IslaDelLector
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
+import es.yosiftware.libros.ui.perfil.FuenteDelPerfil
+import es.yosiftware.libros.ui.perfil.IdentidadDelPerfil
+import es.yosiftware.libros.ui.perfil.PantallaPerfil
+import es.yosiftware.libros.ui.perfil.Perfil
+import es.yosiftware.libros.ui.perfil.PerfilViewModel
+import es.yosiftware.libros.cuenta.Enlaces
+import androidx.compose.ui.platform.LocalContext
 import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
 import es.yosiftware.libros.ui.componentes.Avisos
 import es.yosiftware.libros.ui.componentes.LocalAvisos
@@ -101,6 +108,13 @@ fun AppLibros(app: LibrosApp) {
     }
     val estadisticas: EstadisticasViewModel = viewModel {
         EstadisticasViewModel(app.datos.ambito, app.datos.estadisticas, app.datos.catalogo)
+    }
+    val perfil: PerfilViewModel = viewModel {
+        PerfilViewModel(
+            app.datos.ambito,
+            FuenteDelPerfil.DeLosRepositorios(app.datos.coleccion, app.datos.estadisticas, app.datos.peticiones, app.datos.reportes),
+            avisos,
+        )
     }
     catalogo.alVerEnBiblioteca = { obra ->
         nav.irA(Destino.Biblioteca)
@@ -177,6 +191,32 @@ fun AppLibros(app: LibrosApp) {
                                     )
                                     Destino.Catalogo -> PantallaCatalogo(catalogo)
                                     Destino.Estadisticas -> PantallaEstadisticas(estadisticas)
+                                    Destino.Perfil -> {
+                                        val contexto = LocalContext.current
+                                        PantallaPerfil(
+                                            vm = perfil,
+                                            identidad = IdentidadDelPerfil(perfiles.nombre(activaId, alias), alias, perfiles.avatar(activaId)),
+                                            recuentos = Perfil.recuentos(biblioteca.universos),
+                                            // Un libro se abre en su pantalla; una antología, en la Biblioteca (no tiene pantalla propia).
+                                            alAbrirActividad = { actividad ->
+                                                val obra = Perfil.obraDe(actividad, biblioteca.universos)
+                                                if (obra.esAntologia) {
+                                                    nav.irA(Destino.Biblioteca)
+                                                    biblioteca.abrirAntologia(obra)
+                                                } else {
+                                                    abrirLibro(obra)
+                                                }
+                                            },
+                                            // El perfil de Yosiftware se edita en la web social: la librería no tiene `editarPerfil()`.
+                                            alEditarPerfil = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("perfil")) } },
+                                            alVerPerfilEnLaWeb = {
+                                                acceso?.let { sesion ->
+                                                    Enlaces.abrir(contexto, activaId?.let { Perfil.direccionDelPerfil(sesion.direccionWebSocial(), it) } ?: sesion.direccionWebSocial("perfil"))
+                                                }
+                                            },
+                                            alVolverDeEditar = { perfiles.releer(activaId) },
+                                        )
+                                    }
                                     else -> PantallaVacia(destino)
                                 }
                             },

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Solo en las compilaciones de depuración: las muestras de las pantallas de la cuenta (MuestrasDeCuenta.kt), de la
-  Biblioteca (MuestrasDeBiblioteca.kt), del Catálogo (MuestrasDeCatalogo.kt), de las Estadísticas (MuestrasDeEstadisticas.kt) del libro
+  Biblioteca (MuestrasDeBiblioteca.kt), del Catálogo (MuestrasDeCatalogo.kt), de las Estadísticas (MuestrasDeEstadisticas.kt), del Perfil (MuestrasDePerfil.kt), del libro
   (MuestrasDeLibro.kt) y del editor del texto narrativo (MuestrasDeEditor.kt), para capturarlas por ADB sin entrar. Exportada para `adb shell am start`; no existe en las de publicación.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -34,6 +34,12 @@
             tools:ignore="ExportedActivity" />
         <activity
             android:name=".MuestrasDeEditor"
+            android:exported="true"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="ExportedActivity" />
+        <activity
+            android:name=".MuestrasDePerfil"
             android:exported="true"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustResize"
