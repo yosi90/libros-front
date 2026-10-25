@@ -1674,11 +1674,11 @@ components:
           BloquesFallidos: {type: array, items: {type: string}}
           Resumen:
             type: object
-            required: [Relaciones, Clubes, Mensajes]
+            additionalProperties: false
+            description: Solo los clubes. Las relaciones, los mensajes y las invitaciones pendientes a clubes son de la plataforma (estas, `GET /v1/espacios/invitaciones` con el token de la persona).
+            required: [Clubes]
             properties:
-              Relaciones: {type: object, required: [Amistades, SolicitudesRecibidasPendientes, Seguidores, Seguidos], properties: {Amistades: {type: integer, minimum: 0}, SolicitudesRecibidasPendientes: {type: integer, minimum: 0}, Seguidores: {type: integer, minimum: 0}, Seguidos: {type: integer, minimum: 0}}}
-              Clubes: {type: object, required: [Activos, InvitacionesPendientes], properties: {Activos: {type: integer, minimum: 0}, InvitacionesPendientes: {type: integer, minimum: 0}}}
-              Mensajes: {type: object, required: [NoLeidos, NoLeidosHumanos, NoLeidosSistema], properties: {NoLeidos: {type: integer, minimum: 0}, NoLeidosHumanos: {type: integer, minimum: 0}, NoLeidosSistema: {type: integer, minimum: 0}}}
+              Clubes: {type: object, additionalProperties: false, required: [Activos], properties: {Activos: {type: integer, minimum: 0, description: Clubes no borrados en los que la persona es miembro activo.}}}
     AdminUser:
       type: object
       additionalProperties: false

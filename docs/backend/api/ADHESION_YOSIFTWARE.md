@@ -53,7 +53,7 @@ Roadmap: `docs/roadmaps/ACTIVO_adhesion-yosiftware/ROADMAP_ACTIVO_adhesion_yosif
 
 - `GET /runtime-config` solo devuelve `Environment` y `QaDatasetVersion` (fuera `Firebase` y `RealtimeWsUrl`).
 - `GET /verify` solo lista `api`, `sqlServer` y `plataformaFeedWorker`.
-- `GET /comunidad/resumen` solo trae `Resumen.Clubes`; `GET /comunidad/capacidades`, solo `feed` y `clubes`.
+- `GET /comunidad/resumen` solo trae `Resumen.Clubes.Activos`; `GET /comunidad/capacidades`, solo `feed` y `clubes`. **Nota para el frontend:** `Resumen.Clubes.InvitacionesPendientes` desaparece (contaba la tabla archivada `club_invitaciones`, que ya no se escribe, así que siempre daba 0 o una cifra antigua). Las invitaciones pendientes de la persona en Libros las da la plataforma: `GET /v1/espacios/invitaciones` con el token de la plataforma, o `yosiftware.espacios.invitaciones()` (`.length`). La plataforma no tiene ruta de servicio que las cuente sin ese token.
 - `GET /clubes-lectura/{id}`: `Metricas` pierde `Mensajes`; gana `EspacioId` y `ConversacionId`. Todos los clubes traen `EspacioId`; `EstadoMembresia` ya no vale `solicitud_pendiente` y `GET /clubes-lectura/resumen` ya no trae `BandejasAcceso` (fase 4).
 - Los listados de clubes, debates y estadísticas ya no filtran por bloqueos (son de la plataforma).
 - `PublicarActividad` en `/coleccion/{libros|antologias}/{id}/estado`, `/puntuacion` y `/resena`: `false` no publica la novedad de ese cambio; `true`, `null` u omitido la publican y decide la plataforma con los ajustes de la persona.

@@ -788,7 +788,7 @@ La gestión de cuentas (estado, intentos de teléfono, ficha de cuenta con incid
 
 El chat propio de Libros (directos, grupos, invitaciones a grupos, mensajes, reacciones, respuestas, el archivo de sistema, la conversación de cada club, las ventanas flotantes y los tickets de WebSocket) se retiró con la adhesión a Yosiftware: la web usa el chat de la plataforma pintado por Libros (`ecosistema-kit/CHAT.md`, rutas `/v1/chat/…`). La conversación de cada club es la conversación de su espacio (`ConversacionId` en el detalle del club; fase 4). Rutas retiradas y recambios: `RUTAS_RETIRADAS.md`.
 
-`GET /comunidad/resumen` devuelve los contadores privados de clubes (`Resumen.Clubes`) de la portada social; ya no incluye relaciones ni mensajes.
+`GET /comunidad/resumen` devuelve el contador privado de clubes de la portada social: `Resumen.Clubes.Activos` (clubes no borrados en los que la persona es miembro activo). Ya no incluye relaciones, mensajes ni `Resumen.Clubes.InvitacionesPendientes`: las invitaciones son de la plataforma desde la fase 4 y la web las cuenta con `GET /v1/espacios/invitaciones` (o `yosiftware.espacios.invitaciones()`) y el token de la persona.
 
 ### Notificaciones
 
