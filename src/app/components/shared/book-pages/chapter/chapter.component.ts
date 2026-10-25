@@ -164,6 +164,21 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
     get mobileController(): this { return this; }
 
+    /**
+     * Al pasar a segundo plano o cerrarse (en el móvil, la app se puede matar sin más aviso): lo escrito se aparta en
+     * el dispositivo al momento y se envía sin esperar a la pausa del autoguardado.
+     */
+    @HostListener('document:visibilitychange')
+    onVisibilityChange(): void {
+        if (document.visibilityState === 'hidden')
+            this.flushBeforeLeaving();
+    }
+
+    @HostListener('window:pagehide')
+    onPageHide(): void {
+        this.flushBeforeLeaving();
+    }
+
     @HostListener('window:beforeunload', ['$event'])
     onBeforeUnload(event: BeforeUnloadEvent) {
         if (this.abandoned || !this.hasPendingChanges())
@@ -188,6 +203,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     /** La cuenta ha cambiado: el capítulo ya no envía nada (el token es de otra cuenta). */
     private abandoned = false;
     private readonly stopPendingWork: () => void;
+    /** La clave con la que se apartó el último borrador local. */
+    private localDraftKey: string | null = null;
 
     constructor(
         private bookStore: BookStoreService,
@@ -220,6 +237,10 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         this.fgChapter.valueChanges
             .pipe(debounceTime(1800), takeUntilDestroyed())
             .subscribe(() => this.queueAutosave());
+        // El borrador local va por delante del servidor: si la app se cierra antes de enviar, no se pierde nada.
+        this.fgChapter.valueChanges
+            .pipe(debounceTime(400), takeUntilDestroyed())
+            .subscribe(() => this.keepLocalDraft());
         this.fgChapter.valueChanges
             .pipe(takeUntilDestroyed())
             .subscribe(() => {
@@ -274,10 +295,46 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         this.abandoned = true;
         this.autosaveQueued = false;
         if (pending && this.accountScope && this.book.Id > 0)
-            this.pendingWork.stash<ChapterDraft>(this.accountScope, this.draftKey(), {
-                form: this.fgChapter.getRawValue() as ChapterDraft['form'],
-                deletedSceneIds: [...this.deletedSceneIds]
-            });
+            this.stashLocalDraft(this.accountScope);
+    }
+
+    /**
+     * El borrador local del capítulo (`PendingWorkService`, por entorno y cuenta): se aparta mientras haya cambios sin
+     * enviar y se retira cuando el servidor los tiene. Al volver a abrir el capítulo se recupera (`restorePendingDraft`).
+     */
+    private keepLocalDraft(): void {
+        if (this.abandoned || this.isInitializingForm || !this.accountScope || this.book.Id <= 0)
+            return;
+        if (this.hasPendingChanges())
+            this.stashLocalDraft(this.accountScope);
+        else
+            this.dropLocalDraft(this.accountScope);
+    }
+
+    private stashLocalDraft(scope: string): void {
+        const key = this.draftKey();
+        // Un capítulo nuevo cambia de clave al recibir su id: el borrador de «nuevo» ya no es de nadie.
+        if (this.localDraftKey && this.localDraftKey !== key)
+            this.pendingWork.take(scope, this.localDraftKey);
+        this.localDraftKey = key;
+        this.pendingWork.stash<ChapterDraft>(scope, key, {
+            form: this.fgChapter.getRawValue() as ChapterDraft['form'],
+            deletedSceneIds: [...this.deletedSceneIds]
+        });
+    }
+
+    private dropLocalDraft(scope: string): void {
+        if (this.localDraftKey)
+            this.pendingWork.take(scope, this.localDraftKey);
+        this.pendingWork.take(scope, this.draftKey());
+        this.localDraftKey = null;
+    }
+
+    private flushBeforeLeaving(): void {
+        if (this.abandoned)
+            return;
+        this.keepLocalDraft();
+        this.queueAutosave();
     }
 
     private syncChapterFromBook(): void {
@@ -315,7 +372,10 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return `capitulo:${this.book.Id}:${kind}:${this.chapter.Id || 'nuevo'}`;
     }
 
-    /** Si esta misma cuenta dejó cambios sin enviar en este capítulo, vuelven al formulario y se guardan con ella. */
+    /**
+     * Si esta misma cuenta dejó cambios sin enviar en este capítulo (la app se cerró antes de guardarlos, o cambió la
+     * cuenta), vuelven al formulario y se guardan con ella.
+     */
     private restorePendingDraft(): void {
         this.accountScope = this.pendingWork.scope;
         if (!this.accountScope || this.abandoned || this.book.Id <= 0) return;
@@ -340,8 +400,14 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         this.deletedSceneIds = (draft.deletedSceneIds ?? []).filter(id => Number.isInteger(id) && id > 0);
         this.isInitializingForm = false;
         this.formRevision++;
+        // El servidor ya los tenía (se guardaron justo antes de cerrarse la app): no hay nada que recuperar.
+        if (!this.hasPendingChanges()) {
+            this.initializeForm();
+            return;
+        }
         this.fgChapter.markAsDirty();
-        this.toasts.showSystem('Hemos recuperado los cambios que no se guardaron en este capítulo antes de cambiar de cuenta.', {
+        this.stashLocalDraft(this.accountScope);
+        this.toasts.showSystem('Hemos recuperado los cambios de este capítulo que no llegaron a guardarse.', {
             title: 'Cambios recuperados', dedupeKey: `capitulo:recuperado:${this.draftKey()}`, durationMs: 8000
         });
         this.queueAutosave();
@@ -962,6 +1028,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
                     this.refreshSavedSnapshots();
                 if (!this.hasPendingChanges())
                     this.fgChapter.markAsPristine();
+                this.keepLocalDraft();
             })
         );
     }

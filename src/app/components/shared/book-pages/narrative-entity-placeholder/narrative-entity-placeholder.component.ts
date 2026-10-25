@@ -1,8 +1,8 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, EMPTY, finalize, forkJoin, map, Observable, of, Subject, switchMap, takeUntil, tap, timeout, TimeoutError } from 'rxjs';
+import { catchError, debounceTime, EMPTY, finalize, forkJoin, map, Observable, of, Subject, switchMap, takeUntil, tap, timeout, TimeoutError } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -175,6 +175,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     private accountScope: string | null = null;
     /** La cuenta ha cambiado: la ficha ya no envía nada (el token es de otra cuenta). */
     private abandoned = false;
+    private readonly edited$ = new Subject<void>();
     private readonly stopPendingWork: () => void;
 
     editForm = this.fBuild.group({
@@ -226,6 +227,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     ngOnInit(): void {
+        this.edited$
+            .pipe(debounceTime(400), takeUntil(this.destroy$))
+            .subscribe(() => this.keepEntityDraft());
         this.route.url
             .pipe(takeUntil(this.destroy$))
             .subscribe(segments => {
@@ -297,11 +301,46 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             this.pendingWork.stash<EntityDraft>(this.accountScope, this.entityDraftKey(this.selectedItem.Id), JSON.parse(this.createUpdateSnapshot()));
     }
 
+    /**
+     * El borrador local de la ficha abierta: mientras haya cambios sin guardar se aparta en el dispositivo (al escribir
+     * y al pasar a segundo plano, porque en el móvil la app se puede matar sin más aviso) y se retira cuando el servidor
+     * los tiene. Vuelve al abrir la misma ficha (`restoreEntityDraft`).
+     */
+    private keepEntityDraft(): void {
+        if (this.abandoned || !this.accountScope || this.book.Id <= 0 || !this.selectedItem)
+            return;
+        const key = this.entityDraftKey(this.selectedItem.Id);
+        if (this.hasPendingUpdateChanges())
+            this.pendingWork.stash<EntityDraft>(this.accountScope, key, JSON.parse(this.createUpdateSnapshot()));
+        else
+            this.pendingWork.take(this.accountScope, key);
+    }
+
+    @HostListener('input')
+    @HostListener('change')
+    onEdited(): void {
+        this.edited$.next();
+    }
+
+    @HostListener('document:visibilitychange')
+    onVisibilityChange(): void {
+        if (document.visibilityState === 'hidden')
+            this.keepEntityDraft();
+    }
+
+    @HostListener('window:pagehide')
+    onPageHide(): void {
+        this.keepEntityDraft();
+    }
+
     private entityDraftKey(entityId: number): string {
         return `entidad:${this.book.Id}:${this.getListPath()}:${entityId}`;
     }
 
-    /** Si esta misma cuenta dejó cambios sin enviar en esta ficha, vuelven al formulario (se guardan al salir o con Guardar). */
+    /**
+     * Si esta misma cuenta dejó cambios sin enviar en esta ficha (la app se cerró antes de guardarlos, o cambió la
+     * cuenta), vuelven al formulario (se guardan al salir o con Guardar).
+     */
     private restoreEntityDraft(entityId: number): void {
         this.accountScope = this.pendingWork.scope;
         if (!this.accountScope || this.abandoned || this.book.Id <= 0) return;
@@ -344,7 +383,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 : this.getOrganizationLocationRelationName({ LocalizacionId: relation.id } as OrganizationLocationRelation),
             description: new FormControl(relation.value)
         }));
-        this.snackBar.openSnackBar('Hemos recuperado los cambios que no se guardaron en esta ficha antes de cambiar de cuenta', 'successBar');
+        // El servidor ya los tenía (se guardaron justo antes de cerrarse la app): no hay nada que recuperar.
+        if (!this.hasPendingUpdateChanges())
+            return;
+        this.keepEntityDraft();
+        this.snackBar.openSnackBar('Hemos recuperado los cambios de esta ficha que no llegaron a guardarse', 'successBar');
     }
 
     isCreateMode(): boolean {
@@ -1117,6 +1160,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.bookStore.setBook(book);
                 this.selectedItem = this.findItemInBook(selectedItemId);
                 this.refreshUpdateSnapshot();
+                this.keepEntityDraft();
                 this.saveIndicator.notifySaved(book.Id);
             })
         );

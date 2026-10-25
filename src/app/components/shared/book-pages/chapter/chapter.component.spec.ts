@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormGroup } from '@angular/forms';
-import { of } from 'rxjs';
+import { NEVER, of } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
 import { ChapterService } from '../../../../services/entities/chapter.service';
 import { SceneService } from '../../../../services/entities/scene.service';
@@ -276,7 +276,56 @@ describe('ChapterComponent', () => {
             expect(component.name.value).toBe('Capítulo recuperado');
             expect(component.endPage.value).toBe('9');
             expect(component.scenesControls.length).toBe(1);
-            expect(pendingWork.take(scopeA, 'capitulo:1:capitulo:nuevo')).toBeNull();
+            // Se queda en el dispositivo hasta que el servidor lo tenga.
+            expect(pendingWork.take<any>(scopeA, 'capitulo:1:capitulo:nuevo')?.borrador.form.name).toBe('Capítulo recuperado');
+        });
+    });
+
+    describe('el borrador local (que la app se cierre no pierde lo escrito)', () => {
+        const scope = 'desarrollo:cuenta-a';
+        let pendingWork: PendingWorkService;
+
+        beforeEach(() => {
+            localStorage.clear();
+            pendingWork = TestBed.inject(PendingWorkService);
+            (component as any).accountScope = scope;
+            component.book.Personajes = [{ Id: 10, Nombre: 'Ágata' } as any];
+            component.chapter.Id = 91;
+            component.assignCharacterById(component.scenesControls.at(0), '10', false);
+        });
+        afterEach(() => localStorage.clear());
+
+        it('al ocultarse la página aparta lo escrito al momento y lo envía sin esperar', () => {
+            chapterService.update.and.returnValue(NEVER);
+            component.name.setValue('Capítulo a medias');
+
+            component.onPageHide();
+
+            expect(pendingWork.take<any>(scope, 'capitulo:1:capitulo:91')?.borrador.form.name).toBe('Capítulo a medias');
+            expect(chapterService.update).toHaveBeenCalled();
+        });
+
+        it('retira el borrador cuando el servidor ya tiene los cambios', () => {
+            sceneService.createForChapter.and.returnValue(of({ Id: 301 } as any));
+            component.name.setValue('Capítulo 1');
+
+            component.onPageHide();
+
+            expect(chapterService.update).toHaveBeenCalled();
+            expect(pendingWork.take(scope, 'capitulo:1:capitulo:91')).toBeNull();
+        });
+
+        it('un capítulo nuevo que recibe su id no deja atrás el borrador de «nuevo»', () => {
+            component.chapter.Id = 0;
+            component.name.setValue('Capítulo nuevo');
+            (component as any).keepLocalDraft();
+            expect(localStorage.getItem(`libros:pendiente:${scope}:capitulo:1:capitulo:nuevo`)).not.toBeNull();
+
+            component.chapter.Id = 91;
+            (component as any).keepLocalDraft();
+
+            expect(pendingWork.take(scope, 'capitulo:1:capitulo:nuevo')).toBeNull();
+            expect(pendingWork.take<any>(scope, 'capitulo:1:capitulo:91')?.borrador.form.name).toBe('Capítulo nuevo');
         });
     });
 });

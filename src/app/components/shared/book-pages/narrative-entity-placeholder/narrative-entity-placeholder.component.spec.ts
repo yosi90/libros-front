@@ -181,6 +181,23 @@ describe('NarrativeEntityPlaceholderComponent', () => {
         localStorage.clear();
     });
 
+    it('aparta lo escrito en el dispositivo al ocultarse la página y lo retira cuando ya está guardado', () => {
+        localStorage.clear();
+        const pendingWork = TestBed.inject(PendingWorkService);
+        const key = (component as any).entityDraftKey(30);
+        (component as any).accountScope = 'desarrollo:cuenta-a';
+        component.name.setValue('Honor a medias');
+
+        component.onPageHide();
+        expect(pendingWork.take<any>('desarrollo:cuenta-a', key)?.borrador.name).toBe('Honor a medias');
+
+        component.onPageHide();
+        (component as any).refreshUpdateSnapshot();
+        (component as any).keepEntityDraft();
+        expect(pendingWork.take('desarrollo:cuenta-a', key)).toBeNull();
+        localStorage.clear();
+    });
+
     it('returns from a creation route to its entity list', () => {
         component.routePath = 'concept';
         component.requestCloseUpdateForm();
