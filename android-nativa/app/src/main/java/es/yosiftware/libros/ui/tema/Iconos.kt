@@ -99,6 +99,19 @@ object Iconos {
     @DrawableRes val localFireDepartment = R.drawable.mi_local_fire_department
     @DrawableRes val translate = R.drawable.mi_translate
     @DrawableRes val historyEdu = R.drawable.mi_history_edu
+    @DrawableRes val keyboardArrowDown = R.drawable.mi_keyboard_arrow_down
+    @DrawableRes val queryStats = R.drawable.mi_query_stats
+    @DrawableRes val stickyNote2 = R.drawable.mi_sticky_note_2
+    @DrawableRes val language = R.drawable.mi_language
+    @DrawableRes val manageSearch = R.drawable.mi_manage_search
+    @DrawableRes val cloudDone = R.drawable.mi_cloud_done
+    @DrawableRes val noteAdd = R.drawable.mi_note_add
+    @DrawableRes val segment = R.drawable.mi_segment
+    @DrawableRes val formatListBulleted = R.drawable.mi_format_list_bulleted
+    @DrawableRes val category = R.drawable.mi_category
+    @DrawableRes val coPresent = R.drawable.mi_co_present
+    @DrawableRes val myLocation = R.drawable.mi_my_location
+    @DrawableRes val formatQuote = R.drawable.mi_format_quote
 
     /** El símbolo del ecosistema (ecosistema-kit/marca/simbolo-trazo.svg), en todo enlace a la web social (MARCA.md). */
     @DrawableRes val simboloYosiftware = R.drawable.simbolo_yosiftware

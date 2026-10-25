@@ -284,7 +284,11 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** perder texto con el autoguardado o al cambiar de configuración. El estado va en el `ViewModel` y el guardado pendiente se fuerza al salir.
 
-- [ ] Shell, índice, Elementos, y partes e interludios. Al abrir un libro, la primera pantalla son sus estadísticas, como en la APK actual (confirmado por el propietario, 2026-10-24).
+- [x] Shell, índice, Elementos, y partes e interludios (2026-10-25). Al abrir un libro, la primera pantalla son sus estadísticas, como en la APK actual (confirmado por el propietario, 2026-10-24).
+  - La barra (minimizar, portada y nombre, estadísticas, notas, wiki y búsqueda), el índice por encima del contenido que se cierra tocando fuera, con Atrás o arrastrándolo, la navegación de abajo (Índice y Elementos; desde 600 dp, Índice y los seis elementos), la hoja de Elementos y el editor de partes e interludios. «Poner en marcha» desde el índice y, en marcha, crear capítulo, parte o interludio.
+  - Lógica en `ui/libro/IndiceDelLibro.kt` con sus pruebas; muestra de depuración `MuestrasDeLibro`; comparada con las capturas en el Honor desplegado.
+  - Se abre desde la Biblioteca, las secciones de una antología y «Abrir lectura» del Catálogo. El contenido de cada vista (estadísticas, notas, búsqueda, capítulos) llega en los pasos siguientes; la flecha de minimizar cierra el libro hasta el lector persistente.
+  - **Corregido a propósito:** el índice de la web sacaba con `splice(-1, 1)` el último capítulo cuando faltaba un orden; aquí cada capítulo se busca por su orden (el orden visible es el mismo; un interludio podía colgarse de otro capítulo).
 - [ ] Notas, búsqueda avanzada y estadísticas del libro.
 - [ ] Capítulos y escenas, con autoguardado y cambios pendientes.
 - [ ] Lector persistente.

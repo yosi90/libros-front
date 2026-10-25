@@ -24,7 +24,11 @@ import es.yosiftware.libros.ui.biblioteca.PantallaBiblioteca
 import es.yosiftware.libros.ui.catalogo.CapasDeCatalogo
 import es.yosiftware.libros.ui.catalogo.CatalogoViewModel
 import es.yosiftware.libros.ui.catalogo.PantallaCatalogo
+import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.ui.estadisticas.EstadisticasViewModel
+import es.yosiftware.libros.ui.libro.ContenidoPendiente
+import es.yosiftware.libros.ui.libro.LibroViewModel
+import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
 import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
 import es.yosiftware.libros.ui.componentes.Avisos
@@ -94,8 +98,11 @@ fun AppLibros(app: LibrosApp) {
         nav.irA(Destino.Biblioteca)
         biblioteca.revelar(obra)
     }
-    // TODO(clon): el libro llega en el hito 9.
-    val abrirLibro: (String) -> Unit = { nombre -> avisos.info("El libro se abre en el hito 9 del clon.", titulo = nombre) }
+    // El libro abierto (hito 9), a pantalla completa por encima de todo.
+    val libro: LibroViewModel = viewModel {
+        LibroViewModel(app.datos.ambito, app.datos.libro, app.datos.coleccion, avisos)
+    }
+    val abrirLibro: (Obra) -> Unit = libro::abrir
     TemaLibros(temaViewModel.tema) {
         CompositionLocalProvider(LocalVentana provides rememberVentana(), LocalCuenta provides cuenta, LocalAvisos provides avisos) {
             val estado = acceso?.estado?.collectAsStateWithLifecycle()?.value
@@ -131,7 +138,7 @@ fun AppLibros(app: LibrosApp) {
                                 when (destino) {
                                     Destino.Biblioteca -> PantallaBiblioteca(
                                         vm = biblioteca,
-                                        alAbrirLibro = { abrirLibro(it.nombre) },
+                                        alAbrirLibro = abrirLibro,
                                         alAbrirAntologia = biblioteca::abrirAntologia,
                                         // «Ver ediciones»: la ficha de la obra en el catálogo; al cerrarla, de vuelta a la biblioteca.
                                         alVerEdiciones = { obra ->
@@ -173,7 +180,7 @@ fun AppLibros(app: LibrosApp) {
                 if (conShell) {
                     CapasDeBiblioteca(
                         vm = biblioteca,
-                        alAbrirSeccion = { abrirLibro(it.nombre) },
+                        alAbrirSeccion = abrirLibro,
                         // La ficha de la antología en el catálogo; al cerrarla, de vuelta a la antología.
                         alVerFicha = { antologia ->
                             biblioteca.cerrarAntologia()
@@ -189,7 +196,8 @@ fun AppLibros(app: LibrosApp) {
                             nav.irA(Destino.Catalogo)
                         },
                     )
-                    CapasDeCatalogo(catalogo, alAbrirLectura = { abrirLibro(it.nombre) })
+                    CapasDeCatalogo(catalogo, alAbrirLectura = abrirLibro)
+                    PantallaLibro(libro) { vista -> ContenidoPendiente(vista) }
                 }
                 AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
 
