@@ -18,14 +18,16 @@ import { CommunityCapabilitiesService } from '../stores/community-capabilities.s
 import { FloatingWindowManagerService } from '../stores/floating-window-manager.service';
 import { ModerationAccessService } from '../stores/moderation-access.service';
 import { UniverseStoreService } from '../stores/universe-store.service';
+import { PendingWorkService } from './pending-work.service';
 import { PlatformSessionService } from './platform-session.service';
 
 /**
  * Lo que Libros guarda en memoria de la persona, en un solo sitio (CAMBIO_DE_CUENTA.md, obligaciones 2 y 3):
  * con cada cambio de identidad se vacían la biblioteca, el libro abierto, el catálogo, los estados de las vistas, los
  * avisos, el chat (bandeja, ventanas flotantes y escucha del tiempo real de la plataforma), los canales de los espacios
- * de los clubes y sus invitaciones y solicitudes, antes de presentar la cuenta nueva. Y cuando Libros ya sabe quién es la cuenta nueva, se
- * arrancan sus servicios con su generación.
+ * de los clubes y sus invitaciones y solicitudes, antes de presentar la cuenta nueva. Los editores con cambios sin
+ * enviar los apartan para su cuenta (`PendingWorkService`) en lugar de enviarlos con la nueva. Y cuando Libros ya sabe
+ * quién es la cuenta nueva, se arrancan sus servicios con su generación.
  */
 @Injectable({ providedIn: 'root' })
 export class AccountScopeService {
@@ -50,18 +52,25 @@ export class AccountScopeService {
         private mobileFullscreenReturn: MobileFullscreenReturnService,
         private loader: LoaderEmmitterService,
         private spaces: PlatformSpacesService,
-        private clubAccess: ClubAccessService
+        private clubAccess: ClubAccessService,
+        private pendingWork: PendingWorkService
     ) { }
 
     start(): void {
         if (this.started) return;
         this.started = true;
         this.session.identityChange$.subscribe(() => this.clearAccountData());
-        this.session.userIsLogged$.pipe(filter(logged => logged))
-            .subscribe(() => this.startAccountServices(this.session.generation, this.session.userId));
+        this.session.userIsLogged$.pipe(filter(logged => logged)).subscribe(() => {
+            // El trabajo sin enviar se aparta y se recupera por entorno y cuenta (CAMBIO_DE_CUENTA.md, obligación 4).
+            this.pendingWork.setScope(this.session.storageScope);
+            this.startAccountServices(this.session.generation, this.session.userId);
+        });
     }
 
     clearAccountData(): void {
+        // Primero, los editores abiertos: dejan de enviar (el token ya es de otra cuenta) y apartan lo que no habían
+        // guardado para la cuenta que lo escribió.
+        this.pendingWork.abandonAll();
         this.loader.deactivateLoader();
         // El chat de la plataforma: la escucha del tiempo real (el SDK cierra el socket cuando nadie escucha), la bandeja
         // y las ventanas flotantes. La campana `<yosi-notificaciones>` se vacía sola con el cambio de sesión del SDK.

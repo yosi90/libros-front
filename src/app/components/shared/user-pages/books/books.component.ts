@@ -1,6 +1,7 @@
 import { WebLibraryViewComponent } from '../../../web/user/web-library-view/web-library-view.component';
 import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { distinctUntilChanged, finalize, forkJoin, switchMap } from 'rxjs';
+import { distinctUntilChanged, filter, finalize, forkJoin, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { CommonModule } from '@angular/common';
@@ -227,6 +228,9 @@ export class BooksComponent implements OnInit {
         private fullscreenReturn: MobileFullscreenReturnService,
     ) {
         this.collectionView = this.readStoredCollectionView();
+        // La vista es de cada cuenta (por entorno y cuenta): se vuelve a leer cuando Libros ya sabe quién es la persona.
+        this.session.userIsLogged$.pipe(filter(logged => logged), takeUntilDestroyed())
+            .subscribe(() => this.collectionView = this.readStoredCollectionView());
         this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
         if (this.isLoadingUniverses) {
             this.controlsUniverseLoader = true;

@@ -110,6 +110,38 @@ describe('PlatformSessionService', () => {
         expect(session.userIsLogged).toBeTrue();
     }));
 
+    it('de A a B con el aviso previo del SDK (como el de verdad): también saca a la persona de lo privado de A', fakeAsync(() => {
+        const session = create();
+        sdk.estado = conSesion('cuenta-a');
+        session.start();
+        flushMicrotasks();
+        answerLocalUser(1);
+        router.url = '/book/73/chapter/11';
+
+        // El SDK avisa antes de confirmar; el aviso ya vacía la identidad, y el estado nuevo llega después.
+        window.dispatchEvent(new CustomEvent('yosiftware:identidad'));
+        sdk.emitir(conSesion('cuenta-b'));
+
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard/books', { replaceUrl: true });
+        answerLocalUser(2);
+        expect(session.userId).toBe(2);
+    }));
+
+    it('el aviso previo del SDK seguido de sin_sesion (revocación) vuelve a la portada', fakeAsync(() => {
+        const session = create();
+        sdk.estado = conSesion('cuenta-a');
+        session.start();
+        flushMicrotasks();
+        answerLocalUser(1);
+        router.url = '/dashboard/community/messages';
+
+        window.dispatchEvent(new CustomEvent('yosiftware:identidad'));
+        sdk.emitir({ tipo: 'sin_sesion', motivo: 'revocada' } as EstadoPlataforma);
+
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/home', { replaceUrl: true });
+        expect(session.userIsLogged).toBeFalse();
+    }));
+
     it('descarta el usuario local de A que llega después de cambiar a B', fakeAsync(() => {
         const session = create();
         sdk.estado = conSesion('cuenta-a');

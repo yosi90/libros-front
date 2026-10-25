@@ -6,7 +6,7 @@ import { LoaderEmmitterService } from './services/emmitters/loader.service';
 import { PlatformSessionService } from './services/auth/platform-session.service';
 import { AuthorStoreService } from './services/stores/author-store.service';
 import { UniverseStoreService } from './services/stores/universe-store.service';
-import { combineLatest, finalize, timeout } from 'rxjs';
+import { combineLatest, finalize, Subscription, timeout } from 'rxjs';
 import { AppToastHostComponent } from './shared/toast/app-toast-host.component';
 import { CatalogService } from './services/entities/catalog.service';
 import { CollectionService } from './services/entities/collection.service';
@@ -122,6 +122,9 @@ export class AppComponent implements OnInit {
     ];
     private libraryRestored = false;
     private libraryRestorationInFlight = false;
+    /** La cuenta (su generación) para la que se está recuperando la biblioteca, y esa recuperación. */
+    private libraryRestorationGeneration: number | null = null;
+    private libraryRestoration: Subscription | null = null;
 
     constructor(
         private loader: LoaderEmmitterService,
@@ -177,20 +180,27 @@ export class AppComponent implements OnInit {
     }
 
     private restoreLibrary(): void {
-        if (!this.sessionSrv.canAccessLibrary || this.libraryRestored || this.libraryRestorationInFlight)
+        const generation = this.sessionSrv.generation;
+        if (!this.sessionSrv.canAccessLibrary || this.libraryRestored)
             return;
+        // Una recuperación de la cuenta anterior que aún no ha respondido no frena la de la cuenta nueva
+        // (CAMBIO_DE_CUENTA.md): se abandona y se pide la biblioteca de quien está ahora.
+        if (this.libraryRestorationInFlight && this.libraryRestorationGeneration === generation)
+            return;
+        this.libraryRestoration?.unsubscribe();
 
         this.libraryRestorationInFlight = true;
+        this.libraryRestorationGeneration = generation;
         this.loader.activateLoader('library');
         // Lo que llegue de otra cuenta (CAMBIO_DE_CUENTA.md) no se guarda: el interceptor ya lo descarta, y aquí
         // tampoco se aplica el catálogo de autores que se pide después.
-        const generation = this.sessionSrv.generation;
 
         // La biblioteca es la superficie necesaria para entrar. El catálogo de
         // autores es auxiliar y no debe mantener toda la app bloqueada.
-        this.collectionSrv.getUniverses().pipe(
+        this.libraryRestoration = this.collectionSrv.getUniverses().pipe(
             timeout({ first: 16_000 }),
             finalize(() => {
+                if (this.libraryRestorationGeneration !== generation) return;
                 this.libraryRestorationInFlight = false;
                 this.loader.deactivateLoader();
             })

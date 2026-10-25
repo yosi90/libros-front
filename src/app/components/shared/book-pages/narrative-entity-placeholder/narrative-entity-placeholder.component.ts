@@ -36,6 +36,7 @@ import { WebNarrativeEntityViewComponent } from '../../../web/book/web-narrative
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 import { foldText } from '../../../../shared/text';
 import { CharacterGroup, characterGroupRank, groupCharactersByGroup } from '../../../../shared/character-groups';
+import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
 
 interface CreateEntryDraft {
     id?: number;
@@ -57,6 +58,25 @@ interface CreateCharacterRelationDraft {
     relation: FormControl<string | null>;
 }
 
+/** Lo que la ficha no había guardado cuando cambió la cuenta: la misma forma que `createUpdateSnapshot()`. */
+interface EntityDraft {
+    listPath: string;
+    entityId: number | null;
+    name: string;
+    locationStatusId: number | null;
+    characterStatusId: number | null;
+    characterSex: number | null;
+    characterNameChangeMode: string | null;
+    locationId: number | null;
+    page: number | null;
+    characterId: number | null;
+    eventCharacterIds: number[];
+    entries: Array<{ id: number | null; title: string; description: string }>;
+    aliases: string[];
+    characterRelations: Array<{ id: number; relationId: number | null; value: string }>;
+    organizationRelations: Array<{ kind: 'character' | 'location'; id: number; value: string }>;
+}
+
 @Component({
     standalone: true,
     selector: 'app-narrative-entity-placeholder',
@@ -65,7 +85,7 @@ interface CreateCharacterRelationDraft {
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './narrative-entity-placeholder.component.sass'
 })
-export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, PendingChangesComponent {
+export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, PendingChangesComponent, PendingWorkOwner {
     private destroy$ = new Subject<void>();
 
     book: Book = this.bookStore.libroVacio;
@@ -135,6 +155,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         characterId: this.characterId
     });
     private lastSavedUpdateSnapshot = '';
+    /** La cuenta (con su entorno) con la que se abrió la ficha: sus cambios sin enviar son suyos. */
+    private accountScope: string | null = null;
+    /** La cuenta ha cambiado: la ficha ya no envía nada (el token es de otra cuenta). */
+    private abandoned = false;
+    private readonly stopPendingWork: () => void;
 
     editForm = this.fBuild.group({
         name: this.editName,
@@ -166,8 +191,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         private snackBar: SnackbarModule,
         private characterOrderRefreshSrv: CharacterOrderRefreshService,
         private presentation: PresentationModeService,
-        private saveIndicator: BookSaveIndicatorService
-    ) { }
+        private saveIndicator: BookSaveIndicatorService,
+        private pendingWork: PendingWorkService
+    ) {
+        this.stopPendingWork = this.pendingWork.register(this);
+    }
 
     get isMobilePresentation(): boolean {
         return this.presentation.snapshot.isMobilePresentationActive;
@@ -228,8 +256,71 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     ngOnDestroy(): void {
+        this.stopPendingWork();
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    /**
+     * Cambio de cuenta, cierre de sesión o revocación (CAMBIO_DE_CUENTA.md): los cambios sin guardar de la ficha se
+     * apartan para la cuenta que los escribió y no se envían nunca con la nueva. Vuelven al abrir la misma ficha con ella.
+     */
+    abandon(): void {
+        if (this.abandoned) return;
+        const pending = this.hasPendingUpdateChanges();
+        this.abandoned = true;
+        if (pending && this.accountScope && this.book.Id > 0 && this.selectedItem)
+            this.pendingWork.stash<EntityDraft>(this.accountScope, this.entityDraftKey(this.selectedItem.Id), JSON.parse(this.createUpdateSnapshot()));
+    }
+
+    private entityDraftKey(entityId: number): string {
+        return `entidad:${this.book.Id}:${this.getListPath()}:${entityId}`;
+    }
+
+    /** Si esta misma cuenta dejó cambios sin enviar en esta ficha, vuelven al formulario (se guardan al salir o con Guardar). */
+    private restoreEntityDraft(entityId: number): void {
+        this.accountScope = this.pendingWork.scope;
+        if (!this.accountScope || this.abandoned || this.book.Id <= 0) return;
+        const draft = this.pendingWork.take<EntityDraft>(this.accountScope, this.entityDraftKey(entityId))?.borrador;
+        if (!draft || draft.entityId !== entityId || draft.listPath !== this.getListPath()) return;
+        this.name.setValue(draft.name ?? '');
+        this.locationStatusId.setValue(draft.locationStatusId ?? null);
+        this.characterStatusId.setValue(draft.characterStatusId ?? null);
+        this.characterSex.setValue(draft.characterSex ?? null);
+        if (draft.characterNameChangeMode) this.characterNameChangeMode.setValue(draft.characterNameChangeMode as never);
+        this.locationId.setValue(draft.locationId ?? null);
+        this.page.setValue(draft.page ?? null);
+        this.characterId.setValue(draft.characterId ?? null);
+        this.selectedCharacterIds = [...(draft.eventCharacterIds ?? [])];
+        this.editEventCharacterIds = this.selectedCharacterIds;
+        this.setEventLocationSearchFromId(this.locationId.value);
+        if (draft.entries?.length) {
+            this.createEntryDrafts = draft.entries.map(entry => ({
+                ...(entry.id ? { id: entry.id } : {}),
+                title: new FormControl(entry.title, [Validators.required, Validators.minLength(3), Validators.maxLength(100)]),
+                description: new FormControl(entry.description, [this.entryDescriptionValidator.bind(this)])
+            }));
+            this.entryTitle = this.createEntryDrafts[0].title;
+            this.description = this.createEntryDrafts[0].description;
+            this.entityForm.setControl('entryTitle', this.entryTitle);
+            this.entityForm.setControl('description', this.description);
+        }
+        this.characterAliases = [...(draft.aliases ?? [])];
+        this.createCharacterRelations = (draft.characterRelations ?? []).map(relation => ({
+            ...(relation.relationId ? { relationId: relation.relationId } : {}),
+            id: relation.id,
+            name: this.getCharacterName(relation.id),
+            relation: new FormControl(relation.value, [Validators.required, Validators.minLength(2), Validators.maxLength(100)])
+        }));
+        this.createOrganizationRelations = (draft.organizationRelations ?? []).map(relation => ({
+            kind: relation.kind,
+            id: relation.id,
+            name: relation.kind === 'character'
+                ? this.getCharacterName(relation.id)
+                : this.getOrganizationLocationRelationName({ LocalizacionId: relation.id } as OrganizationLocationRelation),
+            description: new FormControl(relation.value)
+        }));
+        this.snackBar.openSnackBar('Hemos recuperado los cambios que no se guardaron en esta ficha antes de cambiar de cuenta', 'successBar');
     }
 
     isCreateMode(): boolean {
@@ -813,6 +904,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     submitEntityForm(): void {
+        if (this.abandoned) return;
         if (this.isUpdateMode()) {
             this.updateEntityFromForm();
             return;
@@ -960,7 +1052,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     canDeactivate(): boolean | Observable<boolean> {
-        if (!this.hasPendingUpdateChanges())
+        // Tras un cambio de cuenta no se guarda nada al salir: los cambios ya están apartados para su cuenta.
+        if (this.abandoned || !this.hasPendingUpdateChanges())
             return true;
         if (!this.canSubmit() || !this.selectedItem) {
             this.snackBar.openSnackBar('No se puede salir: revisa los cambios pendientes de la entidad y sus entradas', 'errorBar');
@@ -1019,6 +1112,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     saveRootEdit(): void {
+        if (this.abandoned) return;
         if (!this.canSubmitRootEdit()) {
             this.editForm.markAllAsTouched();
             this.snackBar.openSnackBar('Revisa los datos de la entidad', 'errorBar');
@@ -1684,6 +1778,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         if (this.getListPath() === 'characters')
             this.populateCharacterDrafts(item);
         this.refreshUpdateSnapshot();
+        this.restoreEntityDraft(item.Id);
     }
 
     private populateCreateEntries(entries: NarrativeEntry[]): void {

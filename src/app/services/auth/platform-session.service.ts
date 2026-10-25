@@ -78,6 +78,11 @@ export class PlatformSessionService implements OnDestroy {
     private started = false;
     /** La última cuenta presentada en esta carga de la página. */
     private confirmedAccountId: string | null = null;
+    /**
+     * El SDK avisó (`yosiftware:identidad`) de que la cuenta presentada cambia. El aviso ya vacía la identidad, así que
+     * el estado que llega después tiene que saber que viene de otra cuenta para sacar a la persona de lo privado.
+     */
+    private identityNoticed = false;
     private stopListening: (() => void) | null = null;
     private retryTimer: ReturnType<typeof setTimeout> | null = null;
     private readonly identityNoticeListener = () => this.zone.run(() => this.onIdentityNotice());
@@ -303,7 +308,8 @@ export class PlatformSessionService implements OnDestroy {
             return;
         }
         if (estado.tipo === 'sin_sesion') {
-            const hadIdentity = previous !== null || this.userIsLogged;
+            const hadIdentity = previous !== null || this.userIsLogged || this.identityNoticed;
+            this.identityNoticed = false;
             this.confirmedAccountId = null;
             this.estadoSubject.next(estado);
             if (hadIdentity) this.changeIdentity(null);
@@ -314,7 +320,8 @@ export class PlatformSessionService implements OnDestroy {
         }
         this.estadoSubject.next(estado);
         if (estado.cuenta.id === previous) return;
-        const switched = previous !== null || this.userIsLogged;
+        const switched = previous !== null || this.userIsLogged || this.identityNoticed;
+        this.identityNoticed = false;
         this.confirmedAccountId = estado.cuenta.id;
         const generation = this.changeIdentity(estado.cuenta.id);
         if (switched) this.leaveProtectedRoute('/dashboard/books');
@@ -324,6 +331,7 @@ export class PlatformSessionService implements OnDestroy {
     /** El SDK avisa de un cambio antes de confirmarlo: se invalida todo, aunque luego vuelva la misma cuenta. */
     private onIdentityNotice(): void {
         if (this.confirmedAccountId === null && !this.userIsLogged) return;
+        this.identityNoticed = true;
         this.confirmedAccountId = null;
         this.changeIdentity(null);
         this.accessSubject.next('cargando');

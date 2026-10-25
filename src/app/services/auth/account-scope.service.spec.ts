@@ -9,6 +9,7 @@ describe('AccountScopeService', () => {
             userId: -1,
             identityChange$: new Subject<IdentityChange>(),
             userIsLogged$: new BehaviorSubject(false),
+            storageScope: null as string | null,
             isCurrentGeneration: (value: number) => value === session.generation
         };
         const spy = (name: string, methods: string[]) => jasmine.createSpyObj(name, methods);
@@ -30,7 +31,8 @@ describe('AccountScopeService', () => {
             mobileFullscreenReturn: spy('MobileFullscreenReturnService', ['clear']),
             loader: spy('LoaderEmmitterService', ['deactivateLoader']),
             spaces: spy('PlatformSpacesService', ['clear']),
-            clubAccess: spy('ClubAccessService', ['clear'])
+            clubAccess: spy('ClubAccessService', ['clear']),
+            pendingWork: spy('PendingWorkService', ['abandonAll', 'setScope'])
         };
         stores.moderationAccess.refresh.and.returnValue(of(null));
         stores.capabilities.initialize.and.returnValue(of({}));
@@ -38,7 +40,7 @@ describe('AccountScopeService', () => {
             session as never, stores.universes, stores.authors, stores.books, stores.librarySearch, stores.catalogView,
             stores.managerView, stores.readingReturn, stores.decisions, stores.moderationAccess, stores.capabilities,
             stores.realtime, stores.chatStore, stores.chatFloating, stores.floatingWindows, stores.mobileFullscreenReturn, stores.loader,
-            stores.spaces, stores.clubAccess
+            stores.spaces, stores.clubAccess, stores.pendingWork
         );
         service.start();
         return { service, session, stores };
@@ -58,10 +60,23 @@ describe('AccountScopeService', () => {
             ['bandeja del chat', stores.chatStore.clear], ['ventanas del chat', stores.chatFloating.clear],
             ['ventanas flotantes', stores.floatingWindows.clear], ['vuelta de pantallas completas', stores.mobileFullscreenReturn.clear],
             ['cargando', stores.loader.deactivateLoader],
-            ['canales de los espacios de los clubes', stores.spaces.clear], ['invitaciones y solicitudes de clubes', stores.clubAccess.clear]
+            ['canales de los espacios de los clubes', stores.spaces.clear], ['invitaciones y solicitudes de clubes', stores.clubAccess.clear],
+            ['trabajo sin enviar de los editores', stores.pendingWork.abandonAll]
         ];
         for (const [name, clear] of clearers)
             expect(clear).withContext(name).toHaveBeenCalledTimes(1);
+        // Los editores apartan lo suyo antes de que se vacíe el libro abierto.
+        expect(stores.pendingWork.abandonAll).toHaveBeenCalledBefore(stores.books.clear);
+    });
+
+    it('fija el entorno y la cuenta del trabajo sin enviar cuando Libros ya sabe quién es', () => {
+        const { session, stores } = create();
+        session.userId = 7;
+        session.storageScope = 'desarrollo:cuenta-a';
+
+        session.userIsLogged$.next(true);
+
+        expect(stores.pendingWork.setScope).toHaveBeenCalledOnceWith('desarrollo:cuenta-a');
     });
 
     it('arranca los servicios de la cuenta cuando Libros ya sabe quién es, con su generación', () => {

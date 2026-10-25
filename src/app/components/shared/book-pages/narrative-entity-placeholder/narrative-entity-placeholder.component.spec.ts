@@ -12,6 +12,7 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { CharacterOrderRefreshService } from '../../../../services/stores/character-order-refresh.service';
 import { rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { NarrativeEntityPlaceholderComponent } from './narrative-entity-placeholder.component';
 
 describe('NarrativeEntityPlaceholderComponent', () => {
@@ -143,6 +144,33 @@ describe('NarrativeEntityPlaceholderComponent', () => {
             expect(entryService.create).toHaveBeenCalled();
             done();
         });
+    });
+
+    it('tras un cambio de cuenta aparta los cambios de la ficha para su cuenta, no los envía y los devuelve solo a ella', () => {
+        localStorage.clear();
+        const pendingWork = TestBed.inject(PendingWorkService);
+        const key = (component as any).entityDraftKey(30);
+        (component as any).accountScope = 'desarrollo:cuenta-a';
+        component.name.setValue('Honor de A');
+
+        pendingWork.abandonAll();
+        const result = component.canDeactivate();
+        component.submitEntityForm();
+
+        expect(result).toBeTrue();
+        expect(narrativeService.updateConcept).not.toHaveBeenCalled();
+        expect(pendingWork.take('desarrollo:cuenta-b', key)).toBeNull();
+        const stashed = pendingWork.take<any>('desarrollo:cuenta-a', key);
+        expect(stashed?.borrador.name).toBe('Honor de A');
+
+        // La misma cuenta vuelve a abrir la ficha: los cambios vuelven al formulario.
+        pendingWork.stash('desarrollo:cuenta-a', key, stashed!.borrador);
+        pendingWork.setScope('desarrollo:cuenta-a');
+        (component as any).abandoned = false;
+        component.name.setValue('Honor');
+        (component as any).restoreEntityDraft(30);
+        expect(component.name.value).toBe('Honor de A');
+        localStorage.clear();
     });
 
     it('returns from a creation route to its entity list', () => {
