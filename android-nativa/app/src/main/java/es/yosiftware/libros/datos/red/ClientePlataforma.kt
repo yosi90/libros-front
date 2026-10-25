@@ -47,7 +47,7 @@ class ClientePlataforma(
             }
         }
         generacion.exigir(deInicio)
-        if (!respuesta.correcta) throw ErrorSesion.deLaPlataforma(respuesta.estado, respuesta.cuerpo)
+        if (!respuesta.correcta) throw errorDe(respuesta)
         return respuesta.cuerpo
     }
 
@@ -66,8 +66,15 @@ class ClientePlataforma(
         } catch (e: IOException) {
             throw ErrorSesion.sinConexion(e)
         }
-        if (!respuesta.correcta) throw ErrorSesion.deLaPlataforma(respuesta.estado, respuesta.cuerpo)
+        if (!respuesta.correcta) throw errorDe(respuesta)
         return respuesta.cuerpo
+    }
+
+    /** El error de la plataforma; en `cuenta_restringida`, con lo limitado y hasta cuándo ([Restricciones]). */
+    private fun errorDe(respuesta: RespuestaHttp): ErrorSesion {
+        val error = ErrorSesion.deLaPlataforma(respuesta.estado, respuesta.cuerpo)
+        val restriccion = Restricciones.deLaRespuesta(respuesta.cuerpo) ?: return error
+        return ErrorSesion(error.codigo, restriccion, error.campo, error.estadoHttp)
     }
 
     private companion object {

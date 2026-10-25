@@ -1,5 +1,8 @@
 package es.yosiftware.libros.ui.comunidad
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import es.yosiftware.libros.datos.red.Llegada
+import es.yosiftware.libros.datos.red.CanalesDeEspacios
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.red.ApiFalsa
 import es.yosiftware.libros.datos.repositorios.RepositorioClubes
@@ -50,7 +53,16 @@ class ClubViewModelTest {
          "PropietarioId": $propietario, "MiembrosDetalle": $miembros, "Metricas": {"MiembrosActivos": 1, "Publicaciones": 0}}}
     """.trimIndent()
 
-    private fun TestScope.montar(miId: Int = 5): Montaje {
+    /** El canal de los espacios sin socket: lo que se abre y se cierra, y lo que llega. */
+    private class CanalFalso : CanalesDeEspacios {
+        override val eventos = MutableSharedFlow<Llegada>(extraBufferCapacity = 16)
+        val abiertos = mutableListOf<Long>()
+        val cerrados = mutableListOf<Long>()
+        override fun abrirEspacio(espacio: Long) { abiertos += espacio }
+        override fun cerrarEspacio(espacio: Long) { cerrados += espacio }
+    }
+
+    private fun TestScope.montar(miId: Int = 5, canal: CanalesDeEspacios? = null): Montaje {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         val sesion = SesionFalsa()
         val ambito = AmbitoDeCuenta("qa", backgroundScope, cuentaActivaGuardada = { "A" })
@@ -70,7 +82,7 @@ class ClubViewModelTest {
         val ahora = Instant.parse("2026-10-25T10:00:00Z")
         val acceso = CentroDeAccesoViewModel(ambito, espacios) { ahora }
         val vm = ClubViewModel(ambito, 8, clubes, espacios, estadisticas, acceso, miId = { miId }, universos = { emptyList() },
-            esperas = listOf(1_000L, 1_000L), zona = { madrid }, ahora = { ahora })
+            esperas = listOf(1_000L, 1_000L), zona = { madrid }, ahora = { ahora }, canal = canal)
         return Montaje(api, plataforma, llamadas, acceso, vm).also { m -> vm.alSalir = { m.salidas += it } }
     }
 
@@ -103,6 +115,46 @@ class ClubViewModelTest {
         assertEquals("", m.vm.errorDeSeccion)
         assertEquals(listOf("Sanderson"), m.vm.autores.map { it.etiqueta })
         assertEquals(1, m.api.pedidasA("GET /clubes-lectura/8/publicaciones").size)
+    }
+
+    @Test
+    fun elCanalDelEspacioReleeLoQueCambiaYAvisaAlCerrarse() = runTest {
+        val canal = CanalFalso()
+        val m = montar(canal = canal)
+        m.api.responde("GET /clubes-lectura/8", club())
+        m.api.conSecciones()
+        m.plataforma["GET /v1/espacios/41"] = """{"id": 41, "idExterno": "club-8", "nombre": "Club QA", "entrada": "abierto", "yo": {"estado": "activo", "propietario": true, "capacidades": {"invitar": true, "chat": "escribir"}}}"""
+        m.plataforma["GET /v1/espacios/41/invitaciones"] = """{"invitaciones": []}"""
+        m.vm.recargar()
+        runCurrent()
+        assertEquals(listOf(41L), canal.abiertos)
+        val hitos = m.api.pedidasA("GET /clubes-lectura/8/hitos").size
+        val eventos = m.api.pedidasA("GET /clubes-lectura/8/eventos").size
+        val lecturas = m.api.pedidasA("GET /clubes-lectura/8/lecturas").size
+
+        // Dos de hitos (una repetida por su número de orden) y una del calendario: una tanda, cada sección una vez.
+        canal.eventos.emit(Llegada.DelEspacio(41, 1, "club-8:1", JSONObject("""{"tipo": "club.milestone_created", "ClubId": 8}"""), null))
+        canal.eventos.emit(Llegada.DelEspacio(41, 1, "club-8:1", JSONObject("""{"tipo": "club.milestone_created", "ClubId": 8}"""), null))
+        canal.eventos.emit(Llegada.DelEspacio(41, 2, "club-8:2", JSONObject("""{"tipo": "club.milestone_updated", "ClubId": 8}"""), null))
+        canal.eventos.emit(Llegada.DelEspacio(41, 3, "club-8:3", JSONObject("""{"tipo": "club.event_created", "ClubId": 8}"""), null))
+        // De otro club, de otro espacio o de un tipo desconocido: nada.
+        canal.eventos.emit(Llegada.DelEspacio(41, 4, "club-8:4", JSONObject("""{"tipo": "club.reading_updated", "ClubId": 9}"""), null))
+        canal.eventos.emit(Llegada.DelEspacio(42, 5, "club-8:5", JSONObject("""{"tipo": "club.reading_updated", "ClubId": 8}"""), null))
+        runCurrent()
+        advanceTimeBy(151)
+        runCurrent()
+        assertEquals(hitos + 1, m.api.pedidasA("GET /clubes-lectura/8/hitos").size)
+        assertEquals(eventos + 1, m.api.pedidasA("GET /clubes-lectura/8/eventos").size)
+        assertEquals(lecturas, m.api.pedidasA("GET /clubes-lectura/8/lecturas").size)
+
+        canal.eventos.emit(Llegada.EspacioCerrado(41))
+        runCurrent()
+        assertEquals(listOf(41L), canal.cerrados)
+        assertEquals("Ya no eres miembro activo de este club.", m.vm.mensajeDeAccion)
+        // No se vuelve a abrir solo.
+        m.vm.recargar(completa = false)
+        runCurrent()
+        assertEquals(listOf(41L), canal.abiertos)
     }
 
     @Test

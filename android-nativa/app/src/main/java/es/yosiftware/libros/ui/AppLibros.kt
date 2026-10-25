@@ -421,6 +421,7 @@ fun AppLibros(app: LibrosApp) {
                                                         ClubViewModel(
                                                             app.datos.ambito, id, app.datos.clubes, app.datos.espacios, app.datos.estadisticas, centroDeAcceso,
                                                             miId = { app.datos.usuario.miId() }, universos = { biblioteca.universos },
+                                                            canal = app.datos.tiempoReal,
                                                         )
                                                     }
                                                     club.alSalir = { aviso ->

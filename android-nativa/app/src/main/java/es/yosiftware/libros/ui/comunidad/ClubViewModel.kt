@@ -1,5 +1,10 @@
 package es.yosiftware.libros.ui.comunidad
 
+import org.json.JSONObject
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import es.yosiftware.libros.datos.red.Llegada
+import es.yosiftware.libros.datos.red.CanalesDeEspacios
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -54,7 +59,9 @@ data class DenunciaPendiente(val tipo: String, val id: Int)
  *   `club_access_unavailable` y la web acababa sacando a la persona del club);
  * - perder el acceso a un club lo dice (la web volvía a Comunidad sin explicación);
  * - crear un debate y comentar no se pueden mandar dos veces.
- * - El canal de tiempo real del espacio llega con el socket del chat (hito 12); mientras, se relee tras cada acción.
+ * - Lo que cambia en directo llega por el canal del espacio, por el socket del chat (`ClubChannelReconciler` de la
+ *   web): cada mensaje dice qué sección se relee, los que llegan seguidos van en una tanda y `desfase` relee todo. Si
+ *   el canal se cierra (ya no es miembro activo) o falla, no se vuelve a abrir solo; el club se sigue leyendo por REST.
  */
 class ClubViewModel(
     ambito: AmbitoDeCuenta,
@@ -68,6 +75,9 @@ class ClubViewModel(
     private val esperas: List<Long> = ESPERAS_DEL_FEED,
     private val zona: () -> ZoneId = ZoneId::systemDefault,
     private val ahora: () -> Instant = Instant::now,
+    /** El canal del espacio del club, por el socket del tiempo real; sin él, solo REST. */
+    private val canal: CanalesDeEspacios? = null,
+    private val tanda: Long = 150,
 ) : ViewModelDeCuenta(ambito) {
     /** Al perder el acceso o salir: se cierra el club, con el aviso que haya. */
     var alSalir: (String?) -> Unit = {}
@@ -329,7 +339,92 @@ class ClubViewModel(
             if (!esMiembro && detalle.siguienteCursorMiembros != null) comprobarMios()
             if (esMiembro && detalle.conversacionId == null) esperarConversacion()
             if (esMiembro || espera != EsperaAlFeed.NADA) cargarEspacio()
+            abrirCanal()
         }
+    }
+
+    // ---------- El canal del espacio: lo que cambia en directo ----------
+
+    private var canalAbierto: Long? = null
+    private var canalTerminado: Long? = null
+    private var ultimaSecuencia = 0L
+    private val pendientes = mutableSetOf<SeccionDelCanal>()
+    private var tandaEnCurso: Job? = null
+    private var escuchando: Job? = null
+
+    private fun abrirCanal() {
+        val canal = canal ?: return
+        val espacioId = club?.espacioId ?: return
+        if (!esMiembro || canalTerminado == espacioId || canalAbierto == espacioId) return
+        cerrarCanal()
+        canalAbierto = espacioId
+        ultimaSecuencia = 0
+        if (escuchando == null) escuchando = viewModelScope.launch { canal.eventos.collect(::alLlegarDelCanal) }
+        canal.abrirEspacio(espacioId)
+    }
+
+    private fun cerrarCanal() {
+        canalAbierto?.let { canal?.cerrarEspacio(it) }
+        canalAbierto = null
+        tandaEnCurso?.cancel()
+        tandaEnCurso = null
+        pendientes.clear()
+    }
+
+    private fun alLlegarDelCanal(llegada: Llegada) {
+        val espacioId = canalAbierto ?: return
+        when (llegada) {
+            is Llegada.DelEspacio -> {
+                if (llegada.espacio != espacioId || llegada.secuencia <= ultimaSecuencia) return
+                ultimaSecuencia = llegada.secuencia
+                SeccionDelCanal.de(llegada.datos, id)?.let(::programar)
+            }
+            is Llegada.DesfaseDelEspacio -> if (llegada.espacio == espacioId) programar(SeccionDelCanal.TODO)
+            is Llegada.EspacioCerrado -> if (llegada.espacio == espacioId) {
+                canalTerminado = espacioId
+                cerrarCanal()
+                mensajeDeAccion = "Ya no eres miembro activo de este club."
+                recargar(completa = false)
+            }
+            is Llegada.ErrorDelEspacio -> if (llegada.espacio == espacioId) {
+                // Sin canal, el club se sigue leyendo por REST.
+                canalTerminado = espacioId
+                cerrarCanal()
+            }
+            else -> Unit
+        }
+    }
+
+    private fun programar(seccion: SeccionDelCanal) {
+        pendientes += seccion
+        if (tandaEnCurso?.isActive == true) return
+        tandaEnCurso = viewModelScope.launch {
+            delay(tanda)
+            val secciones = pendientes.toSet()
+            pendientes.clear()
+            releer(secciones)
+        }
+    }
+
+    private fun releer(secciones: Set<SeccionDelCanal>) {
+        if (club == null) return
+        if (SeccionDelCanal.TODO in secciones) {
+            primeraCarga = true
+            recargar(completa = false)
+            return
+        }
+        if (SeccionDelCanal.CLUB in secciones) recargar(completa = false)
+        if (SeccionDelCanal.LECTURAS in secciones) {
+            cargarLecturas()
+            cargarProgreso()
+        }
+        if (SeccionDelCanal.HITOS in secciones) cargarHitos()
+        if (SeccionDelCanal.CALENDARIO in secciones) cargarCalendario()
+    }
+
+    override fun onCleared() {
+        cerrarCanal()
+        super.onCleared()
     }
 
     private fun cargarSecciones() {
@@ -1042,6 +1137,10 @@ class ClubViewModel(
     override fun alCambiarDeCuenta(identidad: Identidad?) {
         // Un club es de una cuenta: con otra, se cierra (el ViewModel de la siguiente es otro).
         tareaDeEspera?.cancel()
+        cerrarCanal()
+        escuchando?.cancel()
+        escuchando = null
+        canalTerminado = null
         club = null
         espacio = null
         yo = null
@@ -1069,5 +1168,26 @@ class ClubViewModel(
         /** `FEED_RETRY_DELAYS_MS`: unos cinco minutos en total, y después se deja de preguntar. */
         val ESPERAS_DEL_FEED = listOf(3_000L, 5_000L, 10_000L, 20_000L, 30_000L, 60_000L, 60_000L, 60_000L, 60_000L)
         private val ESPERAS_DE_LA_CONVERSACION = listOf(5_000L, 10_000L, 15_000L)
+    }
+}
+
+/** Lo que dice cada mensaje del canal que ha cambiado (`utils/platform_space_channel.py` de la API). */
+enum class SeccionDelCanal {
+    CLUB, LECTURAS, HITOS, CALENDARIO, TODO;
+
+    companion object {
+        /** `club.updated`, `club.reading_updated`, `club.milestone_*` o `club.event_*`, si es de este club. */
+        fun de(datos: JSONObject, clubId: Int): SeccionDelCanal? {
+            val tipo = datos.optString("tipo")
+            val club = (datos.opt("ClubId") as? Number)?.toInt()
+            if (club != null && club != clubId) return null
+            return when {
+                tipo == "club.updated" -> CLUB
+                tipo == "club.reading_updated" -> LECTURAS
+                tipo.startsWith("club.milestone_") -> HITOS
+                tipo.startsWith("club.event_") -> CALENDARIO
+                else -> null
+            }
+        }
     }
 }

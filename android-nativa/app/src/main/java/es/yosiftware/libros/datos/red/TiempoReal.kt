@@ -62,6 +62,13 @@ interface ConexionEnVivo {
     fun olvidar()
 }
 
+/** Los canales de los espacios (los clubes) por el socket: escuchar uno, dejarlo y lo que llega. */
+interface CanalesDeEspacios {
+    val eventos: SharedFlow<Llegada>
+    fun abrirEspacio(espacio: Long)
+    fun cerrarEspacio(espacio: Long)
+}
+
 /**
  * El tiempo real de la plataforma: un WebSocket por app y cuenta, abierto mientras la app está a la vista y con sesión
  * (en segundo plano lo cubre el push, que la plataforma no manda mientras haya un socket abierto). Se abre con un
@@ -82,7 +89,7 @@ class TiempoReal(
     private val esperas: List<Long> = ESPERAS,
     private val esperaPorExceso: Long = 60_000,
     private val latido: Long = 25_000,
-) : ConexionEnVivo {
+) : ConexionEnVivo, CanalesDeEspacios {
     private val llegadas = MutableSharedFlow<Llegada>(extraBufferCapacity = 256)
     override val eventos: SharedFlow<Llegada> = llegadas.asSharedFlow()
 
@@ -140,7 +147,7 @@ class TiempoReal(
     }
 
     /** Escucha el canal de [espacio]; si el socket está abierto, lo abre ya, y si no, al conectar. */
-    fun abrirEspacio(espacio: Long) {
+    override fun abrirEspacio(espacio: Long) {
         val ahora = synchronized(cerrojo) {
             if (espacio in espacios) return
             espacios[espacio] = null
@@ -149,7 +156,7 @@ class TiempoReal(
         if (ahora) enviar(abrir(espacio, null))
     }
 
-    fun cerrarEspacio(espacio: Long) {
+    override fun cerrarEspacio(espacio: Long) {
         val ahora = synchronized(cerrojo) {
             if (espacio !in espacios) return
             espacios.remove(espacio)
