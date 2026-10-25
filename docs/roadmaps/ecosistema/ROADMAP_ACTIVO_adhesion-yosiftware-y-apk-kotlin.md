@@ -248,9 +248,26 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - **Si la colección no carga:** la web no tenía pantalla para ese fallo; aquí se avisa y se ofrece «Reintentar».
 
   Pendiente:
-  - abrir un libro (hito 9) y la ficha, las ediciones y «Similares» (el Catálogo, en este hito);
+  - abrir un libro (hito 9);
   - la letra del sistema del Xiaomi pinta la negrita (700) más fina que la WebView; es de la tipografía del hito 5, no de la Biblioteca.
-- [ ] Catálogo, hoja de saga, ediciones y petición de catálogo.
+- [x] Catálogo, hoja de saga, ediciones y petición de catálogo (2026-10-25, rama `apk/hito-8-catalogo`):
+  - la lista con la búsqueda anclada (título o autor, con ámbitos y chips), los filtros (tipo, estado, puntuación, idioma y estilo), las sagas que coinciden y los estados de carga, error y sin resultados;
+  - la hoja de saga a pantalla completa, con su cadena de lectura navegable y sus títulos;
+  - la ficha pública a pantalla completa: «Añadir como…» o «Actualizar lectura» y «Abrir lectura», los datos, las ediciones («Tengo esta edición» y «Retirar esta edición»), Mi biblioteca, la comunidad lectora y las reseñas de tres en tres;
+  - el editor de estado del Catálogo (el mismo de la Biblioteca) y la petición de alta o de corrección con el cupo de peticiones activas; si se aprueba al momento, el aviso ofrece «Añadir edición»;
+  - la Biblioteca recibe la colección después de cada cambio, y «Ver en biblioteca» la abre por el universo y la saga de la obra. «Ver ediciones» y la ficha de una antología abren el Catálogo y, al cerrar la ficha, se vuelve a donde se estaba; «Similares» abre las antologías de su estilo.
+
+  Comparado con las capturas en el Honor desplegado, en claro y en oscuro (`referencias-apk-capacitor/_kotlin/catalogo/`, con la muestra de depuración `MuestrasDeCatalogo`). El Xiaomi estaba bloqueado y no deja despertarlo por ADB: sus capturas quedan pendientes.
+
+  Diferencias a propósito:
+  - **El modal de petición:** en la APK capturada salía con la piel Wood y los campos montados unos sobre otros. Va con el tema Mobile, en una columna (en tres desde 600 dp).
+  - **Guardar el editor:** solo manda lo que cambia (`cambiosDeColeccion`); la versión capturada repetía el estado y duplicaba el histórico.
+  - **Sin Google Books en la petición:** la versión capturada no lo usaba.
+
+  Pendiente:
+  - los desplegables abren un menú de Compose y no la lista nativa de la WebView;
+  - «Ver en biblioteca» llega al principio del universo de la obra, no centra su tarjeta;
+  - probar con red en la app de QA, con sesión (añadir, editar ediciones y pedir un libro).
 - [ ] Estadísticas generales.
 - [ ] Comparación con las capturas, en claro y oscuro, plegada y desplegada.
 

@@ -40,6 +40,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -114,6 +115,17 @@ fun PantallaBiblioteca(
     }
     val ancha = ventana.anchoDp >= 600
     val abrir: (Obra) -> Unit = { if (it.esAntologia) alAbrirAntologia(it) else alAbrirLibro(it) }
+    // «Ver en biblioteca» desde el catálogo: hasta el universo de la obra, ya abierto.
+    // TODO(clon): la web centra la tarjeta de la obra (`scrollIntoView`); aquí se llega al principio de su universo.
+    LaunchedEffect(vm.porRevelar) {
+        val id = vm.porRevelar ?: return@LaunchedEffect
+        val posicion = vm.visibles.indexOfFirst { it.id == id }
+        if (posicion >= 0) {
+            val antes = 1 + (if (vm.filtrosAbiertos) 1 else 0) + (if (!vm.hayFiltros && vm.enMarcha(6).isNotEmpty()) 1 else 0) + 1
+            lista.animateScrollToItem(antes + posicion)
+        }
+        vm.revelado()
+    }
 
     Box(Modifier.fillMaxSize().background(colores.lienzo)) {
         LazyColumn(Modifier.fillMaxSize(), state = lista, contentPadding = PaddingValues(bottom = Espacios.e8)) {
@@ -276,7 +288,7 @@ private fun Sugerencias(vm: BibliotecaViewModel) {
 
 /** Un chip seleccionado con su aspa, que se quita al tocarlo. */
 @Composable
-private fun ChipQuitable(texto: String, descripcion: String, alQuitar: () -> Unit) {
+internal fun ChipQuitable(texto: String, descripcion: String, alQuitar: () -> Unit) {
     val colores = LocalColores.current
     Row(
         Modifier.heightIn(min = 32.dp).clip(Radios.pildora).background(colores.contenedorPrimario).clickable(onClick = alQuitar)

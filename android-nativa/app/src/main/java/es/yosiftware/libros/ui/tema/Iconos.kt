@@ -70,6 +70,15 @@ object Iconos {
     @DrawableRes val addShoppingCart = R.drawable.mi_add_shopping_cart
     @DrawableRes val bookmarkAdd = R.drawable.mi_bookmark_add
     @DrawableRes val block = R.drawable.mi_block
+    @DrawableRes val add = R.drawable.mi_add
+    @DrawableRes val rateReview = R.drawable.mi_rate_review
+    @DrawableRes val menuBook = R.drawable.mi_menu_book
+    @DrawableRes val removeCircleOutline = R.drawable.mi_remove_circle_outline
+    @DrawableRes val libraryAdd = R.drawable.mi_library_add
+    @DrawableRes val libraryBooks = R.drawable.mi_library_books
+    @DrawableRes val arrowForward = R.drawable.mi_arrow_forward
+    @DrawableRes val hourglassTop = R.drawable.mi_hourglass_top
+    @DrawableRes val refresh = R.drawable.mi_refresh
 
     /** El símbolo del ecosistema (ecosistema-kit/marca/simbolo-trazo.svg), en todo enlace a la web social (MARCA.md). */
     @DrawableRes val simboloYosiftware = R.drawable.simbolo_yosiftware
