@@ -59,6 +59,19 @@ export interface CatalogPagedQuery extends CatalogQuery {
     pageSize?: number;
 }
 
+/** El filtro «Nuevos» del catálogo: obras dadas de alta en las últimas 24 horas, 7 días o 30 días. */
+export type CatalogNewWorksWindow = '24h' | '7d' | '30d';
+
+export const CATALOG_NEW_WORKS_OPTIONS: ReadonlyArray<{ value: CatalogNewWorksWindow; label: string }> = [
+    { value: '24h', label: 'Últimas 24 horas' },
+    { value: '7d', label: 'Última semana' },
+    { value: '30d', label: 'Último mes' }
+];
+
+export function isCatalogNewWorksWindow(value: unknown): value is CatalogNewWorksWindow {
+    return value === '24h' || value === '7d' || value === '30d';
+}
+
 export interface CatalogQuery {
     q?: string;
     autorId?: number;
@@ -68,6 +81,7 @@ export interface CatalogQuery {
     estiloId?: number;
     estadoId?: ReadingStatusId;
     puntuacionMin?: number;
+    nuevos?: CatalogNewWorksWindow;
 }
 
 export interface CatalogItem {
@@ -80,6 +94,9 @@ export interface CatalogItem {
     Sinopsis?: string | null;
     Paginas?: number | null;
     FechaPublicacion?: string | null;
+    /** Cuándo entró en el catálogo (UTC). Aproximada en las obras de antes de guardarla: nunca son «nuevas». */
+    FechaAlta?: string | null;
+    FechaAltaAproximada?: boolean;
     Autores: Author[];
     Estados: ReadingState[];
     Puntuacion?: number | null;

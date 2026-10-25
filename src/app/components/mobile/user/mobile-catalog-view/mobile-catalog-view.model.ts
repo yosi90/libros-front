@@ -1,5 +1,5 @@
 import { CatalogSagaController } from '../../../shared/common/catalog-saga/catalog-saga.model';
-import { CatalogItem, CatalogOption } from '../../../../interfaces/catalog';
+import { CatalogItem, CatalogNewWorksWindow, CatalogOption } from '../../../../interfaces/catalog';
 import { PublicDetailController } from '../../../shared/common/public-detail/public-detail.model';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { LibraryTextFilterChip, LibraryTextFilterScope, LibraryTextScopeOption } from '../../../../shared/library-search';
@@ -23,6 +23,9 @@ export interface MobileCatalogController extends CatalogSagaController, PublicDe
     selectedRatingFilter: number | '';
     selectedLanguageFilter: number | '';
     selectedStyleFilter: number | '';
+    selectedNewFilter: CatalogNewWorksWindow | '';
+    newWorksOptions: ReadonlyArray<{ value: CatalogNewWorksWindow; label: string }>;
+    applyNewFilter(event: Event): void;
     onDraftQueryInput(event: Event): void;
     commitDraftQuery(scope?: LibraryTextFilterScope): void;
     addTextFilter(scope: LibraryTextFilterScope, value: string): void;

@@ -142,6 +142,17 @@
       } @else if (generalLoaded) {
         <h2 class="stats-section"><mat-icon>groups</mat-icon>Lectura en la comunidad</h2>
         <p class="stats-section-note">Solo cuentan quienes comparten sus estadísticas; se ocultan los datos de menos de tres personas.</p>
+        <section class="stats-consent" aria-label="Tus lecturas en estas estadísticas">
+          <mat-icon>{{ shareStatistics ? 'visibility' : 'visibility_off' }}</mat-icon>
+          <div>
+            <strong>{{ shareStatistics ? 'Tus lecturas cuentan aquí' : 'Tus lecturas no cuentan aquí' }}</strong>
+            <span>Siempre de forma anónima: nadie ve qué lees tú.</span>
+            @if (shareStatisticsError) {<span class="stats-consent__error" role="alert">{{ shareStatisticsError }}</span>}
+          </div>
+          <button mat-stroked-button type="button" role="switch" [attr.aria-checked]="shareStatistics" [disabled]="savingShareStatistics" (click)="toggleShareStatistics()">
+            {{ shareStatistics ? 'Dejar de compartir' : 'Compartir mis lecturas' }}
+          </button>
+        </section>
         @if (communityError) {
           <p class="statistics-error" role="status"><mat-icon>info</mat-icon>No se pudieron cargar los datos de la comunidad.</p>
         } @else if (community; as communityData) {
@@ -180,7 +191,15 @@
           <article class="metric-tile"><mat-icon>palette</mat-icon><strong>{{ catalogStyles.length }}</strong><span>Estilos</span></article>
           <article class="metric-tile"><mat-icon>translate</mat-icon><strong>{{ catalogLanguages.length }}</strong><span>Idiomas</span></article>
         </section>
+        @if (catalogNew; as nuevos) {
+          <section class="metric-grid" aria-label="Libros nuevos en el catálogo">
+            @for (link of newWorksLinks; track link.key) {
+              <a class="metric-tile metric-tile--link" routerLink="/dashboard/catalog" [queryParams]="{ nuevos: link.window }"><mat-icon>fiber_new</mat-icon><strong>{{ nuevos[link.key] }}</strong><span>{{ link.label }}</span></a>
+            }
+          </section>
+        }
         <section class="details-grid">
+          <article class="detail-panel"><h2><mat-icon>add_circle</mat-icon>Obras añadidas por mes</h2><app-stat-rows [rows]="catalogMonthlyAdditions" empty="Aún no hay altas con fecha."></app-stat-rows></article>
           <article class="detail-panel"><h2><mat-icon>palette</mat-icon>Títulos por estilo</h2><app-stat-rows [rows]="catalogStyles" empty="Los libros aún no tienen estilo asignado."></app-stat-rows></article>
           <article class="detail-panel"><h2><mat-icon>person_search</mat-icon>Autores con más títulos</h2><app-stat-rows [rows]="catalogAuthors" [ranked]="true" empty="Sin autores en el catálogo."></app-stat-rows></article>
           <article class="detail-panel"><h2><mat-icon>translate</mat-icon>Idiomas disponibles</h2><app-stat-rows [rows]="catalogLanguages" empty="Sin idiomas registrados."></app-stat-rows></article>

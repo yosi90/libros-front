@@ -203,6 +203,62 @@
 
 
 // Bloques de la pestaña General.
+// Si las lecturas propias cuentan en «Lectura en la comunidad» (ajuste de Libros).
+.web-stats__consent
+    display: flex
+    align-items: center
+    gap: var(--web-space-4)
+    margin-bottom: var(--web-space-4)
+    padding: var(--web-space-4) var(--web-space-5)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+
+    > mat-icon
+        flex: none
+        color: var(--web-color-primary)
+
+    div
+        display: grid
+        flex: 1
+        gap: 2px
+
+        span
+            color: var(--web-color-ink-muted)
+            font-size: 13px
+
+    button
+        @include web.button
+        flex: none
+
+    @media (max-width: 599px)
+        flex-wrap: wrap
+
+.web-stats__consent-error
+    color: var(--web-color-danger) !important
+
+// Los libros nuevos llevan al catálogo con el filtro «Nuevos».
+.web-stats__metrics .web-stats__metric-link
+    display: grid
+    gap: 2px
+    padding: var(--web-space-4) var(--web-space-5)
+    color: inherit
+    text-decoration: none
+    border-radius: var(--web-radius-lg)
+
+    & + .web-stats__metric-link
+        border-left: 1px solid var(--web-color-outline)
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+    &:focus-visible
+        outline: 2px solid var(--web-color-primary)
+        outline-offset: -2px
+
+    strong
+        color: var(--web-color-primary)
+
 .web-stats__section
     margin: var(--web-space-6) 0 var(--web-space-3)
 

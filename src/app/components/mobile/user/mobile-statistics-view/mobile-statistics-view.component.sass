@@ -226,6 +226,26 @@
 .m-stats__section-note
     margin: 0
 
+// Si las lecturas propias cuentan en «Lectura en la comunidad» (ajuste de Libros).
+.m-stats__consent
+    display: flex
+    align-items: center
+    gap: var(--mobile-space-3)
+    padding: var(--mobile-space-3)
+
+    div
+        display: grid
+        flex: 1
+        gap: 2px
+
+    button
+        flex: none
+
+// Los libros nuevos llevan al catálogo con el filtro «Nuevos».
+.m-stats__metric-link
+    color: inherit
+    text-decoration: none
+
 .m-stats__activity
     display: grid
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr))

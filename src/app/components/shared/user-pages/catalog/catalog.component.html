@@ -70,6 +70,16 @@
           <button type="button" [class.active]="filterType === 'antologia'" (click)="setTypeFilter('antologia')">Antologías</button>
         </div>
 
+        <mat-form-field class="catalog-filter-field" appearance="outline">
+          <mat-label>Nuevos</mat-label>
+          <mat-select [(ngModel)]="selectedNewFilter" (selectionChange)="applySelectFilters()">
+            <mat-option [value]="''">Todas las fechas</mat-option>
+            @for (option of newWorksOptions; track option.value) {
+              <mat-option [value]="option.value">{{option.label}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
         <mat-form-field class="catalog-filter-field catalog-filter-field--status" appearance="outline">
           <mat-label>Estado</mat-label>
           <mat-select [(ngModel)]="selectedStatusFilter" (selectionChange)="applySelectFilters()">

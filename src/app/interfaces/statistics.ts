@@ -285,6 +285,16 @@ export interface CommunityStatistics {
     ActividadComunidad30Dias: CommunityActivity30Days;
     ClubesMasAmplios: CommunityClubRank[];
     ClubesMasActivos: CommunityActiveClubRank[];
+    /** Lo que entra en el catálogo: obras, no personas (sin umbral). */
+    Catalogo?: CommunityCatalogGrowth;
+}
+
+export interface CommunityCatalogGrowth {
+    Totales: { Libros: number; Antologias: number; Autores: number; Sagas: number; Universos: number };
+    /** Libros sueltos y antologías con alta exacta en las últimas 24 horas, 7 días y 30 días. */
+    Nuevos: { Horas24: number; Dias7: number; Dias30: number };
+    /** Doce meses, del más antiguo al actual; incluye las altas aproximadas (curva de crecimiento). */
+    AltasPorMes: Array<{ Anio: number; Mes: number; Libros: number; Antologias: number; Autores: number; Sagas: number; Universos: number }>;
 }
 
 export interface ClubReadingStatistics {

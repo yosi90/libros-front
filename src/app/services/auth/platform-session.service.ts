@@ -49,7 +49,7 @@ export type LibraryAccessState = 'comprobando' | 'sin_sesion' | 'cargando' | 'li
 
 interface LocalUserResponse {
     success: boolean;
-    user: { Id: number; Nombre: string | null; Role: Role | null };
+    user: { Id: number; Nombre: string | null; Role: Role | null; CompartirEstadisticas?: boolean };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -71,6 +71,8 @@ export class PlatformSessionService implements OnDestroy {
     userName = '';
     userRole: Role = SIN_ROL;
     avatarUrl: string | null = null;
+    /** Si las lecturas de la persona cuentan, anónimas, en las estadísticas de la comunidad (ajuste de Libros). */
+    shareStatistics = false;
 
     private generationValue = 0;
     private sdk: YosiftwareSdk | null = null;
@@ -343,6 +345,7 @@ export class PlatformSessionService implements OnDestroy {
         this.userName = '';
         this.userRole = SIN_ROL;
         this.avatarUrl = null;
+        this.shareStatistics = false;
         if (this.userIsLogged$.value) this.userIsLogged$.next(false);
         this.identityChangeSubject.next({ generation, accountId });
         return generation;
@@ -363,6 +366,7 @@ export class PlatformSessionService implements OnDestroy {
                 this.userId = user.Id;
                 this.userName = user.Nombre || this.cuenta?.alias || '';
                 this.userRole = user.Role ?? SIN_ROL;
+                this.shareStatistics = user.CompartirEstadisticas === true;
                 // Antes que `lista`: las guardas reaccionan a `access$` en el acto y leen `userIsLogged`. Al revés, una
                 // recarga o un enlace a una página con sesión acababa en la portada y de ahí en la biblioteca.
                 this.userIsLogged$.next(true);

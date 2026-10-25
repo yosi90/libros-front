@@ -20,6 +20,7 @@ import { getApiErrorField } from '../../../../shared/backend-field-error';
 import { ownedEditionIds, preferredEdition } from '../../../../shared/edition-selection';
 import { getLatestStatus, getLatestStatusName, readingStatusOptions } from '../../../../shared/reading-status';
 import { collectionStateRequests, CollectionStateValues } from '../../../../shared/collection-state';
+import { catalogEntryText } from '../../../../shared/catalog-entry';
 import { PublicDetailController } from './public-detail.model';
 
 /**
@@ -238,6 +239,12 @@ export abstract class PublicDetailHost implements PublicDetailController {
 
     publicDetailIsbn(): string | null {
         return this.selectedEdition()?.ISBN ?? (this.publicDetailEditions().length ? null : this.selectedPublicDetail?.ISBN ?? this.selectedDetailItem?.ISBN ?? null);
+    }
+
+    /** Cuándo entró la obra en el catálogo, para la ficha; vacío si no se sabe. */
+    publicDetailCatalogEntry(): string {
+        const work = this.selectedPublicDetail ?? this.selectedDetailItem;
+        return catalogEntryText(work?.FechaAlta, work?.FechaAltaAproximada);
     }
 
     publicDetailPublicationDate(): string | null {

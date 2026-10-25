@@ -41,6 +41,12 @@ export class StatisticsService {
         return this.http.get<CommunityStatistics>(`${this.baseUrl}estadisticas/comunidad`, { params: { limit } });
     }
 
+    /** Si las lecturas propias cuentan, anónimas, en las estadísticas de la comunidad (ajuste de Libros). */
+    setCommunityStatisticsConsent(share: boolean): Observable<boolean> {
+        return this.http.put<{ CompartirEstadisticas: boolean }>(`${this.baseUrl}usuarios/me/estadisticas-comunidad`, { Compartir: share })
+            .pipe(map(response => response.CompartirEstadisticas));
+    }
+
     /** Autores más leídos por los miembros actuales de un club abierto. */
     getClubReadingStatistics(clubId: number, limit = 10): Observable<ClubReadingStatistics> {
         return this.http.get<ClubReadingStatistics>(`${this.baseUrl}estadisticas/comunidad/clubes/${clubId}`, { params: { limit } });

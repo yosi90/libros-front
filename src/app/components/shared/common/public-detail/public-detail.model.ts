@@ -33,6 +33,7 @@ export interface PublicDetailController {
     toggleSelectedEditionOwnership(): void;
     publicDetailIsbn(): string | null;
     publicDetailPublicationDate(): string | null;
+    publicDetailCatalogEntry(): string;
     publicDetailAuthorsLabel(): string;
     publicDetailLanguagesLabel(): string;
     publicDetailStylesLabel(): string;

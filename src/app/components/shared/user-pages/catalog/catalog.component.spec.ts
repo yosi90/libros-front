@@ -89,6 +89,43 @@ describe('CatalogComponent', () => {
         expect(catalogSrv.getBooks).toHaveBeenCalledTimes(2);
     });
 
+    it('el filtro «Nuevos» pide las altas del plazo y ordena de la más reciente a la más antigua', () => {
+        const { component, catalogSrv } = createComponent();
+        const older: CatalogItem = { ...book, Id: 8, Nombre: 'Antes', FechaAlta: '2026-10-20T10:00:00Z' };
+        const newer: CatalogItem = { ...book, Id: 9, Nombre: 'Zeta', FechaAlta: '2026-10-25T10:00:00Z' };
+        catalogSrv.getBooks.and.returnValue(of([older]));
+        catalogSrv.getAnthologies.and.returnValue(of([{ ...newer, Tipo: 'antologia' }]));
+        catalogSrv.getSagas.and.returnValue(of([]));
+
+        component.applyNewFilter({ target: { value: '7d' } } as unknown as Event);
+
+        expect(component.selectedNewFilter).toBe('7d');
+        expect(component.hasActiveFilters).toBeTrue();
+        expect(catalogSrv.getBooks.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining({ nuevos: '7d' }));
+        expect(component.items.map(item => item.Nombre)).toEqual(['Zeta', 'Antes']);
+
+        component.applyNewFilter({ target: { value: 'otra cosa' } } as unknown as Event);
+        expect(component.selectedNewFilter).toBe('');
+        expect(catalogSrv.getBooks.calls.mostRecent().args[0].nuevos).toBeUndefined();
+    });
+
+    it('la novedad diaria abre el catálogo con «?nuevos=24h» y el filtro sale de la URL', () => {
+        const { component, catalogSrv, router } = createComponent();
+        catalogSrv.getBooks.and.returnValue(of([]));
+        catalogSrv.getAnthologies.and.returnValue(of([]));
+        catalogSrv.getSagas.and.returnValue(of([]));
+        catalogSrv.getLanguages.and.returnValue(of([]));
+        catalogSrv.getStyles.and.returnValue(of([]));
+        (router as unknown as { url: string }).url = '/dashboard/catalog?nuevos=24h';
+        router.parseUrl = (url: string) => ({ queryParams: Object.fromEntries(new URLSearchParams(url.split('?')[1] ?? '')) });
+
+        component.ngOnInit();
+
+        expect(component.selectedNewFilter).toBe('24h');
+        expect(catalogSrv.getBooks.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining({ nuevos: '24h' }));
+        expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { nuevos: null }, replaceUrl: true }));
+    });
+
     it('acepta el año de publicación y la sinopsis en una petición de libro', () => {
         const { component, catalogRequestSrv, snackBar } = createComponent();
         catalogRequestSrv.create.and.returnValue(of({ success: true, Id: 3, Estado: 'pendiente' }));

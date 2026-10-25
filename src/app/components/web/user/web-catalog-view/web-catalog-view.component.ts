@@ -28,7 +28,7 @@ export class WebCatalogViewComponent {
 
     get activeSelectCount(): number {
         const c = this.controller;
-        return [c.selectedStatusFilter, c.selectedRatingFilter, c.selectedLanguageFilter, c.selectedStyleFilter]
+        return [c.selectedNewFilter, c.selectedStatusFilter, c.selectedRatingFilter, c.selectedLanguageFilter, c.selectedStyleFilter]
             .filter(value => value !== '').length;
     }
 

@@ -410,7 +410,8 @@ export class BooksComponent implements OnInit {
             selectedStatusFilter: '',
             selectedRatingFilter: '',
             selectedLanguageFilter: '',
-            selectedStyleFilter: anthology.Estilos?.[0]?.Id ?? ''
+            selectedStyleFilter: anthology.Estilos?.[0]?.Id ?? '',
+            selectedNewFilter: ''
         });
         this.catalogViewState.setScrollTop(0);
         this.clearAnthologySelection();

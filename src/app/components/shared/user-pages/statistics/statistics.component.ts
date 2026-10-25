@@ -16,6 +16,8 @@ import { StatisticsService } from '../../../../services/other/statistics.service
 
 import { BookStale, FastRead, IdNameMetric, MonthlyCount, ReadingStatusDistribution, monthlyCountLabel, totalReadDays } from '../../../../interfaces/statistics';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { RouterLink } from '@angular/router';
 import { readingStatusOptions } from '../../../../shared/reading-status';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileStatisticsViewComponent } from '../../../mobile/user/mobile-statistics-view/mobile-statistics-view.component';
@@ -26,15 +28,17 @@ import {
     communityReadingRows, longestWaiting, ratingDistribution, readStyles, topReadAuthors
 } from '../../../../shared/library-stats';
 import { CatalogItem } from '../../../../interfaces/catalog';
-import { CommunityActivity30Days, CommunityStatistics } from '../../../../interfaces/statistics';
+import { CommunityActivity30Days, CommunityCatalogGrowth, CommunityStatistics } from '../../../../interfaces/statistics';
 import { catchError, forkJoin, of } from 'rxjs';
+import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 export type StatisticsTab = 'personal' | 'general';
 
 @Component({
     selector: 'app-statistics',
     standalone: true,
-    imports: [NgApexchartsModule, MatIconModule, MobileStatisticsViewComponent, WebStatisticsViewComponent, StatRowsComponent],
+    imports: [NgApexchartsModule, MatIconModule, MatButtonModule, RouterLink, MobileStatisticsViewComponent, WebStatisticsViewComponent, StatRowsComponent],
     templateUrl: './statistics.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./statistics.component.sass']
@@ -93,6 +97,17 @@ export class StatisticsComponent implements OnInit {
     communityMonthly: Array<{ label: string; value: number | null }> = [];
     communityBiggestClubs: StatRow[] = [];
     communityActiveClubs: StatRow[] = [];
+    /** Obras (libros y antologías) con alta exacta en 24 horas, 7 días y 30 días; null sin datos del servidor. */
+    catalogNew: CommunityCatalogGrowth['Nuevos'] | null = null;
+    /** Libros y antologías añadidos al catálogo cada mes (doce meses). */
+    catalogMonthlyAdditions: StatRow[] = [];
+    savingShareStatistics = false;
+    shareStatisticsError = '';
+    readonly newWorksLinks: ReadonlyArray<{ key: keyof CommunityCatalogGrowth['Nuevos']; window: string; label: string }> = [
+        { key: 'Horas24', window: '24h', label: 'Nuevos en 24 horas' },
+        { key: 'Dias7', window: '7d', label: 'Nuevos esta semana' },
+        { key: 'Dias30', window: '30d', label: 'Nuevos este mes' }
+    ];
     readonly activityLabels: Array<{ key: keyof CommunityActivity30Days; label: string; icon: string }> = [
         { key: 'Publicaciones', label: 'Publicaciones', icon: 'article' },
         { key: 'Comentarios', label: 'Comentarios', icon: 'chat_bubble' },
@@ -176,8 +191,32 @@ export class StatisticsComponent implements OnInit {
         private statsSrv: StatisticsService,
         private hostRef: ElementRef<HTMLElement>,
         private presentation: PresentationModeService,
-        private catalog: CatalogService
+        private catalog: CatalogService,
+        private session: PlatformSessionService
     ) { }
+
+    /** Si las lecturas propias cuentan, anónimas, en «Lectura en la comunidad». Por defecto, no. */
+    get shareStatistics(): boolean {
+        return this.session.shareStatistics;
+    }
+
+    toggleShareStatistics(): void {
+        if (this.savingShareStatistics) return;
+        this.savingShareStatistics = true;
+        this.shareStatisticsError = '';
+        this.statsSrv.setCommunityStatisticsConsent(!this.shareStatistics).subscribe({
+            next: share => {
+                this.session.shareStatistics = share;
+                this.savingShareStatistics = false;
+                // Los agregados cambian con la decisión: se vuelven a pedir.
+                this.loadGeneral();
+            },
+            error: error => {
+                this.shareStatisticsError = getApiErrorMessage(error, 'No se pudo guardar. Inténtalo de nuevo.');
+                this.savingShareStatistics = false;
+            }
+        });
+    }
 
     setTab(tab: StatisticsTab): void {
         this.tab = tab;
@@ -227,6 +266,12 @@ export class StatisticsComponent implements OnInit {
         }));
         this.communityBiggestClubs = communityClubRows(community.ClubesMasAmplios ?? []);
         this.communityActiveClubs = communityClubRows(community.ClubesMasActivos ?? [], true);
+        this.catalogNew = community.Catalogo?.Nuevos ?? null;
+        const additions = (community.Catalogo?.AltasPorMes ?? []).map(month => ({
+            label: monthlyCountLabel({ anio: month.Anio, mes: month.Mes, cantidad: month.Libros + month.Antologias }),
+            value: month.Libros + month.Antologias
+        }));
+        this.catalogMonthlyAdditions = additions.some(month => month.value > 0) ? additions : [];
     }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }

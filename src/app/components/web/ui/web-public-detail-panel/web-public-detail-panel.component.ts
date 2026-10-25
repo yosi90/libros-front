@@ -55,6 +55,7 @@ export class WebPublicDetailPanelComponent {
             { label: 'Publicación', value: publicationLabel(this.editions().length
                 ? this.controller.publicDetailPublicationDate()
                 : detail?.FechaPublicacion ?? item.FechaPublicacion) },
+            { label: 'En el catálogo', value: this.controller.publicDetailCatalogEntry() },
             { label: 'Idiomas', value: this.controller.publicDetailLanguagesLabel() },
             { label: 'Estilos', value: this.controller.publicDetailStylesLabel() },
             { label: 'ISBN', value: this.controller.publicDetailIsbn() ?? (this.editions().length ? '' : detail?.ISBN ?? item.ISBN ?? '') },

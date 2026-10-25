@@ -20,6 +20,7 @@ describe('WebPublicDetailPanelComponent', () => {
             selectedEdition: () => null,
             publicDetailIsbn: () => null,
             publicDetailPublicationDate: () => null,
+            publicDetailCatalogEntry: () => '',
             ...overrides
         } as unknown as PublicDetailController;
         const component = new WebPublicDetailPanelComponent();
@@ -32,6 +33,12 @@ describe('WebPublicDetailPanelComponent', () => {
 
         expect(component.metaRows(item).map(row => row.label)).toEqual(['Publicación', 'Idiomas']);
         expect(component.metaRows(item)[0].value).toBe('22 de noviembre de 2016');
+    });
+
+    it('enseña cuándo entró la obra en el catálogo', () => {
+        const { component } = create({ publicDetailCatalogEntry: () => '25 de octubre de 2026' });
+
+        expect(component.metaRows(item).find(row => row.label === 'En el catálogo')?.value).toBe('25 de octubre de 2026');
     });
 
     it('traduce el estado personal a la clave y el icono de estado', () => {
