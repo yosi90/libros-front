@@ -64,9 +64,11 @@ test.describe('formulario Mobile de capítulo', () => {
         expect(compactGeometry.rtfSelectedFontSize).toBe('12');
         expect(compactGeometry.rtfEditorFontSize).toBe('10px');
 
-        await page.evaluate(() => window.dispatchEvent(new Event('keyboardWillShow')));
+        // El teclado virtual del navegador (lo detecta `AdaptiveLayoutService` por `visualViewport` y lo publica en
+        // `data-virtual-keyboard`); los eventos del teclado de Capacitor se retiraron con la APK.
+        await page.evaluate(() => { document.documentElement.dataset['virtualKeyboard'] = 'open'; });
         await expect(page.locator('.m-book-navigation--compact')).toBeHidden();
-        await page.evaluate(() => window.dispatchEvent(new Event('keyboardWillHide')));
+        await page.evaluate(() => { document.documentElement.dataset['virtualKeyboard'] = 'closed'; });
         await expect(page.locator('.m-book-navigation--compact')).toBeVisible();
 
         await page.setViewportSize({ width: 718, height: 781 });

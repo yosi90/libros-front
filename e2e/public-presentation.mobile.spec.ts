@@ -48,9 +48,10 @@ test.describe('presentación pública Mobile local', () => {
     }
 
     test('Home cabe sin scroll en el viewport plegado del Honor', async ({ page }) => {
+        // Antes simulaba también la barra de estado de la APK de Capacitor (`--app-safe-top: 33px`), que ya no existe:
+        // en el navegador la zona segura la pone `env(safe-area-inset-top)` (docs/roadmaps/home/bugs.md, 2026-10-25).
         await page.setViewportSize({ width: 353, height: 792 });
         await page.goto('/home');
-        await page.locator('html').evaluate(element => (element as HTMLElement).style.setProperty('--app-safe-top', '33px'));
 
         const content = page.locator('.mobile-public-shell__content');
         await expect(content).toBeVisible();
