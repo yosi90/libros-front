@@ -252,8 +252,9 @@ fun BotonDeYosiftware(texto: String, alPulsar: () -> Unit) {
 }
 
 /**
- * Lo de la cuenta que se hace fuera de la app (APK.md, «Entrar», puntos 5 y 6): el perfil, las sesiones y la privacidad,
- * en la web social y con el símbolo del ecosistema, y «Errores y propuestas», que abre la web de Libros con `?reportar`.
+ * Lo de la cuenta que se hace fuera de la app (APK.md, «Entrar», puntos 5 y 6): el perfil, los logros, las sesiones y
+ * la privacidad, en la web social y con el símbolo del ecosistema, y «Errores y propuestas», que abre la web de Libros
+ * con `?reportar`.
  * Con el aspecto de las filas de la hoja «Más» (`.m-more-sheet`): 48 dp, el icono en el primario y el texto en negrita.
  * [alAbrir] se llama antes de salir al navegador (para cerrar la hoja).
  */
@@ -265,6 +266,8 @@ fun EnlacesDeLaCuenta(alAbrir: () -> Unit, conPerfil: Boolean = true) {
     val abrir: (String) -> Unit = { direccion -> alAbrir(); Enlaces.abrir(contexto, direccion) }
     Column(Modifier.fillMaxWidth()) {
         if (conPerfil) FilaDeEnlace(Iconos.simboloYosiftware, "Perfil y cuenta en Yosiftware") { abrir(sesion.direccionWebSocial("perfil")) }
+        // Los logros de Libros, con los de las demás webs, en «Tu cuenta › Logros» (LOGROS.md).
+        FilaDeEnlace(Iconos.simboloYosiftware, "Tus logros") { abrir(sesion.direccionWebSocial("logros")) }
         FilaDeEnlace(Iconos.simboloYosiftware, "Sesiones") { abrir(sesion.direccionWebSocial("sesiones")) }
         FilaDeEnlace(Iconos.simboloYosiftware, "Privacidad") { abrir(sesion.direccionWebSocial("privacidad")) }
         FilaDeEnlace(Iconos.bugReport, "Errores y propuestas") { abrir(Enlaces.reportar) }

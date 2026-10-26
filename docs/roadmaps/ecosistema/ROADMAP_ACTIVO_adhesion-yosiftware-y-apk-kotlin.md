@@ -491,7 +491,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
       - las cuatro cifras de tu ritmo.
     - Lo que no tiene dato no ocupa sitio. Sin el medidor ni la línea de tiempo vertical.
     - Wood conserva su diseño.
-    - La APK ya lee `Metricas` (el ritmo y la valoración, de la F4); le falta aún la curva «Tu ritmo en este libro».
+    - La APK lee `Metricas` (el ritmo y la valoración, de la F4) y enseña la curva «Tu ritmo en este libro».
   - [ ] Función nueva: el campo `titulo` del libro pasa a `usuario_libros`, propio de cada persona, y se puede generar con IA por la pasarela de la plataforma (Anthropic primero, kit 1.54). Detalle en el roadmap de la IA de la API (`Libros API/docs/roadmaps/PAUSADO_ia/`, IA2).
   - [ ] Función nueva: dictado por voz a los editores RTF de escenas y entradas, con la transcripción de la pasarela y una clave de IA para un modelo mejor (mismo roadmap, IA3).
 - Añadido por el propietario el 2026-10-25, fuera del clon: las peticiones de alta de libros resueltas por la IA con su clave (`PAUSADO_ia`, IA1) y la auditoría de los estilos literarios (`Libros API/docs/roadmaps/PAUSADO_auditoria-estilos/`). Son del backend; la web solo enseña las aprobaciones automáticas.

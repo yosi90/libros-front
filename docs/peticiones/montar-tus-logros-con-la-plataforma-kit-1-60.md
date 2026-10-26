@@ -109,4 +109,57 @@ Sin calendario. Cada web, cuando pueda. Disponible en QA y en producción desde 
 
 ## Resolución
 
-<!-- La rellena el destinatario. Ver docs/peticiones/README.md. -->
+### Libros: hecho (2026-10-26)
+
+Aceptada. Libros declara su catálogo, concede y lleva el progreso desde la API (`1afe426`), en QA y en producción desde el 26 de octubre. El propietario dejó elegir los logros: «lo típico, primer libro en la biblioteca, X libros en la biblioteca, primer libro acabado… y así».
+
+**El catálogo:** 26 logros en seis grupos.
+
+- **Niveles:** Bolsillo, Tapa blanda, Tapa dura y Edición de lujo.
+- **Tu biblioteca:** 1, 10, 50, 100 y 250 libros.
+- **Lectura:**
+  - terminar 1, 10, 50 y 100 libros;
+  - libros de 10 autores distintos;
+  - una saga completa;
+  - 10.000 páginas.
+- **Constancia:**
+  - 7 y 30 días seguidos registrando lectura;
+  - un libro terminado cada mes durante 12 meses;
+  - uno secreto.
+- **Reseñas y puntuaciones:** la primera nota, y la primera reseña, 10 y 50.
+- **Tu memoria de lectura:** el primer capítulo, 100 y 1.000; 50 personajes.
+- **El catálogo:** la primera petición aprobada y 10.
+
+**Cómo concede:**
+
+- La API mide cada logro en su base y lo compara con lo que la cuenta ya tiene (`GET /v1/servicio/logros/cuentas/{cuenta}`): solo envía lo que cambia.
+- Lo revisa en segundo plano:
+  - tras cada escritura correcta de la persona, con un retraso de 20 segundos que agrupa las seguidas;
+  - la primera vez que la API la ve desde que arrancó;
+  - al aprobarse una petición suya.
+- **Los que ya tenía cada cuenta** se conceden con su fecha de verdad. Con una fecha de hace más de un día, la plataforma no avisa. Lo que no tiene fecha, porque es de antes de guardarla, toma la del alta de la persona en Libros.
+- El progreso va mientras no se cumplen.
+- **El aviso:** el de la campana (`avisoEnLaWeb: true`); Libros no tiene uno propio.
+
+**El enlace:** «Ver tus logros» abre «Tu cuenta › Logros» (`?vista=logros`):
+
+- en el perfil de la web (Mobile, Web y Wood);
+- en la APK Kotlin, junto a los enlaces de la cuenta.
+
+**No aplica por ahora:**
+
+- Las imágenes propias: las medallas llevan el icono de Libros.
+- Enseñar los logros dentro de Libros con `GET /v1/logros`.
+- Publicar novedades al conseguir un trofeo.
+
+**Comprobado:**
+
+- En QA, de punta a punta con la cuenta de prueba `prueba.libros.activa`: el catálogo con sus niveles, «Primer libro» concedido y el progreso de los de la biblioteca.
+- En producción: el catálogo declarado (26 logros, 6 grupos).
+- 15 pruebas nuevas en `tests/test_platform_logros.py`:
+  - el catálogo dentro de los límites;
+  - las medidas;
+  - las fechas;
+  - las rachas en hora de Madrid;
+  - que solo se envía lo que cambia;
+  - el agrupado de las escrituras.

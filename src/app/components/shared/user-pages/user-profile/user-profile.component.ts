@@ -318,6 +318,9 @@ export class UserProfileComponent implements OnInit {
     /** La miniatura del avatar de Yosiftware; sin ella, el icono de cuenta. */
     get avatarUrl(): string | null { return this.sessionSrv.avatarUrl; }
 
+    /** Los logros de Libros, con los de las demás webs, en «Tu cuenta › Logros» de la web social (LOGROS.md). */
+    get socialAchievementsUrl(): string { return this.sessionSrv.socialUrl('logros'); }
+
     /** El perfil público en la web social (con el símbolo del ecosistema). */
     get socialProfileUrl(): string {
         const id = this.sessionSrv.cuenta?.id;

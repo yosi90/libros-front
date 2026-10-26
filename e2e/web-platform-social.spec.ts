@@ -130,7 +130,9 @@ test.describe('Lo social con la plataforma (hito 3)', () => {
         await page.goto('/dashboard/profile?section=profile');
         const panel = page.locator('.web-settings__panel');
         await expect(panel.getByRole('button', { name: 'Editar perfil' })).toBeVisible();
-        await expect(panel.locator('a[target="_blank"] app-yosiftware-mark')).toHaveCount(1);
+        // El perfil público y los logros, en la web social.
+        await expect(panel.locator('a[target="_blank"] app-yosiftware-mark')).toHaveCount(2);
+        await expect(panel.getByRole('link', { name: 'Ver tus logros' })).toHaveAttribute('href', /\?vista=logros$/);
         await expect(panel.locator('input, textarea')).toHaveCount(0);
 
         await page.goto('/dashboard/profile?section=requests');
