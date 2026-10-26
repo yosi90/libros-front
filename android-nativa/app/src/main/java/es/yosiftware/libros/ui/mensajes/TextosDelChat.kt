@@ -1,15 +1,15 @@
 package es.yosiftware.libros.ui.mensajes
 
+import androidx.annotation.DrawableRes
+import es.yosiftware.libros.datos.leerFecha
 import es.yosiftware.libros.datos.modelos.ConversacionDePlataforma
 import es.yosiftware.libros.datos.modelos.DetalleDeConversacion
 import es.yosiftware.libros.datos.modelos.MensajeDePlataforma
 import es.yosiftware.libros.datos.modelos.PersonaDeYosiftware
-import androidx.annotation.DrawableRes
 import es.yosiftware.libros.ui.comunidad.FechasDeClubes
 import es.yosiftware.libros.ui.tema.Iconos
 import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 // Traduce el contrato del chat de la plataforma a lo que pinta Libros (`shared/platform-chat.ts` y
 // `shared/chat-display.ts` de la web). Los textos de los avisos y de la vista previa siguen a los del SDK, para que la
@@ -115,7 +115,6 @@ object TextosDelChat {
     const val VENTANA_DE_EDICION_MS = 15 * 60_000L
     private const val BORRADA = "Cuenta borrada"
     private const val NO_DISPONIBLE = "Mensaje no disponible"
-    private val FORMATO_DE_LISTA = DateTimeFormatter.ofPattern("dd/MM · HH:mm")
 
     fun persona(persona: PersonaDeYosiftware?): PersonaDelChat? {
         if (persona == null || persona.id.isEmpty()) return null
@@ -240,9 +239,6 @@ object TextosDelChat {
         else -> Iconos.person
     }
 
-    /** La fecha de la fila: `dd/MM · HH:mm`, en la hora local. */
-    fun fechaDeLista(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = FechasDeClubes.leer(iso, zona)?.format(FORMATO_DE_LISTA).orEmpty()
-
     fun cumple(conversacion: ConversacionDelChat, filtro: FiltroDeChat): Boolean = when (filtro) {
         FiltroDeChat.TODAS -> true
         FiltroDeChat.CLUB -> conversacion.tipo == "web"
@@ -327,5 +323,5 @@ object TextosDelChat {
         return partes.joinToString(" · ")
     }
 
-    private fun instante(iso: String?): Long? = FechasDeClubes.leer(iso, ZoneId.of("UTC"))?.toInstant()?.toEpochMilli()
+    private fun instante(iso: String?): Long? = leerFecha(iso, ZoneId.of("UTC"))?.toInstant()?.toEpochMilli()
 }

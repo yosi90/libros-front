@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.Tarjeta
@@ -43,7 +44,7 @@ import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.comunidad.CampoDeFormulario
 import es.yosiftware.libros.ui.comunidad.ElementoDeLista
 import es.yosiftware.libros.ui.comunidad.EstadoDePantalla
-import es.yosiftware.libros.ui.adaptable.LocalVentana
+import es.yosiftware.libros.ui.comunidad.FechasDeClubes
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Iconos
 import es.yosiftware.libros.ui.tema.LocalColores
@@ -208,7 +209,7 @@ private fun FilaDeConversacion(conversacion: ConversacionDelChat, alPulsar: () -
                 Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)),
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
-            val fecha = TextosDelChat.fechaDeLista(conversacion.fechaUltimoMensaje)
+            val fecha = FechasDeClubes.diaYHora(conversacion.fechaUltimoMensaje)
             if (fecha.isNotEmpty()) {
                 Text(fecha, Modifier.padding(top = Espacios.e1), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.68)))
             }

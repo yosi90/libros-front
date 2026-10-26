@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.estadisticas
 
+import es.yosiftware.libros.datos.instanteDe
 import es.yosiftware.libros.datos.modelos.EstadisticasDeComunidad
 import es.yosiftware.libros.datos.modelos.LecturaRapida
 import es.yosiftware.libros.datos.modelos.Obra
@@ -7,8 +8,6 @@ import es.yosiftware.libros.datos.modelos.PuestoDeComunidad
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import java.text.Collator
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.Locale
 import kotlin.math.floor
 import kotlin.math.max
@@ -56,7 +55,7 @@ object Estadisticas {
         obras.mapNotNull { obra ->
             val ultimo = obra.estados.sortedBy { it.fecha.orEmpty() }.lastOrNull() ?: return@mapNotNull null
             if (ultimo.tipo != TipoDeEstado.EN_ESPERA) return@mapNotNull null
-            val desde = instante(ultimo.fecha) ?: return@mapNotNull null
+            val desde = instanteDe(ultimo.fecha) ?: return@mapNotNull null
             val dias = max(0L, floor((ahora.toEpochMilli() - desde.toEpochMilli()).toDouble() / DIA_MS).toLong()).toInt()
             FilaDeEstadistica(obra.nombre, dias.toDouble(), "$dias ${if (dias == 1) "día" else "días"}")
         }.sortedByDescending { it.valor }.take(limite)
@@ -160,14 +159,6 @@ object Estadisticas {
 
     private fun plural(valor: Int, uno: String, varios: String) = "$valor ${if (valor == 1) uno else varios}"
 
-    /** Una fecha ISO con o sin zona; sin zona, como la lee el navegador (hora local). */
-    private fun instante(fecha: String?): Instant? {
-        val texto = fecha?.takeIf { it.isNotBlank() } ?: return null
-        return runCatching { Instant.parse(texto) }.getOrNull()
-            ?: runCatching { java.time.OffsetDateTime.parse(texto).toInstant() }.getOrNull()
-            ?: runCatching { LocalDateTime.parse(texto).atZone(ZoneId.systemDefault()).toInstant() }.getOrNull()
-            ?: runCatching { java.time.LocalDate.parse(texto.take(10)).atStartOfDay(ZoneId.of("UTC")).toInstant() }.getOrNull()
-    }
 }
 
 /** Un número sin «.0» si es entero (como lo pinta JavaScript). */

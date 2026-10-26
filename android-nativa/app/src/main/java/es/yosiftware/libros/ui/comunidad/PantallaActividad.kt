@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import es.yosiftware.libros.datos.leerFecha
 import es.yosiftware.libros.datos.modelos.Novedad
 import es.yosiftware.libros.datos.modelos.PersonaDeYosiftware
 import es.yosiftware.libros.ui.adaptable.LocalVentana
@@ -60,7 +61,7 @@ private val formatoDeFecha = DateTimeFormatter.ofPattern("d MMM y, HH:mm", Local
 
 /** «25 oct 2026, 10:30», como el `date:'d MMM y, HH:mm'` de la web (sin el punto que pone Java a los meses). */
 internal fun fechaDeNovedad(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String =
-    FechasDeClubes.leer(iso, zona)?.format(formatoDeFecha)?.replace(".", "").orEmpty()
+    leerFecha(iso, zona)?.format(formatoDeFecha)?.replace(".", "").orEmpty()
 
 @Composable
 fun PantallaActividad(vm: ActividadViewModel, acciones: AccionesDeComunidad) {

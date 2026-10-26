@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.datos.instanteDe
 import es.yosiftware.libros.datos.modelos.EstadisticaDeCapitulo
 import es.yosiftware.libros.datos.modelos.EstadisticaDePersonaje
 import es.yosiftware.libros.datos.modelos.EstadisticasDelLibro
@@ -7,10 +8,7 @@ import es.yosiftware.libros.datos.modelos.EstadoDeLectura
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.datos.plegar
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.ceil
@@ -69,7 +67,7 @@ object ResumenDelLibro {
         if (comenzado(libro) != null) "" else pendiente(ultimoPorFecha(libro)?.tipo) ?: "Sin dato"
 
     /** «dd/MM/yyyy» de una fecha de la API (con hora o sin ella), como el `date` de Angular. */
-    fun fechaCorta(iso: String?): String? = instante(iso)?.atZone(ZoneId.systemDefault())?.toLocalDate()?.format(formatoDeFecha)
+    fun fechaCorta(iso: String?): String? = instanteDe(iso)?.atZone(ZoneId.systemDefault())?.toLocalDate()?.format(formatoDeFecha)
 
     /** La fecha que se manda al poner la de compra («2026-10-25T00:00:00»; `toApiDate`). */
     fun fechaParaLaApi(dia: LocalDate): String = "${dia}T00:00:00"
@@ -90,17 +88,8 @@ object ResumenDelLibro {
 
     private fun ultimoPorFecha(libro: Libro): EstadoDeLectura? {
         val estados = libro.obra.estados
-        return estados.withIndex().sortedWith(compareByDescending<IndexedValue<EstadoDeLectura>> { instante(it.value.fecha)?.toEpochMilli() ?: 0L }.thenByDescending { it.index })
+        return estados.withIndex().sortedWith(compareByDescending<IndexedValue<EstadoDeLectura>> { instanteDe(it.value.fecha)?.toEpochMilli() ?: 0L }.thenByDescending { it.index })
             .firstOrNull()?.value
-    }
-
-    /** El instante de una fecha de la API, con zona, sin ella o solo el día (como la parsea el `Date` de la web). */
-    internal fun instante(iso: String?): Instant? {
-        val texto = iso?.takeIf { it.isNotBlank() } ?: return null
-        return runCatching { Instant.parse(texto) }.getOrNull()
-            ?: runCatching { OffsetDateTime.parse(texto).toInstant() }.getOrNull()
-            ?: runCatching { LocalDateTime.parse(texto).atZone(ZoneId.systemDefault()).toInstant() }.getOrNull()
-            ?: runCatching { LocalDate.parse(texto.take(10)).atStartOfDay(ZoneId.of("UTC")).toInstant() }.getOrNull()
     }
 
     // --- Las cifras. ---
