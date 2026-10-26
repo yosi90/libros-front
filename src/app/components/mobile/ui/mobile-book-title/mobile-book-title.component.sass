@@ -1,0 +1,151 @@
+// «Tu título» Mobile: frase en cursiva, acciones de 48 px y la generación con IA debajo.
+:host
+    display: grid
+    gap: var(--mobile-space-3)
+    min-width: 0
+    color: var(--mobile-color-ink)
+
+.m-fun-title__text
+    margin: 0
+    font-family: var(--mobile-font-display)
+    font-size: 1.05rem
+    font-style: italic
+    line-height: 1.45
+    overflow-wrap: anywhere
+    --book-title-banner-radius: var(--mobile-radius-sm)
+
+    &.is-empty
+        color: var(--mobile-color-ink-muted)
+        font-size: .94rem
+
+.m-fun-title__edit,
+.m-fun-title__generator
+    display: grid
+    gap: var(--mobile-space-2)
+
+.m-field.is-invalid
+    border-color: var(--mobile-color-error)
+
+.m-field select
+    min-width: 0
+    min-height: 54px
+    flex: 1
+    border: 0
+    outline: 0
+    color: inherit
+    background: transparent
+    font: inherit
+
+.m-field:focus-within
+    border-color: var(--mobile-color-primary)
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--mobile-color-primary) 28%, transparent)
+
+.m-fun-title__counter
+    justify-self: end
+    color: var(--mobile-color-ink-muted)
+    font-size: .75rem
+
+.m-fun-title__actions
+    display: flex
+    flex-wrap: wrap
+    gap: var(--mobile-space-2)
+
+    .m-button
+        flex: 1 1 140px
+
+.m-button:disabled
+    cursor: not-allowed
+    opacity: .55
+    box-shadow: none
+
+.m-fun-title__model
+    display: grid
+    gap: var(--mobile-space-1)
+
+    > span:first-child
+        color: var(--mobile-color-ink-muted)
+        font-size: .78rem
+        font-weight: 700
+
+.m-fun-title__note,
+.m-fun-title__error
+    display: flex
+    align-items: center
+    gap: var(--mobile-space-2)
+    margin: 0
+    color: var(--mobile-color-ink-muted)
+    font-size: .86rem
+    line-height: 1.45
+
+.m-fun-title__note--warning
+    color: var(--mobile-color-warning)
+
+.m-fun-title__error
+    color: var(--mobile-color-error)
+
+.m-fun-title__link
+    min-height: 44px
+    display: inline-flex
+    align-items: center
+    gap: var(--mobile-space-2)
+    color: var(--mobile-color-primary)
+    font-size: .86rem
+    font-weight: 700
+
+.m-fun-title__spinner
+    width: 16px
+    height: 16px
+    flex: none
+    border: 2px solid color-mix(in srgb, currentColor 25%, transparent)
+    border-top-color: currentColor
+    border-radius: 50%
+    animation: m-fun-title-spin 800ms linear infinite
+
+    @media (prefers-reduced-motion: reduce)
+        animation-duration: 2.4s
+
+@keyframes m-fun-title-spin
+    to
+        transform: rotate(360deg)
+
+// Cabecera animada: a sangre en el resumen (con sus acciones encima) y en franja en la ficha.
+.m-fun-title__hero
+    position: relative
+    --book-title-banner-radius: 0
+
+.m-fun-title__overlay
+    position: absolute
+    top: var(--mobile-space-2)
+    right: var(--mobile-space-2)
+    display: flex
+    gap: var(--mobile-space-1)
+
+    .m-icon-button
+        color: var(--mobile-color-ink)
+        background: color-mix(in srgb, var(--mobile-color-surface) 86%, transparent)
+        box-shadow: var(--mobile-shadow-1)
+
+.m-fun-title__strip
+    --book-title-banner-radius: var(--mobile-radius-sm)
+
+.m-fun-title__large
+    min-height: 44px
+    display: inline-flex
+    align-items: center
+    gap: var(--mobile-space-1)
+    justify-self: start
+    padding: 0
+    color: var(--mobile-color-primary)
+    font: 700 .86rem/1.2 var(--mobile-font-body)
+    background: none
+    border: 0
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+// A sangre en el resumen: lo de debajo de la cabecera conserva el margen de la pantalla.
+:host([mode='summary']) .m-fun-title__edit,
+:host([mode='summary']) .m-fun-title__generator
+    padding: 0 var(--mobile-space-4) var(--mobile-space-3)

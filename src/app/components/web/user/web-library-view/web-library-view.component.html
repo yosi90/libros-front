@@ -21,6 +21,7 @@
           <div class="continue__body">
             @if (first) { <p class="web-eyebrow">Continúa leyendo</p> }
             <h2>{{book.Nombre}}</h2>
+            @if (book | ownFunTitle; as funTitle) {<p class="fun-title-line">{{funTitle}}</p>}
             <p class="continue__meta">{{controller.getAuthors(book.Autores).join(', ')}}</p>
             <div class="web-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="controller.completionPercent(book)"
               [attr.aria-label]="'Progreso de ' + book.Nombre"><span [style.width.%]="controller.completionPercent(book)"></span></div>
@@ -150,6 +151,7 @@
     <img class="book-card__cover" [src]="entry.item.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
     <div class="book-card__body">
       <h3>{{entry.item.Nombre}}</h3>
+      @if (entry.item | ownFunTitle; as funTitle) {<p class="fun-title-line">{{funTitle}}</p>}
       <p>{{controller.getAuthors(entry.item.Autores).join(', ')}}</p>
       <span class="book-card__meta">
         <span class="web-status" [attr.data-status]="controller.latestStatusClass(entry.item)"><mat-icon aria-hidden="true">{{controller.latestStatusIcon(entry.item)}}</mat-icon>{{controller.latestStatusName(entry.item)}}</span>

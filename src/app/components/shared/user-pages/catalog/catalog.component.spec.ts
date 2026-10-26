@@ -2,6 +2,7 @@ import { of, Subject, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { convertToParamMap } from '@angular/router';
 import { CatalogComponent } from './catalog.component';
+import { withBookTitleContext } from '../../common/book-title/book-title.testing';
 import { CatalogItem } from '../../../../interfaces/catalog';
 
 describe('CatalogComponent', () => {
@@ -48,7 +49,7 @@ describe('CatalogComponent', () => {
         const queryParamMap = new Subject<ReturnType<typeof convertToParamMap>>();
         const route = { queryParamMap: queryParamMap.asObservable() };
 
-        const component = new CatalogComponent(
+        const component = withBookTitleContext(() => new CatalogComponent(
             catalogSrv,
             collectionSrv,
             catalogRequestSrv,
@@ -61,7 +62,7 @@ describe('CatalogComponent', () => {
             presentation as never,
             fullscreenReturn,
             route as never
-        );
+        ));
 
         return { component, catalogSrv, collectionSrv, catalogRequestSrv, universeStore, snackBar, router, viewState, presentation, fullscreenReturn, queryParamMap };
     }

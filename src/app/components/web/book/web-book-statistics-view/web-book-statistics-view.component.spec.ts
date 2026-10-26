@@ -81,7 +81,8 @@ describe('WebBookStatisticsViewComponent', () => {
             mostFrequentCharacter: { Nombre: 'Iria', Apariciones: 4 },
             mostMentionedCharacter: null,
             purchaseDate: new FormControl<Date | null>(null),
-            savePurchaseDateFromInput: jasmine.createSpy('savePurchaseDateFromInput')
+            savePurchaseDateFromInput: jasmine.createSpy('savePurchaseDateFromInput'),
+            bookTitle: { available: false }
         };
 
         fixture = TestBed.createComponent(WebBookStatisticsViewComponent);
@@ -101,6 +102,20 @@ describe('WebBookStatisticsViewComponent', () => {
         expect(dates[1].textContent).toContain('4 ★');
         expect(fixture.nativeElement.textContent).not.toContain('Sin dato');
         expect(fixture.nativeElement.querySelector('.pace')).toBeNull();
+    });
+
+    it('shows «Tu título» only for a book of the collection, as text', () => {
+        expect(fixture.nativeElement.textContent).not.toContain('Tu título');
+
+        controller['bookTitle'] = {
+            available: true, title: '<b>Brumas</b> ⚙️ (¬‿¬)', html: null, styles: null, emptyText: 'Aún no tiene título divertido',
+            editing: false, generatorOpen: false, generating: false
+        };
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.textContent).toContain('Tu título');
+        expect(fixture.nativeElement.querySelector('app-web-book-title').textContent).toContain('<b>Brumas</b> ⚙️ (¬‿¬)');
+        expect(fixture.nativeElement.querySelector('app-web-book-title b')).toBeNull();
     });
 
     it('saves a purchase date picked in the card', () => {

@@ -4,6 +4,15 @@
   <app-web-book-statistics-view [controller]="mobileController"></app-web-book-statistics-view>
 } @else if (snapshot) {
   <section class="book-statistics">
+    <!-- Con cabecera animada, arriba del todo; sin ella, la frase en su panel. -->
+    @if (bookTitle.available && bookTitle.html) {
+      <app-wood-book-title class="title-hero" mode="summary" [state]="bookTitle"></app-wood-book-title>
+    } @else if (bookTitle.available) {
+      <section class="title-panel" aria-labelledby="wood-book-title-heading">
+        <h2 id="wood-book-title-heading"><mat-icon>auto_awesome</mat-icon>Tu título</h2>
+        <app-wood-book-title [state]="bookTitle"></app-wood-book-title>
+      </section>
+    }
     <section class="metric-grid" aria-label="Resumen de estadísticas">
       <article class="metric-tile">
         <mat-icon>auto_stories</mat-icon>

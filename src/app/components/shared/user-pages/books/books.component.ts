@@ -46,6 +46,7 @@ import {
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
+import { OwnFunTitlePipe } from '../../../../shared/own-fun-title.pipe';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -74,7 +75,7 @@ interface StatusCollectionGroup {
 @Component({
     standalone: true,
     selector:  'app-books',
-    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent, CoverCachePipe, MobileLibraryViewComponent, WebLibraryViewComponent],
+    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent, CoverCachePipe, OwnFunTitlePipe, MobileLibraryViewComponent, WebLibraryViewComponent],
     templateUrl: './books.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './books.component.sass'

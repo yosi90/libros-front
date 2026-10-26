@@ -507,6 +507,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
             next: universes => {
                 this.universeStore.setUniverses(universes);
                 this.applyStatusToCatalogItem(item, statusId, this.findCollectionCatalogItem(universes, item));
+                this.loadBookTitle();
                 this.snackBar.openSnackBar('Añadido a tu biblioteca', 'successBar', 5200, {
                     title: item.Nombre,
                     dedupeKey: `catalog:added:${item.Tipo}:${item.Id}`,

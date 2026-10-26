@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, Optional } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
 import { Book, DisplayGroup, DisplayItem } from '../../../../interfaces/book';
@@ -8,7 +8,8 @@ import { BookRouterComponent } from '../../../book-router/book-router.component'
 import { environment } from '../../../../../environment/environment';
 import { CommonModule } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { filter, Observable, Subject, takeUntil } from 'rxjs';
+import { filter, map, Observable, Subject, Subscription, takeUntil } from 'rxjs';
+import { BookTitleSceneService } from '../../common/book-title/book-title-scene.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -110,6 +111,8 @@ export class BookComponent implements OnInit, OnDestroy {
     });
 
     private destroy$ = new Subject<void>();
+    /** La escena del título divertido al abrir el libro (si la tiene y la persona no la ha apagado). */
+    private titleScene = Subscription.EMPTY;
 
     errorStatusMessage = '';
 
@@ -128,6 +131,7 @@ export class BookComponent implements OnInit, OnDestroy {
         private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService,
         private externalNavigation: ExternalNavigationService,
+        @Optional() private bookTitleScene?: BookTitleSceneService,
     ) {
 
     }
@@ -158,6 +162,7 @@ export class BookComponent implements OnInit, OnDestroy {
             const bookId = Number(params.get('id'));
             if (bookId) {
                 this.loadBook(bookId);
+                this.playTitleScene(bookId);
             } else {
                 this.snackBar.openSnackBar('ID del libro inválido', 'errorBar');
             }
@@ -167,6 +172,15 @@ export class BookComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
+        this.titleScene.unsubscribe();
+    }
+
+    /** Solo los libros: las secciones de antología se abren con `?anthologyId=` y no tienen título divertido. */
+    private playTitleScene(bookId: number): void {
+        this.titleScene.unsubscribe();
+        if (!this.bookTitleScene || Number(this.route.snapshot?.queryParamMap.get('anthologyId')) > 0)
+            return;
+        this.titleScene = this.bookTitleScene.playFor(bookId, this.bookStore.book$.pipe(map(book => book.Id === bookId)));
     }
 
     handleCoverImageError(event: any) {

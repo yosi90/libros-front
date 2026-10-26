@@ -1,0 +1,67 @@
+@if (state.html && mode === 'summary') {
+  <!-- Resumen del libro: la cabecera grande arriba, con sus dos acciones encima. -->
+  <div class="m-fun-title__hero">
+    <app-book-title-banner [title]="state.title || ''" [html]="state.html" [styles]="state.styles" [height]="bannerHeight ?? 220"></app-book-title-banner>
+    <div class="m-fun-title__overlay">
+      <button class="m-icon-button" type="button" aria-label="Generar otro" [attr.aria-expanded]="state.generatorOpen" (click)="state.toggleGenerator()"><mat-icon aria-hidden="true">auto_awesome</mat-icon></button>
+      <button class="m-icon-button" type="button" aria-label="Editar la frase" [disabled]="state.generating" (click)="state.startEditing()"><mat-icon aria-hidden="true">edit</mat-icon></button>
+    </div>
+  </div>
+} @else if (state.html) {
+  <!-- Ficha pública: una franja baja y «Ver en grande». -->
+  <app-book-title-banner class="m-fun-title__strip" [title]="state.title || ''" [html]="state.html" [styles]="state.styles" [height]="bannerHeight ?? 76"></app-book-title-banner>
+  <button class="m-fun-title__large" type="button" (click)="state.openLarge()"><mat-icon aria-hidden="true">open_in_full</mat-icon>Ver en grande</button>
+} @else {
+  <app-book-title-banner class="m-fun-title__text" [class.is-empty]="!state.title" [title]="state.title || state.emptyText" [html]="state.html" [styles]="state.styles"></app-book-title-banner>
+}
+
+@if (state.editing) {
+  <form class="m-fun-title__edit" (ngSubmit)="state.save()">
+    <label class="m-field" [class.is-invalid]="!!state.editError">
+      <input type="text" name="funTitle" aria-label="Tu título divertido" autocomplete="off" enterkeyhint="done"
+        [maxlength]="state.maxLength" [(ngModel)]="state.draft" [disabled]="state.saving" [attr.aria-invalid]="state.editError ? true : null"
+        (keydown.escape)="state.cancelEditing()">
+    </label>
+    @if (state.showCounter) {<small class="m-fun-title__counter">{{ state.draft.length }} / {{ state.maxLength }}</small>}
+    @if (state.editError) {<p class="m-fun-title__error" role="alert">{{ state.editError }}</p>}
+    <div class="m-fun-title__actions">
+      <button class="m-button m-button--outline" type="button" (click)="state.cancelEditing()">Cancelar</button>
+      <button class="m-button" type="submit" [disabled]="state.saving">{{ state.saving ? 'Guardando…' : 'Guardar' }}</button>
+    </div>
+  </form>
+} @else if (!(state.html && mode === 'summary')) {
+  <div class="m-fun-title__actions">
+    <button class="m-button m-button--outline" type="button" [disabled]="state.generating" (click)="state.startEditing()"><mat-icon aria-hidden="true">edit</mat-icon>Editar</button>
+    <button class="m-button m-button--tonal" type="button" [attr.aria-expanded]="state.generatorOpen" (click)="state.toggleGenerator()"><mat-icon aria-hidden="true">auto_awesome</mat-icon>Generar con IA</button>
+  </div>
+}
+
+@if (state.generatorOpen && !state.editing) {
+  <div class="m-fun-title__generator">
+    @if (state.checkingAi) {
+      <p class="m-fun-title__note" role="status"><span class="m-fun-title__spinner" aria-hidden="true"></span>Comprobando tu clave de IA…</p>
+    } @else if (state.aiProblem) {
+      <p class="m-fun-title__note">{{ state.aiProblem }}</p>
+      <a class="m-fun-title__link" [href]="state.managementUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>{{ state.managementText }}</a>
+    } @else {
+      <label class="m-fun-title__model"><span>Modelo</span>
+        <span class="m-field">
+          <select name="funTitleModel" [(ngModel)]="state.model" [disabled]="state.generating">
+            @for (model of state.models; track model.key) {<option [ngValue]="model.key">{{ model.label }}</option>}
+          </select>
+        </span>
+      </label>
+      <button class="m-button" type="button" [disabled]="!state.canGenerate" [attr.aria-busy]="state.generating" (click)="state.generate()">
+        @if (state.generating) {<span class="m-fun-title__spinner" aria-hidden="true"></span>Generando…} @else {<mat-icon aria-hidden="true">auto_awesome</mat-icon>Generar}
+      </button>
+      @if (state.limitReached) {<p class="m-fun-title__note m-fun-title__note--warning">{{ state.limitReachedText }}</p>}
+      @else if (state.limit) {<p class="m-fun-title__note">{{ state.remainingText }}</p>}
+    }
+    @if (state.generateError) {
+      <p class="m-fun-title__error" role="alert">{{ state.generateError }}</p>
+      @if (state.generateErrorNeedsManagement) {
+        <a class="m-fun-title__link" [href]="state.managementUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>{{ state.managementText }}</a>
+      }
+    }
+  </div>
+}

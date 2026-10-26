@@ -232,6 +232,8 @@ export interface CollectionItem extends CatalogItem {
     PuedeAbrirNarrativa?: boolean;
     NarrativaPersonalDisponible?: boolean;
     SeccionesProgreso?: AnthologySectionProgress[];
+    /** El título divertido de la persona para el libro (solo libros); null si no tiene. */
+    TituloPropio?: string | null;
 }
 
 export interface CollectionSaga extends SagaChain {

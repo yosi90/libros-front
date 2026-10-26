@@ -1,0 +1,160 @@
+@use '../../../../../assets/css/wood/primitives' as wood
+
+// «Tu título» Wood: frase en cursiva serif crema, botones dorados y campos sobre madera oscura.
+:host
+    display: grid
+    gap: 10px
+    min-width: 0
+    color: #f0dfc5
+
+.wood-fun-title__text
+    margin: 0
+    color: #fbecd6
+    font-family: Georgia, 'Times New Roman', serif
+    font-size: 1.08rem
+    font-style: italic
+    line-height: 1.45
+    overflow-wrap: anywhere
+    --book-title-banner-radius: 7px
+
+    &.is-empty
+        color: #bfa77f
+        font-size: .95rem
+
+.wood-fun-title__edit,
+.wood-fun-title__generator
+    display: grid
+    gap: 8px
+    max-width: 560px
+
+.wood-fun-title__field
+    box-sizing: border-box
+    width: 100%
+    min-height: 34px
+    padding: 6px 10px
+    color: #f6e6c9
+    font: inherit
+    background: rgba(10, 8, 6, .74)
+    border: 1px solid rgba(218, 166, 91, .26)
+    border-radius: 6px
+
+    &:focus
+        border-color: rgba(245, 214, 154, .6)
+        outline: 0
+
+    &[aria-invalid='true']
+        border-color: #ff9e85
+
+    option
+        color: #f6e6c9
+        background: #1d1712
+
+.wood-fun-title__counter
+    justify-self: end
+    color: #bfa77f
+    font-size: .78rem
+
+.wood-fun-title__actions,
+.wood-fun-title__generate
+    display: flex
+    flex-wrap: wrap
+    align-items: end
+    gap: 8px
+
+.wood-fun-title__button
+    @include wood.button
+
+.wood-fun-title__button--ghost
+    @include wood.button-ghost
+
+.wood-fun-title__model
+    display: grid
+    flex: 1 1 220px
+    gap: 4px
+    min-width: 0
+
+    span
+        color: #bfa77f
+        font-size: .78rem
+
+.wood-fun-title__note,
+.wood-fun-title__error
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    color: #d8c3a2
+    font-size: .86rem
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+        color: #d9a956
+
+.wood-fun-title__note--warning
+    color: #f2c77c
+
+.wood-fun-title__error
+    color: #ffb4a0
+
+.wood-fun-title__link
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    justify-self: start
+    color: #f2c77c
+    font-size: .86rem
+    @include wood.focus-ring
+
+    &:hover
+        color: #f5d69a
+
+.wood-fun-title__busy
+    animation: wood-fun-title-turn 1.6s ease-in-out infinite
+
+    @media (prefers-reduced-motion: reduce)
+        animation: none
+
+@keyframes wood-fun-title-turn
+    to
+        transform: rotate(180deg)
+
+// Cabecera animada: grande en el resumen (con sus acciones encima) y en franja en la ficha.
+.wood-fun-title__hero
+    position: relative
+    --book-title-banner-radius: 8px
+
+.wood-fun-title__overlay
+    position: absolute
+    top: 10px
+    right: 10px
+    display: flex
+    flex-wrap: wrap
+    justify-content: flex-end
+    gap: 8px
+
+    .wood-fun-title__button--ghost
+        background: rgba(20, 17, 13, .78)
+
+.wood-fun-title__strip
+    --book-title-banner-radius: 7px
+
+.wood-fun-title__large
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    justify-self: start
+    padding: 0
+    color: #f2c77c
+    font: inherit
+    font-size: .86rem
+    background: none
+    border: 0
+    cursor: pointer
+    @include wood.focus-ring
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px

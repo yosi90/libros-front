@@ -5,6 +5,7 @@
         </nav>
         <section class="m-preferences__content">
             @if (activeSection === 'appearance' && isWebPresentation) {<app-appearance-preferences></app-appearance-preferences>}
+            @if (activeSection === 'reading') {<app-reading-preferences></app-reading-preferences>}
             @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
             @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
         </section>
@@ -19,6 +20,7 @@
             <section class="web-settings__panel">
                 <header class="web-settings__panel-head"><div><h2>{{activeSectionInfo.label}}</h2><p>{{activeSectionInfo.description}}</p></div></header>
                 @if (activeSection === 'appearance') {<app-appearance-preferences></app-appearance-preferences>}
+                @if (activeSection === 'reading') {<app-reading-preferences></app-reading-preferences>}
                 @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
                 @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
             </section>
@@ -32,6 +34,7 @@
         </nav>
         <p class="preferences__intro">{{activeSectionInfo.description}}</p>
         @if (activeSection === 'appearance' && isWebPresentation) {<app-appearance-preferences></app-appearance-preferences>}
+        @if (activeSection === 'reading') {<app-reading-preferences></app-reading-preferences>}
         @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
         @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
     </section>

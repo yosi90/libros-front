@@ -1,5 +1,6 @@
 import { CatalogItem, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats, Edition } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
+import type { BookTitleState } from '../book-title/book-title.state';
 
 /**
  * Lo que necesitan las vistas de la ficha pública de una obra (Web, Wood y Mobile).
@@ -18,6 +19,8 @@ export interface PublicDetailController {
     editionSelectionError: string;
     publicReviewPage: number;
     statusOptions: ReadonlyArray<{ Id: ReadingStatusId; Nombre: string; icon: string }>;
+    /** «Tu título» de la obra si es un libro de la colección (en la tarjeta «Mi biblioteca»). */
+    bookTitle: BookTitleState;
     /** Opcional: sin él, «Añadir» abre el editor de estado. */
     addToCollectionWithStatus?(item: CatalogItem, statusId: ReadingStatusId, event?: MouseEvent): void;
     closePublicDetailModal(): void;

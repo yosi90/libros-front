@@ -8,12 +8,13 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
 import { PublicDetailController } from '../../../shared/common/public-detail/public-detail.model';
 import { SwipeToCloseDirective } from '../swipe-to-close.directive';
+import { WebBookTitleComponent } from '../web-book-title/web-book-title.component';
 
 /** Ficha pública Web en panel lateral: sinopsis, datos, mi lectura, comunidad y reseñas. */
 @Component({
     selector: 'app-web-public-detail-panel',
     standalone: true,
-    imports: [SwipeToCloseDirective, AsyncPipe, DatePipe, MatIconModule, MatMenuModule, CoverCachePipe],
+    imports: [SwipeToCloseDirective, AsyncPipe, DatePipe, MatIconModule, MatMenuModule, CoverCachePipe, WebBookTitleComponent],
     templateUrl: './web-public-detail-panel.component.html',
     styleUrl: './web-public-detail-panel.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

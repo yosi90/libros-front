@@ -6,6 +6,7 @@ import { BookStatisticsSnapshot } from '../../../../interfaces/statistics';
 import {
     BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, orderedChapters, paceCurveChart, pacingChart, presenceHeatmap, readingProgress
 } from '../../../../shared/book-charts';
+import { MobileBookTitleComponent } from '../../ui/mobile-book-title/mobile-book-title.component';
 import type { BookStatisticsComponent } from '../../../shared/book-pages/book-statistics/book-statistics.component';
 
 /** Anchura mínima por capítulo en los gráficos por capítulo: si no caben, desplazan en horizontal. */
@@ -18,7 +19,7 @@ const CHAPTER_COLUMN_PX = 26;
 @Component({
     selector: 'app-mobile-book-statistics-view',
     standalone: true,
-    imports: [CommonModule, MatIconModule, NgApexchartsModule],
+    imports: [CommonModule, MatIconModule, NgApexchartsModule, MobileBookTitleComponent],
     templateUrl: './mobile-book-statistics-view.component.html',
     styleUrl: './mobile-book-statistics-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

@@ -67,7 +67,13 @@ export const test = base.extend<DiagnosticsFixture>({
                 ...values.map(safeValue)
             );
         });
-        page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
+        page.on('pageerror', error => {
+            // Con `serviceWorkers: 'block'` Playwright mete su propio script en cada marco, también en los
+            // `<iframe sandbox="">` del título divertido, donde leer `navigator.serviceWorker` falla. La página no
+            // ejecuta nada ahí: el error es del arnés.
+            if (/Service worker is disabled because the context is sandboxed/.test(error.message)) return;
+            errors.push(`pageerror: ${error.message}`);
+        });
         page.on('console', message => {
             if (message.type() !== 'error') return;
             pendingConsoleMessages.push((async () => {

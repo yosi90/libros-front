@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { BookStatisticsSnapshot } from '../../../../interfaces/statistics';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { WebBookTitleComponent } from '../../ui/web-book-title/web-book-title.component';
 import type { BookStatisticsComponent } from '../../../shared/book-pages/book-statistics/book-statistics.component';
 import {
     BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, paceCurveChart, pacingChart, presenceHeatmap, readingProgress
@@ -17,7 +18,7 @@ import {
 @Component({
     selector: 'app-web-book-statistics-view',
     standalone: true,
-    imports: [CommonModule, MatIconModule, NgApexchartsModule],
+    imports: [CommonModule, MatIconModule, NgApexchartsModule, WebBookTitleComponent],
     templateUrl: './web-book-statistics-view.component.html',
     styleUrl: './web-book-statistics-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

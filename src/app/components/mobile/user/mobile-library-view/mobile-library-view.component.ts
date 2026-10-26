@@ -7,6 +7,7 @@ import { BookSimple } from '../../../../interfaces/book';
 import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
+import { OwnFunTitlePipe } from '../../../../shared/own-fun-title.pipe';
 import { MobileCollectionCardItem, MobileLibraryController } from './mobile-library-view.model';
 import { MobileScopedSearchComponent } from '../../ui/mobile-scoped-search/mobile-scoped-search.component';
 import { anthologySectionPageLabel, anthologySectionProgress, isNeutralUniverse, libraryItemCountLabel, sagaLibraryItems, universeStandaloneItems, visibleSagas } from '../../../../shared/library-view-helpers';
@@ -15,7 +16,7 @@ import { sagaChainCaption, sagaChainPosition } from '../../../../shared/saga-cha
 @Component({
     selector: 'app-mobile-library-view',
     standalone: true,
-    imports: [CommonModule, MatIconModule, RouterLink, CoverCachePipe, MobileScopedSearchComponent],
+    imports: [CommonModule, MatIconModule, RouterLink, CoverCachePipe, OwnFunTitlePipe, MobileScopedSearchComponent],
     templateUrl: './mobile-library-view.component.html',
     styleUrl: './mobile-library-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

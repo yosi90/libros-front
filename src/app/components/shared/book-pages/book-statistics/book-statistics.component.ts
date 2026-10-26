@@ -1,6 +1,7 @@
 import { integerAxisLabel, integerAxisScale } from '../../../../shared/chart-axis';
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -34,6 +35,8 @@ import { MobileBookStatisticsViewComponent } from '../../../mobile/book/mobile-b
 import { WebBookStatisticsViewComponent } from '../../../web/book/web-book-statistics-view/web-book-statistics-view.component';
 import { foldText } from '../../../../shared/text';
 import { READING_PACE_SINCE, ReadingPaceBook, paceComparison, paceDayLabel } from '../../../../shared/reading-pace';
+import { BookTitleState } from '../../common/book-title/book-title.state';
+import { WoodBookTitleComponent } from '../../common/book-title/wood-book-title.component';
 
 interface BookChartOptions {
     series: ApexAxisChartSeries;
@@ -59,7 +62,7 @@ interface BookChartOptions {
         MatInputModule,
         SnackbarModule,
         NgApexchartsModule,
-        MobileBookStatisticsViewComponent, WebBookStatisticsViewComponent
+        MobileBookStatisticsViewComponent, WebBookStatisticsViewComponent, WoodBookTitleComponent
     ],
     providers: [provideNativeDateAdapter()],
     templateUrl: './book-statistics.component.html',
@@ -84,6 +87,9 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
     chapterCharacterChartLimited = false;
     purchaseDate = new FormControl<Date | null>(null);
     isSavingPurchaseDate = false;
+    /** «Tu título»: la frase divertida de la persona para este libro (solo libros de su colección, no secciones). */
+    readonly bookTitle = new BookTitleState();
+    private readonly router = inject(Router);
 
     constructor(
         private bookStore: BookStoreService,
@@ -107,12 +113,22 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
                 this.book = book;
                 this.snapshot = book.Id ? this.statisticsSrv.getBookStatisticsFromBook(book) : null;
                 this.rebuildView();
+                if (book.Id && !this.isAnthologySection())
+                    this.bookTitle.load(book.Id);
+                else
+                    this.bookTitle.reset();
             });
     }
 
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
+        this.bookTitle.reset();
+    }
+
+    /** Las secciones de antología se abren con `?anthologyId=` (bookLoadGuard) y no tienen título divertido. */
+    private isAnthologySection(): boolean {
+        return Number(this.router.routerState.snapshot.root.queryParamMap.get('anthologyId')) > 0;
     }
 
     get totalChapters(): number {

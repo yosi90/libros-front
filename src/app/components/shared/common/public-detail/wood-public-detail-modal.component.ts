@@ -6,12 +6,13 @@ import { CatalogItem } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { PublicDetailHost } from './public-detail-host';
+import { WoodBookTitleComponent } from '../book-title/wood-book-title.component';
 
 /** Ficha pública Wood de una obra, en modal: la abren Catálogo y los gestores del Perfil. */
 @Component({
     selector: 'app-wood-public-detail-modal',
     standalone: true,
-    imports: [AsyncPipe, DatePipe, MatIconModule, MatMenuModule, CoverCachePipe],
+    imports: [AsyncPipe, DatePipe, MatIconModule, MatMenuModule, CoverCachePipe, WoodBookTitleComponent],
     templateUrl: './wood-public-detail-modal.component.html',
     styleUrl: './wood-public-detail-modal.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
