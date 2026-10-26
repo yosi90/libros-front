@@ -81,6 +81,15 @@ object ReglasDelCapitulo {
     private val paginaValida = Regex("^[1-9][0-9]{0,3}$")
     private val porNombre: Collator = Collator.getInstance(Locale.forLanguageTag("es")).apply { strength = Collator.PRIMARY }
 
+    /** «Indiscreciones · págs. 145–151 · nº 11» (o «pág. 145» si empieza y acaba en la misma): los datos plegados. */
+    fun resumen(capitulo: CapituloEditable): String {
+        val paginas = when {
+            capitulo.paginaFinal.isEmpty() || capitulo.paginaFinal == capitulo.pagina -> "pág. ${capitulo.pagina}"
+            else -> "págs. ${capitulo.pagina}–${capitulo.paginaFinal}"
+        }
+        return "${capitulo.nombre.trim()} · $paginas · nº ${capitulo.orden}"
+    }
+
     fun errorDeNombre(nombre: String): String? = when {
         nombre.isEmpty() -> "El nombre no puede quedar vacío"
         nombre.length < 3 -> "Nombre demasiado corto"

@@ -46,6 +46,14 @@ class CapituloEditableTest {
     }
 
     @Test
+    fun elResumenDeUnaLineaDelCapitulo() {
+        val capitulo = abierto().copy(nombre = " Indiscreciones ", pagina = "145", paginaFinal = "151", orden = "11")
+        assertEquals("Indiscreciones · págs. 145–151 · nº 11", ReglasDelCapitulo.resumen(capitulo))
+        assertEquals("Indiscreciones · pág. 145 · nº 11", ReglasDelCapitulo.resumen(capitulo.copy(paginaFinal = "145")))
+        assertEquals("Indiscreciones · pág. 145 · nº 11", ReglasDelCapitulo.resumen(capitulo.copy(paginaFinal = "")))
+    }
+
+    @Test
     fun alAbrirLosPersonajesVanPorNombreYNadaQuedaPorEnviar() {
         val capitulo = abierto()
         assertEquals(listOf(2, 1), capitulo.escenas[0].personajes.map { it.id })

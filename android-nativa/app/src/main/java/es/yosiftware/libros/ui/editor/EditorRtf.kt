@@ -91,6 +91,8 @@ fun EditorRtf(
     descripcion: String = "Texto narrativo",
     seleccionarTodoAlEnfocar: Boolean = false,
     alTerminarDeEditar: () -> Unit = {},
+    /** La barra de formato solo mientras se escribe (las escenas del capítulo, opción A del propietario, 26/10/2026). */
+    barraSoloAlEscribir: Boolean = false,
 ) {
     val colores = LocalColores.current
     val contexto = LocalContext.current
@@ -103,8 +105,10 @@ fun EditorRtf(
     var enfocado by remember { mutableStateOf(false) }
     val anillo = mezclar(colores.primario, 0.42f)
     Column(modifier, horizontalAlignment = Alignment.End) {
-        Barra(barra, campo)
-        val forma = RoundedCornerShape(topStart = 7.dp, topEnd = 0.dp, bottomEnd = 7.dp, bottomStart = 7.dp)
+        val conBarra = !barraSoloAlEscribir || enfocado
+        if (conBarra) Barra(barra, campo)
+        // Sin la barra encima, la esquina de arriba a la derecha también va redondeada.
+        val forma = RoundedCornerShape(topStart = 7.dp, topEnd = if (conBarra) 0.dp else 7.dp, bottomEnd = 7.dp, bottomStart = 7.dp)
         Box(
             Modifier.fillMaxWidth()
                 .drawBehind {

@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -162,7 +164,8 @@ private fun CamposDelCapitulo(vm: CapituloViewModel, capitulo: CapituloEditable,
         CampoNativo(
             "Título del capítulo", capitulo.nombre, { valor -> vm.cambiar { it.copy(nombre = valor.take(200)) } }, m,
             seleccionarSiEs = "Capítulo ${capitulo.orden}",
-            nota = if (error != null && "nombre" in tocados) error else "${capitulo.nombre.length} / 200", notaEsError = error != null && "nombre" in tocados,
+            nota = if (error != null && "nombre" in tocados) error else "${capitulo.nombre.length} / 200".takeIf { capitulo.nombre.length >= 180 },
+            notaEsError = error != null && "nombre" in tocados,
             alSalir = { tocar("nombre") },
         )
     }
@@ -191,10 +194,31 @@ private fun CamposDelCapitulo(vm: CapituloViewModel, capitulo: CapituloEditable,
         CampoNativo("Orden", capitulo.orden, { valor -> vm.cambiar { it.copy(orden = valor.filter(Char::isDigit)) } }, m, numerico = true,
             nota = error?.takeIf { "orden" in tocados }, notaEsError = true, alSalir = { tocar("orden") })
     }
+    // Compacto (opción A del propietario, 26/10/2026): un capítulo ya guardado y sin errores se resume en una línea, y
+    // el lápiz la despliega.
+    val conErrores = listOf(
+        ReglasDelCapitulo.errorDeNombre(capitulo.nombre), ReglasDelCapitulo.errorDePagina(capitulo.pagina),
+        ReglasDelCapitulo.errorDePaginaFinal(capitulo.paginaFinal), ReglasDelCapitulo.errorDeOrden(capitulo.orden),
+    ).any { it != null }
+    var desplegado by rememberSaveable(capitulo.id) { mutableStateOf(false) }
+    if (!capitulo.esNuevo && !conErrores && !desplegado) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                .drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
+                .clickable(role = Role.Button, onClickLabel = "Editar los datos del capítulo") { desplegado = true }
+                .padding(bottom = Espacios.e2),
+            horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(ReglasDelCapitulo.resumen(capitulo), style = Textos.cuerpo.copy(fontWeight = FontWeight.SemiBold, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            Icon(painterResource(Iconos.edit), contentDescription = null, tint = colores.primario, modifier = Modifier.size(20.dp))
+        }
+        return
+    }
     Column(
         Modifier.fillMaxWidth()
             .drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
-            .padding(bottom = Espacios.e5),
+            .padding(bottom = Espacios.e4),
         verticalArrangement = Arrangement.spacedBy(Espacios.e2),
     ) {
         if (ancha) {
@@ -255,32 +279,24 @@ private fun TarjetaDeEscena(
     Column(
         Modifier.fillMaxWidth()
             .drawBehind { if (!ultima) drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
-            .padding(top = Espacios.e4, bottom = Espacios.e5),
-        verticalArrangement = Arrangement.spacedBy(Espacios.e4),
+            .padding(top = Espacios.e3, bottom = Espacios.e4),
+        verticalArrangement = Arrangement.spacedBy(Espacios.e3),
     ) {
-        // La cabecera: «ESCENA N», su título y borrar.
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                .drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) },
-            horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text("ESCENA $numero", style = Textos.cuerpo.copy(fontSize = rem(0.68), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.08.em, color = colores.primario))
-                Text(escena.nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 3.dp))
-            }
-            BotonDeIcono(Iconos.delete, "Eliminar escena", { vm.quitarEscena(escena.clave) }, color = colores.error)
-        }
+        // Compacta (opción A del propietario, 26/10/2026): el título una sola vez, en línea con la localización y borrar.
         val titulo: @Composable (Modifier) -> Unit = { m ->
             CampoNativo(
-                "Título de la escena", escena.nombre, { valor -> vm.cambiarEscena(escena.clave) { it.copy(nombre = valor) } }, m,
-                seleccionarSiEs = "Escena $numero",
+                null, escena.nombre, { valor -> vm.cambiarEscena(escena.clave) { it.copy(nombre = valor) } }, m,
+                seleccionarSiEs = "Escena $numero", ejemplo = "Título de la escena", nombreAccesible = "Título de la escena $numero",
                 nota = ReglasDelCapitulo.errorDeNombreDeEscena(escena)?.takeIf { escena.tocada }, notaEsError = true,
             )
         }
         val lugar: @Composable (Modifier) -> Unit = { m -> CampoDeLocalizacion(vm, libro, escena, m) }
-        if (ancha) Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) { titulo(Modifier.weight(1f)); lugar(Modifier.weight(1f)) }
-        else Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) { titulo(Modifier.fillMaxWidth()); lugar(Modifier.fillMaxWidth()) }
+        val borrar: @Composable () -> Unit = { BotonDeIcono(Iconos.delete, "Eliminar escena $numero", { vm.quitarEscena(escena.clave) }, color = colores.error) }
+        if (ancha) Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.Top) { titulo(Modifier.weight(1f)); lugar(Modifier.weight(1f)); borrar() }
+        else Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.Top) { titulo(Modifier.weight(1f)); borrar() }
+            lugar(Modifier.fillMaxWidth())
+        }
         Column {
             EditorRtf(
                 valor = escena.descripcion,
@@ -291,15 +307,13 @@ private fun TarjetaDeEscena(
                 descripcion = "Descripción de la escena $numero",
                 seleccionarTodoAlEnfocar = ReglasDelCapitulo.esDescripcionPorDefecto(escena.descripcion),
                 alTerminarDeEditar = vm::guardarAhora,
+                barraSoloAlEscribir = true,
             )
             if (!ReglasDelCapitulo.descripcionValida(escena)) {
                 Text("La descripción es requerida (mínimo 15 caracteres).", style = Textos.cuerpo.copy(fontSize = rem(0.75), color = colores.error), modifier = Modifier.padding(top = Espacios.e2))
             }
         }
-        val presentes: @Composable (Modifier) -> Unit = { m -> Asignaciones(vm, libro, capitulo, escena, nombrados = false, m) }
-        val nombrados: @Composable (Modifier) -> Unit = { m -> Asignaciones(vm, libro, capitulo, escena, nombrados = true, m) }
-        if (ancha) Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) { presentes(Modifier.weight(1f)); nombrados(Modifier.weight(1f)) }
-        else Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) { presentes(Modifier.fillMaxWidth()); nombrados(Modifier.fillMaxWidth()) }
+        Personajes(vm, libro, capitulo, escena)
     }
 }
 
@@ -315,8 +329,8 @@ private fun CampoDeLocalizacion(vm: CapituloViewModel, libro: Libro, escena: Esc
     val neutra = ReglasDelCapitulo.localizacionNeutra(libro) != null
     Box(modifier) {
         CampoNativo(
-            "Localización", texto, { valor -> abierto = true; vm.escribirLocalizacion(escena.clave, valor) }, Modifier.fillMaxWidth(),
-            iconoFinal = Iconos.unfoldMore,
+            null, texto, { valor -> abierto = true; vm.escribirLocalizacion(escena.clave, valor) }, Modifier.fillMaxWidth(),
+            iconoFinal = Iconos.unfoldMore, ejemplo = "Localización", nombreAccesible = "Localización",
             alEnfocar = { abierto = true },
             nota = when {
                 !neutra -> "El libro no incluye «Sin localización»."
@@ -334,50 +348,73 @@ private fun CampoDeLocalizacion(vm: CapituloViewModel, libro: Libro, escena: Esc
     }
 }
 
-/** «En escena» o «Solo nombrados»: el buscador para añadir y las fichas, con mover y quitar. */
+/**
+ * Los personajes de la escena en una sola fila (opción A del propietario, 26/10/2026): primero los que están en escena y
+ * después los solo nombrados (en cursiva y con «·»), cada uno con mover y quitar; y «+ Personaje», con su buscador:
+ * tocar el nombre lo pone en escena y la @, como solo nombrado.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Asignaciones(vm: CapituloViewModel, libro: Libro, capitulo: CapituloEditable, escena: EscenaEditable, nombrados: Boolean, modifier: Modifier) {
+private fun Personajes(vm: CapituloViewModel, libro: Libro, capitulo: CapituloEditable, escena: EscenaEditable) {
     val colores = LocalColores.current
     var buscado by remember { mutableStateOf("") }
     var abierto by remember { mutableStateOf(false) }
     val asignados = escena.personajes.map { it.id }.toSet()
     val disponibles = libro.personajes.filter { it.id !in asignados }.sortedWith { a, b -> porNombre.compare(a.nombre, b.nombre) }
     val filtrados = disponibles.filter { buscado.isBlank() || plegar(it.nombre).trim().contains(plegar(buscado).trim()) }
-    val fichas = escena.personajes.filter { it.nombrado == nombrados }
-        .sortedWith { a, b -> porNombre.compare(ReglasDelCapitulo.nombreDePersonaje(libro, a.id), ReglasDelCapitulo.nombreDePersonaje(libro, b.id)) }
-    Column(
-        modifier.drawBehind { drawRect(colores.contorno, Offset.Zero, Size(size.width, 1.dp.toPx())) }.padding(top = Espacios.e3),
-        verticalArrangement = Arrangement.spacedBy(Espacios.e3),
-    ) {
-        Column {
-            Text(if (nombrados) "Solo nombrados" else "En escena", style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.0), color = colores.tinta))
-            if (!nombrados && !capitulo.esNuevo && escena.personajes.isEmpty()) {
-                Text("Necesita al menos un personaje presente o nombrado.", style = Textos.cuerpo.copy(fontSize = rem(0.7), color = colores.error), modifier = Modifier.padding(top = 4.dp))
-            }
+    val fichas = escena.personajes.sortedWith(
+        compareBy<PersonajeEnEscena> { it.nombrado }.thenComparator { a, b -> porNombre.compare(ReglasDelCapitulo.nombreDePersonaje(libro, a.id), ReglasDelCapitulo.nombreDePersonaje(libro, b.id)) },
+    )
+    val cerrar = {
+        abierto = false
+        buscado = ""
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (!capitulo.esNuevo && escena.personajes.isEmpty()) {
+            Text("Necesita al menos un personaje presente o nombrado.", style = Textos.cuerpo.copy(fontSize = rem(0.7), color = colores.error))
         }
-        Box {
-            CampoNativo(
-                etiqueta = null, valor = buscado, alCambiar = { buscado = it; abierto = true }, modifier = Modifier.fillMaxWidth(),
-                ejemplo = if (nombrados) "Añadir personaje nombrado" else "Añadir personaje presente",
-                iconoFinal = if (nombrados) Iconos.personSearch else Iconos.personAdd,
-                habilitado = disponibles.isNotEmpty(),
-                alEnfocar = { abierto = true },
-            )
-            DropdownMenu(abierto, onDismissRequest = { abierto = false }, properties = PopupProperties(focusable = false), containerColor = colores.superficie, modifier = Modifier.widthIn(max = 300.dp)) {
-                if (filtrados.isEmpty()) DropdownMenuItem(text = { Text("No quedan personajes disponibles", style = Textos.cuerpo.copy(color = colores.tintaSuave)) }, onClick = {}, enabled = false)
-                filtrados.forEach { personaje ->
-                    DropdownMenuItem(text = { Text(personaje.nombre, style = Textos.cuerpo.copy(color = colores.tinta)) }, onClick = {
-                        abierto = false
-                        buscado = ""
-                        vm.asignarPersonaje(escena.clave, personaje.id, nombrados)
-                    })
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), itemVerticalAlignment = Alignment.CenterVertically) {
+            fichas.forEach { personaje -> FichaDePersonaje(vm, libro, escena, personaje) }
+            Box {
+                val tinta = if (disponibles.isEmpty()) colores.tintaSuave else colores.primario
+                Row(
+                    Modifier.heightIn(min = 44.dp).clip(Radios.pildora)
+                        .clickable(enabled = disponibles.isNotEmpty(), role = Role.Button, onClickLabel = "Añadir personaje") { abierto = true }
+                        .padding(horizontal = Espacios.e2),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(painterResource(Iconos.personAdd), contentDescription = null, tint = tinta, modifier = Modifier.size(20.dp))
+                    Text("Personaje", style = Textos.boton.copy(fontSize = rem(0.75), color = tinta))
+                }
+                DropdownMenu(abierto, onDismissRequest = cerrar, containerColor = colores.superficie, modifier = Modifier.widthIn(min = 260.dp, max = 320.dp)) {
+                    CampoNativo(
+                        etiqueta = null, valor = buscado, alCambiar = { buscado = it }, modifier = Modifier.padding(horizontal = Espacios.e2).fillMaxWidth(),
+                        ejemplo = "Buscar personaje", iconoFinal = Iconos.search, nombreAccesible = "Buscar personaje",
+                    )
+                    Text(
+                        "Toca el nombre si está en escena, o la @ si solo se le nombra.",
+                        style = Textos.cuerpo.copy(fontSize = rem(0.68), color = colores.tintaSuave),
+                        modifier = Modifier.padding(horizontal = Espacios.e3, vertical = 4.dp),
+                    )
+                    if (filtrados.isEmpty()) DropdownMenuItem(text = { Text("No quedan personajes disponibles", style = Textos.cuerpo.copy(color = colores.tintaSuave)) }, onClick = {}, enabled = false)
+                    filtrados.forEach { personaje ->
+                        DropdownMenuItem(
+                            text = { Text(personaje.nombre, style = Textos.cuerpo.copy(color = colores.tinta)) },
+                            onClick = {
+                                cerrar()
+                                vm.asignarPersonaje(escena.clave, personaje.id, false)
+                            },
+                            trailingIcon = {
+                                BotonDeIcono(Iconos.alternateEmail, "Añadir a ${personaje.nombre} como solo nombrado", {
+                                    cerrar()
+                                    vm.asignarPersonaje(escena.clave, personaje.id, true)
+                                })
+                            },
+                        )
+                    }
                 }
             }
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-            if (fichas.isEmpty()) Text(if (nombrados) "Ningún personaje nombrado." else "Ningún personaje presente.", style = Textos.cuerpo.copy(fontSize = rem(0.75), color = colores.tintaSuave))
-            fichas.forEach { personaje -> FichaDePersonaje(vm, libro, escena, personaje) }
         }
     }
 }
@@ -388,7 +425,7 @@ private fun FichaDePersonaje(vm: CapituloViewModel, libro: Libro, escena: Escena
     val colores = LocalColores.current
     val nombre = ReglasDelCapitulo.nombreDePersonaje(libro, personaje.id)
     Row(
-        Modifier.heightIn(min = 44.dp).widthIn(min = 140.dp)
+        Modifier.heightIn(min = 44.dp)
             .drawBehind {
                 val alto = size.height - 18.dp.toPx()
                 drawRoundRect(colores.superficie, Offset(0f, 9.dp.toPx()), Size(size.width, alto), androidx.compose.ui.geometry.CornerRadius(alto / 2))
@@ -397,7 +434,15 @@ private fun FichaDePersonaje(vm: CapituloViewModel, libro: Libro, escena: Escena
             .padding(start = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(nombre, style = Textos.cuerpo.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium, lineHeight = 1.2.em, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false).padding(end = 4.dp))
+        Text(
+            if (personaje.nombrado) "· $nombre" else nombre,
+            style = Textos.cuerpo.copy(
+                fontSize = 11.sp, fontWeight = FontWeight.Medium, lineHeight = 1.2.em,
+                color = if (personaje.nombrado) colores.tintaSuave else colores.tinta,
+                fontStyle = if (personaje.nombrado) FontStyle.Italic else FontStyle.Normal,
+            ),
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false).padding(end = 4.dp),
+        )
         BotonDeFicha(
             if (personaje.nombrado) Iconos.person else Iconos.alternateEmail,
             if (personaje.nombrado) "Mover a personajes presentes" else "Mover a solo nombrados",
@@ -435,6 +480,8 @@ private fun CampoNativo(
     habilitado: Boolean = true,
     alEnfocar: () -> Unit = {},
     alSalir: () -> Unit = {},
+    /** Para el lector de pantalla, si no lleva etiqueta. */
+    nombreAccesible: String? = null,
 ) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.sm)
@@ -458,7 +505,7 @@ private fun CampoNativo(
             keyboardOptions = KeyboardOptions(keyboardType = if (numerico) KeyboardType.Number else KeyboardType.Text),
             interactionSource = interaccion,
             modifier = Modifier.fillMaxWidth()
-                .semantics { if (etiqueta != null) contentDescription = etiqueta }
+                .semantics { (etiqueta ?: nombreAccesible)?.let { contentDescription = it } }
                 .onFocusChanged { estado ->
                     if (estado.isFocused && !teniaFoco) {
                         alEnfocar()
