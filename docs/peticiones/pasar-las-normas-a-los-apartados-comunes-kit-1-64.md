@@ -56,7 +56,7 @@ Sin fecha: con vuestra próxima versión. Mientras tanto, vuestras normas vigent
 
 ## Resolución
 
-### Libros: preparadas, a falta de encender la publicación (2026-10-26)
+### Libros: hecho (2026-10-26)
 
 Aceptada.
 
@@ -74,4 +74,4 @@ Aceptada.
 4. **La vista previa**, en QA y en producción: versión 2. Solo avisa de «petición», que en Libros son las peticiones al catálogo.
 5. **El `AGENTS.md`** de los dos repositorios lleva el párrafo nuevo de `BLOQUE_AGENTS.md`.
 
-**Falta:** que el propietario encienda la publicación de Libros en la administración. Después, se publican en QA y en producción con la próxima versión de la API (`versiones.api`).
+6. **Publicadas** en QA y en producción el 26 de octubre, como versión 2 (`importante: false`) con la API `2026.10.26`, una vez el propietario encendió la publicación. En producción, `GET /v1/webs/libros/normas` da la versión 2 con sus siete apartados.
