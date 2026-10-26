@@ -59,13 +59,13 @@ import es.yosiftware.libros.ui.tema.sombra2
  * aparecer (200 ms).
  */
 @Composable
-fun IslaDelLector(vm: LibroViewModel) {
+fun IslaDelLector(vm: LibroViewModel, oculta: Boolean = false) {
     val obra = vm.abierto
     val colores = LocalColores.current
     val ancha = LocalVentana.current.anchoDp >= 600
     val abajo = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     AnimatedVisibility(
-        visible = obra != null && vm.minimizado,
+        visible = obra != null && vm.minimizado && !oculta,
         enter = fadeIn(tween(200)) + slideInVertically(tween(200)) { 24 },
         modifier = Modifier.fillMaxSize(),
     ) {

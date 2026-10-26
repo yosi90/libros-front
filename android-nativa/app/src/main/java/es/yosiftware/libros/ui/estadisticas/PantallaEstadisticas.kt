@@ -565,14 +565,27 @@ private fun NoDisponible(titulo: String, texto: String?, alReintentar: () -> Uni
 private fun Compartir(vm: EstadisticasViewModel) {
     val colores = LocalColores.current
     val comparto = vm.compartir == true
+    val ancha = LocalVentana.current.anchoDp >= 600
+    val texto: @Composable (Modifier) -> Unit = { m ->
+        Column(m, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(if (comparto) "Tus lecturas cuentan aquí" else "Tus lecturas no cuentan aquí", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta))
+            TextoDeApoyo("Siempre de forma anónima: nadie ve qué lees tú.")
+            if (vm.errorCompartir.isNotEmpty()) Text(vm.errorCompartir, style = Textos.cuerpo.copy(fontSize = rem(0.75), color = colores.error))
+        }
+    }
+    val boton = @Composable { Boton(if (comparto) "Dejar de compartir" else "Compartir", vm::alternarCompartir, variante = VarianteDeBoton.Contorno, habilitado = !vm.guardandoCompartir) }
     Tarjeta(Modifier.fillMaxWidth()) {
-        Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e3), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(if (comparto) "Tus lecturas cuentan aquí" else "Tus lecturas no cuentan aquí", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta))
-                TextoDeApoyo("Siempre de forma anónima: nadie ve qué lees tú.")
-                if (vm.errorCompartir.isNotEmpty()) Text(vm.errorCompartir, style = Textos.cuerpo.copy(fontSize = rem(0.75), color = colores.error))
+        // En compacto, el botón debajo: al lado, el texto quedaba en una columna estrecha.
+        if (ancha) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e3), verticalAlignment = Alignment.CenterVertically) {
+                texto(Modifier.weight(1f))
+                boton()
             }
-            Boton(if (comparto) "Dejar de compartir" else "Compartir", vm::alternarCompartir, variante = VarianteDeBoton.Contorno, habilitado = !vm.guardandoCompartir)
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
+                texto(Modifier)
+                boton()
+            }
         }
     }
 }

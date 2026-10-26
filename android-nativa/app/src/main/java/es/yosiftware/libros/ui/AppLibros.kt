@@ -157,6 +157,7 @@ fun AppLibros(app: LibrosApp) {
         BibliotecaViewModel(app.datos.ambito, app.datos.coleccion, app.datos.catalogo, AlmacenDelMovil(app), avisos)
     }
     val nav: NavegacionViewModel = viewModel()
+    var masAbierta by remember { mutableStateOf(false) }
     val catalogo: CatalogoViewModel = viewModel {
         CatalogoViewModel(app.datos.ambito, app.datos.catalogo, app.datos.coleccion, app.datos.peticiones, avisos, biblioteca::recibirUniversos)
     }
@@ -376,6 +377,7 @@ fun AppLibros(app: LibrosApp) {
                             avisosAbiertos = centroDeAvisos.abierto,
                             alPulsarCampana = centroDeAvisos::alternar,
                             conIslaDelLector = libro.abierto != null && libro.minimizado,
+                            alCambiarMas = { masAbierta = it },
                             panelDeAvisos = { alto ->
                                 val contexto = LocalContext.current
                                 PanelDeAvisos(
@@ -558,7 +560,11 @@ fun AppLibros(app: LibrosApp) {
                     CapasDeCatalogo(catalogo, alAbrirLectura = abrirLibro)
                     PantallaLibro(libro) { vista -> ContenidoDelLibro(libro, notas, busqueda, capituloPara, elementosPara, vista) }
                     // El libro minimizado, en su isla sobre la navegación (`app-native-reader-island`).
-                    IslaDelLector(libro)
+                    // Es del shell: se esconde con la hoja «Más», la campana o las cuentas abiertas, y bajo las capas a
+                    // pantalla completa, que no tienen la barra inferior y no le dejan hueco (tapaba sus últimas filas).
+                    val conCapa = biblioteca.antologia != null || biblioteca.edicionDeSeccion != null || biblioteca.edicion != null ||
+                        catalogo.ficha != null || catalogo.hoja != null || catalogo.edicion != null || catalogo.peticion != null
+                    IslaDelLector(libro, oculta = masAbierta || centroDeAvisos.abierto || panelAbierto || conCapa)
                     // El cargador de los dragones, encima de todo: al recuperar la biblioteca y al abrir un libro, como
                     // la APK de Capacitor (`restoreLibrary` y `book-load.guard`). Se elige al abrirse y no cambia hasta
                     // cerrarse, aunque se pase de una carga a otra.

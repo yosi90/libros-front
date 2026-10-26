@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -76,6 +77,8 @@ fun Armazon(
     conIslaDelLector: Boolean = false,
     /** Con la hoja «Más» ya abierta (las muestras de depuración). */
     masAbiertaAlPrincipio: Boolean = false,
+    /** La hoja «Más» se abre o se cierra: la isla del libro, que va por encima del armazón, se esconde mientras. */
+    alCambiarMas: (Boolean) -> Unit = {},
     contenido: @Composable (Destino) -> Unit = { PantallaVacia(it) },
 ) {
     val colores = LocalColores.current
@@ -84,6 +87,7 @@ fun Armazon(
     val direccion = LocalLayoutDirection.current
     var masAbierta by rememberSaveable { mutableStateOf(masAbiertaAlPrincipio) }
     val porDestino = rememberSaveableStateHolder()
+    LaunchedEffect(masAbierta) { alCambiarMas(masAbierta) }
 
     // La hoja «Más» registra el suyo después, así que Atrás la cierra antes que volver.
     BackHandler(enabled = nav.puedeVolver) { nav.volver() }
