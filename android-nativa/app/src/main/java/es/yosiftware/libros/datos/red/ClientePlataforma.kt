@@ -5,7 +5,6 @@ import es.yosiftware.libros.datos.cuenta.exigir
 import es.yosiftware.sesion.ErrorSesion
 import es.yosiftware.sesion.SesionYosiftware
 import java.io.IOException
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -30,21 +29,10 @@ class ClientePlataforma(
     /** [ruta] con su barra inicial, como en la documentación de la plataforma (`/v1/perfil`). Devuelve el cuerpo. */
     suspend fun llamar(metodo: String, ruta: String, cuerpo: JSONObject? = null): String {
         val deInicio = generacion.actual()
-        val enviado: RequestBody? = cuerpo?.toString()?.toRequestBody(JSON)
-            ?: if (metodo == "GET" || metodo == "DELETE") null else ByteArray(0).toRequestBody(null)
+        val enviado = cuerpoDe(metodo, cuerpo)
         val respuesta = sesion.conTokenDePlataforma({ it.estado }) { token ->
             generacion.exigir(deInicio)
-            val solicitud = Request.Builder()
-                .url(base + ruta)
-                .method(metodo, enviado)
-                .header("Accept", "application/json")
-                .header("Authorization", "Bearer $token")
-                .build()
-            try {
-                Red.enviar(http, solicitud)
-            } catch (e: IOException) {
-                throw ErrorSesion.sinConexion(e)
-            }
+            enviar(solicitud(metodo, ruta, enviado).header("Authorization", "Bearer $token").build())
         }
         generacion.exigir(deInicio)
         if (!respuesta.correcta) throw errorDe(respuesta)
@@ -58,16 +46,21 @@ class ClientePlataforma(
      * los mismos errores que [llamar].
      */
     suspend fun sinToken(metodo: String, ruta: String, cuerpo: JSONObject? = null): String {
-        val enviado: RequestBody? = cuerpo?.toString()?.toRequestBody(JSON)
-            ?: if (metodo == "GET" || metodo == "DELETE") null else ByteArray(0).toRequestBody(null)
-        val solicitud = Request.Builder().url(base + ruta).method(metodo, enviado).header("Accept", "application/json").build()
-        val respuesta = try {
-            Red.enviar(http, solicitud)
-        } catch (e: IOException) {
-            throw ErrorSesion.sinConexion(e)
-        }
+        val respuesta = enviar(solicitud(metodo, ruta, cuerpoDe(metodo, cuerpo)).build())
         if (!respuesta.correcta) throw errorDe(respuesta)
         return respuesta.cuerpo
+    }
+
+    private fun cuerpoDe(metodo: String, cuerpo: JSONObject?): RequestBody? = cuerpo?.toString()?.toRequestBody(Red.JSON) ?: Red.cuerpoVacio(metodo)
+
+    private fun solicitud(metodo: String, ruta: String, cuerpo: RequestBody?): Request.Builder =
+        Request.Builder().url(base + ruta).method(metodo, cuerpo).header("Accept", "application/json")
+
+    /** Sin respuesta (sin red, tiempo agotado…), el `sin_conexion` de la librería. */
+    private suspend fun enviar(solicitud: Request): RespuestaHttp = try {
+        Red.enviar(http, solicitud)
+    } catch (e: IOException) {
+        throw ErrorSesion.sinConexion(e)
     }
 
     /** El error de la plataforma; en `cuenta_restringida`, con lo limitado y hasta cuándo ([Restricciones]). */
@@ -75,9 +68,5 @@ class ClientePlataforma(
         val error = ErrorSesion.deLaPlataforma(respuesta.estado, respuesta.cuerpo)
         val restriccion = Restricciones.deLaRespuesta(respuesta.cuerpo) ?: return error
         return ErrorSesion(error.codigo, restriccion, error.campo, error.estadoHttp)
-    }
-
-    private companion object {
-        val JSON = "application/json; charset=utf-8".toMediaType()
     }
 }

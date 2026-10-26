@@ -6,7 +6,6 @@ import es.yosiftware.libros.datos.cuenta.exigir
 import java.io.IOException
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -93,13 +92,9 @@ class ClienteLibros(
     }
 
     private fun cuerpoDe(metodo: String, cuerpo: Any?): RequestBody? = when (cuerpo) {
-        null -> if (metodo == "GET" || metodo == "DELETE") null else ByteArray(0).toRequestBody(null)
+        null -> Red.cuerpoVacio(metodo)
         is RequestBody -> cuerpo
-        is JSONObject, is JSONArray -> cuerpo.toString().toRequestBody(JSON)
+        is JSONObject, is JSONArray -> cuerpo.toString().toRequestBody(Red.JSON)
         else -> throw IllegalArgumentException("Cuerpo no admitido: ${cuerpo::class.simpleName}")
-    }
-
-    private companion object {
-        val JSON = "application/json; charset=utf-8".toMediaType()
     }
 }
