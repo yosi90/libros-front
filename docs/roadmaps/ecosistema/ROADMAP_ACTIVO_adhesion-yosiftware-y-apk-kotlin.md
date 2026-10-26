@@ -438,11 +438,11 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** si cambia la clave de firma, no se puede instalar encima de la anterior. Se usa la misma.
 
-- [ ] Lista «App Android» con su evidencia: `EVIDENCIA_app-android.md` (26/10/2026). Lo que hace la APK está todo; falta lo del propietario (subir la ficha, la primera publicación y la pasada de plegables).
+- [x] Lista «App Android» con su evidencia: `EVIDENCIA_app-android.md` (26/10/2026), completa.
   - La ficha (icono de 512 × 512 e imagen de 1600 × 900), en `android-nativa/ficha/`, con sus scripts.
   - La firma: `.github/workflows/android-nativa-publicacion.yml` compila la de producción con la clave de siempre (los secretos `ANDROID_KEY*` de la APK de Capacitor). Comprueba que la huella sea la del `assetlinks.json` de producción y deja la APK y su `.sha256` como artefacto, sin GitHub Release. Necesita el secreto `ANDROID_NATIVA_GOOGLE_SERVICES_PRODUCCION_BASE64`, con el `google-services.json` de la plataforma: los `ANDROID_GOOGLE_SERVICES_*` son del Firebase propio de Capacitor.
-- [ ] Plegables y QA del propietario.
-- [ ] Publicada, con su ficha y su novedad. Desde el kit 1.57 (petición `Libros API/docs/peticiones/publicar-tu-apk-con-tu-credencial-kit-1-57.md`):
+- [x] Plegables y QA. Probados por ADB el 26/10/2026 en el Honor desplegado y en el Xiaomi, con los móviles que dejó el propietario. Se giró a mitad de una acción, se cambió el tamaño de la ventana y se cerró la app con un borrador. Se arregló el horizontal (`6826083`).
+- [ ] Publicada, con su ficha y su novedad. La 2.0.0 está publicada en producción (26/10/2026, firmada por `android-nativa-publicacion.yml`) e instalada en el Honor encima de la de Capacitor; la ficha está subida y la credencial copiada. Falta la novedad «la app de Libros ya se puede descargar», cuando lo diga el propietario. Desde el kit 1.57 (petición `Libros API/docs/peticiones/publicar-tu-apk-con-tu-credencial-kit-1-57.md`):
   - la primera versión la revisa el propietario, que activa las actualizaciones remotas de `libros`;
   - después, la credencial de publicación se copia, sin abrirla, de `C:\Users\Yosi\yosiftware-cuentas\produccion\.runtime\publicacion-apk\libros.token` a `android-nativa/.runtime/publicacion-apk-produccion.token` (ignorada por Git);
   - cada versión sube con `python ecosistema-kit/herramientas/publicar_apk.py --entorno produccion --credencial android-nativa/.runtime/publicacion-apk-produccion.token <APK firmada>`, con el `versionCode` subido y probada en un móvil. Nada de copiar la APK a mano.
