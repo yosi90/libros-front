@@ -1,28 +1,118 @@
 @use '../../../../../assets/css/web/primitives' as web
 
-// «Tu título» Web: frase en cursiva, acciones pequeñas y la generación con IA debajo.
+// «Tu título» Web: la cabecera o la frase con un solo botón de opciones; el panel se abre junto a él.
 :host
-    display: grid
-    gap: var(--web-space-3)
+    display: block
     min-width: 0
     color: var(--web-color-ink)
 
+.fun-title__title
+    position: relative
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    min-width: 0
+
+    &.is-hero,
+    &.is-strip
+        display: block
+
 .fun-title__text
-    margin: 0
+    flex: 1
+    min-width: 0
     max-width: var(--web-reading-max)
     font: italic 400 18px/1.45 var(--web-font-reading)
-    --book-title-banner-radius: var(--web-radius-md)
     overflow-wrap: anywhere
 
     &.is-empty
         color: var(--web-color-ink-muted)
         font-size: 15px
 
+.fun-title__hero
+    --book-title-banner-radius: var(--web-radius-lg)
+
+.fun-title__strip
+    --book-title-banner-radius: var(--web-radius-md)
+
+// Tocar la franja la abre en grande: el marco no deja salir los toques, así que un botón transparente la cubre.
+.fun-title__strip-open
+    position: absolute
+    inset: 0
+    padding: 0
+    background: transparent
+    border: 0
+    border-radius: var(--web-radius-md)
+    cursor: zoom-in
+    @include web.focus-ring
+
+.fun-title__options
+    flex: none
+
+    .is-hero &,
+    .is-strip &
+        position: absolute
+        top: var(--web-space-2)
+        right: var(--web-space-2)
+        color: var(--web-color-ink)
+        background: color-mix(in srgb, var(--web-color-surface) 88%, transparent)
+        box-shadow: var(--web-shadow-card)
+
+// ---------- Panel de opciones ----------
+
+.fun-title__panel
+    box-sizing: border-box
+    display: grid
+    gap: var(--web-space-3)
+    width: min(380px, calc(100vw - 32px))
+    max-height: calc(100dvh - 32px)
+    overflow: auto
+    padding: var(--web-space-3)
+    color: var(--web-color-ink)
+    font: 14px/1.4 var(--web-font-ui)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+    box-shadow: var(--web-shadow-float)
+
+.fun-title__menu
+    display: grid
+    gap: 2px
+
+.fun-title__item
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    min-height: 40px
+    padding: 0 var(--web-space-3)
+    color: var(--web-color-ink)
+    font: 500 14px/1.2 var(--web-font-ui)
+    text-align: left
+    background: transparent
+    border: 0
+    border-radius: var(--web-radius-sm)
+    cursor: pointer
+    @include web.focus-ring
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+        color: var(--web-color-ink-muted)
+
+    &:hover,
+    &.is-active
+        background: var(--web-color-surface-muted)
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .5
+
 .fun-title__edit,
 .fun-title__generator
     display: grid
     gap: var(--web-space-2)
-    max-width: 560px
+    padding-top: var(--web-space-3)
+    border-top: 1px solid var(--web-color-outline)
 
 .fun-title__field
     @include web.field
@@ -35,17 +125,14 @@
 .fun-title__actions
     display: flex
     flex-wrap: wrap
+    justify-content: flex-end
     gap: var(--web-space-2)
 
-.fun-title__generate
-    display: flex
-    flex-wrap: wrap
-    align-items: end
-    gap: var(--web-space-2)
+.fun-title__generator > .web-button
+    justify-self: end
 
 .fun-title__model
     display: grid
-    flex: 1 1 220px
     gap: var(--web-space-1)
     min-width: 0
 
@@ -86,42 +173,3 @@
     border-top-color: currentColor
 
 @include web.spinner-keyframes
-
-// Cabecera animada: grande en el resumen (con sus acciones encima) y en franja en la ficha.
-.fun-title__hero
-    position: relative
-    --book-title-banner-radius: var(--web-radius-lg)
-
-.fun-title__overlay
-    position: absolute
-    top: var(--web-space-3)
-    right: var(--web-space-3)
-    display: flex
-    flex-wrap: wrap
-    justify-content: flex-end
-    gap: var(--web-space-2)
-
-    .web-button
-        background: color-mix(in srgb, var(--web-color-surface) 88%, transparent)
-        box-shadow: var(--web-shadow-card)
-
-.fun-title__strip
-    --book-title-banner-radius: var(--web-radius-md)
-
-.fun-title__large
-    display: inline-flex
-    align-items: center
-    gap: var(--web-space-1)
-    justify-self: start
-    padding: 0
-    color: var(--web-color-primary)
-    font: 600 13px/1.3 var(--web-font-ui)
-    background: none
-    border: 0
-    cursor: pointer
-    @include web.focus-ring
-
-    mat-icon
-        width: 16px
-        height: 16px
-        font-size: 16px

@@ -57,6 +57,8 @@ export class BookTitleState {
     used = 0;
     limit = 0;
 
+    /** El panel de opciones del título (generar, editar, ver en grande). */
+    optionsOpen = false;
     editing = false;
     draft = '';
     saving = false;
@@ -131,10 +133,21 @@ export class BookTitleState {
         this.available = this.loading = false;
         this.title = this.html = this.styles = null;
         this.used = this.limit = 0;
-        this.editing = this.saving = this.generatorOpen = this.checkingAi = this.generating = false;
+        this.optionsOpen = this.editing = this.saving = this.generatorOpen = this.checkingAi = this.generating = false;
         this.draft = this.editError = this.aiProblem = this.generateError = '';
         this.generateErrorNeedsManagement = false;
         this.models = [];
+    }
+
+    openOptions(): void {
+        this.optionsOpen = true;
+    }
+
+    /** Cierra el panel; lo que se estaba escribiendo se descarta, y una generación en marcha sigue y se aplica. */
+    closeOptions(): void {
+        this.optionsOpen = false;
+        this.generatorOpen = false;
+        if (this.editing) this.cancelEditing();
     }
 
     startEditing(): void {

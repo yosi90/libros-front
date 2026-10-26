@@ -26,8 +26,15 @@ test.describe('Título divertido del libro', () => {
         const hero = page.locator('app-web-book-statistics-view .fun-title__hero');
         await expect(hero.locator('iframe')).toHaveAttribute('sandbox', '');
         expect(await hero.locator('iframe').evaluate(frame => (frame as HTMLIFrameElement).srcdoc)).toContain("default-src 'none'");
-        await expect(hero.getByRole('button', { name: 'Generar otro' })).toBeVisible();
-        await expect(hero.getByRole('button', { name: 'Editar la frase' })).toBeVisible();
+        // Un único botón sobre el título; sus acciones, en el panel de opciones.
+        await expect(page.locator('app-web-book-title button')).toHaveCount(1);
+        await page.getByRole('button', { name: 'Opciones de tu título' }).click();
+        const panel = page.getByRole('dialog', { name: 'Opciones de tu título' });
+        await expect(panel.getByRole('button', { name: 'Generar con IA' })).toBeVisible();
+        await expect(panel.getByRole('button', { name: 'Editar la frase' })).toBeVisible();
+        await panel.getByRole('button', { name: 'Ver en grande' }).click();
+        await expect(page.locator('.book-title-fullscreen-pane iframe')).toHaveAttribute('sandbox', '');
+        await page.getByRole('button', { name: 'Cerrar' }).click();
         // Nada del HTML de la cabecera entra en la página.
         await expect(page.locator('app-web-book-statistics-view main.t')).toHaveCount(0);
     });
@@ -46,9 +53,11 @@ test.describe('Título divertido del libro', () => {
 
         const block = page.locator('app-web-book-title');
         await expect(block).toContainText(banner.Titulo);
-        await block.getByRole('button', { name: 'Editar' }).click();
-        await block.getByLabel('Tu título divertido').fill('<b>Mi frase</b> (¬‿¬)');
-        await block.getByRole('button', { name: 'Guardar' }).click();
+        await block.getByRole('button', { name: 'Opciones de tu título' }).click();
+        const panel = page.getByRole('dialog', { name: 'Opciones de tu título' });
+        await panel.getByRole('button', { name: 'Editar la frase' }).click();
+        await panel.getByLabel('Tu título divertido').fill('<b>Mi frase</b> (¬‿¬)');
+        await panel.getByRole('button', { name: 'Guardar' }).click();
 
         await expect(block).toContainText('<b>Mi frase</b> (¬‿¬)');
         await expect(block.locator('b')).toHaveCount(0);

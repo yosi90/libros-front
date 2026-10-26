@@ -197,4 +197,23 @@ describe('BookTitleState', () => {
         expect(state.limitReached).toBeTrue();
         expect(state.canGenerate).toBeFalse();
     });
+
+    it('cerrar el panel de opciones descarta lo que se estaba escribiendo y recoge la generación', () => {
+        titles.get.and.returnValue(of(title('Viejo')));
+        state.load(7);
+        state.openOptions();
+        state.startEditing();
+        state.draft = 'A medias';
+        state.closeOptions();
+
+        expect(state.optionsOpen).toBeFalse();
+        expect(state.editing).toBeFalse();
+        expect(state.draft).toBe('');
+        expect(state.title).toBe('Viejo');
+
+        state.openOptions();
+        state.toggleGenerator();
+        state.closeOptions();
+        expect(state.generatorOpen).toBeFalse();
+    });
 });

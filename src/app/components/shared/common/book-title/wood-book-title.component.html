@@ -1,65 +1,66 @@
-@if (state.html && mode === 'summary') {
-  <!-- Resumen del libro: la cabecera grande arriba, con sus dos acciones encima. -->
-  <div class="wood-fun-title__hero">
-    <app-book-title-banner [title]="state.title || ''" [html]="state.html" [styles]="state.styles" [height]="bannerHeight ?? 240"></app-book-title-banner>
-    <div class="wood-fun-title__overlay">
-      <button class="wood-fun-title__button wood-fun-title__button--ghost" type="button" [attr.aria-expanded]="state.generatorOpen" (click)="state.toggleGenerator()"><mat-icon aria-hidden="true">auto_awesome</mat-icon>Generar otro</button>
-      <button class="wood-fun-title__button wood-fun-title__button--ghost" type="button" [disabled]="state.generating" (click)="state.startEditing()"><mat-icon aria-hidden="true">edit</mat-icon>Editar la frase</button>
-    </div>
-  </div>
-} @else if (state.html) {
-  <!-- Ficha pública: una franja baja y «Ver en grande». -->
-  <app-book-title-banner class="wood-fun-title__strip" [title]="state.title || ''" [html]="state.html" [styles]="state.styles" [height]="bannerHeight ?? 76"></app-book-title-banner>
-  <button class="wood-fun-title__large" type="button" (click)="state.openLarge()"><mat-icon aria-hidden="true">open_in_full</mat-icon>Ver en grande</button>
-} @else {
-  <app-book-title-banner class="wood-fun-title__text" [class.is-empty]="!state.title" [title]="state.title || state.emptyText" [html]="state.html" [styles]="state.styles"></app-book-title-banner>
-}
+<div class="wood-fun-title__title" [class.is-hero]="state.html && mode === 'summary'" [class.is-strip]="state.html && mode !== 'summary'">
+  @if (state.html && mode === 'summary') {
+    <!-- Resumen del libro: la cabecera grande arriba. -->
+    <app-book-title-banner class="wood-fun-title__hero" [title]="state.title || ''" [html]="state.html" [styles]="state.styles" [height]="bannerHeight ?? 240"></app-book-title-banner>
+  } @else if (state.html) {
+    <!-- Ficha pública: una franja baja; tocarla la abre en grande (los toques dentro del marco no salen de él). -->
+    <app-book-title-banner class="wood-fun-title__strip" [title]="state.title || ''" [html]="state.html" [styles]="state.styles" [height]="bannerHeight ?? 76"></app-book-title-banner>
+    <button class="wood-fun-title__strip-open" type="button" aria-label="Ver en grande" (click)="openLarge()"></button>
+  } @else {
+    <app-book-title-banner class="wood-fun-title__text" [class.is-empty]="!state.title" [title]="state.title || state.emptyText"></app-book-title-banner>
+  }
+  <button #optionsButton class="wood-fun-title__options" type="button" cdkOverlayOrigin #optionsOrigin="cdkOverlayOrigin"
+    aria-label="Opciones de tu título" aria-haspopup="dialog" [attr.aria-expanded]="state.optionsOpen" (click)="toggleOptions()"><mat-icon aria-hidden="true">more_horiz</mat-icon></button>
+</div>
 
-@if (state.editing) {
-  <form class="wood-fun-title__edit" (ngSubmit)="state.save()">
-    <input class="wood-fun-title__field" type="text" name="funTitle" aria-label="Tu título divertido" autocomplete="off"
-      [maxlength]="state.maxLength" [(ngModel)]="state.draft" [disabled]="state.saving" [attr.aria-invalid]="state.editError ? true : null"
-      (keydown.escape)="state.cancelEditing()">
-    @if (state.showCounter) {<small class="wood-fun-title__counter">{{ state.draft.length }} / {{ state.maxLength }}</small>}
-    @if (state.editError) {<p class="wood-fun-title__error" role="alert">{{ state.editError }}</p>}
-    <div class="wood-fun-title__actions">
-      <button class="wood-fun-title__button wood-fun-title__button--ghost" type="button" (click)="state.cancelEditing()">Cancelar</button>
-      <button class="wood-fun-title__button" type="submit" [disabled]="state.saving">{{ state.saving ? 'Guardando…' : 'Guardar' }}</button>
+<ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="optionsOrigin" [cdkConnectedOverlayOpen]="state.optionsOpen"
+  [cdkConnectedOverlayPositions]="panelPositions" cdkConnectedOverlayPush [cdkConnectedOverlayViewportMargin]="16"
+  (overlayOutsideClick)="closeFromOutside($event)" (overlayKeydown)="onPanelKeydown($event)" (detach)="state.closeOptions()">
+  <div class="wood-fun-title__panel" role="dialog" aria-label="Opciones de tu título" cdkTrapFocus cdkTrapFocusAutoCapture>
+    <div class="wood-fun-title__menu">
+      <button class="wood-fun-title__item" type="button" [class.is-active]="state.generatorOpen" [attr.aria-expanded]="state.generatorOpen" (click)="state.toggleGenerator()"><mat-icon aria-hidden="true">auto_awesome</mat-icon>Generar con IA</button>
+      <button class="wood-fun-title__item" type="button" [class.is-active]="state.editing" [disabled]="state.generating" (click)="state.startEditing()"><mat-icon aria-hidden="true">edit</mat-icon>Editar la frase</button>
+      @if (state.html) {<button class="wood-fun-title__item" type="button" (click)="openLarge()"><mat-icon aria-hidden="true">open_in_full</mat-icon>Ver en grande</button>}
     </div>
-  </form>
-} @else if (!(state.html && mode === 'summary')) {
-  <div class="wood-fun-title__actions">
-    <button class="wood-fun-title__button wood-fun-title__button--ghost" type="button" [disabled]="state.generating" (click)="state.startEditing()"><mat-icon aria-hidden="true">edit</mat-icon>Editar</button>
-    <button class="wood-fun-title__button wood-fun-title__button--ghost" type="button" [attr.aria-expanded]="state.generatorOpen" (click)="state.toggleGenerator()"><mat-icon aria-hidden="true">auto_awesome</mat-icon>Generar con IA</button>
-  </div>
-}
 
-@if (state.generatorOpen && !state.editing) {
-  <div class="wood-fun-title__generator">
-    @if (state.checkingAi) {
-      <p class="wood-fun-title__note" role="status"><mat-icon aria-hidden="true">hourglass_top</mat-icon>Comprobando tu clave de IA…</p>
-    } @else if (state.aiProblem) {
-      <p class="wood-fun-title__note">{{ state.aiProblem }}</p>
-      <a class="wood-fun-title__link" [href]="state.managementUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>{{ state.managementText }}</a>
-    } @else {
-      <div class="wood-fun-title__generate">
-        <label class="wood-fun-title__model"><span>Modelo</span>
-          <select class="wood-fun-title__field" name="funTitleModel" [(ngModel)]="state.model" [disabled]="state.generating">
-            @for (model of state.models; track model.key) {<option [ngValue]="model.key">{{ model.label }}</option>}
-          </select>
-        </label>
-        <button class="wood-fun-title__button" type="button" [disabled]="!state.canGenerate" [attr.aria-busy]="state.generating" (click)="state.generate()">
-          @if (state.generating) {<mat-icon class="wood-fun-title__busy" aria-hidden="true">hourglass_top</mat-icon>Generando…} @else {<mat-icon aria-hidden="true">auto_awesome</mat-icon>Generar}
-        </button>
+    @if (state.editing) {
+      <form class="wood-fun-title__edit" (ngSubmit)="state.save()">
+        <input class="wood-fun-title__field" type="text" name="funTitle" aria-label="Tu título divertido" autocomplete="off"
+          [maxlength]="state.maxLength" [(ngModel)]="state.draft" [disabled]="state.saving" [attr.aria-invalid]="state.editError ? true : null"
+          (keydown.escape)="$event.stopPropagation(); state.cancelEditing()">
+        @if (state.showCounter) {<small class="wood-fun-title__counter">{{ state.draft.length }} / {{ state.maxLength }}</small>}
+        @if (state.editError) {<p class="wood-fun-title__error" role="alert">{{ state.editError }}</p>}
+        <div class="wood-fun-title__actions">
+          <button class="wood-fun-title__button wood-fun-title__button--ghost" type="button" (click)="state.cancelEditing()">Cancelar</button>
+          <button class="wood-fun-title__button" type="submit" [disabled]="state.saving">{{ state.saving ? 'Guardando…' : 'Guardar' }}</button>
+        </div>
+      </form>
+    } @else if (state.generatorOpen) {
+      <div class="wood-fun-title__generator">
+        @if (state.checkingAi) {
+          <p class="wood-fun-title__note" role="status"><mat-icon class="wood-fun-title__busy" aria-hidden="true">hourglass_top</mat-icon>Comprobando tu clave de IA…</p>
+        } @else if (state.aiProblem) {
+          <p class="wood-fun-title__note">{{ state.aiProblem }}</p>
+          <a class="wood-fun-title__link" [href]="state.managementUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>{{ state.managementText }}</a>
+        } @else {
+          <label class="wood-fun-title__model"><span>Modelo</span>
+            <select class="wood-fun-title__field" name="funTitleModel" [(ngModel)]="state.model" [disabled]="state.generating">
+              @for (model of state.models; track model.key) {<option [ngValue]="model.key">{{ model.label }}</option>}
+            </select>
+          </label>
+          <button class="wood-fun-title__button" type="button" [disabled]="!state.canGenerate" [attr.aria-busy]="state.generating" (click)="state.generate()">
+            @if (state.generating) {<mat-icon class="wood-fun-title__busy" aria-hidden="true">hourglass_top</mat-icon>Generando…} @else {<mat-icon aria-hidden="true">auto_awesome</mat-icon>Generar}
+          </button>
+          @if (state.limitReached) {<p class="wood-fun-title__note wood-fun-title__note--warning">{{ state.limitReachedText }}</p>}
+          @else if (state.limit) {<p class="wood-fun-title__note">{{ state.remainingText }}</p>}
+        }
+        @if (state.generateError) {
+          <p class="wood-fun-title__error" role="alert">{{ state.generateError }}</p>
+          @if (state.generateErrorNeedsManagement) {
+            <a class="wood-fun-title__link" [href]="state.managementUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>{{ state.managementText }}</a>
+          }
+        }
       </div>
-      @if (state.limitReached) {<p class="wood-fun-title__note wood-fun-title__note--warning">{{ state.limitReachedText }}</p>}
-      @else if (state.limit) {<p class="wood-fun-title__note">{{ state.remainingText }}</p>}
-    }
-    @if (state.generateError) {
-      <p class="wood-fun-title__error" role="alert">{{ state.generateError }}</p>
-      @if (state.generateErrorNeedsManagement) {
-        <a class="wood-fun-title__link" [href]="state.managementUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>{{ state.managementText }}</a>
-      }
     }
   </div>
-}
+</ng-template>

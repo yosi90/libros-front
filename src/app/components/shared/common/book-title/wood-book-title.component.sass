@@ -1,31 +1,122 @@
 @use '../../../../../assets/css/wood/primitives' as wood
 
-// «Tu título» Wood: frase en cursiva serif crema, botones dorados y campos sobre madera oscura.
+// «Tu título» Wood: la cabecera o la frase en cursiva serif crema, con un solo botón de opciones dorado.
 :host
-    display: grid
-    gap: 10px
+    display: block
     min-width: 0
     color: #f0dfc5
 
+.wood-fun-title__title
+    position: relative
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+    &.is-hero,
+    &.is-strip
+        display: block
+
 .wood-fun-title__text
-    margin: 0
+    flex: 1
+    min-width: 0
     color: #fbecd6
     font-family: Georgia, 'Times New Roman', serif
     font-size: 1.08rem
     font-style: italic
     line-height: 1.45
     overflow-wrap: anywhere
-    --book-title-banner-radius: 7px
 
     &.is-empty
         color: #bfa77f
         font-size: .95rem
 
+.wood-fun-title__hero
+    --book-title-banner-radius: 8px
+
+.wood-fun-title__strip
+    --book-title-banner-radius: 7px
+
+// Tocar la franja la abre en grande: el marco no deja salir los toques, así que un botón transparente la cubre.
+.wood-fun-title__strip-open
+    position: absolute
+    inset: 0
+    padding: 0
+    background: transparent
+    border: 0
+    border-radius: 7px
+    cursor: zoom-in
+    @include wood.focus-ring
+
+.wood-fun-title__options
+    @include wood.button-ghost
+    flex: none
+    width: 34px
+    padding: 0
+
+    .is-hero &,
+    .is-strip &
+        position: absolute
+        top: 8px
+        right: 8px
+        background: rgba(20, 17, 13, .78)
+
+// ---------- Panel de opciones ----------
+
+.wood-fun-title__panel
+    box-sizing: border-box
+    display: grid
+    gap: 10px
+    width: min(380px, calc(100vw - 32px))
+    max-height: calc(100dvh - 32px)
+    overflow: auto
+    padding: 12px
+    color: #f0dfc5
+    font-family: Arial, sans-serif
+    background: rgba(29, 24, 18, .97)
+    border: 1px solid rgba(218, 166, 91, .32)
+    border-radius: 8px
+    box-shadow: 0 16px 36px rgba(0, 0, 0, .45)
+
+.wood-fun-title__menu
+    display: grid
+    gap: 2px
+
+.wood-fun-title__item
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 36px
+    padding: 0 10px
+    color: #f5deb3
+    font: inherit
+    text-align: left
+    background: transparent
+    border: 0
+    border-radius: 6px
+    cursor: pointer
+    @include wood.focus-ring
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+        color: #d9a956
+
+    &:hover,
+    &.is-active
+        background: rgba(218, 166, 91, .14)
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .5
+
 .wood-fun-title__edit,
 .wood-fun-title__generator
     display: grid
     gap: 8px
-    max-width: 560px
+    padding-top: 10px
+    border-top: 1px solid rgba(218, 166, 91, .2)
 
 .wood-fun-title__field
     box-sizing: border-box
@@ -54,12 +145,14 @@
     color: #bfa77f
     font-size: .78rem
 
-.wood-fun-title__actions,
-.wood-fun-title__generate
+.wood-fun-title__actions
     display: flex
     flex-wrap: wrap
-    align-items: end
+    justify-content: flex-end
     gap: 8px
+
+.wood-fun-title__generator > .wood-fun-title__button
+    justify-self: end
 
 .wood-fun-title__button
     @include wood.button
@@ -69,7 +162,6 @@
 
 .wood-fun-title__model
     display: grid
-    flex: 1 1 220px
     gap: 4px
     min-width: 0
 
@@ -119,42 +211,3 @@
 @keyframes wood-fun-title-turn
     to
         transform: rotate(180deg)
-
-// Cabecera animada: grande en el resumen (con sus acciones encima) y en franja en la ficha.
-.wood-fun-title__hero
-    position: relative
-    --book-title-banner-radius: 8px
-
-.wood-fun-title__overlay
-    position: absolute
-    top: 10px
-    right: 10px
-    display: flex
-    flex-wrap: wrap
-    justify-content: flex-end
-    gap: 8px
-
-    .wood-fun-title__button--ghost
-        background: rgba(20, 17, 13, .78)
-
-.wood-fun-title__strip
-    --book-title-banner-radius: 7px
-
-.wood-fun-title__large
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    justify-self: start
-    padding: 0
-    color: #f2c77c
-    font: inherit
-    font-size: .86rem
-    background: none
-    border: 0
-    cursor: pointer
-    @include wood.focus-ring
-
-    mat-icon
-        width: 18px
-        height: 18px
-        font-size: 18px
