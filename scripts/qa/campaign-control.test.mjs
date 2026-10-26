@@ -29,8 +29,7 @@ test('exige versión, SQL y runtime config coherentes', () => {
         ReleaseId: 'backend-release',
         SourceDirty: false,
         Componentes: {
-            sqlServer: { Estado: 'healthy' },
-            realtimeGateway: { ReleaseId: 'backend-release', SourceDirty: false }
+            sqlServer: { Estado: 'healthy' }
         }
     }, settings));
     assert.throws(() => assertVerifyContract({
@@ -39,21 +38,17 @@ test('exige versión, SQL y runtime config coherentes', () => {
         ReleaseId: 'backend-release',
         SourceDirty: false,
         Componentes: {
-            sqlServer: { Estado: 'unavailable' },
-            realtimeGateway: { ReleaseId: 'backend-release', SourceDirty: false }
+            sqlServer: { Estado: 'unavailable' }
         }
     }, settings), /SQL Server/);
 
     assert.throws(() => assertVerifyContract({
         Entorno: 'qa',
         VersionDatasetQa: '2026.08.4',
-        ReleaseId: 'api-release',
+        ReleaseId: '',
         SourceDirty: false,
-        Componentes: {
-            sqlServer: { Estado: 'healthy' },
-            realtimeGateway: { ReleaseId: 'gateway-release', SourceDirty: false }
-        }
-    }, settings), /revisión API\/gateway/);
+        Componentes: { sqlServer: { Estado: 'healthy' } }
+    }, settings), /revisión desplegada/);
 
     assert.throws(() => assertVerifyContract({
         Entorno: 'qa',
@@ -61,16 +56,13 @@ test('exige versión, SQL y runtime config coherentes', () => {
         ReleaseId: 'backend-release',
         SourceDirty: true,
         Componentes: {
-            sqlServer: { Estado: 'healthy' },
-            realtimeGateway: { ReleaseId: 'backend-release', SourceDirty: false }
+            sqlServer: { Estado: 'healthy' }
         }
     }, settings), /SourceDirty/);
 
     assert.doesNotThrow(() => assertRuntimeContract({
         Environment: 'qa',
-        QaDatasetVersion: '2026.08.4',
-        RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
-        Firebase: { ProjectId: 'libros-qa' }
+        QaDatasetVersion: '2026.08.4'
     }, settings));
 });
 
@@ -140,8 +132,7 @@ test('el guard destructivo conserva la identidad QA aunque la salud de despliegu
         ReleaseId: 'transient-release',
         SourceDirty: true,
         Componentes: {
-            sqlServer: { Estado: 'unavailable' },
-            realtimeGateway: { ReleaseId: 'other-release', SourceDirty: true }
+            sqlServer: { Estado: 'unavailable' }
         }
     }, settings));
     assert.throws(() => assertVerifyIdentityContract({
@@ -163,23 +154,20 @@ test('el cleanup restaura baseline aunque SourceDirty cambie después de la barr
             VersionDatasetQa: '2026.08.4',
             ReleaseId: 'transient-release',
             SourceDirty: true,
-            Componentes: { realtimeGateway: { ReleaseId: 'other-release', SourceDirty: true } }
+            Componentes: { sqlServer: { Estado: 'unavailable' } }
         }),
         jsonResponse(200, {
             Environment: 'qa',
-            QaDatasetVersion: '2026.08.4',
-            RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
-            Firebase: { ProjectId: 'libros-qa' }
+            QaDatasetVersion: '2026.08.4'
         }),
         jsonResponse(200, qaStatus({
             Status: 'degraded',
-            Reasons: ['gateway_source_dirty_or_unknown'],
+            Reasons: ['api_source_dirty'],
             Scenario: { Active: 'realtime-recovery', ResetInProgress: false },
             Lease: { Active: true, CallerState: 'active' },
             Capabilities: { BeginCampaign: 'blocked', ContinueCampaign: 'allowed', Reset: 'allowed', Cleanup: 'allowed' },
             Deployment: {
-                Api: { ReleaseId: 'transient-release', SourceDirty: true },
-                RealtimeGateway: { Status: 'degraded', ReleaseId: 'other-release', SourceDirty: true }
+                Api: { ReleaseId: 'transient-release', SourceDirty: true }
             }
         })),
         jsonResponse(200, {
@@ -340,6 +328,21 @@ test('no relaja conflictos ajenos a la operación transitoria', async () => {
     ), /qa_lease_invalid/);
 });
 
+test('una respuesta que no es JSON dice quién contestó sin repetir la petición', async () => {
+    const settings = qaSettings(environment);
+    const challenge = {
+        status: 403,
+        headers: new Headers({ server: 'cloudflare', 'cf-mitigated': 'challenge', 'cf-ray': 'abc123-MAD', 'content-type': 'text/html' }),
+        text: async () => '<html><head><style>p{}</style><script>x()</script></head><body><h1>Just a moment...</h1></body></html>'
+    };
+    await assert.rejects(validateQaEnvironment(settings, async () => challenge), error => {
+        assert.match(error.message, /no JSON de \/verify \(403; server=cloudflare; cf-mitigated=challenge; cf-ray=abc123-MAD/);
+        assert.match(error.message, /cuerpo: «Just a moment\.\.\.»/);
+        assert.doesNotMatch(error.message, /test-only|x\(\)/);
+        return true;
+    });
+});
+
 function jsonResponse(status, body) {
     return { status, json: async () => body };
 }
@@ -351,8 +354,7 @@ function healthyVerify() {
         ReleaseId: 'backend-release',
         SourceDirty: false,
         Componentes: {
-            sqlServer: { Estado: 'healthy' },
-            realtimeGateway: { ReleaseId: 'backend-release', SourceDirty: false }
+            sqlServer: { Estado: 'healthy' }
         }
     };
 }
@@ -360,9 +362,7 @@ function healthyVerify() {
 function runtimeConfig() {
     return {
         Environment: 'qa',
-        QaDatasetVersion: '2026.08.4',
-        RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
-        Firebase: { ProjectId: 'libros-qa' }
+        QaDatasetVersion: '2026.08.4'
     };
 }
 
@@ -377,17 +377,11 @@ function qaStatus(overrides = {}) {
         Lease: { Active: false, CallerState: 'absent' },
         Capabilities: { BeginCampaign: 'allowed', ContinueCampaign: 'blocked', Reset: 'blocked', Cleanup: 'not-needed' },
         Deployment: {
-            Api: { ReleaseId: 'backend-release', SourceDirty: false },
-            RealtimeGateway: { Status: 'healthy', ReleaseId: 'backend-release', SourceDirty: false }
+            Api: { ReleaseId: 'backend-release', SourceDirty: false }
         },
         Components: {
             SqlServer: { Status: 'healthy' },
-            Nats: { Status: 'healthy' },
-            RealtimeGateway: { Status: 'healthy' },
-            OutboxRelay: { Status: 'healthy' },
-            FirestoreProjectionWorker: { Status: 'healthy' },
-            PushWorker: { Status: 'healthy' },
-            RetentionWorker: { Status: 'healthy' }
+            PlataformaFeedWorker: { Status: 'healthy' }
         }
     };
     return { ...base, ...overrides };

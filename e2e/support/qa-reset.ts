@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { QaEnvironment, verifyQaEnvironmentWithFetch } from './qa-environment';
 
-export type QaScenario = 'baseline' | 'version-conflict' | 'expired-sessions' | 'rate-limited' | 'realtime-recovery';
+export type QaScenario = 'baseline' | 'expired-sessions' | 'rate-limited' | 'realtime-recovery';
 
 export interface QaFixture {
     Type: string;
@@ -84,8 +84,7 @@ async function waitForQaCapability(qa: QaEnvironment, capability: QaCampaignCapa
 function assertStatusResponse(body: QaStatusResponse, qa: QaEnvironment): void {
     const reasons = new Set([
         'reset_in_progress', 'campaign_lease_active', 'caller_lease_invalid', 'api_source_dirty',
-        'gateway_source_dirty_or_unknown', 'release_unavailable', 'release_mismatch',
-        'component_degraded', 'component_unavailable'
+        'release_unavailable', 'component_degraded', 'component_unavailable'
     ]);
     expect(body.success).toBe(true);
     expect(body.Environment).toBe('qa');
@@ -93,7 +92,7 @@ function assertStatusResponse(body: QaStatusResponse, qa: QaEnvironment): void {
     expect(['ready', 'degraded', 'blocked']).toContain(body.Status);
     expect(new Set(body.Reasons).size).toBe(body.Reasons.length);
     for (const reason of body.Reasons) expect(reasons.has(reason), `Reason QA desconocida: ${reason}`).toBe(true);
-    expect(['baseline', 'version-conflict', 'expired-sessions', 'rate-limited', 'realtime-recovery']).toContain(body.Scenario.Active);
+    expect(['baseline', 'expired-sessions', 'rate-limited', 'realtime-recovery']).toContain(body.Scenario.Active);
     expect(typeof body.Scenario.ResetInProgress).toBe('boolean');
     expect(body.Lease.Active).toBe(true);
     expect(body.Lease.CallerState).toBe('active');
@@ -114,7 +113,9 @@ function assertFixtureResponse(body: QaFixturesResponse, qa: QaEnvironment, scen
     expect(body.Environment).toBe('qa');
     expect(body.DatasetVersion).toBe(qa.datasetVersion);
     expect(body.ResetInProgress).toBe(false);
-    expect(Object.keys(body.Fixtures)).toHaveLength(37);
+    // La matriz de alias es del backend y menguó con la adhesión (clubes, notificaciones propias): aquí solo los básicos.
+    for (const alias of ['user.admin', 'user.moderator', 'user.member-a', 'user.member-b', 'catalog.book-primary'])
+        expect(body.Fixtures[alias], `Falta el alias QA ${alias}`).toBeTruthy();
     if (scenario) expect((body as QaResetResponse).Scenario).toBe(scenario);
 }
 

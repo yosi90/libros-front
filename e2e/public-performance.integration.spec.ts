@@ -54,7 +54,18 @@ async function loadStableHome(page: import('@playwright/test').Page): Promise<vo
 }
 
 async function navigationDuration(page: import('@playwright/test').Page): Promise<number> {
-    return page.evaluate(() => (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming).duration);
+    // `duration` vale 0 hasta que acaba el evento load, que puede llegar después del titular. Se espera y se lee en la
+    // misma llamada, para que sea la entrada del mismo documento.
+    return page.evaluate(() => new Promise<number>((resolve, reject) => {
+        const deadline = Date.now() + 20_000;
+        const read = () => {
+            const entry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+            if (entry && entry.loadEventEnd > 0 && entry.duration > 0) return resolve(entry.duration);
+            if (Date.now() > deadline) return reject(new Error('La navegación de Home no terminó su evento load.'));
+            setTimeout(read, 50);
+        };
+        read();
+    }));
 }
 
 function median(values: number[]): number {

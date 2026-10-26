@@ -9,7 +9,6 @@ export interface QaEnvironment {
 
 const PRODUCTION_HOST = 'libros-api.yosiftware.es';
 const EXPECTED_API_URL = 'https://qa-api.yosiftware.es/';
-const EXPECTED_REALTIME_URL = 'wss://qa-ws.yosiftware.es';
 
 export function qaEnvironmentFromProcess(): QaEnvironment | null {
     const apiUrl = process.env['QA_API_BASE_URL']?.trim();
@@ -69,33 +68,26 @@ interface VerifyResponse {
     SourceDirty?: boolean;
     Componentes?: {
         sqlServer?: { Estado?: string };
-        realtimeGateway?: { ReleaseId?: string | null; SourceDirty?: boolean };
     };
 }
 
 interface RuntimeConfigResponse {
     Environment?: string;
     QaDatasetVersion?: string | null;
-    RealtimeWsUrl?: string;
-    Firebase?: { ProjectId?: string };
 }
 
 function assertQaIdentityContracts(verify: VerifyResponse, runtime: RuntimeConfigResponse, qa: QaEnvironment): void {
     assertEqual(verify.Entorno, 'qa', 'GET /verify debe identificar explicitamente QA');
     assertEqual(verify.VersionDatasetQa, qa.datasetVersion, 'GET /verify debe publicar la version QA esperada');
     assertEqual(runtime.Environment, 'qa', 'runtime-config debe identificar explicitamente QA');
-    assertEqual(runtime.Firebase?.ProjectId, qa.firebaseProjectId, 'runtime-config debe publicar el proyecto Firebase QA');
-    assertEqual(runtime.RealtimeWsUrl, EXPECTED_REALTIME_URL, 'runtime-config debe publicar el WebSocket QA');
     assertEqual(runtime.QaDatasetVersion, qa.datasetVersion, 'runtime-config debe publicar la version QA');
 }
 
 function assertQaDeploymentReadiness(verify: VerifyResponse): void {
     assertEqual(verify.Componentes?.sqlServer?.Estado, 'healthy', 'GET /verify debe confirmar SQL Server saludable');
     assertEqual(verify.SourceDirty, false, 'GET /verify debe acreditar un despliegue limpio');
-    assertEqual(verify.Componentes?.realtimeGateway?.SourceDirty, false, 'GET /verify debe acreditar un gateway limpio');
     if (typeof verify.ReleaseId !== 'string' || !verify.ReleaseId.trim())
         throw new Error('GET /verify debe publicar ReleaseId antes de la campaña QA');
-    assertEqual(verify.Componentes?.realtimeGateway?.ReleaseId, verify.ReleaseId, 'API y gateway realtime deben publicar la misma revision');
 }
 
 async function fetchJson<T>(url: string, timeoutMs: number): Promise<T> {

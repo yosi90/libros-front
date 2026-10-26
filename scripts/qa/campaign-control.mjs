@@ -6,8 +6,7 @@ const EXPECTED = Object.freeze({
     frontUrl: 'https://qa-libros.yosiftware.es',
     datasetVersion: '2026.08.4',
     firebaseProjectId: 'libros-qa',
-    firebaseSiteId: 'libros-qa',
-    realtimeUrl: 'wss://qa-ws.yosiftware.es'
+    firebaseSiteId: 'libros-qa'
 });
 
 const CONTROL_RETRY_OPTIONS = Object.freeze({
@@ -16,21 +15,21 @@ const CONTROL_RETRY_OPTIONS = Object.freeze({
     retryIntervalMs: 1_000
 });
 
-const QA_SCENARIOS = new Set(['baseline', 'version-conflict', 'expired-sessions', 'rate-limited', 'realtime-recovery']);
+// El gateway, NATS y los workers del tiempo real propio se retiraron con la adhesión a Yosiftware; `version-conflict`, con
+// los clubes de la provisión.
+const QA_SCENARIOS = new Set(['baseline', 'expired-sessions', 'rate-limited', 'realtime-recovery']);
 const QA_STATUS_VALUES = new Set(['ready', 'degraded', 'blocked']);
 const QA_STATUS_REASONS = new Set([
     'reset_in_progress',
     'campaign_lease_active',
     'caller_lease_invalid',
     'api_source_dirty',
-    'gateway_source_dirty_or_unknown',
     'release_unavailable',
-    'release_mismatch',
     'component_degraded',
     'component_unavailable'
 ]);
 const QA_COMPONENT_STATUS = new Set(['healthy', 'degraded', 'unavailable']);
-const QA_COMPONENTS = ['SqlServer', 'Nats', 'RealtimeGateway', 'OutboxRelay', 'FirestoreProjectionWorker', 'PushWorker', 'RetentionWorker'];
+const QA_COMPONENTS = ['SqlServer', 'PlataformaFeedWorker'];
 const QA_CAPABILITY_VALUES = Object.freeze({
     BeginCampaign: new Set(['allowed', 'blocked']),
     ContinueCampaign: new Set(['allowed', 'blocked']),
@@ -70,18 +69,14 @@ export function assertVerifyContract(body, settings) {
     const sql = body.Componentes?.sqlServer;
     if (!sql || sql.Estado !== 'healthy') throw new Error('GET /verify no confirma SQL Server saludable.');
     assertEqual(body.SourceDirty, false, '/verify SourceDirty');
-    assertEqual(body.Componentes?.realtimeGateway?.SourceDirty, false, '/verify Componentes.realtimeGateway.SourceDirty');
     if (typeof body.ReleaseId !== 'string' || !body.ReleaseId.trim())
         throw new Error('GET /verify no publica una revisión desplegada.');
-    assertEqual(body.Componentes?.realtimeGateway?.ReleaseId, body.ReleaseId, '/verify revisión API/gateway');
 }
 
 export function assertRuntimeContract(body, settings) {
     if (!body || typeof body !== 'object') throw new Error('GET /runtime-config no devolvió un objeto JSON.');
     assertEqual(body.Environment, 'qa', '/runtime-config Environment');
     assertEqual(body.QaDatasetVersion, settings.datasetVersion, '/runtime-config QaDatasetVersion');
-    assertEqual(body.Firebase?.ProjectId, settings.firebaseProjectId, '/runtime-config Firebase.ProjectId');
-    assertEqual(body.RealtimeWsUrl, EXPECTED.realtimeUrl, '/runtime-config RealtimeWsUrl');
 }
 
 export function assertQaStatusContract(body, settings) {
@@ -106,14 +101,10 @@ export function assertQaStatusContract(body, settings) {
     for (const [name, values] of Object.entries(QA_CAPABILITY_VALUES))
         assertEnum(body.Capabilities[name], values, `/qa/status Capabilities.${name}`);
 
-    assertExactObject(body.Deployment, ['Api', 'RealtimeGateway'], '/qa/status Deployment');
+    assertExactObject(body.Deployment, ['Api'], '/qa/status Deployment');
     assertExactObject(body.Deployment.Api, ['ReleaseId', 'SourceDirty'], '/qa/status Deployment.Api');
     assertString(body.Deployment.Api.ReleaseId, '/qa/status Deployment.Api.ReleaseId');
     assertNullableBoolean(body.Deployment.Api.SourceDirty, '/qa/status Deployment.Api.SourceDirty');
-    assertExactObject(body.Deployment.RealtimeGateway, ['Status', 'ReleaseId', 'SourceDirty'], '/qa/status Deployment.RealtimeGateway');
-    assertEnum(body.Deployment.RealtimeGateway.Status, QA_COMPONENT_STATUS, '/qa/status Deployment.RealtimeGateway.Status');
-    assertNullableString(body.Deployment.RealtimeGateway.ReleaseId, '/qa/status Deployment.RealtimeGateway.ReleaseId');
-    assertNullableBoolean(body.Deployment.RealtimeGateway.SourceDirty, '/qa/status Deployment.RealtimeGateway.SourceDirty');
 
     assertExactObject(body.Components, QA_COMPONENTS, '/qa/status Components');
     for (const component of QA_COMPONENTS) {
@@ -242,9 +233,7 @@ async function requestQaStatus(settings, fetchImpl, includeLease) {
 
 async function requestJson(fetchImpl, url, init = {}, expectedStatus = 200) {
     const response = await fetchImpl(url, { ...init, signal: AbortSignal.timeout(15_000) });
-    let body;
-    try { body = await response.json(); }
-    catch { throw new Error(`Respuesta no JSON de ${new URL(url).pathname} (${response.status}).`); }
+    const body = await jsonBody(response, url);
     if (response.status !== expectedStatus) {
         const code = typeof body?.code === 'string' ? `, código ${body.code}` : '';
         throw new Error(`${new URL(url).pathname} respondió ${response.status}${code}.`);
@@ -261,9 +250,7 @@ export async function requestJsonWithRetry(fetchImpl, url, init = {}, expectedSt
 
     while (true) {
         const response = await fetchImpl(url, { ...init, signal: AbortSignal.timeout(15_000) });
-        let body;
-        try { body = await response.json(); }
-        catch { throw new Error(`Respuesta no JSON de ${new URL(url).pathname} (${response.status}).`); }
+        const body = await jsonBody(response, url);
         if (response.status === expectedStatus) return body;
 
         const code = typeof body?.code === 'string' ? body.code : '';
@@ -274,6 +261,24 @@ export async function requestJsonWithRetry(fetchImpl, url, init = {}, expectedSt
         }
         await wait(retryIntervalMs);
     }
+}
+
+async function jsonBody(response, url) {
+    const text = typeof response.text === 'function' ? await response.text() : JSON.stringify(await response.json());
+    try { return JSON.parse(text); }
+    catch { throw new Error(`Respuesta no JSON de ${new URL(url).pathname} (${response.status}${nonJsonDetail(response, text)}).`); }
+}
+
+// Solo cabeceras de la respuesta que dicen quién contestó, y el principio del cuerpo sin etiquetas.
+export function nonJsonDetail(response, text) {
+    const header = name => response.headers?.get?.(name)?.trim() || '';
+    const parts = ['server', 'cf-mitigated', 'cf-ray', 'content-type']
+        .map(name => header(name) && `${name}=${header(name).slice(0, 80)}`)
+        .filter(Boolean);
+    const excerpt = String(text || '').replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+    if (excerpt) parts.push(`cuerpo: «${excerpt}»`);
+    return parts.length ? `; ${parts.join('; ')}` : '';
 }
 
 async function exportLeaseId(leaseId) {
@@ -327,10 +332,6 @@ function assertNullableBoolean(value, label) {
 
 function assertString(value, label) {
     if (typeof value !== 'string') throw new Error(`${label} debe ser string.`);
-}
-
-function assertNullableString(value, label) {
-    if (value !== null && typeof value !== 'string') throw new Error(`${label} debe ser string o null.`);
 }
 
 async function main() {
