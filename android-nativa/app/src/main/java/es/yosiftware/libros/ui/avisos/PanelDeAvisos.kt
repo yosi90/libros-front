@@ -38,11 +38,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import es.yosiftware.libros.datos.leerFecha
 import es.yosiftware.libros.datos.modelos.AvisoDelCentro
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
-import es.yosiftware.libros.ui.comunidad.FechasDeClubes
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
@@ -76,7 +76,7 @@ private val DIA_Y_HORA = DateTimeFormatter.ofPattern("dd/MM HH:mm")
 
 /** La hora de hoy, o el día y la hora. */
 internal fun cuando(iso: String, zona: ZoneId = ZoneId.systemDefault(), hoy: LocalDate = LocalDate.now(zona)): String {
-    val fecha = FechasDeClubes.leer(iso, zona) ?: return ""
+    val fecha = leerFecha(iso, zona) ?: return ""
     return fecha.format(if (fecha.toLocalDate() == hoy) HORA else DIA_Y_HORA)
 }
 

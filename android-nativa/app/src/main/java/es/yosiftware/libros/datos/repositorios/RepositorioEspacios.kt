@@ -9,6 +9,7 @@ import es.yosiftware.libros.datos.modelos.ResumenSocial
 import es.yosiftware.libros.datos.modelos.SolicitudDeEntrada
 import es.yosiftware.libros.datos.modelos.espacios
 import es.yosiftware.libros.datos.red.ClientePlataforma
+import es.yosiftware.libros.datos.red.codificarComponente
 import org.json.JSONObject
 
 /**
@@ -28,24 +29,21 @@ fun interface LlamadaDePlataforma {
 class RepositorioEspacios(private val plataforma: LlamadaDePlataforma) {
     constructor(cliente: ClientePlataforma) : this(LlamadaDePlataforma { metodo, ruta, cuerpo -> cliente.llamar(metodo, ruta, cuerpo) })
 
-    private suspend fun leer(metodo: String, ruta: String, cuerpo: JSONObject? = null): JSONObject =
-        plataforma.llamar(metodo, ruta, cuerpo).takeIf { it.isNotBlank() }?.let(::JSONObject) ?: JSONObject()
-
     // ---------- Lo social ----------
 
-    suspend fun resumenSocial(): ResumenSocial = ResumenSocial.de(leer("GET", "/v1/social/resumen"))
+    suspend fun resumenSocial(): ResumenSocial = ResumenSocial.de(plataforma.objeto("GET", "/v1/social/resumen"))
 
     // ---------- Los espacios de la persona ----------
 
-    suspend fun mios(): List<Espacio> = espacios(leer("GET", "/v1/espacios"))
+    suspend fun mios(): List<Espacio> = espacios(plataforma.objeto("GET", "/v1/espacios"))
 
     /** Con `yo`; `404 espacio_no_encontrado` si la persona no es miembro. */
-    suspend fun espacio(id: Long): Espacio = Espacio.de(leer("GET", "/v1/espacios/$id"))
+    suspend fun espacio(id: Long): Espacio = Espacio.de(plataforma.objeto("GET", "/v1/espacios/$id"))
 
-    suspend fun entrar(id: Long): Espacio = Espacio.de(leer("POST", "/v1/espacios/$id/entrar", JSONObject()))
+    suspend fun entrar(id: Long): Espacio = Espacio.de(plataforma.objeto("POST", "/v1/espacios/$id/entrar", JSONObject()))
 
     suspend fun salir(id: Long) {
-        leer("DELETE", "/v1/espacios/$id/miembros/yo")
+        plataforma.objeto("DELETE", "/v1/espacios/$id/miembros/yo")
     }
 
     // ---------- Solicitudes ----------
@@ -53,24 +51,24 @@ class RepositorioEspacios(private val plataforma: LlamadaDePlataforma) {
     /** Pedir entrar en un club cerrado, con un mensaje para quien lo gestiona (hasta 500 caracteres). */
     suspend fun pedirEntrar(id: Long, mensaje: String?) {
         val texto = mensaje?.trim().orEmpty()
-        leer("POST", "/v1/espacios/$id/solicitudes", if (texto.isEmpty()) JSONObject() else JSONObject().put("mensaje", texto))
+        plataforma.objeto("POST", "/v1/espacios/$id/solicitudes", if (texto.isEmpty()) JSONObject() else JSONObject().put("mensaje", texto))
     }
 
     suspend fun retirarMiSolicitud(id: Long) {
-        leer("DELETE", "/v1/espacios/$id/solicitudes/mia")
+        plataforma.objeto("DELETE", "/v1/espacios/$id/solicitudes/mia")
     }
 
-    suspend fun solicitudes(id: Long): List<SolicitudDeEntrada> = leer("GET", "/v1/espacios/$id/solicitudes").lista("solicitudes", SolicitudDeEntrada::de)
+    suspend fun solicitudes(id: Long): List<SolicitudDeEntrada> = plataforma.objeto("GET", "/v1/espacios/$id/solicitudes").lista("solicitudes", SolicitudDeEntrada::de)
 
     suspend fun resolverSolicitud(id: Long, solicitudId: Long, aprobar: Boolean) {
-        leer("POST", "/v1/espacios/$id/solicitudes/$solicitudId/" + if (aprobar) "aprobar" else "rechazar", JSONObject())
+        plataforma.objeto("POST", "/v1/espacios/$id/solicitudes/$solicitudId/" + if (aprobar) "aprobar" else "rechazar", JSONObject())
     }
 
     // ---------- Invitaciones ----------
 
     /** Buscar personas para invitar, de 2 a 60 caracteres; sin las cuentas borradas. */
     suspend fun buscarPersonas(texto: String): List<PersonaDeYosiftware> =
-        leer("GET", "/v1/personas?q=" + java.net.URLEncoder.encode(texto.trim(), "UTF-8").replace("+", "%20"))
+        plataforma.objeto("GET", "/v1/personas?q=" + codificarComponente(texto.trim()))
             .lista("personas", PersonaDeYosiftware::de).filterNot { it.borrada }
 
     /** Invitar a una cuenta o a un correo; [rol] `moderacion` solo para quien tiene la propiedad. */
@@ -78,28 +76,28 @@ class RepositorioEspacios(private val plataforma: LlamadaDePlataforma) {
         val cuerpo = JSONObject()
         if (cuenta != null) cuerpo.put("cuenta", cuenta) else cuerpo.put("correo", correo?.trim())
         if (rol != null) cuerpo.put("rol", rol)
-        leer("POST", "/v1/espacios/$id/invitaciones", cuerpo)
+        plataforma.objeto("POST", "/v1/espacios/$id/invitaciones", cuerpo)
     }
 
-    suspend fun invitacionesEnviadas(id: Long): List<InvitacionEnviada> = leer("GET", "/v1/espacios/$id/invitaciones").lista("invitaciones", InvitacionEnviada::de)
+    suspend fun invitacionesEnviadas(id: Long): List<InvitacionEnviada> = plataforma.objeto("GET", "/v1/espacios/$id/invitaciones").lista("invitaciones", InvitacionEnviada::de)
 
     suspend fun retirarInvitacion(id: Long, invitacionId: Long) {
-        leer("DELETE", "/v1/espacios/$id/invitaciones/$invitacionId")
+        plataforma.objeto("DELETE", "/v1/espacios/$id/invitaciones/$invitacionId")
     }
 
     /** Las invitaciones pendientes de la persona (también las de sus correos confirmados). */
-    suspend fun invitaciones(): List<InvitacionRecibida> = leer("GET", "/v1/espacios/invitaciones").lista("invitaciones", InvitacionRecibida::de)
+    suspend fun invitaciones(): List<InvitacionRecibida> = plataforma.objeto("GET", "/v1/espacios/invitaciones").lista("invitaciones", InvitacionRecibida::de)
 
-    suspend fun aceptar(invitacionId: Long): Espacio = Espacio.de(leer("POST", "/v1/espacios/invitaciones/$invitacionId/aceptar", JSONObject()))
+    suspend fun aceptar(invitacionId: Long): Espacio = Espacio.de(plataforma.objeto("POST", "/v1/espacios/invitaciones/$invitacionId/aceptar", JSONObject()))
 
     suspend fun rechazar(invitacionId: Long) {
-        leer("POST", "/v1/espacios/invitaciones/$invitacionId/rechazar", JSONObject())
+        plataforma.objeto("POST", "/v1/espacios/invitaciones/$invitacionId/rechazar", JSONObject())
     }
 
     /** La invitación de un enlace de correo (`#yosi-invitacion=<código>`), sin aceptarla todavía. */
     suspend fun porCodigo(codigo: String): InvitacionRecibida =
-        InvitacionRecibida.de(leer("POST", "/v1/espacios/invitaciones/por-codigo", JSONObject().put("codigo", codigo)))
+        InvitacionRecibida.de(plataforma.objeto("POST", "/v1/espacios/invitaciones/por-codigo", JSONObject().put("codigo", codigo)))
 
     suspend fun aceptarPorCodigo(codigo: String): Espacio =
-        Espacio.de(leer("POST", "/v1/espacios/invitaciones/por-codigo/aceptar", JSONObject().put("codigo", codigo)))
+        Espacio.de(plataforma.objeto("POST", "/v1/espacios/invitaciones/por-codigo/aceptar", JSONObject().put("codigo", codigo)))
 }

@@ -66,6 +66,10 @@ class RepositorioColeccion(private val api: ClienteLibros) {
 
     suspend fun borrarEstadoDeLibro(idHistorico: Int): Boolean = hecho(api.delete("coleccion/historicos/libros/estados/$idHistorico").objeto())
 
+    /** El estado de [obra], sea un libro o una antología. */
+    suspend fun cambiarEstado(obra: Obra, estado: EstadoAGuardar): EstadoDeLectura =
+        if (obra.esAntologia) cambiarEstadoDeAntologia(obra.id, estado) else cambiarEstadoDeLibro(obra.id, estado)
+
     suspend fun cambiarEstadoDeAntologia(id: Int, estado: EstadoAGuardar): EstadoDeLectura =
         estadoGuardado(api.post("coleccion/antologias/$id/estado", estado.comoJson()).objeto())
 

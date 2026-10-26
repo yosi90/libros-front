@@ -4,33 +4,46 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import es.yosiftware.libros.ui.adaptable.zonaSegura
+import es.yosiftware.libros.ui.tema.Alturas
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
+import es.yosiftware.libros.ui.tema.Textos
 import es.yosiftware.libros.ui.tema.mezclar
 import es.yosiftware.libros.ui.tema.sombra1
 import es.yosiftware.libros.ui.tema.sombra2
@@ -146,6 +159,46 @@ fun DialogoModal(alCerrar: () -> Unit, cerrarFuera: Boolean = true, contenido: @
             Dialogo(Modifier.clickable(remember { MutableInteractionSource() }, indication = null) {}, contenido)
         }
     }
+}
+
+/**
+ * La confirmación de una acción (el `confirm()` de la web): el [texto] y, abajo a la derecha, «Cancelar» (contorno) y
+ * «Aceptar». Atrás y tocar fuera cancelan.
+ */
+@Composable
+fun DialogoDeConfirmacion(texto: String, alCancelar: () -> Unit, alAceptar: () -> Unit) {
+    DialogoModal(alCerrar = alCancelar) {
+        Text(texto, color = LocalColores.current.tinta, style = Textos.cuerpo)
+        Row(Modifier.fillMaxWidth().padding(top = Espacios.e5), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
+            Boton("Cancelar", alCancelar, variante = VarianteDeBoton.Contorno)
+            Boton("Aceptar", alAceptar)
+        }
+    }
+}
+
+/**
+ * El marco de `.m-fullscreen-surface__bar`: superficie con su raya, la zona segura arriba, 64 dp más, y el [contenido]
+ * alineado abajo con 8 dp de margen y 12 dp entre piezas (la ficha del catálogo y la antología de la biblioteca).
+ */
+@Composable
+fun MarcoDeBarraDePantallaCompleta(contenido: @Composable RowScope.() -> Unit) {
+    val colores = LocalColores.current
+    val zona = WindowInsets.zonaSegura.asPaddingValues()
+    val direccion = LocalLayoutDirection.current
+    Row(
+        Modifier.fillMaxWidth().background(colores.superficie)
+            .drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
+            .heightIn(min = Alturas.barraSuperior + zona.calculateTopPadding())
+            .padding(
+                start = maxOf(Espacios.e3, zona.calculateLeftPadding(direccion)),
+                end = maxOf(Espacios.e3, zona.calculateRightPadding(direccion)),
+                top = zona.calculateTopPadding(),
+                bottom = Espacios.e2,
+            ),
+        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
+        verticalAlignment = Alignment.Bottom,
+        content = contenido,
+    )
 }
 
 /** .m-divider: una línea de 1 dp del color del contorno. */

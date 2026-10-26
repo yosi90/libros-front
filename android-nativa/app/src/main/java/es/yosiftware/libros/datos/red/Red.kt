@@ -8,8 +8,12 @@ import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
 /** Lo que llega de una llamada: el estado HTTP, el cuerpo como texto (UTF-8) y las cabeceras. */
@@ -31,6 +35,12 @@ class RespuestaHttp(val estado: Int, val cuerpo: String, val cabeceras: Map<Stri
 object Red {
     /** El `User-Agent` de todas las llamadas de la app. */
     val AGENTE: String = "libros-android/${BuildConfig.VERSION_NAME}"
+
+    /** El tipo de los cuerpos JSON que manda la app. */
+    val JSON: MediaType = "application/json; charset=utf-8".toMediaType()
+
+    /** El cuerpo de [metodo] sin datos: ninguno en GET y DELETE; vacío en los demás, que OkHttp lo exige. */
+    fun cuerpoVacio(metodo: String): RequestBody? = if (metodo == "GET" || metodo == "DELETE") null else ByteArray(0).toRequestBody(null)
 
     val cliente: OkHttpClient by lazy { crearCliente() }
 

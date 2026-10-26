@@ -3,6 +3,7 @@ package es.yosiftware.libros.datos.modelos
 import es.yosiftware.libros.datos.json.booleano
 import es.yosiftware.libros.datos.json.decimal
 import es.yosiftware.libros.datos.json.entero
+import es.yosiftware.libros.datos.json.largo
 import es.yosiftware.libros.datos.json.lista
 import es.yosiftware.libros.datos.json.objeto
 import es.yosiftware.libros.datos.json.texto
@@ -61,7 +62,7 @@ data class ResumenDeClub(
             estadoMembresia = json.texto("EstadoMembresia"),
             actividad30Dias = json.objeto("Actividad30Dias")?.let(ActividadDeClub::de),
             ultimaActividad = json.texto("UltimaActividad"),
-            espacioId = json.entero("EspacioId")?.toLong(),
+            espacioId = json.largo("EspacioId"),
         )
     }
 }
@@ -206,8 +207,8 @@ data class DetalleDeClub(
                 miembrosActivos = metricas?.entero("MiembrosActivos") ?: 0,
                 publicaciones = metricas?.entero("Publicaciones") ?: 0,
                 mensajes = metricas?.entero("Mensajes") ?: 0,
-                espacioId = json.entero("EspacioId")?.toLong(),
-                conversacionId = json.entero("ConversacionId")?.toLong(),
+                espacioId = json.largo("EspacioId"),
+                conversacionId = json.largo("ConversacionId"),
             )
         }
     }
@@ -387,7 +388,7 @@ data class EncuestaDeClub(
 /** El club recién creado y su espacio (`201 { Id, EspacioId }`). */
 data class ClubCreado(val id: Int, val espacioId: Long?) {
     companion object {
-        fun de(json: JSONObject) = ClubCreado(json.entero("Id") ?: 0, json.entero("EspacioId")?.toLong())
+        fun de(json: JSONObject) = ClubCreado(json.entero("Id") ?: 0, json.largo("EspacioId"))
     }
 }
 

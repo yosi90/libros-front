@@ -1,5 +1,6 @@
 package es.yosiftware.libros.datos.repositorios
 
+import es.yosiftware.libros.datos.cuenta.intentar
 import es.yosiftware.libros.datos.json.decimal
 import es.yosiftware.libros.datos.json.entero
 import es.yosiftware.libros.datos.modelos.CuentaMensual
@@ -14,7 +15,6 @@ import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.Referencia
 import es.yosiftware.libros.datos.red.ClienteLibros
 import java.util.concurrent.atomic.AtomicInteger
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
@@ -31,12 +31,8 @@ class RepositorioEstadisticas(private val api: ClienteLibros, private val colecc
      */
     suspend fun generales(): EstadisticasGenerales = coroutineScope {
         val fallidas = AtomicInteger()
-        suspend fun <T> tolerante(porDefecto: T, pedir: suspend () -> T): T = try {
-            pedir()
-        } catch (e: CancellationException) {
-            // También `RespuestaDeOtraCuenta`: un cambio de cuenta no es una métrica que falla.
-            throw e
-        } catch (_: Exception) {
+        // `intentar` relanza también `RespuestaDeOtraCuenta`: un cambio de cuenta no es una métrica que falla.
+        suspend fun <T> tolerante(porDefecto: T, pedir: suspend () -> T): T = intentar(pedir).getOrElse {
             fallidas.incrementAndGet()
             porDefecto
         }

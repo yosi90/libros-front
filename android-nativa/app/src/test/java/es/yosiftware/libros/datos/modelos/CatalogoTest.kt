@@ -1,6 +1,7 @@
 package es.yosiftware.libros.datos.modelos
 
 import es.yosiftware.libros.datos.ErrorDeLibros
+import es.yosiftware.libros.datos.json.largo
 import es.yosiftware.libros.datos.json.listaDe
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -185,5 +186,18 @@ class CatalogoTest {
         assertEquals(listOf("J. R. R. Tolkien"), datos.autores)
         assertNull(datos.paginas)
         assertEquals("1982", datos.fechaPublicacion)
+    }
+
+    @Test
+    fun losIdsLargosSeLeenEnteros() {
+        // `largo`: los ids de la plataforma no caben siempre en un Int (antes, `entero(...)?.toLong()` los recortaba).
+        val json = JSONObject("""{"a": 3000000000, "b": "12", "c": 7, "d": 1.5, "e": "x"}""")
+        assertEquals(3_000_000_000L, json.largo("a"))
+        assertEquals(12L, json.largo("b"))
+        assertEquals(7L, json.largo("c"))
+        assertNull(json.largo("d"))
+        assertNull(json.largo("e"))
+        assertNull(json.largo("f"))
+        assertEquals(3_000_000_000L, Espacio.de(JSONObject("""{"id": 3000000000, "conversacion": 3000000001}""")).id)
     }
 }

@@ -1,17 +1,15 @@
 package es.yosiftware.libros.ui.comunidad
 
-import org.json.JSONObject
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-import es.yosiftware.libros.datos.red.Llegada
-import es.yosiftware.libros.datos.red.CanalesDeEspacios
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
 import es.yosiftware.libros.datos.ErrorDeLibros
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
+import es.yosiftware.libros.datos.cuenta.intentar
+import es.yosiftware.libros.datos.modelos.CursorDeClubes
 import es.yosiftware.libros.datos.modelos.DebateDeClub
 import es.yosiftware.libros.datos.modelos.DetalleDeClub
 import es.yosiftware.libros.datos.modelos.DetalleDeDebate
@@ -25,10 +23,11 @@ import es.yosiftware.libros.datos.modelos.MiembroDeClub
 import es.yosiftware.libros.datos.modelos.PersonaDeYosiftware
 import es.yosiftware.libros.datos.modelos.ProgresoEnClub
 import es.yosiftware.libros.datos.modelos.PublicacionDeClub
-import es.yosiftware.libros.datos.modelos.CursorDeClubes
 import es.yosiftware.libros.datos.modelos.SolicitudDeEntrada
 import es.yosiftware.libros.datos.modelos.SpoilerDeClub
 import es.yosiftware.libros.datos.modelos.Universo
+import es.yosiftware.libros.datos.red.CanalesDeEspacios
+import es.yosiftware.libros.datos.red.Llegada
 import es.yosiftware.libros.datos.repositorios.RepositorioClubes
 import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
 import es.yosiftware.libros.datos.repositorios.RepositorioEstadisticas
@@ -38,9 +37,10 @@ import es.yosiftware.libros.ui.estadisticas.numero
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 /** La espera a que Libros sepa que la persona ha entrado (`membershipSync`). */
 enum class EsperaAlFeed { NADA, ESPERANDO, AGOTADA }
@@ -319,7 +319,7 @@ class ClubViewModel(
         cargando = club == null
         error = ""
         cargar({
-            if (yo == null) yo = tolerante { miId() }
+            if (yo == null) yo = intentar { miId() }.getOrNull()
             clubes.club(id)
         }, alFallar = { fallo ->
             cargando = false
@@ -505,7 +505,7 @@ class ClubViewModel(
         cargar({
             for (espera in ESPERAS_DE_LA_CONVERSACION) {
                 delay(espera)
-                val nuevo = tolerante { clubes.club(id) }
+                val nuevo = intentar { clubes.club(id) }.getOrNull()
                 if (nuevo?.conversacionId != null) return@cargar nuevo
             }
             null
@@ -522,7 +522,7 @@ class ClubViewModel(
         tareaDeEspera = cargar({
             for (pausa in esperas) {
                 delay(pausa)
-                if (tolerante { clubes.mios() }?.clubes?.any { it.id == id } == true) return@cargar true
+                if (intentar { clubes.mios() }.getOrNull()?.clubes?.any { it.id == id } == true) return@cargar true
             }
             false
         }) { llego ->
@@ -1152,14 +1152,6 @@ class ClubViewModel(
     }
 
     private fun iso(fecha: LocalDateTime): String = FechasDeClubes.aIso(fecha, zona())
-
-    private suspend fun <T> tolerante(pedir: suspend () -> T): T? = try {
-        pedir()
-    } catch (e: CancellationException) {
-        throw e
-    } catch (_: Exception) {
-        null
-    }
 
     companion object {
         const val SIN_ACCESO = "club_access_unavailable"

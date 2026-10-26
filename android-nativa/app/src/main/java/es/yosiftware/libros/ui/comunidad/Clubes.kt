@@ -1,13 +1,11 @@
 package es.yosiftware.libros.ui.comunidad
 
 import androidx.annotation.DrawableRes
+import es.yosiftware.libros.datos.leerFecha
 import es.yosiftware.libros.datos.modelos.Universo
 import es.yosiftware.libros.ui.tema.Iconos
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 /** Las pestañas de Clubes (`clubTab`). Mis clubes y Eventos solo con clubes. */
@@ -41,8 +39,8 @@ object EtiquetasDeClubes {
 }
 
 /**
- * Las fechas de los clubes como el `date` de Angular en la zona del móvil. Una fecha con zona (`Z` o `+02:00`) se pasa
- * a la del móvil; una sin zona se toma como hora local, igual que `new Date('2026-10-20T10:00:00')`.
+ * Las fechas de los clubes (y del chat) como el `date` de Angular en la zona del móvil, leídas con [leerFecha]: una con
+ * zona (`Z` o `+02:00`) se pasa a la del móvil; una sin zona se toma como hora local.
  */
 object FechasDeClubes {
     private val diaYHora = DateTimeFormatter.ofPattern("dd/MM · HH:mm")
@@ -50,26 +48,17 @@ object FechasDeClubes {
     private val completaConPunto = DateTimeFormatter.ofPattern("dd/MM/yyyy · HH:mm")
     private val dia = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-    fun leer(iso: String?, zona: ZoneId = ZoneId.systemDefault()): ZonedDateTime? {
-        val texto = iso?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-        return runCatching { OffsetDateTime.parse(texto).atZoneSameInstant(zona) }
-            .recoverCatching { Instant.parse(texto).atZone(zona) }
-            .recoverCatching { LocalDateTime.parse(texto).atZone(zona) }
-            .recoverCatching { java.time.LocalDate.parse(texto.take(10)).atStartOfDay(zona) }
-            .getOrNull()
-    }
-
     /** `dd/MM · HH:mm`: los eventos próximos. */
-    fun diaYHora(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = leer(iso, zona)?.format(diaYHora).orEmpty()
+    fun diaYHora(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = leerFecha(iso, zona)?.format(diaYHora).orEmpty()
 
     /** `dd/MM/yyyy HH:mm`: hitos, calendario, publicaciones, debates y encuestas. */
-    fun completa(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = leer(iso, zona)?.format(completa).orEmpty()
+    fun completa(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = leerFecha(iso, zona)?.format(completa).orEmpty()
 
     /** `dd/MM/yyyy · HH:mm`: el centro de acceso. */
-    fun completaConPunto(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = leer(iso, zona)?.format(completaConPunto).orEmpty()
+    fun completaConPunto(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = leerFecha(iso, zona)?.format(completaConPunto).orEmpty()
 
     /** `dd/MM/yyyy`. */
-    fun dia(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = leer(iso, zona)?.format(dia).orEmpty()
+    fun dia(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String = leerFecha(iso, zona)?.format(dia).orEmpty()
 
     /** Una fecha y hora local elegida en la app, en ISO UTC (`new Date(local).toISOString()`). */
     fun aIso(local: LocalDateTime, zona: ZoneId = ZoneId.systemDefault()): String =

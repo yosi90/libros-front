@@ -6,15 +6,15 @@ import androidx.compose.runtime.setValue
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
+import es.yosiftware.libros.datos.cuenta.intentar
 import es.yosiftware.libros.datos.modelos.EstadisticasDeComunidad
 import es.yosiftware.libros.datos.modelos.EstadisticasGenerales
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.repositorios.RepositorioCatalogo
 import es.yosiftware.libros.datos.repositorios.RepositorioEstadisticas
-import kotlinx.coroutines.CancellationException
+import java.time.Instant
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import java.time.Instant
 
 enum class PestanaDeEstadisticas { PERSONAL, GENERAL }
 
@@ -120,8 +120,8 @@ class EstadisticasViewModel(
         errorGeneral = false
         cargar({
             coroutineScope {
-                val obras = async { tolerante { catalogo.libros() } }
-                val deComunidad = async { tolerante { estadisticas.comunidad() } }
+                val obras = async { intentar { catalogo.libros() }.getOrNull() }
+                val deComunidad = async { intentar { estadisticas.comunidad() }.getOrNull() }
                 obras.await() to deComunidad.await()
             }
         }) { (obras, deComunidad) ->
@@ -181,14 +181,5 @@ class EstadisticasViewModel(
         datos.metricasNoDisponibles == 0 -> ""
         datos.metricasNoDisponibles >= datos.metricasSolicitadas -> "No se han podido cargar las estadísticas."
         else -> "Algunas estadísticas no están disponibles ahora mismo. El resto está actualizado."
-    }
-
-    /** Lo que falla en una parte de la General se queda en `null` sin tumbar la otra; un cambio de cuenta sí corta. */
-    private suspend fun <T> tolerante(pedir: suspend () -> T): T? = try {
-        pedir()
-    } catch (e: CancellationException) {
-        throw e
-    } catch (_: Exception) {
-        null
     }
 }

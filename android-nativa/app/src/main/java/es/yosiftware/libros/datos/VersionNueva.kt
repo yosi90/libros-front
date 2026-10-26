@@ -1,5 +1,6 @@
 package es.yosiftware.libros.datos
 
+import es.yosiftware.libros.datos.json.objetos
 import org.json.JSONObject
 
 /** Una versión de la APK que la plataforma sirve y que es más nueva que la instalada. */
@@ -16,7 +17,7 @@ object ComprobacionDeVersion {
 
     fun nueva(respuesta: String, paquete: String, codigoInstalado: Int): VersionNueva? = runCatching {
         val webs = JSONObject(respuesta).optJSONArray("webs") ?: return null
-        val libros = (0 until webs.length()).mapNotNull { webs.optJSONObject(it) }.firstOrNull { it.optString("clave") == WEB } ?: return null
+        val libros = webs.objetos().firstOrNull { it.optString("clave") == WEB } ?: return null
         val instalacion = libros.optString("instalacion").takeIf { libros.opt("instalacion") is String && it.startsWith("https://") } ?: return null
         val app = libros.optJSONObject("app") ?: return null
         if (app.opt("paquete") is String && app.optString("paquete") != paquete) return null

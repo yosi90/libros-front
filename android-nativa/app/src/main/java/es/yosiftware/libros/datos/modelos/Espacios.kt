@@ -2,6 +2,7 @@ package es.yosiftware.libros.datos.modelos
 
 import es.yosiftware.libros.datos.json.booleano
 import es.yosiftware.libros.datos.json.entero
+import es.yosiftware.libros.datos.json.largo
 import es.yosiftware.libros.datos.json.lista
 import es.yosiftware.libros.datos.json.objeto
 import es.yosiftware.libros.datos.json.texto
@@ -60,13 +61,13 @@ data class Espacio(
 
     companion object {
         fun de(json: JSONObject) = Espacio(
-            id = json.entero("id")?.toLong() ?: 0,
+            id = json.largo("id") ?: 0,
             idExterno = json.texto("idExterno").orEmpty(),
             nombre = json.texto("nombre").orEmpty(),
             entrada = json.texto("entrada").orEmpty(),
             dosPasos = json.booleano("dosPasos") ?: false,
             miembros = json.entero("miembros") ?: 0,
-            conversacion = json.entero("conversacion")?.toLong(),
+            conversacion = json.largo("conversacion"),
             yo = json.objeto("yo")?.let(YoEnEspacio::de),
         )
     }
@@ -92,8 +93,8 @@ data class InvitacionRecibida(
         fun de(json: JSONObject): InvitacionRecibida {
             val espacio = json.objeto("espacio") ?: JSONObject()
             return InvitacionRecibida(
-                id = json.entero("id")?.toLong() ?: 0,
-                espacioId = espacio.entero("id")?.toLong() ?: 0,
+                id = json.largo("id") ?: 0,
+                espacioId = espacio.largo("id") ?: 0,
                 idExterno = espacio.texto("idExterno").orEmpty(),
                 espacio = espacio.texto("nombre").orEmpty(),
                 dosPasos = espacio.booleano("dosPasos") ?: false,
@@ -121,7 +122,7 @@ data class InvitacionEnviada(
 ) {
     companion object {
         fun de(json: JSONObject) = InvitacionEnviada(
-            id = json.entero("id")?.toLong() ?: 0,
+            id = json.largo("id") ?: 0,
             cuenta = json.texto("cuenta"),
             alias = json.texto("alias"),
             correo = json.texto("correo"),
@@ -139,7 +140,7 @@ data class SolicitudDeEntrada(val id: Long, val cuenta: String, val alias: Strin
 
     companion object {
         fun de(json: JSONObject) = SolicitudDeEntrada(
-            id = json.entero("id")?.toLong() ?: 0,
+            id = json.largo("id") ?: 0,
             cuenta = json.texto("cuenta").orEmpty(),
             alias = json.texto("alias").orEmpty(),
             nombre = json.texto("nombre"),

@@ -57,6 +57,7 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
 import es.yosiftware.libros.ui.componentes.DialogoModal
 import es.yosiftware.libros.ui.componentes.Superficie
 import es.yosiftware.libros.ui.componentes.Tarjeta
@@ -135,15 +136,7 @@ fun PantallaClub(vm: ClubViewModel, acciones: AccionesDelClub) {
             SeccionesDelClub(vm, club, acciones, ancha)
         }
     }
-    vm.confirmacion?.let { confirmacion ->
-        DialogoModal(alCerrar = vm::cancelarConfirmacion) {
-            Text(confirmacion.texto, color = LocalColores.current.tinta, style = Textos.cuerpo)
-            Row(Modifier.fillMaxWidth().padding(top = Espacios.e5), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
-                Boton("Cancelar", vm::cancelarConfirmacion, variante = VarianteDeBoton.Contorno)
-                Boton("Aceptar", vm::aceptarConfirmacion)
-            }
-        }
-    }
+    vm.confirmacion?.let { DialogoDeConfirmacion(it.texto, vm::cancelarConfirmacion, vm::aceptarConfirmacion) }
     vm.denuncia?.let { DialogoDeDenuncia(vm) }
     if (vm.hojaDeSolicitud) DialogoDeSolicitud(vm)
 }
@@ -323,7 +316,7 @@ private fun SeccionPlegable(@DrawableRes icono: Int, titulo: String, subtitulo: 
             }
             Column(Modifier.weight(1f)) {
                 Text(titulo, Modifier.semantics { heading() }, color = colores.tinta, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontWeight = FontWeight.SemiBold, fontSize = rem(1.05), lineHeight = rem(1.26)))
-                Text(subtitulo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)))
+                Text(subtitulo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria)
             }
             Icon(painterResource(Iconos.expandMore), contentDescription = if (abierta) "Plegar" else "Desplegar", tint = colores.tintaSuave, modifier = Modifier.rotate(giro))
         }
@@ -344,7 +337,7 @@ private fun FilaDeClub(@DrawableRes icono: Int, titulo: String, pequena: String?
         Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.width(30.dp))
         Column(Modifier.weight(1f)) {
             Text(titulo, color = colores.tinta, style = Textos.filaPrincipal)
-            if (!pequena.isNullOrEmpty()) Text(pequena, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)))
+            if (!pequena.isNullOrEmpty()) Text(pequena, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria)
             if (!parrafo.isNullOrEmpty()) Text(parrafo, Modifier.padding(top = Espacios.e2), color = colores.tintaSuave, style = Textos.cuerpo)
         }
         accion?.invoke()
@@ -555,7 +548,7 @@ private fun ColumnScope.Debates(vm: ClubViewModel, ancha: Boolean) {
         ) {
             Column(Modifier.weight(1f)) {
                 Text(debate.titulo, color = colores.tinta, style = Textos.filaPrincipal)
-                Text("${debate.autor.nombre} · ${FechasDeClubes.completa(debate.fechaCreacion)}", Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("${debate.autor.nombre} · ${FechasDeClubes.completa(debate.fechaCreacion)}", Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             if (debate.spoiler.oculto) {
                 Text("Spoiler", Modifier.clip(RoundedCornerShape(50)).background(colores.contenedorAtencion).padding(horizontal = Espacios.e2, vertical = Espacios.e1),
@@ -743,7 +736,7 @@ private fun FilaDePersona(nombre: String, apoyo: String, avatar: String?, accion
         }
         Column(Modifier.weight(1f)) {
             Text(nombre, color = colores.tinta, style = Textos.filaPrincipal, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(apoyo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(apoyo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         acciones()
     }
@@ -768,7 +761,7 @@ private fun Pendiente(titulo: String, pequena: String?, ancha: Boolean, botones:
     val texto: @Composable (Modifier) -> Unit = { modifier ->
         Column(modifier) {
             Text(titulo, color = colores.tinta, style = Textos.filaPrincipal)
-            if (!pequena.isNullOrEmpty()) Text(pequena, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)))
+            if (!pequena.isNullOrEmpty()) Text(pequena, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria)
         }
     }
     if (ancha) {

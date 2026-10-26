@@ -62,6 +62,7 @@ import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.biblioteca.ChipQuitable
+import es.yosiftware.libros.ui.biblioteca.SugerenciasDeAmbito
 import es.yosiftware.libros.ui.biblioteca.iconoDeEstado
 import es.yosiftware.libros.ui.biblioteca.nombreDeEstado
 import es.yosiftware.libros.ui.biblioteca.ultimoEstado
@@ -178,7 +179,7 @@ private fun BarraDeBusqueda(vm: CatalogoViewModel, desplazada: Boolean) {
                     }
                 }
             }
-            if (enfocada && vm.borrador.isNotBlank()) Sugerencias(vm)
+            if (enfocada && vm.borrador.isNotBlank()) SugerenciasDeAmbito(ambitosDelCatalogo, vm.borrador, vm::confirmarBorrador)
             if (vm.chips.isNotEmpty()) {
                 Row(
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = Espacios.e2),
@@ -210,33 +211,6 @@ private fun BotonCuadrado(@DrawableRes icono: Int, descripcion: String, activo: 
     }
 }
 
-/** `m-scoped-search__suggestions`: general, título y autor. */
-@Composable
-private fun Sugerencias(vm: CatalogoViewModel) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
-    Column(
-        Modifier.fillMaxWidth().padding(top = Espacios.e1)
-            .sombra2(forma, colores)
-            .background(colores.superficie, forma)
-            .border(1.dp, colores.contorno, forma)
-            .padding(Espacios.e2),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        ambitosDelCatalogo.forEach { ambito ->
-            Row(
-                Modifier.fillMaxWidth().heightIn(min = 44.dp).clip(RoundedCornerShape(Radios.xs))
-                    .clickable { vm.confirmarBorrador(ambito) }
-                    .padding(horizontal = Espacios.e3, vertical = Espacios.e2),
-                horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(ambito.etiqueta.replaceFirstChar { it.uppercase() }, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.primario))
-                Text(vm.borrador.trim(), style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-        }
-    }
-}
 
 // --- Los filtros. ---
 

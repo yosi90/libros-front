@@ -248,7 +248,7 @@ private fun BarraDeBusqueda(vm: BibliotecaViewModel, desplazada: Boolean) {
             }
         }
         // Con algo escrito y el foco, el desplegable de ámbitos (`m-scoped-search__suggestions`).
-        if (enfocada && vm.borrador.isNotBlank()) Sugerencias(vm)
+        if (enfocada && vm.borrador.isNotBlank()) SugerenciasDeAmbito(Ambito.entries, vm.borrador, vm::confirmarBorrador, Modifier.padding(horizontal = Espacios.e4))
         if (vm.chips.isNotEmpty()) {
             Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = Espacios.e4, end = Espacios.e4, top = Espacios.e2, bottom = Espacios.e2),
@@ -262,28 +262,32 @@ private fun BarraDeBusqueda(vm: BibliotecaViewModel, desplazada: Boolean) {
     }
 }
 
+/**
+ * `m-scoped-search__suggestions`: con algo escrito y el foco, un botón por ámbito con el [borrador] (la Biblioteca y el
+ * Catálogo). [modifier] va entre el ancho completo y el resto, para los márgenes de cada pantalla.
+ */
 @Composable
-private fun Sugerencias(vm: BibliotecaViewModel) {
+internal fun SugerenciasDeAmbito(ambitos: List<Ambito>, borrador: String, alElegir: (Ambito) -> Unit, modifier: Modifier = Modifier) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.sm)
     Column(
-        Modifier.fillMaxWidth().padding(horizontal = Espacios.e4).padding(top = Espacios.e1)
+        Modifier.fillMaxWidth().then(modifier).padding(top = Espacios.e1)
             .sombra2(forma, colores)
             .background(colores.superficie, forma)
             .border(1.dp, colores.contorno, forma)
             .padding(Espacios.e2),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        Ambito.entries.forEach { ambito ->
+        ambitos.forEach { ambito ->
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 44.dp).clip(RoundedCornerShape(Radios.xs))
-                    .clickable { vm.confirmarBorrador(ambito) }
+                    .clickable { alElegir(ambito) }
                     .padding(horizontal = Espacios.e3, vertical = Espacios.e2),
                 horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(ambito.etiqueta.replaceFirstChar { it.uppercase() }, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.primario))
-                Text(vm.borrador.trim(), style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(borrador.trim(), style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }

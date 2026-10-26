@@ -2,6 +2,7 @@ package es.yosiftware.libros.datos.modelos
 
 import es.yosiftware.libros.datos.json.booleano
 import es.yosiftware.libros.datos.json.entero
+import es.yosiftware.libros.datos.json.largo
 import es.yosiftware.libros.datos.json.objeto
 import es.yosiftware.libros.datos.json.texto
 import org.json.JSONObject
@@ -33,7 +34,7 @@ data class Novedad(
             val meGusta = json.objeto("meGusta")
             val cabecera = json.objeto("cabecera")
             return Novedad(
-                id = json.entero("id")?.toLong() ?: 0,
+                id = json.largo("id") ?: 0,
                 persona = PersonaDeYosiftware.de(json.objeto("persona") ?: JSONObject()),
                 texto = json.texto("texto").orEmpty(),
                 enlace = json.texto("enlace"),
@@ -54,7 +55,7 @@ data class Novedad(
 data class ComentarioDeNovedad(val id: Long, val persona: PersonaDeYosiftware, val texto: String, val creado: String?, val propio: Boolean) {
     companion object {
         fun de(json: JSONObject) = ComentarioDeNovedad(
-            id = json.entero("id")?.toLong() ?: 0,
+            id = json.largo("id") ?: 0,
             persona = PersonaDeYosiftware.de(json.objeto("persona") ?: JSONObject()),
             texto = json.texto("texto").orEmpty(),
             creado = json.texto("creado"),

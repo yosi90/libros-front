@@ -1,11 +1,8 @@
 package es.yosiftware.libros.ui.cuenta
 
-import java.time.Instant
-import java.time.LocalDate
-import java.time.OffsetDateTime
+import es.yosiftware.libros.datos.leerFecha
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.util.Locale
 
 private val FECHA_LARGA = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", Locale.forLanguageTag("es-ES"))
@@ -14,23 +11,7 @@ private val FECHA_LARGA = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", L
  * Una fecha de la plataforma (ISO 8601: `2026-11-23T10:00:00.000Z` o `2026-11-23`) como «23 de noviembre de 2026», en
  * la zona del móvil. `null` si no llega o no se entiende.
  */
-fun fechaLarga(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String? {
-    val texto = iso?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-    val dia = try {
-        Instant.parse(texto).atZone(zona).toLocalDate()
-    } catch (_: DateTimeParseException) {
-        try {
-            OffsetDateTime.parse(texto).atZoneSameInstant(zona).toLocalDate()
-        } catch (_: DateTimeParseException) {
-            try {
-                LocalDate.parse(texto.take(10))
-            } catch (_: DateTimeParseException) {
-                return null
-            }
-        }
-    }
-    return FECHA_LARGA.format(dia)
-}
+fun fechaLarga(iso: String?, zona: ZoneId = ZoneId.systemDefault()): String? = leerFecha(iso, zona)?.format(FECHA_LARGA)
 
 /** Un bloque de las normas para pintarlo: un título, un punto de una lista o un párrafo. */
 sealed interface BloqueDeTexto {

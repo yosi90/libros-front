@@ -23,21 +23,20 @@ import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 import es.yosiftware.libros.datos.repositorios.RepositorioPeticiones
 import es.yosiftware.libros.ui.biblioteca.Ambito
 import es.yosiftware.libros.ui.biblioteca.Busqueda
-import es.yosiftware.libros.ui.biblioteca.CambioDeColeccion
 import es.yosiftware.libros.ui.biblioteca.EdicionDeColeccion
 import es.yosiftware.libros.ui.biblioteca.FiltroDeTexto
-import es.yosiftware.libros.ui.biblioteca.ValoresDeColeccion
+import es.yosiftware.libros.ui.biblioteca.cambios
 import es.yosiftware.libros.ui.biblioteca.cambiosDeColeccion
+import es.yosiftware.libros.ui.biblioteca.guardar
 import es.yosiftware.libros.ui.biblioteca.nombreDeEstado
-import es.yosiftware.libros.ui.biblioteca.ultimoEstado
 import es.yosiftware.libros.ui.componentes.AccionDeAviso
 import es.yosiftware.libros.ui.componentes.Avisador
+import java.time.Instant
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONObject
-import java.time.Instant
 
 /** La ficha pública abierta (`selectedDetailItem`, `selectedPublicDetail` y lo que la acompaña). */
 data class FichaPublica(
@@ -361,8 +360,7 @@ class CatalogoViewModel(
         if (guardando) return
         guardando = true
         cargar({
-            val estadoAGuardar = EstadoAGuardar(nuevo.id)
-            if (obra.esAntologia) coleccion.cambiarEstadoDeAntologia(obra.id, estadoAGuardar) else coleccion.cambiarEstadoDeLibro(obra.id, estadoAGuardar)
+            coleccion.cambiarEstado(obra, EstadoAGuardar(nuevo.id))
             coleccion.universos()
         }, alFallar = { error ->
             guardando = false
@@ -391,8 +389,7 @@ class CatalogoViewModel(
     /** Abre el editor y, si la ficha era de esa obra, la cierra (`openCollectionModal`). */
     fun abrirEditor(obra: Obra) {
         if (ficha?.esDe(obra) == true) cerrarFicha()
-        val valores = ValoresDeColeccion(obra.ultimoEstado, obra.puntuacion, obra.resena.orEmpty())
-        edicion = EdicionDeColeccion(obra, valores, valores)
+        edicion = EdicionDeColeccion.de(obra)
     }
 
     fun cerrarEditor() {
@@ -401,10 +398,7 @@ class CatalogoViewModel(
 
     fun elegirEstadoEnEditor(nuevo: TipoDeEstado) = cambiarEdicion { it.copy(valores = it.valores.copy(estado = nuevo)) }
 
-    /** Sin puntuación no hay reseña: quitarla la borra (`setCollectionRating`). */
-    fun elegirPuntuacion(puntuacion: Int?) = cambiarEdicion {
-        it.copy(valores = it.valores.copy(puntuacion = puntuacion, resena = if (puntuacion == null) "" else it.valores.resena))
-    }
+    fun elegirPuntuacion(puntuacion: Int?) = cambiarEdicion { it.copy(valores = it.valores.conPuntuacion(puntuacion)) }
 
     fun escribirResena(texto: String) = cambiarEdicion { it.copy(valores = it.valores.copy(resena = texto)) }
 
@@ -417,11 +411,7 @@ class CatalogoViewModel(
     fun guardar() {
         val actual = edicion ?: return
         if (guardando) return
-        if (actual.valores.estado == null) {
-            avisos.error("Selecciona un estado de lectura")
-            return
-        }
-        val cambios = cambiosDeColeccion(actual.valores, actual.original).getOrElse {
+        val cambios = actual.cambios().getOrElse {
             avisos.error(it.message.orEmpty())
             return
         }
@@ -432,19 +422,8 @@ class CatalogoViewModel(
         guardando = true
         val obra = actual.obra
         val estaba = Catalogo.estaEnColeccion(obra)
-        val publicar = if (actual.sinCompartir) false else null
         cargar({
-            cambios.forEach { cambio ->
-                when (cambio) {
-                    is CambioDeColeccion.Estado -> {
-                        val estadoAGuardar = EstadoAGuardar(cambio.estado.id, publicarActividad = publicar)
-                        if (obra.esAntologia) coleccion.cambiarEstadoDeAntologia(obra.id, estadoAGuardar) else coleccion.cambiarEstadoDeLibro(obra.id, estadoAGuardar)
-                    }
-                    is CambioDeColeccion.Puntuacion ->
-                        if (obra.esAntologia) coleccion.puntuarAntologia(obra.id, cambio.puntuacion, cambio.resena, publicar)
-                        else coleccion.puntuarLibro(obra.id, cambio.puntuacion, cambio.resena, publicar)
-                }
-            }
+            coleccion.guardar(obra, cambios, actual.sinCompartir)
             coleccion.universos()
         }, alFallar = { error ->
             guardando = false

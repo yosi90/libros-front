@@ -1,5 +1,7 @@
 package es.yosiftware.libros.ui.estadisticas
 
+import es.yosiftware.libros.datos.conUnDecimal
+import es.yosiftware.libros.datos.instanteDe
 import es.yosiftware.libros.datos.modelos.EstadisticasDeComunidad
 import es.yosiftware.libros.datos.modelos.LecturaRapida
 import es.yosiftware.libros.datos.modelos.Obra
@@ -7,8 +9,6 @@ import es.yosiftware.libros.datos.modelos.PuestoDeComunidad
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import java.text.Collator
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.Locale
 import kotlin.math.floor
 import kotlin.math.max
@@ -48,7 +48,7 @@ object Estadisticas {
 
     /** Las lecturas más rápidas, en días con un decimal (`fastestRows`). */
     fun masRapidas(lecturas: List<LecturaRapida>): List<FilaDeEstadistica> =
-        lecturas.map { FilaDeEstadistica(it.nombre, it.diasTotales, "${String.format(Locale.ROOT, "%.1f", it.diasTotales)} días") }
+        lecturas.map { FilaDeEstadistica(it.nombre, it.diasTotales, "${conUnDecimal(it.diasTotales)} días") }
             .filter { it.valor > 0 }
 
     /** Las obras cuyo estado actual es «En espera», por los días que llevan así (`longestWaiting`). */
@@ -56,7 +56,7 @@ object Estadisticas {
         obras.mapNotNull { obra ->
             val ultimo = obra.estados.sortedBy { it.fecha.orEmpty() }.lastOrNull() ?: return@mapNotNull null
             if (ultimo.tipo != TipoDeEstado.EN_ESPERA) return@mapNotNull null
-            val desde = instante(ultimo.fecha) ?: return@mapNotNull null
+            val desde = instanteDe(ultimo.fecha) ?: return@mapNotNull null
             val dias = max(0L, floor((ahora.toEpochMilli() - desde.toEpochMilli()).toDouble() / DIA_MS).toLong()).toInt()
             FilaDeEstadistica(obra.nombre, dias.toDouble(), "$dias ${if (dias == 1) "día" else "días"}")
         }.sortedByDescending { it.valor }.take(limite)
@@ -107,14 +107,14 @@ object Estadisticas {
     /** Libros o antologías: por lectores, con la nota media si la hay (`communityBookRows`). */
     fun filasDeObras(puestos: List<PuestoDeComunidad>): List<FilaDeEstadistica> = puestos.map {
         val lectores = it.lectores ?: 0
-        val nota = it.puntuacionMedia?.takeIf { media -> media != 0.0 }?.let { media -> " · ${String.format(Locale.ROOT, "%.1f", media)} ★" }.orEmpty()
+        val nota = it.puntuacionMedia?.takeIf { media -> media != 0.0 }?.let { media -> " · ${conUnDecimal(media)} ★" }.orEmpty()
         FilaDeEstadistica(it.nombre, lectores.toDouble(), plural(lectores, "lector", "lectores") + nota)
     }
 
     /** Los mejor valorados (`communityRatedRows`). */
     fun filasValoradas(puestos: List<PuestoDeComunidad>): List<FilaDeEstadistica> = puestos.map {
         val media = it.puntuacionMedia ?: 0.0
-        FilaDeEstadistica(it.nombre, media, "${String.format(Locale.ROOT, "%.1f", media)} ★ · ${plural(it.valoraciones ?: 0, "valoración", "valoraciones")}")
+        FilaDeEstadistica(it.nombre, media, "${conUnDecimal(media)} ★ · ${plural(it.valoraciones ?: 0, "valoración", "valoraciones")}")
     }
 
     /** Los clubes, por miembros o por actividad del mes (`communityClubRows`). */
@@ -160,14 +160,6 @@ object Estadisticas {
 
     private fun plural(valor: Int, uno: String, varios: String) = "$valor ${if (valor == 1) uno else varios}"
 
-    /** Una fecha ISO con o sin zona; sin zona, como la lee el navegador (hora local). */
-    private fun instante(fecha: String?): Instant? {
-        val texto = fecha?.takeIf { it.isNotBlank() } ?: return null
-        return runCatching { Instant.parse(texto) }.getOrNull()
-            ?: runCatching { java.time.OffsetDateTime.parse(texto).toInstant() }.getOrNull()
-            ?: runCatching { LocalDateTime.parse(texto).atZone(ZoneId.systemDefault()).toInstant() }.getOrNull()
-            ?: runCatching { java.time.LocalDate.parse(texto.take(10)).atStartOfDay(ZoneId.of("UTC")).toInstant() }.getOrNull()
-    }
 }
 
 /** Un número sin «.0» si es entero (como lo pinta JavaScript). */

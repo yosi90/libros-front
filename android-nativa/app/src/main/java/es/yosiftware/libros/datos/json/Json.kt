@@ -54,6 +54,9 @@ fun JSONObject.textoDe(vararg nombres: String): String? =
 /** Un entero: número o texto con un número (`"31"`); `null` si falta o no lo es. */
 fun JSONObject.entero(nombre: String): Int? = enteroDe(opt(nombre))
 
+/** Un entero largo (los ids de la plataforma): número o texto con un número; `null` si falta o no lo es. */
+fun JSONObject.largo(nombre: String): Long? = largoDe(opt(nombre))
+
 /** Un decimal: número o texto con un número; `null` si falta o no lo es. */
 fun JSONObject.decimal(nombre: String): Double? = when (val valor = opt(nombre)) {
     is Number -> valor.toDouble()
@@ -115,6 +118,14 @@ fun enteroDe(valor: Any?): Int? = when (valor) {
     is Long -> valor.toInt()
     is Number -> valor.toDouble().takeIf { it % 1.0 == 0.0 }?.toInt()
     is String -> valor.trim().toIntOrNull()
+    else -> null
+}
+
+fun largoDe(valor: Any?): Long? = when (valor) {
+    is Int -> valor.toLong()
+    is Long -> valor
+    is Number -> valor.toDouble().takeIf { it % 1.0 == 0.0 }?.toLong()
+    is String -> valor.trim().toLongOrNull()
     else -> null
 }
 

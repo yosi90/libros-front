@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
+import es.yosiftware.libros.datos.instanteDe
 import es.yosiftware.libros.datos.modelos.Nota
 import es.yosiftware.libros.datos.repositorios.RepositorioLibro
 import es.yosiftware.libros.datos.rtfATexto
@@ -58,7 +59,7 @@ object NotasDelLibro {
 
     /** «6 jul 2026». */
     fun fecha(nota: Nota): String? {
-        val dia = ResumenDelLibro.instante(nota.fecha)?.atZone(ZoneId.systemDefault())?.toLocalDate() ?: return null
+        val dia = instanteDe(nota.fecha)?.atZone(ZoneId.systemDefault())?.toLocalDate() ?: return null
         return "${dia.dayOfMonth} ${meses[dia.monthValue - 1]} ${dia.year}"
     }
 }

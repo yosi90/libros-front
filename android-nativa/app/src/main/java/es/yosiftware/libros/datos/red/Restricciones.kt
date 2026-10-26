@@ -1,6 +1,6 @@
 package es.yosiftware.libros.datos.red
 
-import es.yosiftware.libros.ui.comunidad.FechasDeClubes
+import es.yosiftware.libros.datos.leerFecha
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -34,7 +34,7 @@ object Restricciones {
         val que = if (nombres.size > 1) nombres.dropLast(1).joinToString(", ") + " y " + nombres.last() else nombres.first()
         // «limitada la comunidad», «limitado el chat»: concuerda con el primero.
         val limitado = if (que.startsWith("el ")) "limitado" else "limitada"
-        val fecha = FechasDeClubes.leer(hasta, zona) ?: return "Tu cuenta de Yosiftware tiene $limitado $que sin fecha de fin."
+        val fecha = leerFecha(hasta, zona) ?: return "Tu cuenta de Yosiftware tiene $limitado $que sin fecha de fin."
         return "Tu cuenta de Yosiftware tiene $limitado $que hasta el ${fecha.format(DIA)} a las ${fecha.format(HORA)}."
     }
 

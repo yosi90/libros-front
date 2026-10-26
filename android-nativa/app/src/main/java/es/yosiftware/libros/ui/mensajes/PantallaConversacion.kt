@@ -1,28 +1,14 @@
 package es.yosiftware.libros.ui.mensajes
 
-import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Animatable
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -34,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -48,6 +35,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -68,14 +58,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.lifecycle.Lifecycle
@@ -83,6 +81,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
 import es.yosiftware.libros.ui.componentes.DialogoModal
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.comunidad.CampoDeFormulario
@@ -96,7 +95,9 @@ import es.yosiftware.libros.ui.tema.Textos
 import es.yosiftware.libros.ui.tema.rem
 import es.yosiftware.libros.ui.tema.sombra1
 import java.time.Instant
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 // La conversación: mobile-chat-conversation-view.component.html con el controlador chat-conversation.component.ts y el
 // Sass de la APK de Capacitor (5dc3120). Rejilla de cinco filas: la app bar, la búsqueda, los mensajes (o la gestión del
@@ -144,10 +145,10 @@ fun PantallaConversacion(vm: ConversacionViewModel, volver: () -> Unit, resaltad
         }
     }
     vm.borrarPendiente?.let {
-        Confirmacion("¿Quieres borrar este mensaje?", vm::cancelarBorrar, vm::borrar)
+        DialogoDeConfirmacion("¿Quieres borrar este mensaje?", vm::cancelarBorrar, vm::borrar)
     }
-    if (vm.salirPendiente) Confirmacion("¿Quieres salir de este grupo?", vm::cancelarSalir, vm::salir)
-    vm.retirarPendiente?.let { Confirmacion("¿Quieres retirar a ${it.persona.nombre} del grupo?", vm::cancelarRetirar, vm::retirar) }
+    if (vm.salirPendiente) DialogoDeConfirmacion("¿Quieres salir de este grupo?", vm::cancelarSalir, vm::salir)
+    vm.retirarPendiente?.let { DialogoDeConfirmacion("¿Quieres retirar a ${it.persona.nombre} del grupo?", vm::cancelarRetirar, vm::retirar) }
     vm.denunciando?.let { DialogoDeDenuncia(vm, it) }
 }
 
@@ -700,20 +701,9 @@ private fun FilaDeParticipante(
         }
         Column(Modifier.weight(1f)) {
             Text(nombre, color = colores.tinta, style = Textos.filaPrincipal, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(apoyo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(apoyo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Row { acciones() }
-    }
-}
-
-@Composable
-private fun Confirmacion(texto: String, alCancelar: () -> Unit, alAceptar: () -> Unit) {
-    DialogoModal(alCerrar = alCancelar) {
-        Text(texto, color = LocalColores.current.tinta, style = Textos.cuerpo)
-        Row(Modifier.fillMaxWidth().padding(top = Espacios.e5), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
-            Boton("Cancelar", alCancelar, variante = VarianteDeBoton.Contorno)
-            Boton("Aceptar", alAceptar)
-        }
     }
 }
 

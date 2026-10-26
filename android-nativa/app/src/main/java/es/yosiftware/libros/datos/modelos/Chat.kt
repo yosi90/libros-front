@@ -2,7 +2,10 @@ package es.yosiftware.libros.datos.modelos
 
 import es.yosiftware.libros.datos.json.booleano
 import es.yosiftware.libros.datos.json.entero
+import es.yosiftware.libros.datos.json.largo
+import es.yosiftware.libros.datos.json.lista
 import es.yosiftware.libros.datos.json.objeto
+import es.yosiftware.libros.datos.json.objetos
 import es.yosiftware.libros.datos.json.texto
 import org.json.JSONArray
 import org.json.JSONObject
@@ -10,8 +13,6 @@ import org.json.JSONObject
 // El chat de la plataforma tal como lo cuenta su contrato (administracion yosiftware: docs/publica/ENDPOINTS.md, «Chat»;
 // `interfaces/platform-chat.ts` de la web). Los ids de las conversaciones y los mensajes son números; los de las
 // cuentas, texto. Lo que se pinta lo traduce `ui/mensajes/TextosDelChat.kt`.
-
-private fun JSONObject.largo(nombre: String): Long? = entero(nombre)?.toLong() ?: (opt(nombre) as? Number)?.toLong()
 
 /** Lo que la persona puede hacer en una conversación. */
 data class PermisosDeConversacion(val escribir: Boolean, val invitar: Boolean, val administrar: Boolean, val salir: Boolean) {
@@ -34,7 +35,7 @@ data class AvisoDeChat(val codigo: String, val datos: JSONObject, val personas: 
             // `personas` llega como mapa por id o como lista.
             val personas = when (val valor = json.opt("personas")) {
                 is JSONObject -> valor.keys().asSequence().mapNotNull { id -> valor.optJSONObject(id)?.let { id to PersonaDeYosiftware.de(it) } }.toMap()
-                is JSONArray -> (0 until valor.length()).mapNotNull { valor.optJSONObject(it)?.let(PersonaDeYosiftware::de) }.associateBy { it.id }
+                is JSONArray -> valor.objetos().map(PersonaDeYosiftware::de).associateBy { it.id }
                 else -> emptyMap()
             }
             return AvisoDeChat(json.texto("codigo").orEmpty(), json.objeto("datos") ?: JSONObject(), personas)
@@ -150,16 +151,12 @@ data class InvitacionDeChat(val id: Long, val persona: PersonaDeYosiftware?)
 data class DetalleDeConversacion(val conversacion: ConversacionDePlataforma, val participantes: List<ParticipanteDeChat>, val invitaciones: List<InvitacionDeChat>) {
     companion object {
         fun de(json: JSONObject): DetalleDeConversacion {
-            val participantes = json.optJSONArray("participantes")
-            val invitaciones = json.optJSONArray("invitaciones")
             return DetalleDeConversacion(
                 conversacion = ConversacionDePlataforma.de(json),
-                participantes = (0 until (participantes?.length() ?: 0)).mapNotNull { i ->
-                    participantes?.optJSONObject(i)?.let { p -> p.objeto("persona")?.let { ParticipanteDeChat(PersonaDeYosiftware.de(it), p.texto("rol") ?: "miembro") } }
-                },
-                invitaciones = (0 until (invitaciones?.length() ?: 0)).mapNotNull { i ->
-                    invitaciones?.optJSONObject(i)?.let { InvitacionDeChat(it.largo("id") ?: 0, it.objeto("persona")?.let(PersonaDeYosiftware::de)) }
-                },
+                participantes = json.lista("participantes") { p ->
+                    p.objeto("persona")?.let { ParticipanteDeChat(PersonaDeYosiftware.de(it), p.texto("rol") ?: "miembro") }
+                }.filterNotNull(),
+                invitaciones = json.lista("invitaciones") { InvitacionDeChat(it.largo("id") ?: 0, it.objeto("persona")?.let(PersonaDeYosiftware::de)) },
             )
         }
     }
