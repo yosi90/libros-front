@@ -101,7 +101,8 @@ jobs:
           esperada="$(curl -fsS https://libros.yosiftware.es/.well-known/assetlinks.json \
             | jq -r '.[] | select(.target.package_name == "es.yosiftware.libros") | .target.sha256_cert_fingerprints[0]' \
             | tr -d ':' | tr 'A-F' 'a-f')"
-          obtenida="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' firma.txt)"
+          # «Signer #1 certificate…» o, con minSdk 26 (solo el esquema v2), «V2 Signer: certificate…».
+          obtenida="$(sed -n 's/^.*[Ss]igner.*certificate SHA-256 digest: //p' firma.txt | head -n 1)"
           if [[ -z "$esperada" || "$esperada" != "$obtenida" ]]; then
             echo "La huella de la firma ($obtenida) no es la de producción ($esperada)." >&2
             exit 1
