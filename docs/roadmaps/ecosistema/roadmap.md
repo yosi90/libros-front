@@ -15,6 +15,10 @@
 
 - `ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md`: adhesión de la web y APK Kotlin. Maestro y backend en `../Libros API/docs/roadmaps/ACTIVO_adhesion-yosiftware/`.
 
+## Líneas pausadas
+
+- `ROADMAP_PAUSADO_duplicados-apk-kotlin.md`: lo que la auditoría de duplicados de la APK (hito 14) dejó como propuesta.
+
 ## Referencias útiles
 
 - Peticiones de la plataforma a Libros: `../Libros API/docs/peticiones/` (el frontend las recibe a través del propietario).
