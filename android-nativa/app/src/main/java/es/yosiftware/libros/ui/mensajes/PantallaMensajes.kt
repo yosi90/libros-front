@@ -206,7 +206,7 @@ private fun FilaDeConversacion(conversacion: ConversacionDelChat, alPulsar: () -
             Text(TextosDelChat.titulo(conversacion), color = colores.tinta, style = Textos.filaPrincipal, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(
                 conversacion.vistaPrevia?.takeIf { it.isNotEmpty() } ?: "Sin mensajes aún",
-                Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)),
+                Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
             val fecha = FechasDeClubes.diaYHora(conversacion.fechaUltimoMensaje)

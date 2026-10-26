@@ -701,7 +701,7 @@ private fun FilaDeParticipante(
         }
         Column(Modifier.weight(1f)) {
             Text(nombre, color = colores.tinta, style = Textos.filaPrincipal, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(apoyo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(apoyo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Row { acciones() }
     }
