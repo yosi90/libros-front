@@ -1,4 +1,4 @@
-@if (!readonly) {
+@if (showToolbar) {
   <div #toolbar class="rtf-toolbar" role="toolbar" aria-label="Formato de texto">
     <div class="rtf-toolbar__group rtf-toolbar__group--selectors">
       <label class="rtf-select" title="Fuente">
@@ -136,6 +136,7 @@
 <div #editor class="rtf-editor" role="textbox" aria-multiline="true" [attr.aria-label]="ariaLabel"
   [attr.contenteditable]="readonly || disabled ? 'false' : 'true'"
   [class.rtf-editor--readonly]="readonly"
+  [class.rtf--bare-editor]="isBare"
   (focus)="markFocused()"
   (keyup)="refreshActiveFormats()"
   (mouseup)="refreshActiveFormats()"

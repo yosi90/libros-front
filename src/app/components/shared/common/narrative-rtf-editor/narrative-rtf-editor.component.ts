@@ -1,5 +1,5 @@
 
-import { AfterViewInit, Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnChanges, OnDestroy, Optional, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, forwardRef, HostBinding, HostListener, Input, OnChanges, OnDestroy, Optional, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -46,6 +46,13 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
 
     /** Nombre accesible del cuadro de texto (p. ej. «Descripción de la escena 2»). */
     @Input() ariaLabel = 'Texto narrativo';
+    /**
+     * La barra de formato solo mientras se escribe en el editor (las escenas del capítulo, opción A del propietario,
+     * 26/10/2026). Sigue visible mientras el foco esté en la barra o en uno de sus desplegables.
+     */
+    @Input() toolbarOnlyWhileEditing = false;
+    /** El foco está en el editor o en su barra. */
+    isEditing = false;
     @ViewChild('editor') editor?: ElementRef<HTMLDivElement>;
     @ViewChild('toolbar') toolbar?: ElementRef<HTMLDivElement>;
 
@@ -230,6 +237,31 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
             : Math.max(margin, triggerRect.top - panelRect.height - 6);
         panel.style.left = `${left}px`;
         panel.style.top = `${top}px`;
+    }
+
+    get showToolbar(): boolean {
+        return !this.readonly && (!this.toolbarOnlyWhileEditing || this.isEditing);
+    }
+
+    /** Sin la barra encima, el editor lleva las cuatro esquinas redondeadas y no reserva su fila. */
+    @HostBinding('class.rtf--bare')
+    get isBare(): boolean {
+        return !this.readonly && !this.showToolbar;
+    }
+
+    @HostListener('focusin')
+    handleFocusIn(): void {
+        this.isEditing = true;
+    }
+
+    @HostListener('focusout', ['$event'])
+    handleFocusOut(event: FocusEvent): void {
+        const next = event.relatedTarget as Element | null;
+        const host = event.currentTarget as Element | null;
+        // Los desplegables de fuente y tamaño se abren fuera, en la capa de Material.
+        if (next && (host?.contains(next) || next.closest?.('.cdk-overlay-container')))
+            return;
+        this.isEditing = false;
     }
 
     markFocused(): void {

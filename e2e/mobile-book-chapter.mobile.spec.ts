@@ -10,7 +10,17 @@ test.describe('formulario Mobile de capítulo', () => {
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'mobile');
         await expect(page.locator('.m-chapter__heading')).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Personajes' })).toHaveCount(0);
+        // Capítulo compacto (opción A, 26/10/2026): guardado y sin errores, sus datos en una línea que se despliega.
+        await expect(page.locator('.m-chapter__fields')).toHaveCount(0);
+        const summary = page.getByRole('button', { name: /^Editar los datos del capítulo: / });
+        await expect(summary).toHaveText(/La puerta entreabierta · págs\. 1–14 · nº 1/);
+        await summary.click();
         await expect(page.locator('.m-chapter__fields > .m-native-field:not(.m-chapter__name)')).toHaveCount(3);
+        await expect(page.getByText('/ 200')).toHaveCount(0);
+        // La barra de formato de la escena, solo al escribir en ella.
+        await expect(page.locator('.rtf-toolbar')).toHaveCount(0);
+        await page.getByRole('textbox', { name: 'Descripción de la escena 1' }).click();
+        await expect(page.locator('.rtf-toolbar')).toHaveCount(1);
 
         const compactGeometry = await page.evaluate(() => {
             const fields = [...document.querySelectorAll<HTMLElement>('.m-chapter__fields > .m-native-field:not(.m-chapter__name)')];
@@ -18,7 +28,7 @@ test.describe('formulario Mobile de capítulo', () => {
             const input = fields[0]?.querySelector('input');
             const locationControl = document.querySelector<HTMLElement>('.m-native-field--autocomplete .m-native-field__control');
             const locationInput = locationControl?.querySelector('input');
-            const characterPicker = document.querySelector<HTMLElement>('.m-character-picker');
+            const characterPicker = document.querySelector<HTMLElement>('.m-scene__add');
             const fontTrigger = document.querySelector<HTMLElement>('.rtf-size-select .mat-mdc-select-value-text');
             const rtfEditor = document.querySelector<HTMLElement>('.rtf-editor');
             const scenesTitle = document.querySelector<HTMLElement>('.m-chapter__scenes > header h2');
@@ -56,7 +66,7 @@ test.describe('formulario Mobile de capítulo', () => {
         expect(compactGeometry.locationInputHeight).toBe(36);
         expect(compactGeometry.locationInputFontSize).toBe('12.72px');
         expect(compactGeometry.locationInputPaddingLeft).toBe('8px');
-        expect(compactGeometry.characterPickerHeight).toBe(38);
+        expect(compactGeometry.characterPickerHeight).toBe(44);
         expect(compactGeometry.scenesTitleFontSize).toBe('16px');
         expect(compactGeometry.addSceneButtonHeight).toBe(36);
         expect(compactGeometry.addSceneButtonFontSize).toBe('11.52px');
@@ -73,12 +83,16 @@ test.describe('formulario Mobile de capítulo', () => {
 
         await page.setViewportSize({ width: 718, height: 781 });
         await expect(page.locator('.m-chapter__heading')).toHaveCount(0);
-        const assignmentHeights = await page.evaluate(() =>
-            [...document.querySelectorAll<HTMLElement>('.m-scene__assignments > article')]
-                .map(article => Math.round(article.getBoundingClientRect().height))
-        );
-        expect(assignmentHeights).toHaveLength(2);
-        expect(assignmentHeights[1]).toBeLessThan(assignmentHeights[0]);
+        // En medium, el título, la localización y la papelera de la escena en una fila, y los personajes en otra.
+        const mediumRows = await page.evaluate(() => {
+            const top = (selector: string) => Math.round(document.querySelector<HTMLElement>(selector)!.getBoundingClientRect().top);
+            return {
+                fields: [top('.m-scene__title'), top('.m-scene__location'), top('.m-scene__delete')],
+                people: [...document.querySelectorAll<HTMLElement>('.m-scene__chips > *')].map(item => Math.round(item.getBoundingClientRect().top + item.getBoundingClientRect().height / 2))
+            };
+        });
+        expect(new Set(mediumRows.fields).size).toBe(1);
+        expect(new Set(mediumRows.people).size).toBe(1);
     });
 
     test('muestra el aviso de guardado tras completar un autoguardado real', async ({ page }) => {
@@ -100,6 +114,7 @@ test.describe('formulario Mobile de capítulo', () => {
 
         await page.goto('/book/73/chapter/11');
         await expect(page.locator('.dragon-loader')).toBeHidden();
+        await page.getByRole('button', { name: /^Editar los datos del capítulo: / }).click();
         await expect(page.getByLabel('Título del capítulo')).toHaveValue('La puerta entreabierta');
 
         await page.getByLabel('Título del capítulo').fill('La puerta entreabierta, revisada');

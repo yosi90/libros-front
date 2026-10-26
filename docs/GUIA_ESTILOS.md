@@ -134,7 +134,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 ### Espacio de libro
 
 - Wood recupera índice persistente y composición editorial de escritorio.
-- Web ocupa la pantalla completa con una cabecera de una sola fila (volver, portada y título, pestañas Resumen/Notas/entidades, búsqueda y wiki). El índice lateral se pliega desde su propia cabecera a un carril; por debajo de 1051 px se superpone y se cierra también arrastrándolo. El capítulo ocupa todo el ancho; en escritorio con ratón los personajes se asignan arrastrando desde un panel fijo y en táctil o pantallas menores con «Añadir». El Resumen usa gráficos ApexCharts con los colores del tema.
+- Web ocupa la pantalla completa con una cabecera de una sola fila (volver, portada y título, pestañas Resumen/Notas/entidades, búsqueda y wiki). El índice lateral se pliega desde su propia cabecera a un carril; por debajo de 1051 px se superpone y se cierra también arrastrándolo. El capítulo ocupa todo el ancho; en escritorio con ratón los personajes también se asignan arrastrando desde un panel fijo, y en todas partes con «+ Personaje». El Resumen usa gráficos ApexCharts con los colores del tema.
 - Todas las presentaciones tienen «Notas» del libro (notas personales de lectura).
 - Mobile usa atrás, portada/título y accesos a Estadísticas, Wiki y Buscar en la cabecera. Wiki permanece visible pero deshabilitada cuando el libro no tiene un enlace válido.
 - En compact, la navegación inferior del libro contiene únicamente Índice y Elementos. En medium sustituye Elementos por accesos directos a Personajes, Localizaciones, Organizaciones, Eventos, Conceptos y Citas; cada listado ofrece una acción textual inequívoca para crear un elemento nuevo.
@@ -170,6 +170,12 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 - El estado editable pertenece a la fachada de feature y sobrevive a orientación/cambio de presentación.
 - Mobile apila título, localización, contenido y asignaciones; medium paraleliza solo por container query y ancho real.
+- **Capítulo compacto** (opción A del propietario, 26/10/2026; Mobile y Web, igual que la APK; Wood conserva su composición):
+  - un capítulo guardado y sin errores resume sus datos en una línea («Indiscreciones · págs. 145–151 · nº 11», o «pág. 145») que se despliega al tocarla o con el lápiz; uno nuevo, o con errores, enseña los campos;
+  - el contador del título («14 / 200») solo aparece desde 180 caracteres o con error;
+  - cada escena, sin cabecera «Escena N»: el título sin etiqueta (con placeholder y nombre accesible) en una fila con la localización y la papelera; en estrecho, el título y la papelera en una fila y la localización debajo;
+  - la barra RTF de las escenas solo aparece mientras se escribe (`toolbarOnlyWhileEditing`); sin ella, el editor redondea las cuatro esquinas;
+  - los personajes, en una sola fila de fichas estrechas sin ancho mínimo: primero los presentes y después los solo nombrados (cursiva, tinta suave y «·» delante), cada uno con mover y quitar; al final, «+ Personaje» abre un desplegable con buscador («Toca el nombre si está en escena, o la @ si solo se le nombra.»).
 - Asignar personajes no depende del arrastre; selectores y acciones táctiles mantienen orden alfabético.
 - La toolbar RTF restaura la selección antes de aplicar comandos desde overlays. En Wood puede envolver grupos; en Mobile conserva una sola fila horizontal desplazable, controles densos de 28 px e iconografía de 13 px para no convertir el editor en varias filas. Si el conjunto cabe, adopta ancho intrínseco y se alinea a la derecha; si no, se limita al ancho disponible y permite scroll. Es una excepción deliberada al target general de 44 px: el editor mantiene scroll horizontal y nombres accesibles, mientras las acciones primarias conservan 44 px.
 - Los triggers y valores de fuente/tamaño consumen siempre tinta Mobile light/dark; no heredan el dorado de Wood. Los paneles de la toolbar no heredan el ancho reducido de su trigger: fuente y párrafo disponen de ancho legible, color escapa del recorte horizontal de la toolbar y todos usan radios compactos. Su posición se limita al viewport y su apertura táctil no depende del comportamiento nativo de `details`.

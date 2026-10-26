@@ -297,7 +297,15 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         const world = newWorld();
         await installTwoAccounts(page, world);
         const title = page.getByRole('textbox', { name: 'Título del capítulo' });
+        // El capítulo guardado enseña sus datos plegados en una línea (opción A, 26/10/2026): se despliegan para el título.
+        const summary = page.getByRole('button', { name: /^Editar los datos del capítulo: / });
+        const showTitle = async () => {
+            await expect(summary.or(title)).toBeVisible({ timeout: 15_000 });
+            if (await summary.isVisible())
+                await summary.click();
+        };
         await page.goto(`/book/${visualBook.Id}/chapter/11`);
+        await showTitle();
         await expect(title).toHaveValue('La puerta entreabierta', { timeout: 15_000 });
 
         // Una escritura de A en vuelo cuando cambia la cuenta: su respuesta llega tarde y no se repite con B.
@@ -317,6 +325,7 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await switchTo(page, ana);
         await expect(page.locator('app-web-library-view').getByText('Libro de Ana').first()).toBeVisible({ timeout: 15_000 });
         await navigateInApp(page, `/book/${visualBook.Id}/chapter/11`);
+        await showTitle();
         await expect(title).toHaveValue('La puerta entreabierta', { timeout: 15_000 });
         await title.fill('La puerta que solo Ana ha escrito');
         await switchTo(page, bruno);
@@ -328,6 +337,7 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         // Bruno abre el mismo capítulo: no ve el borrador de Ana ni lo envía.
         await expect(page.locator('app-web-library-view').getByText('Libro de Bruno').first()).toBeVisible({ timeout: 15_000 });
         await navigateInApp(page, `/book/${visualBook.Id}/chapter/11`);
+        await showTitle();
         await expect(title).toHaveValue('La puerta entreabierta', { timeout: 15_000 });
         await page.waitForTimeout(2500);
         expect(world.chapterSaves).toHaveLength(1);
@@ -335,8 +345,9 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
 
         // Ana vuelve tras reiniciar el navegador (el doble arranca con Ana): recupera su borrador y se guarda con ella.
         await page.reload();
+        await expect(page.getByText('Hemos recuperado los cambios de este capítulo que no llegaron a guardarse')).toBeVisible({ timeout: 15_000 });
+        await showTitle();
         await expect(title).toHaveValue('La puerta que solo Ana ha escrito', { timeout: 15_000 });
-        await expect(page.getByText('Hemos recuperado los cambios de este capítulo que no llegaron a guardarse')).toBeVisible();
         await expect.poll(() => world.chapterSaves.length, { timeout: 10_000 }).toBe(2);
         expect(world.chapterSaves[1]).toEqual({ account: ana.id, body: expect.objectContaining({ Nombre: 'La puerta que solo Ana ha escrito' }) });
         expect(await page.evaluate(key => localStorage.getItem(key), pendingKey(ana))).toBeNull();

@@ -63,6 +63,52 @@
     gap: var(--web-space-2) var(--web-space-4)
     margin-top: var(--web-space-3)
 
+// Los datos del capítulo guardado, plegados en una línea (opción A del propietario, 26/10/2026).
+.chapter__meta--summary
+    margin-top: 0
+
+.chapter__summary
+    display: inline-flex
+    flex: 1 1 auto
+    align-items: center
+    gap: var(--web-space-2)
+    min-width: 0
+    min-height: 40px
+    padding: 0 var(--web-space-2)
+    margin-left: calc(var(--web-space-2) * -1)
+    color: var(--web-color-ink)
+    font: 600 18px/1.3 var(--web-font-reading)
+    text-align: left
+    background: transparent
+    border: 1px solid transparent
+    border-radius: var(--web-radius-sm)
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover
+        border-color: var(--web-color-outline)
+
+    // Hasta dos líneas, como en la APK.
+    span
+        display: -webkit-box
+        min-width: 0
+        overflow: hidden
+        -webkit-line-clamp: 2
+        -webkit-box-orient: vertical
+
+    mat-icon
+        flex: none
+        width: 20px
+        height: 20px
+        color: var(--web-color-primary)
+        font-size: 20px
+
+// El contador del título, solo cerca del límite.
+.chapter__counter
+    margin: var(--web-space-1) 0 0
+    color: var(--web-color-ink-muted)
+    font-size: 13px
+
 .inline-field
     display: inline-flex
     align-items: center
@@ -205,44 +251,30 @@
         border: 0
         outline: 0
 
+// Los personajes de la escena en una sola fila de fichas estrechas.
 .scene__people
     display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
-    gap: var(--web-space-3)
-
-.zone
+    grid-template-columns: minmax(0, 1fr)
+    gap: var(--web-space-1)
     min-width: 0
-    padding: var(--web-space-2) var(--web-space-3) var(--web-space-3)
-    background: var(--web-color-surface-muted)
-    border: 1px dashed transparent
-    border-radius: var(--web-radius-md)
 
-    &.cdk-drop-list-dragging, &.cdk-drop-list-receiving
-        border-color: var(--web-color-primary)
-
-    h3
-        margin: 0 0 var(--web-space-2)
-        color: var(--web-color-ink-muted)
-        font: 600 12px/1.3 var(--web-font-ui)
-        letter-spacing: .06em
-        text-transform: uppercase
-
-// Solo en escritorio con ratón, donde no hay «Añadir».
-.zone__empty
-    display: none
-    align-self: center
-    color: var(--web-color-ink-subtle)
-    font-size: 13px
-
-.zone__warning
-    margin: 0 0 var(--web-space-2)
+.scene__warning
+    margin: 0
     color: var(--web-color-warning)
     font-size: 13px
 
 .chips
     display: flex
     flex-wrap: wrap
+    align-items: center
     gap: 6px
+    min-height: 34px
+    border-radius: var(--web-radius-md)
+
+    // Al arrastrar un personaje desde el panel (un contorno que no ocupa sitio).
+    &.cdk-drop-list-receiving
+        outline: 1px dashed var(--web-color-primary)
+        outline-offset: 2px
 
 .chip
     display: inline-flex
@@ -279,36 +311,89 @@
             height: 16px
             font-size: 16px
 
-.chip--muted
+// Solo nombrado: en cursiva, en tinta suave y con «·» delante.
+.chip--named
     color: var(--web-color-ink-muted)
+    font-style: italic
     background: var(--web-color-surface-high)
 
 .chip--add
+    gap: 4px
     padding: 0 var(--web-space-2)
-    color: var(--web-color-ink-muted)
-    background: var(--web-color-surface)
-    border: 1px dashed var(--web-color-outline-strong)
-    cursor: text
+    color: var(--web-color-primary)
+    font-weight: 600
+    background: transparent
+    border: 0
+    cursor: pointer
+    @include web.focus-ring
 
-    &:focus-within
-        border-color: var(--web-color-primary)
-        border-style: solid
+    &:hover:not(:disabled)
+        background: var(--web-color-primary-soft)
+
+    &:disabled
+        color: var(--web-color-ink-subtle)
+        cursor: default
 
     mat-icon
         width: 16px
         height: 16px
         font-size: 16px
 
-    input
-        width: 7.5em
-        color: var(--web-color-ink)
-        font: 500 13px/1 var(--web-font-ui)
-        background: transparent
-        border: 0
-        outline: 0
+// El desplegable de «+ Personaje»: buscador, la pista y los nombres, con la @ para «solo nombrado».
+.character-menu
+    box-sizing: border-box
+    display: grid
+    grid-template-rows: auto auto minmax(0, 1fr)
+    gap: var(--web-space-2)
+    width: min(320px, calc(100vw - 24px))
+    max-height: min(380px, 60dvh)
+    padding: var(--web-space-2)
+    color: var(--web-color-ink)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+    box-shadow: var(--web-shadow-float)
 
-        &::placeholder
-            color: var(--web-color-ink-muted)
+    ul
+        min-height: 0
+        margin: 0
+        padding: 0
+        overflow-y: auto
+        list-style: none
+
+    li
+        display: grid
+        grid-template-columns: minmax(0, 1fr) 36px
+        align-items: center
+
+.character-menu__hint
+    margin: 0
+    padding: 0 var(--web-space-1)
+    color: var(--web-color-ink-muted)
+    font-size: 12px
+
+.character-menu__name
+    min-height: 36px
+    padding: 0 var(--web-space-2)
+    overflow: hidden
+    color: var(--web-color-ink)
+    font: 500 14px/1.2 var(--web-font-ui)
+    text-align: left
+    text-overflow: ellipsis
+    white-space: nowrap
+    background: transparent
+    border: 0
+    border-radius: var(--web-radius-sm)
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+.character-menu__empty
+    padding: var(--web-space-2)
+    color: var(--web-color-ink-muted)
+    font-size: 13px
 
 .chapter__save
     display: flex
@@ -478,13 +563,6 @@
 
 // Escritorio con ratón: panel fijo y asignación solo arrastrando. En pantallas
 // pequeñas o táctiles el panel se abre como lateral y se añade con «Añadir».
-@media (min-width: 1051px) and (pointer: fine)
-    .chip--add
-        display: none
-
-    .zone__empty
-        display: inline
-
 @media (max-width: 1050px), (pointer: coarse)
     .chapter
         grid-template-columns: minmax(0, 1fr)
@@ -543,12 +621,8 @@
         flex: 1 1 100%
         order: 3
 
-    .scene__people
-        grid-template-columns: minmax(0, 1fr)
-
     .chip:not(.chip--add)
         width: max-content
-        min-width: calc((100% - 6px) / 2)
         max-width: 100%
         display: grid
         grid-template-columns: minmax(0, 1fr) 24px 24px

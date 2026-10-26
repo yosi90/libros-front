@@ -732,3 +732,22 @@
         .rtf-editor
             font-size: 16px
             padding: var(--web-space-3) var(--web-space-4)
+
+// Sin barra (las escenas la enseñan solo mientras se escribe): el editor ocupa su fila y redondea las cuatro esquinas.
+:host(.rtf--bare)
+    grid-template-rows: minmax(118px, auto)
+
+.rtf--bare-editor
+    border-radius: 7px
+
+:host-context(html[data-presentation-active="web"])
+    .rtf-editor.rtf--bare-editor
+        border-radius: var(--web-radius-md)
+
+@media screen and (max-width: 599px)
+    :host(.rtf--bare)
+        grid-template-rows: minmax(180px, auto)
+
+    :host-context(html[data-presentation-active="mobile"])
+        .rtf-editor.rtf--bare-editor
+            border-radius: 8px

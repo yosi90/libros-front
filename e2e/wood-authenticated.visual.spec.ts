@@ -78,6 +78,9 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await expect(page.getByLabel('Localización')).toHaveValue('Sin localización');
         await expect(page.locator('.m-chapter mat-form-field')).toHaveCount(0);
 
+        // La barra de formato de la escena aparece al escribir en ella (opción A, 26/10/2026).
+        await expect(page.locator('.rtf-toolbar')).toHaveCount(0);
+        await page.getByRole('textbox', { name: 'Descripción de la escena 1' }).click();
         const compactTool = await page.locator('.rtf-tool').first().boundingBox();
         expect(compactTool?.width).toBeCloseTo(28, 0);
         expect(compactTool?.height).toBeCloseTo(28, 0);
@@ -164,12 +167,17 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await sceneLocation.click();
         await expect(page.getByRole('option', { name: 'Sin localización' })).toBeVisible();
         await page.keyboard.press('Escape');
-        await page.getByPlaceholder('Añadir personaje presente').click();
-        await expect(page.getByRole('option', { name: 'Iria Valverde' })).toBeVisible();
+        // «+ Personaje»: el nombre lo pone en escena y la @, como solo nombrado.
+        const addCharacter = page.getByRole('button', { name: 'Personaje', exact: true });
+        await addCharacter.click();
+        const characterMenu = page.getByRole('dialog', { name: 'Añadir personaje' });
+        await expect(characterMenu.getByText('Toca el nombre si está en escena, o la @ si solo se le nombra.')).toBeVisible();
+        await expect(characterMenu.getByRole('button', { name: 'Iria Valverde', exact: true })).toBeVisible();
         await page.keyboard.press('Escape');
-        await page.getByPlaceholder('Añadir personaje nombrado').click();
-        await page.getByRole('option', { name: 'Iria Valverde' }).click();
-        await expect(page.locator('.m-scene__chips').filter({ hasText: 'Iria Valverde' })).toBeVisible();
+        await expect(characterMenu).toHaveCount(0);
+        await addCharacter.click();
+        await characterMenu.getByRole('button', { name: 'Añadir a Iria Valverde como solo nombrado' }).click();
+        await expect(page.locator('.m-scene__chips').filter({ hasText: '· Iria Valverde' })).toBeVisible();
 
         const newSceneButton = page.getByRole('button', { name: 'Nueva escena' });
         await newSceneButton.click();
@@ -195,17 +203,24 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         });
         expect(toastUsesInfoColor).toBe(true);
 
+        // El alta es la hoja rápida (opción A, 26/10/2026): solo los datos básicos, sin el editor.
         await page.goto('/book/73/event');
-        const defaultEventDescription = page.locator('.rtf-editor').first();
-        await expect(defaultEventDescription).toHaveText('Descripción del evento');
-        await defaultEventDescription.click();
-        await expect.poll(() => page.evaluate(() => window.getSelection()?.toString()))
-            .toBe('Descripción del evento');
-        const locationAutocomplete = page.getByLabel('Localización');
+        const eventSheet = page.getByRole('dialog', { name: 'Nuevo evento' });
+        await expect(eventSheet).toBeVisible();
+        await expect(eventSheet.locator('.rtf-editor')).toHaveCount(0);
+        const locationAutocomplete = eventSheet.getByLabel('Localización');
         await locationAutocomplete.click();
         await expect(page.getByRole('option', { name: 'Sin localización' })).toBeVisible();
         await expect(locationAutocomplete.locator('xpath=ancestor::mat-form-field').locator('mat-icon[matSuffix]')).toBeVisible();
         await page.keyboard.press('Escape');
+
+        // Las entradas se completan en la ficha: la descripción por defecto se selecciona entera al entrar.
+        await page.goto('/book/73/characters?selected=21');
+        const defaultDescription = page.locator('.rtf-editor').first();
+        await expect(defaultDescription).toHaveText('Descripción del personaje');
+        await defaultDescription.click();
+        await expect.poll(() => page.evaluate(() => window.getSelection()?.toString()))
+            .toBe('Descripción del personaje');
 
         const newEntryButton = page.getByRole('button', { name: 'Nueva entrada' });
         await newEntryButton.click();
@@ -220,7 +235,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await expect(page.locator('.app-toast--info').filter({ hasText: 'primero las entradas existentes deben ser válidas' })).toBeVisible();
 
         await page.goto('/book/73/quote');
-        const characterAutocomplete = page.getByLabel('Personaje');
+        const characterAutocomplete = page.getByRole('dialog', { name: 'Nueva cita' }).getByLabel('Personaje');
         await characterAutocomplete.click();
         await expect(page.getByRole('option', { name: 'Iria Valverde' })).toBeVisible();
     });

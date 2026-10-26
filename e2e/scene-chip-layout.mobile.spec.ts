@@ -2,7 +2,8 @@ import { expect, test } from './fixtures/test';
 import { installLocalVisualSession, visualBook } from './support/local-visual-session';
 
 for (const webPresentation of [false, true]) {
-    test(`chips de escena en columnas con nombres largos (${webPresentation ? 'Web' : 'Mobile'})`, async ({ page }) => {
+    // Capítulo compacto (opción A, 26/10/2026): fichas estrechas en una sola fila, sin ancho mínimo.
+    test(`chips de escena en una fila con nombres largos (${webPresentation ? 'Web' : 'Mobile'})`, async ({ page }) => {
         await installLocalVisualSession(page, { webPresentation });
         const names = ['Ana', 'Luis', 'Un nombre de personaje extraordinariamente largo que supera todo el ancho disponible incluso en pantallas amplias y continúa con varios apellidos adicionales'];
         const characters = names.map((Nombre, index) => ({ ...visualBook.Personajes[0], Id: 21 + index, Nombre }));
@@ -38,7 +39,8 @@ for (const webPresentation of [false, true]) {
                 };
             }, webPresentation);
             expect(geometry.items[0].top).toBeCloseTo(geometry.items[1].top, 0);
-            expect(geometry.items[0].width).toBeCloseTo(geometry.items[1].width, 0);
+            expect(geometry.items[0].width).toBeLessThan(geometry.available / 2);
+            expect(geometry.items[1].width).toBeLessThan(geometry.available / 2);
             expect(geometry.items[2].width).toBeCloseTo(geometry.available, 0);
             expect(geometry.items[2].textScroll).toBeGreaterThan(geometry.items[2].textWidth);
             expect(geometry.items[2].ellipsis).toBe('ellipsis');

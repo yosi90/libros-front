@@ -45,6 +45,34 @@
     &__name
         grid-column: 1 / -1
 
+    // Los datos de un capítulo guardado, plegados en una línea (opción A del propietario, 26/10/2026).
+    &__summary
+        min-height: 48px
+        display: grid
+        grid-template-columns: minmax(0, 1fr) 20px
+        align-items: center
+        gap: var(--mobile-space-2)
+        padding: 0 0 var(--mobile-space-2)
+        border: 0
+        border-bottom: 1px solid var(--mobile-color-outline)
+        color: var(--mobile-color-ink)
+        background: transparent
+        font: 600 .92rem/1.3 var(--mobile-font-body)
+        text-align: left
+        cursor: pointer
+
+        span
+            display: -webkit-box
+            overflow: hidden
+            -webkit-line-clamp: 2
+            -webkit-box-orient: vertical
+
+        mat-icon
+            width: 20px
+            height: 20px
+            color: var(--mobile-color-primary)
+            font-size: 20px
+
     &__scenes
         display: grid
         gap: 0
@@ -71,49 +99,30 @@
 .m-scene
     min-width: 0
     display: grid
-    gap: var(--mobile-space-4)
-    padding: var(--mobile-space-4) 0 var(--mobile-space-5)
+    gap: var(--mobile-space-3)
+    padding: var(--mobile-space-3) 0 var(--mobile-space-4)
     border-bottom: 1px solid var(--mobile-color-outline)
 
     &:last-child
         border-bottom: 0
 
-    > header
-        min-height: 48px
+    // Estrecho: el título y la papelera en una fila y la localización debajo; ancho: los tres en una fila.
+    &__fields
         display: grid
         grid-template-columns: minmax(0, 1fr) 48px
-        align-items: center
-        gap: var(--mobile-space-2)
-        border-bottom: 1px solid var(--mobile-color-outline)
-
-        span,
-        strong
-            display: block
-
-        span
-            color: var(--mobile-color-primary)
-            font-size: .68rem
-            font-weight: 800
-            letter-spacing: .08em
-            text-transform: uppercase
-
-        strong
-            margin-top: 3px
-            overflow: hidden
-            font-family: var(--mobile-font-display)
-            text-overflow: ellipsis
-            white-space: nowrap
-
-        > .m-icon-button
-            color: var(--mobile-color-error)
-
-    &__fields,
-    &__assignments
-        display: grid
-        gap: var(--mobile-space-2)
-
-    &__assignments
+        grid-template-areas: 'title delete' 'location location'
         align-items: start
+        gap: var(--mobile-space-2)
+
+    &__title
+        grid-area: title
+
+    &__location
+        grid-area: location
+
+    &__delete
+        grid-area: delete
+        color: var(--mobile-color-error)
 
     &__editor
         min-width: 0
@@ -128,46 +137,29 @@
         color: var(--mobile-color-error)
         font-size: .75rem
 
-    &__assignments > article
+    &__people
         min-width: 0
         display: grid
-        gap: var(--mobile-space-3)
-        padding: var(--mobile-space-3) 0 0
-        border-top: 1px solid var(--mobile-color-outline)
-        border-radius: 0
-        background: transparent
-        align-self: start
+        grid-template-columns: minmax(0, 1fr)
+        gap: 4px
 
-        > header
-            display: flex
-            align-items: flex-start
-            justify-content: space-between
-            gap: var(--mobile-space-2)
+    &__warning
+        margin: 0
+        color: var(--mobile-color-error)
+        font-size: .7rem
 
-            h3,
-            p
-                margin: 0
-
-            h3
-                font-family: var(--mobile-font-display)
-                font-size: 1rem
-
-            p
-                margin-top: 4px
-                color: var(--mobile-color-error)
-                font-size: .7rem
-
+    // Una sola fila de fichas estrechas, sin ancho mínimo.
     &__chips
         min-width: 0
         display: flex
         flex-wrap: wrap
-        gap: var(--mobile-space-2)
+        align-items: center
+        column-gap: var(--mobile-space-2)
 
         > div
             position: relative
             min-height: 44px
             width: max-content
-            min-width: calc((100% - var(--mobile-space-2)) / 2)
             max-width: 100%
             display: grid
             grid-template-columns: minmax(0, 1fr) 44px 44px
@@ -193,6 +185,11 @@
                 text-overflow: ellipsis
                 white-space: nowrap
 
+            // Solo nombrado: en cursiva, en tinta suave y con «·» delante.
+            &.is-named > span
+                color: var(--mobile-color-ink-muted)
+                font-style: italic
+
             .m-icon-button
                 width: 44px
                 height: 44px
@@ -208,10 +205,93 @@
                     height: 12px
                     font-size: 12px
 
-        > p
-            margin: 0
+    &__add
+        min-height: 44px
+        display: inline-flex
+        align-items: center
+        gap: 4px
+        padding: 0 var(--mobile-space-2)
+        border: 0
+        border-radius: 999px
+        color: var(--mobile-color-primary)
+        background: transparent
+        font: 700 .75rem/1 var(--mobile-font-body)
+        cursor: pointer
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+        &:disabled
             color: var(--mobile-color-ink-muted)
-            font-size: .75rem
+            cursor: default
+
+// El desplegable de «+ Personaje»: buscador, la pista y los nombres, con la @ para «solo nombrado».
+.m-character-menu
+    width: min(320px, calc(100vw - 24px))
+    max-height: min(360px, 60dvh)
+    box-sizing: border-box
+    display: grid
+    grid-template-rows: auto auto minmax(0, 1fr)
+    gap: var(--mobile-space-2)
+    padding: var(--mobile-space-2)
+    border: 1px solid var(--mobile-color-outline)
+    border-radius: var(--mobile-radius-md)
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-surface)
+    box-shadow: var(--mobile-shadow-2)
+
+    > p
+        margin: 0
+        padding: 0 4px
+        color: var(--mobile-color-ink-muted)
+        font-size: .68rem
+
+    ul
+        min-height: 0
+        margin: 0
+        padding: 0
+        overflow-y: auto
+        list-style: none
+
+    li
+        display: grid
+        grid-template-columns: minmax(0, 1fr) 44px
+        align-items: center
+
+        &.is-empty
+            display: block
+            padding: var(--mobile-space-2)
+            color: var(--mobile-color-ink-muted)
+            font-size: .8rem
+
+        .m-icon-button
+            width: 44px
+            height: 44px
+            color: var(--mobile-color-primary)
+
+            mat-icon
+                width: 20px
+                height: 20px
+                font-size: 20px
+
+    &__name
+        min-height: 44px
+        padding: 0 var(--mobile-space-2)
+        overflow: hidden
+        border: 0
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-ink)
+        background: transparent
+        font: 500 .85rem/1.2 var(--mobile-font-body)
+        text-align: left
+        text-overflow: ellipsis
+        white-space: nowrap
+        cursor: pointer
+
+        &:hover
+            background: var(--mobile-color-surface-container)
 
 .m-native-field
     min-width: 0
@@ -375,10 +455,9 @@
         &__name
             grid-column: auto
 
-    .m-scene
-        &__fields,
-        &__assignments
-            grid-template-columns: repeat(2, minmax(0, 1fr))
+    .m-scene__fields
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 48px
+        grid-template-areas: 'title location delete'
 
     .m-chapter-characters
         align-items: stretch

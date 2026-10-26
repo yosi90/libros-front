@@ -147,6 +147,11 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     autosaveStatus: 'idle' | 'saving' | 'saved' | 'error' | 'invalid' = 'idle';
     characterOrderRefreshing$: Observable<boolean> = of(false);
     narrativeEntityLinks: NarrativeEntityLink[] = [];
+    /** El capítulo guardado cuyos datos se han desplegado; los demás se resumen en una línea (opción A, 26/10/2026). */
+    private chapterFieldsOpenFor: number | null = null;
+    /** La escena con el desplegable «+ Personaje» abierto, y su búsqueda. */
+    characterPickerSceneIndex: number | null = null;
+    characterPickerQuery = new FormControl('');
 
     fgChapter = this.fBuild.group({
         name: this.name,
@@ -579,6 +584,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         const sceneId = Number(this.scenesControls.at(index).get('id')?.value ?? 0);
         if (sceneId > 0)
             this.deletedSceneIds.push(sceneId);
+        this.closeCharacterPicker();
         this.scenesControls.removeAt(index);
     }
 
@@ -702,6 +708,82 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     getSceneCharacters(sceneGroup: any): FormArray {
         return sceneGroup.get('personajes') as FormArray;
+    }
+
+    /**
+     * Capítulo compacto (opción A del propietario, 26/10/2026): un capítulo ya guardado y sin errores enseña sus datos
+     * en una línea, que se despliega al tocarla. Un capítulo nuevo, o con errores, enseña los campos.
+     */
+    isChapterSummaryVisible(): boolean {
+        return this.chapter.Id > 0 && this.chapterFieldsOpenFor !== this.chapter.Id && !this.hasChapterDataErrors();
+    }
+
+    hasChapterDataErrors(): boolean {
+        return this.name.invalid || this.page.invalid || this.endPage.invalid || this.order.invalid
+            || (!!this.endPage.value && Number(this.endPage.value) < Number(this.page.value));
+    }
+
+    /** Despliega los datos del capítulo; siguen abiertos mientras se esté en él. */
+    openChapterFields(): void {
+        if (this.chapter.Id > 0)
+            this.chapterFieldsOpenFor = this.chapter.Id;
+    }
+
+    /** «Indiscreciones · págs. 145–151 · nº 11» (o «pág. 145» si empieza y acaba en la misma). */
+    getChapterSummary(): string {
+        const start = String(this.page.value ?? '').trim();
+        const end = String(this.endPage.value ?? '').trim();
+        const pages = !end || end === start ? `pág. ${start}` : `págs. ${start}–${end}`;
+        return `${String(this.name.value ?? '').trim()} · ${pages} · nº ${String(this.order.value ?? '').trim()}`;
+    }
+
+    /** El contador del título solo cuando falta poco para el límite de 200. */
+    shouldShowNameCounter(): boolean {
+        return String(this.name.value ?? '').length >= 180;
+    }
+
+    /** Los personajes de la escena en una sola fila: primero los que están en escena y después los solo nombrados. */
+    getSceneCharactersInRow(sceneGroup: AbstractControl): AbstractControl[] {
+        return [...this.getSceneCharactersByMention(sceneGroup, false), ...this.getSceneCharactersByMention(sceneGroup, true)];
+    }
+
+    openCharacterPicker(sceneIndex: number): void {
+        this.characterPickerQuery.setValue('');
+        this.characterPickerSceneIndex = sceneIndex;
+    }
+
+    closeCharacterPicker(): void {
+        this.characterPickerSceneIndex = null;
+        this.characterPickerQuery.setValue('');
+    }
+
+    /** Desde «+ Personaje»: tocar el nombre lo pone en escena; la @, como solo nombrado. */
+    pickSceneCharacter(sceneIndex: number, characterId: number, named: boolean): void {
+        const scene = this.scenesControls.at(sceneIndex);
+        if (scene)
+            this.assignCharacterById(scene, characterId, named);
+        this.closeCharacterPicker();
+    }
+
+    getCharacterPickerOptions(sceneGroup: AbstractControl): Character[] {
+        return this.getFilteredAvailableSceneCharacters(sceneGroup, this.characterPickerQuery.value ?? '');
+    }
+
+    isNamedSceneCharacter(characterGroup: AbstractControl): boolean {
+        return !!characterGroup.get('Nombrado')?.value;
+    }
+
+    /**
+     * Soltar en la fila de personajes de una escena: desde el panel entra en escena; una ficha de otra escena conserva
+     * si estaba en escena o solo nombrada. Soltar una ficha en su propia fila no cambia nada.
+     */
+    dropCharacterInScene(event: CdkDragDrop<unknown>, sceneIndex: number): void {
+        if (event.previousContainer === event.container)
+            return;
+        const character = event.item.data as ChapterCharacterAssignment | undefined;
+        if (!character?.Id)
+            return;
+        this.assignCharacterToScene(this.scenesControls.at(sceneIndex) as FormGroup, character, !!character.Nombrado);
     }
 
     getSceneCharactersByMention(sceneGroup: any, named: boolean) {

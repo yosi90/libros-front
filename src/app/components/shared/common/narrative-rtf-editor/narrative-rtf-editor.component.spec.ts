@@ -68,6 +68,36 @@ describe('NarrativeRtfEditorComponent', () => {
         });
     });
 
+    it('enseña la barra solo mientras se escribe cuando se le pide, también con un desplegable abierto', () => {
+        const component = new NarrativeRtfEditorComponent();
+        expect(component.showToolbar).toBeTrue();
+        expect(component.isBare).toBeFalse();
+
+        component.toolbarOnlyWhileEditing = true;
+        expect(component.showToolbar).toBeFalse();
+        expect(component.isBare).toBeTrue();
+
+        const host = document.createElement('div');
+        const inside = document.createElement('button');
+        host.appendChild(inside);
+        const overlay = document.createElement('div');
+        overlay.className = 'cdk-overlay-container';
+        const option = document.createElement('div');
+        overlay.appendChild(option);
+        const leave = (relatedTarget: Element | null) => component.handleFocusOut({ relatedTarget, currentTarget: host } as unknown as FocusEvent);
+
+        component.handleFocusIn();
+        expect(component.showToolbar).toBeTrue();
+        leave(inside);
+        leave(option);
+        expect(component.showToolbar).withContext('foco en la barra o en su desplegable').toBeTrue();
+        leave(null);
+        expect(component.showToolbar).toBeFalse();
+
+        component.readonly = true;
+        expect(component.isBare).withContext('solo lectura no tiene barra').toBeFalse();
+    });
+
     it('uses 10 points as the default editor font size', () => {
         const component = new NarrativeRtfEditorComponent();
 
