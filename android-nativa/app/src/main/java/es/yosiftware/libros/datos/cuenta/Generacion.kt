@@ -26,3 +26,16 @@ class RespuestaDeOtraCuenta : CancellationException("La respuesta es de una cuen
 fun Generacion.exigir(deInicio: Long) {
     if (actual() != deInicio) throw RespuestaDeOtraCuenta()
 }
+
+/**
+ * [pedir] como un `runCatching` que no se traga las cancelaciones: la de la corrutina y, con ella, [RespuestaDeOtraCuenta]
+ * (un cambio de cuenta corta lo que se estaba pidiendo; no es un fallo de eso) se relanzan; cualquier otro error vuelve
+ * como fallo. Para pedir varias cosas a la vez sin que una que falla tumbe las demás.
+ */
+suspend fun <T> intentar(pedir: suspend () -> T): Result<T> = try {
+    Result.success(pedir())
+} catch (e: CancellationException) {
+    throw e
+} catch (e: Exception) {
+    Result.failure(e)
+}

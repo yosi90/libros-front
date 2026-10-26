@@ -7,13 +7,13 @@ import es.yosiftware.libros.datos.ErrorDeLibros
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
+import es.yosiftware.libros.datos.cuenta.intentar
 import es.yosiftware.libros.datos.modelos.Espacio
 import es.yosiftware.libros.datos.modelos.InvitacionEnviada
 import es.yosiftware.libros.datos.modelos.InvitacionRecibida
 import es.yosiftware.libros.datos.modelos.SolicitudDeEntrada
 import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
 import java.time.Instant
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -268,7 +268,7 @@ class CentroDeAccesoViewModel(
 
     private suspend fun componer(): BandejaDeAcceso = coroutineScope {
         val recibidas = async { espacios.invitaciones() }
-        val mios = async { tolerante { espacios.mios() } }
+        val mios = async { intentar { espacios.mios() }.getOrNull() }
         val invitaciones = recibidas.await().filter { it.clubId != null }
         val misEspacios = mios.await()
         var parcial = misEspacios == null
@@ -277,8 +277,8 @@ class CentroDeAccesoViewModel(
             async {
                 permiso.withPermit {
                     val club = ClubDeAcceso.de(espacio)
-                    val enviadas = tolerante { espacios.invitacionesEnviadas(espacio.id) }
-                    val solicitudes = if (espacio.entrada == "solicitud") tolerante { espacios.solicitudes(espacio.id) } else emptyList()
+                    val enviadas = intentar { espacios.invitacionesEnviadas(espacio.id) }.getOrNull()
+                    val solicitudes = if (espacio.entrada == "solicitud") intentar { espacios.solicitudes(espacio.id) }.getOrNull() else emptyList()
                     Triple(club, enviadas, solicitudes)
                 }
             }
@@ -318,14 +318,6 @@ class CentroDeAccesoViewModel(
         aviso = ""
         accionDelError = null
         clubRecienEntrado = null
-    }
-
-    private suspend fun <T> tolerante(pedir: suspend () -> T): T? = try {
-        pedir()
-    } catch (e: CancellationException) {
-        throw e
-    } catch (_: Exception) {
-        null
     }
 
     companion object {

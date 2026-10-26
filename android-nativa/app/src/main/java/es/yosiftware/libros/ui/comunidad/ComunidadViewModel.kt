@@ -7,11 +7,11 @@ import es.yosiftware.libros.datos.ErrorDeLibros
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
+import es.yosiftware.libros.datos.cuenta.intentar
 import es.yosiftware.libros.datos.modelos.CapacidadesDeComunidad
 import es.yosiftware.libros.datos.repositorios.RepositorioClubes
 import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
 import java.time.Instant
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
@@ -82,9 +82,9 @@ class ComunidadViewModel(
         errorDelResumen = ""
         cargar({
             coroutineScope {
-                val comunidad = async { tolerante { clubes.resumenDeComunidad() } }
-                val social = async { tolerante { espacios.resumenSocial() } }
-                val invitaciones = async { tolerante { ResumenSocialDeComunidad.invitacionesAClubes(espacios.invitaciones()) } }
+                val comunidad = async { intentar { clubes.resumenDeComunidad() } }
+                val social = async { intentar { espacios.resumenSocial() } }
+                val invitaciones = async { intentar { ResumenSocialDeComunidad.invitacionesAClubes(espacios.invitaciones()) } }
                 Triple(comunidad.await(), social.await(), invitaciones.await())
             }
         }) { (comunidad, social, invitaciones) ->
@@ -124,13 +124,5 @@ class ComunidadViewModel(
             capacidadesHasta = ahora().plusSeconds(nuevas.ttlSegundos.coerceAtLeast(30).toLong())
             if (!nuevas.clubesActivos && seccion == SeccionDeComunidad.CLUBES) seccion = SeccionDeComunidad.RESUMEN
         }
-    }
-
-    private suspend fun <T> tolerante(pedir: suspend () -> T): Result<T> = try {
-        Result.success(pedir())
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Result.failure(e)
     }
 }
