@@ -387,7 +387,7 @@ fun AppLibros(app: LibrosApp) {
                                         },
                                         verTodas = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("notificaciones")) } },
                                         preferencias = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("ajustes-notificaciones")) } },
-                                        imagen = { ruta -> ruta?.let { r -> if (r.startsWith("http")) r else app.datos.apiPlataforma?.let { it.trimEnd('/') + "/" + r.trimStart('/') } } },
+                                        imagen = app.datos::imagenDeLaPlataforma,
                                     ),
                                     altoMaximo = alto,
                                     modifier = Modifier.fillMaxWidth(),
@@ -434,7 +434,7 @@ fun AppLibros(app: LibrosApp) {
                                                 cambiarDeCuenta = { panelAbierto = true },
                                                 tieneObras = { CreacionDeClub.tieneObras(biblioteca.universos) },
                                                 abrirEnlace = { direccion -> Enlaces.abrir(contexto, direccion) },
-                                                avatar = { ruta -> ruta?.let { r -> if (r.startsWith("http")) r else app.datos.apiPlataforma?.let { it.trimEnd('/') + "/" + r.trimStart('/') } } },
+                                                avatar = app.datos::imagenDeLaPlataforma,
                                                 detalleDelClub = { id ->
                                                     // Un ViewModel por club y cuenta: lo escrito en sus formularios se queda al ir a otra pestaña.
                                                     val clave = app.datos.ambito.clave("club") ?: "sin-cuenta"
@@ -456,7 +456,7 @@ fun AppLibros(app: LibrosApp) {
                                                             volver = comunidad::cerrarClub,
                                                             abrirWebSocial = { vista -> acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial(vista)) } },
                                                             abrirChat = { id -> abrirMensajes(id) },
-                                                            avatar = { ruta -> ruta?.let { r -> app.datos.apiPlataforma?.let { it.trimEnd('/') + "/" + r.trimStart('/') } } },
+                                                            avatar = app.datos::imagenDeLaPlataforma,
                                                         ),
                                                     )
                                                 },

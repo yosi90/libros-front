@@ -28,7 +28,7 @@ data class PerfilPublico(
             id = json.texto("id").orEmpty(),
             alias = json.texto("alias").orEmpty(),
             nombre = json.texto("nombre"),
-            avatar = json.objeto("avatar")?.texto("miniatura")?.let { completa(it, api) },
+            avatar = json.objeto("avatar")?.texto("miniatura")?.let { rutaDeLaPlataforma(it, api) },
         )
 
         /**
@@ -37,11 +37,12 @@ data class PerfilPublico(
          * versión, la plataforma la manda con `no-cache`; si no tiene avatar, responde 404 y se pinta la inicial.
          */
         fun miniatura(id: String, api: String): String = api.trimEnd('/') + "/v1/perfiles/" + codificarComponente(id) + "/avatar/miniatura"
-
-        private fun completa(ruta: String, api: String): String =
-            if (ruta.startsWith("http://") || ruta.startsWith("https://")) ruta else api.trimEnd('/') + "/" + ruta.trimStart('/')
     }
 }
+
+/** Una ruta de la API de la plataforma ([api]) como dirección completa (los avatares, los iconos); si ya lo es, tal cual. */
+fun rutaDeLaPlataforma(ruta: String, api: String): String =
+    if (ruta.startsWith("http://") || ruta.startsWith("https://")) ruta else api.trimEnd('/') + "/" + ruta.trimStart('/')
 
 /** De dónde salen los perfiles. En la app, [PerfilesDeLaPlataforma]; en las pruebas, uno falso. */
 fun interface FuenteDePerfiles {

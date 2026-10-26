@@ -5,17 +5,18 @@ import es.yosiftware.libros.BuildConfig
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.FuenteDePerfiles
 import es.yosiftware.libros.datos.cuenta.PerfilesDeLaPlataforma
+import es.yosiftware.libros.datos.cuenta.rutaDeLaPlataforma
 import es.yosiftware.libros.datos.red.ClienteLibros
 import es.yosiftware.libros.datos.red.ClientePlataforma
 import es.yosiftware.libros.datos.red.EstadoDeRed
 import es.yosiftware.libros.datos.red.TiempoReal
 import es.yosiftware.libros.datos.red.TokensDeLaSesion
+import es.yosiftware.libros.datos.repositorios.LlamadaDePlataforma
 import es.yosiftware.libros.datos.repositorios.RepositorioAvisos
 import es.yosiftware.libros.datos.repositorios.RepositorioCatalogo
-import es.yosiftware.libros.datos.repositorios.RepositorioClubes
 import es.yosiftware.libros.datos.repositorios.RepositorioChat
+import es.yosiftware.libros.datos.repositorios.RepositorioClubes
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
-import es.yosiftware.libros.datos.repositorios.LlamadaDePlataforma
 import es.yosiftware.libros.datos.repositorios.RepositorioDispositivos
 import es.yosiftware.libros.datos.repositorios.RepositorioEntidades
 import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
@@ -53,6 +54,9 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
 
     /** La API de la plataforma de esta compilación, para las miniaturas de los avatares. */
     val apiPlataforma: String? = sesion?.configuracion?.api
+
+    /** Una ruta de imagen de la plataforma (un avatar, el icono de una web), completa ([rutaDeLaPlataforma]). */
+    fun imagenDeLaPlataforma(ruta: String?): String? = ruta?.let { r -> apiPlataforma?.let { rutaDeLaPlataforma(r, it) } }
     val red: EstadoDeRed = EstadoDeRed.de(contexto)
 
     val catalogo = RepositorioCatalogo(api)
