@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.estadisticas
 
+import es.yosiftware.libros.datos.conUnDecimal
 import es.yosiftware.libros.datos.instanteDe
 import es.yosiftware.libros.datos.modelos.EstadisticasDeComunidad
 import es.yosiftware.libros.datos.modelos.LecturaRapida
@@ -47,7 +48,7 @@ object Estadisticas {
 
     /** Las lecturas más rápidas, en días con un decimal (`fastestRows`). */
     fun masRapidas(lecturas: List<LecturaRapida>): List<FilaDeEstadistica> =
-        lecturas.map { FilaDeEstadistica(it.nombre, it.diasTotales, "${String.format(Locale.ROOT, "%.1f", it.diasTotales)} días") }
+        lecturas.map { FilaDeEstadistica(it.nombre, it.diasTotales, "${conUnDecimal(it.diasTotales)} días") }
             .filter { it.valor > 0 }
 
     /** Las obras cuyo estado actual es «En espera», por los días que llevan así (`longestWaiting`). */
@@ -106,14 +107,14 @@ object Estadisticas {
     /** Libros o antologías: por lectores, con la nota media si la hay (`communityBookRows`). */
     fun filasDeObras(puestos: List<PuestoDeComunidad>): List<FilaDeEstadistica> = puestos.map {
         val lectores = it.lectores ?: 0
-        val nota = it.puntuacionMedia?.takeIf { media -> media != 0.0 }?.let { media -> " · ${String.format(Locale.ROOT, "%.1f", media)} ★" }.orEmpty()
+        val nota = it.puntuacionMedia?.takeIf { media -> media != 0.0 }?.let { media -> " · ${conUnDecimal(media)} ★" }.orEmpty()
         FilaDeEstadistica(it.nombre, lectores.toDouble(), plural(lectores, "lector", "lectores") + nota)
     }
 
     /** Los mejor valorados (`communityRatedRows`). */
     fun filasValoradas(puestos: List<PuestoDeComunidad>): List<FilaDeEstadistica> = puestos.map {
         val media = it.puntuacionMedia ?: 0.0
-        FilaDeEstadistica(it.nombre, media, "${String.format(Locale.ROOT, "%.1f", media)} ★ · ${plural(it.valoraciones ?: 0, "valoración", "valoraciones")}")
+        FilaDeEstadistica(it.nombre, media, "${conUnDecimal(media)} ★ · ${plural(it.valoraciones ?: 0, "valoración", "valoraciones")}")
     }
 
     /** Los clubes, por miembros o por actividad del mes (`communityClubRows`). */

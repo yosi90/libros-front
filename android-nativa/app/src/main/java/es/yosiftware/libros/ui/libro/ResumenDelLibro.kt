@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.datos.conUnDecimal
 import es.yosiftware.libros.datos.instanteDe
 import es.yosiftware.libros.datos.modelos.EstadisticaDeCapitulo
 import es.yosiftware.libros.datos.modelos.EstadisticaDePersonaje
@@ -103,7 +104,7 @@ object ResumenDelLibro {
         resumen.capitulos.mapNotNull { it.paginasEstimadas }.takeIf { it.isNotEmpty() }?.average()
 
     /** «9,8»: con una cifra decimal y coma, como `number:'1.1-1'` en español. */
-    fun decimal(valor: Double): String = String.format(java.util.Locale.ROOT, "%.1f", valor).replace('.', ',')
+    fun decimal(valor: Double): String = conUnDecimal(valor).replace('.', ',')
 
     /** El más presente y el más nombrado: el primero con más (`mostFrequentCharacter` y `mostMentionedCharacter`). */
     fun masPresente(resumen: EstadisticasDelLibro): EstadisticaDePersonaje? = resumen.personajes.maxByOrNull { it.apariciones }

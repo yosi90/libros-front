@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.catalogo
 
+import es.yosiftware.libros.datos.conUnDecimal
 import es.yosiftware.libros.datos.modelos.DetallePublico
 import es.yosiftware.libros.datos.modelos.Edicion
 import es.yosiftware.libros.datos.modelos.EstadoDeLectura
@@ -14,7 +15,6 @@ import es.yosiftware.libros.ui.biblioteca.Disponibilidad
 import es.yosiftware.libros.ui.biblioteca.ObraBuscable
 import es.yosiftware.libros.ui.biblioteca.comparadorDeNombres
 import es.yosiftware.libros.ui.biblioteca.ordenarPorLectura
-import java.util.Locale
 
 // Lo que decide el Catálogo de la APK de Capacitor (catalog.component.ts en 5dc3120, la versión capturada), sin red ni
 // Compose: la búsqueda, qué obras son de la persona, las ediciones, la ficha pública, sus reseñas y las peticiones.
@@ -100,7 +100,7 @@ object Catalogo {
     fun notaMedia(detalle: DetallePublico?): String {
         val estadisticas = detalle?.estadisticas ?: return "Sin datos"
         val media = estadisticas.puntuacionMedia ?: return "Sin datos"
-        return "${String.format(Locale.ROOT, "%.1f", media)} (${estadisticas.totalPuntuaciones} puntuaciones)"
+        return "${conUnDecimal(media)} (${estadisticas.totalPuntuaciones} puntuaciones)"
     }
 
     /**
