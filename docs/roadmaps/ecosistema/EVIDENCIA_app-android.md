@@ -6,9 +6,9 @@ La lista es la de `ecosistema-kit/LISTA_DE_COMPROBACION.md`, «App Android», de
 | --- | --- | --- |
 | Librería de la sesión del kit, sin cambios y con su versión | Hecho | `yosiftware-sesion/` es la 1.7.1 del kit 1.62. Su `ORIGEN.md` lo anota. `diff -rq` contra el kit actual de la plataforma (`8d944fa`): sin diferencias. |
 | Ficha de la app (icono de 512 × 512 e imagen de 1600 × 900) | Hecha, falta subirla | Están en `android-nativa/ficha/`, con los scripts que las generan. La plataforma aún no tiene ninguna (`app.icono` y `app.ficha` son `null` en los dos entornos). Las sube el propietario en la administración, en la ficha de Libros («Marca»). |
-| Publicar con la credencial y `publicar_apk.py` | Pendiente | La primera versión la publica el propietario. La APK firmada sale del flujo `.github/workflows/android-nativa-publicacion.yml`, que comprueba que la huella sea la de producción. Después, la credencial y `publicar_apk.py`. |
+| Publicar con la credencial y `publicar_apk.py` | En curso | La 2.0.0 (`versionCode` 20000) salió firmada del flujo `.github/workflows/android-nativa-publicacion.yml` (sobre `6826083`), con la huella de producción comprobada. El propietario la publicó desde la administración el 26/10/2026; producción la sirve en `/v1/webs/libros/apk`. Las siguientes versiones, con la credencial de publicación y `publicar_apk.py`. |
 | Comprobar la sesión al volver a primer plano | Hecho | `MainActivity.onStart` llama a `sesion.comprobar()`. |
-| Sesión en la `Application` y «Continuar como @alias» | Hecho en QA | `LibrosApp` crea la única sesión. La pantalla de entrar ofrece «Continuar como @alias» solo al tocarlo (`PantallasDeCuenta.kt`). En QA funciona en el Honor. En producción, se comprueba con la primera APK firmada que su paquete y su huella estén dados de alta. |
+| Sesión en la `Application` y «Continuar como @alias» | Hecho en QA | `LibrosApp` crea la única sesión. La pantalla de entrar ofrece «Continuar como @alias» solo al tocarlo (`PantallasDeCuenta.kt`). En QA funciona en el Honor. En producción, la 2.0.0 instalada en el Honor encima de la de Capacitor (26/10/2026) ofrece «Continuar como @Yosi con tu sesión de Lorcana», así que la plataforma la reconoce, y su App Link (`libros.yosiftware.es`) sigue verificado. |
 | Entrar no se cuelga con el IPv6 roto | Hecho | Lo hace la librería desde la 1.3.0, y la APK usa la 1.7.1. |
 | Firebase de la plataforma en cada entorno, sin sesión de Firebase | Hecho | Hay dos flavors, `qa` y `produccion`, cada uno con el `google-services.json` de la plataforma de su entorno (`.runtime/plataforma/`, fuera de Git). La librería entra por la API REST de Firebase Auth, sin SDK, y no deja ninguna sesión de Firebase. El SDK de Firebase solo está para el push (FCM). |
 | El `refresh`, solo en el almacenamiento seguro | Hecho | Lo hace la librería (`Almacen.kt`, con el almacén de claves de Android), y guarda el nuevo antes de usar los tokens. |
@@ -21,4 +21,4 @@ La lista es la de `ecosistema-kit/LISTA_DE_COMPROBACION.md`, «App Android», de
 Lo pendiente depende del propietario:
 
 - subir la ficha (le gusta, 26/10/2026);
-- publicar la primera versión.
+- activar las actualizaciones remotas, para tener la credencial de publicación.
