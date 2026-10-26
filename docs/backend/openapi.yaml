@@ -266,6 +266,10 @@ paths:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1puntuacion
   /coleccion/libros/{id_libro}/resena:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1resena
+  /coleccion/libros/{id_libro}/titulo:
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1titulo
+  /coleccion/libros/{id_libro}/titulo/generar:
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1titulo~1generar
   /coleccion/historicos/libros/estados/{id_estado_historico}:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1historicos~1libros~1estados~1{id_estado_historico}
   /coleccion/antologias/{id_antologia}/estado:
@@ -2625,6 +2629,12 @@ components:
       - $ref: '#/components/schemas/CatalogItem'
       - type: object
         properties:
+          TituloPropio:
+            type:
+            - string
+            - 'null'
+            maxLength: 200
+            description: El título divertido de la persona para el libro (IA2), en texto; solo en libros.
           PorcentajeCompletado:
             type:
             - number

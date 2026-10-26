@@ -16,6 +16,8 @@ export function bookTitleBannerDocument(html: string, styles: string | null | un
     const css = (styles ?? '').replace(/<\/style/gi, '<\\/style');
     return '<!doctype html><html><head><meta charset="utf-8">'
         + `<meta http-equiv="Content-Security-Policy" content="${BOOK_TITLE_BANNER_CSP}">`
+        // La base, como en la APK: la cabecera es fluida y llena el marco (las de la app de escritorio no lo decían).
+        + '<style>html,body{height:100%;margin:0;overflow:hidden}</style>'
         + `<style>${css}</style></head><body>${html}</body></html>`;
 }
 

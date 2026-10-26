@@ -164,6 +164,138 @@
       '409':
         description: El ID corresponde a una seccion interna de antologia (`anthology_section_collection_forbidden`).
         content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+/coleccion/libros/{id_libro}/titulo:
+  get:
+    operationId: getColeccionLibrosByIdLibroTitulo
+    tags:
+    - Coleccion
+    summary: El título divertido de la persona para un libro de su colección
+    description: Solo lo ve su dueño. Incluye cuántas generaciones con IA lleva hoy y el límite diario.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        description: El título y las generaciones de hoy.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Titulo, Generaciones]
+              properties:
+                success: {type: boolean}
+                Titulo: {type: [string, 'null'], maxLength: 200, description: El título divertido de la persona; null si no tiene.}
+                Html: {type: [string, 'null'], description: 'La cabecera animada (fragmento HTML saneado: sin scripts, enlaces, imágenes ni manejadores). Se pinta en un marco aislado (iframe con sandbox vacío, o WebView sin JavaScript). Null sin cabecera.'}
+                Estilos: {type: [string, 'null'], description: 'El CSS de la cabecera, saneado: solo carga hojas de estilos y fuentes de fonts.googleapis.com, fonts.gstatic.com, cdnjs.cloudflare.com, unpkg.com y cdn.jsdelivr.net.'}
+                Generaciones:
+                  type: object
+                  properties:
+                    Hoy: {type: integer, description: Generaciones con IA que salieron bien hoy (día de Madrid).}
+                    Limite: {type: integer, description: Generaciones al día por persona.}
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        description: El libro no está en la colección de la persona (`book_not_in_collection`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+  put:
+    operationId: putColeccionLibrosByIdLibroTitulo
+    tags:
+    - Coleccion
+    summary: Escribe a mano el título divertido de un libro de la colección
+    description: Hasta 200 caracteres. Null o cadena vacía lo quitan. La cabecera animada, que era de la frase anterior, se quita.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              Titulo: {type: [string, 'null'], maxLength: 200}
+    responses:
+      '200':
+        description: El título guardado.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Titulo, Generaciones]
+              properties:
+                success: {type: boolean}
+                Titulo: {type: [string, 'null'], maxLength: 200, description: El título divertido de la persona; null si no tiene.}
+                Html: {type: [string, 'null'], description: 'La cabecera animada (fragmento HTML saneado: sin scripts, enlaces, imágenes ni manejadores). Se pinta en un marco aislado (iframe con sandbox vacío, o WebView sin JavaScript). Null sin cabecera.'}
+                Estilos: {type: [string, 'null'], description: 'El CSS de la cabecera, saneado: solo carga hojas de estilos y fuentes de fonts.googleapis.com, fonts.gstatic.com, cdnjs.cloudflare.com, unpkg.com y cdn.jsdelivr.net.'}
+                Generaciones:
+                  type: object
+                  properties:
+                    Hoy: {type: integer, description: Generaciones con IA que salieron bien hoy (día de Madrid).}
+                    Limite: {type: integer, description: Generaciones al día por persona.}
+      '400':
+        description: Más de 200 caracteres (`invalid_book_title`, en el campo `Titulo`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        description: El libro no está en la colección de la persona (`book_not_in_collection`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+/coleccion/libros/{id_libro}/titulo/generar:
+  post:
+    operationId: postColeccionLibrosByIdLibroTituloGenerar
+    tags:
+    - Coleccion
+    summary: Genera con IA el título divertido de un libro de la colección, con su cabecera animada, y lo guarda
+    description: >-
+      Llama por la pasarela de IA de Yosiftware con la clave de la persona (Anthropic u OpenAI, el del modelo elegido) y dentro de su tope. Al modelo
+      solo van el nombre, los autores y la sinopsis de la obra. Como mucho 10 generaciones al día por persona.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              Modelo: {type: string, description: 'Un id de modelo de `GET /v1/ia/modelos` de la plataforma (por defecto, claude-haiku-5-5).'}
+              Proveedor: {type: string, enum: [anthropic, openai], description: 'El proveedor del modelo; sin él, el del id (los de Claude empiezan por claude-).'}
+    responses:
+      '200':
+        description: El título generado y guardado.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Titulo, Generaciones]
+              properties:
+                success: {type: boolean}
+                Titulo: {type: [string, 'null'], maxLength: 200, description: El título divertido de la persona; null si no tiene.}
+                Html: {type: [string, 'null'], description: 'La cabecera animada (fragmento HTML saneado: sin scripts, enlaces, imágenes ni manejadores). Se pinta en un marco aislado (iframe con sandbox vacío, o WebView sin JavaScript). Null sin cabecera.'}
+                Estilos: {type: [string, 'null'], description: 'El CSS de la cabecera, saneado: solo carga hojas de estilos y fuentes de fonts.googleapis.com, fonts.gstatic.com, cdnjs.cloudflare.com, unpkg.com y cdn.jsdelivr.net.'}
+                Generaciones:
+                  type: object
+                  properties:
+                    Hoy: {type: integer, description: Generaciones con IA que salieron bien hoy (día de Madrid).}
+                    Limite: {type: integer, description: Generaciones al día por persona.}
+      '400':
+        description: El modelo no vale o no tiene tarifa (`invalid_ai_model`, `modelo_sin_tarifa`, en el campo `Modelo`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        description: La cuenta no puede usar la IA (`cuenta_no_disponible`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '404':
+        description: El libro no está en la colección de la persona (`book_not_in_collection`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '409':
+        description: Sin clave de IA de ese proveedor o sin tope fijado (`sin_clave_de_ia`, `tope_sin_fijar`); la web enlaza la gestión de las claves.
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '429':
+        description: El límite diario de Libros (`limite_diario_de_titulos`), el tope de gasto de la clave (`tope_de_gasto`) o demasiadas llamadas (`demasiadas_peticiones`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '502':
+        description: La IA no respondió o no devolvió un título (`proveedor`, `proveedor_sin_respuesta`, `ai_title_empty`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
 /coleccion/historicos/libros/estados/{id_estado_historico}:
   patch:
     operationId: patchColeccionLibrosEstadosByIdEstadoHistorico
