@@ -10,12 +10,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -77,7 +79,9 @@ fun IslaDelLector(vm: LibroViewModel) {
         ) {
             val forma = Radios.pildora
             Row(
-                Modifier.widthIn(max = 520.dp).fillMaxWidth().heightIn(min = 56.dp)
+                // La altura de su contenido: sin ella, el `fillMaxHeight` del botón de cerrar estira la píldora a toda la
+                // pantalla (un óvalo encima de todo).
+                Modifier.widthIn(max = 520.dp).fillMaxWidth().height(IntrinsicSize.Min).heightIn(min = Alturas.islaDelLector)
                     .sombra2(forma, colores)
                     .clip(forma)
                     .background(mezclar(colores.superficie, 0.96f))

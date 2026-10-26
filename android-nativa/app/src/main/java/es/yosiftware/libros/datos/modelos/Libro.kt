@@ -30,6 +30,8 @@ data class Libro(
     val saga: EnlaceDeSaga,
     val librosPrevios: List<LibroPrevio>,
     val sagasPrevias: List<SagaPrevia>,
+    /** Lo propio de la persona en este libro (`Metricas`, desde la F2 y la F3 de «Estadísticas y altas»). */
+    val metricas: MetricasDelLibro? = null,
 ) {
     val id: Int get() = obra.id
     val nombre: String get() = obra.nombre
@@ -54,6 +56,7 @@ data class Libro(
             saga = json.objeto("Saga")?.let(EnlaceDeSaga::de) ?: EnlaceDeSaga(0, "Sin saga", null),
             librosPrevios = json.lista("LibrosPrevios", LibroPrevio::de),
             sagasPrevias = json.lista("SagasPrevias", SagaPrevia::de),
+            metricas = json.objeto("Metricas")?.let(MetricasDelLibro::de),
         )
     }
 }
@@ -201,5 +204,45 @@ data class Escena(
                 else -> null
             }
         }
+    }
+}
+
+/** `Metricas` del libro: el ritmo de la persona en él y su valoración (`ReadingPaceBook` y `RatingOwn` de la web). */
+data class MetricasDelLibro(val ritmo: RitmoDelLibro?, val valoracion: ValoracionPropia?) {
+    companion object {
+        fun de(json: JSONObject) = MetricasDelLibro(
+            ritmo = json.objeto("Ritmo")?.let(RitmoDelLibro::de),
+            valoracion = json.objeto("Valoracion")?.let(ValoracionPropia::de),
+        )
+    }
+}
+
+/** El ritmo propio en un libro: `null` hasta que se registran capítulos con fecha. */
+data class RitmoDelLibro(
+    val desde: String?,
+    val diasActivos: Int,
+    val paginasPorDia: Double,
+    /** El día con más páginas («2026-10-25») y cuántas. */
+    val mejorDia: Pair<String, Int>?,
+    val mediaPersonalPorDia: Double?,
+    /** La página más alta al final de cada día con lectura. */
+    val curva: List<Pair<String, Int>>,
+) {
+    companion object {
+        fun de(json: JSONObject) = RitmoDelLibro(
+            desde = json.texto("Desde"),
+            diasActivos = json.entero("DiasActivos") ?: 0,
+            paginasPorDia = json.decimal("PaginasPorDia") ?: 0.0,
+            mejorDia = json.objeto("MejorDia")?.let { dia -> dia.texto("Fecha")?.let { it to (dia.entero("Paginas") ?: 0) } },
+            mediaPersonalPorDia = json.decimal("MediaPersonalPorDia"),
+            curva = json.lista("Curva") { punto -> (punto.texto("Fecha") ?: "") to (punto.entero("Pagina") ?: 0) }.filter { it.first.isNotEmpty() },
+        )
+    }
+}
+
+/** La puntuación propia y cuándo se puntuó y reseñó por última vez (`null` en lo de antes de la F3). */
+data class ValoracionPropia(val puntuacion: Int?, val fechaPuntuacion: String?, val fechaResena: String?) {
+    companion object {
+        fun de(json: JSONObject) = ValoracionPropia(json.entero("Puntuacion"), json.texto("FechaPuntuacion"), json.texto("FechaResena"))
     }
 }

@@ -72,6 +72,8 @@ fun Armazon(
     alPulsarCampana: () -> Unit = {},
     /** El panel de la campana, con su alto máximo. */
     panelDeAvisos: (@Composable (Dp) -> Unit)? = null,
+    /** Hay un libro minimizado: el contenido deja libre el sitio de su píldora ([es.yosiftware.libros.ui.libro.IslaDelLector]). */
+    conIslaDelLector: Boolean = false,
     /** Con la hoja «Más» ya abierta (las muestras de depuración). */
     masAbiertaAlPrincipio: Boolean = false,
     contenido: @Composable (Destino) -> Unit = { PantallaVacia(it) },
@@ -94,18 +96,20 @@ fun Armazon(
     val alternarMas = { masAbierta = !masAbierta }
 
     Box(Modifier.fillMaxSize().background(colores.lienzo)) {
+        // La píldora del libro minimizado no tapa lo de abajo (el cuadro de escribir del chat): su alto y su margen.
+        val isla = if (conIslaDelLector) Alturas.islaDelLector + (if (ventana.clase.conRail) Espacios.e4 else Espacios.e3) else 0.dp
         val hueco = if (ventana.clase.conRail) {
             // En horizontal, la barra de gestos queda debajo y el recorte de la cámara puede quedar a la derecha.
             PaddingValues(
                 start = Alturas.anchoRail + zona.calculateLeftPadding(direccion),
                 top = zona.calculateTopPadding(),
                 end = zona.calculateRightPadding(direccion),
-                bottom = zona.calculateBottomPadding(),
+                bottom = zona.calculateBottomPadding() + isla,
             )
         } else {
             PaddingValues(
                 top = Alturas.barraSuperior + zona.calculateTopPadding(),
-                bottom = Alturas.navegacionInferior + zona.calculateBottomPadding(),
+                bottom = Alturas.navegacionInferior + zona.calculateBottomPadding() + isla,
             )
         }
         Box(

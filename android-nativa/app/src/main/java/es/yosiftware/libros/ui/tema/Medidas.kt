@@ -40,6 +40,7 @@ object Alturas {
     val contenidoMaximo = 1120.dp // --mobile-content-max
     val tactilMinimo = 44.dp
     val botonDeIcono = 48.dp // .m-icon-button
+    val islaDelLector = 56.dp // .native-reader-island
 }
 
 /** Movimiento de 160 a 240 ms (docs/GUIA_ESTILOS.md, Mobile), con las curvas que usa el Sass. */

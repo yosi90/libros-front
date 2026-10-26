@@ -7,11 +7,13 @@ import es.yosiftware.libros.datos.modelos.EstadisticaDePersonaje
 import es.yosiftware.libros.datos.modelos.EstadisticasDelLibro
 import es.yosiftware.libros.datos.modelos.EstadoDeLectura
 import es.yosiftware.libros.datos.modelos.Libro
+import es.yosiftware.libros.datos.modelos.RitmoDelLibro
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.datos.plegar
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.log10
@@ -25,6 +27,9 @@ import kotlin.math.roundToInt
 
 /** Por dónde va la persona (`ReadingProgress`): la última página registrada, el total y el porcentaje. */
 data class Progreso(val pagina: Int, val total: Int?, val porcentaje: Int?)
+
+/** Una fecha de «Tu lectura» con dato: su nombre, el día y, si lo tiene, un detalle (la puntuación). */
+data class Hito(val nombre: String, val fecha: String?, val detalle: String = "")
 
 /** Una fila del mapa de presencia: un personaje y, por capítulo, 0 (no sale), 0,5 (solo nombrado) o sus escenas. */
 data class FilaDePresencia(val nombre: String, val valores: List<Double>)
@@ -66,6 +71,55 @@ object ResumenDelLibro {
     /** Lo que se lee en «Comenzado» sin fecha (`startedDateLabel`). */
     fun etiquetaDeComenzado(libro: Libro): String =
         if (comenzado(libro) != null) "" else pendiente(ultimoPorFecha(libro)?.tipo) ?: "Sin dato"
+
+    /**
+     * «Tu lectura», compacta (opción A del propietario, 26/10/2026; `readingMilestones`): solo las fechas que tienen
+     * dato, en su orden, como «dd/MM/yyyy», con la puntuación junto a «Puntuado».
+     */
+    fun hitos(libro: Libro): List<Hito> {
+        val valoracion = libro.metricas?.valoracion
+        return listOf(
+            Hito("Comprado", comprado(libro)),
+            Hito("Comenzado", comenzado(libro)),
+            Hito("Leído", leido(libro)),
+            Hito("Puntuado", valoracion?.fechaPuntuacion, valoracion?.puntuacion?.takeIf { it > 0 }?.let { "$it ★" }.orEmpty()),
+            Hito("Reseñado", valoracion?.fechaResena),
+        ).mapNotNull { hito -> hito.fecha?.let { fecha -> hito.copy(fecha = fechaCorta(fecha) ?: fecha) } }
+    }
+
+    /** El estado sin fecha que dice algo («En espera», «Lectura actual», «Descartado»), una sola vez; vacío si no (`readingStateLabel`). */
+    fun estadoSinFecha(libro: Libro): String {
+        val etiqueta = when {
+            comenzado(libro) == null -> etiquetaDeComenzado(libro)
+            leido(libro) == null -> etiquetaDeLeido(libro)
+            else -> ""
+        }
+        return if (etiqueta == "Sin dato") "" else etiqueta
+    }
+
+    /** «Más rápido que tu media», «Más pausado que tu media» o «A tu ritmo de siempre»; vacío sin media (`paceComparison`). */
+    fun comparacionDeRitmo(ritmo: RitmoDelLibro?): String {
+        val media = ritmo?.mediaPersonalPorDia ?: return ""
+        if (media <= 0) return ""
+        val razon = ritmo.paginasPorDia / media
+        return when {
+            razon >= 1.15 -> "Más rápido que tu media"
+            razon <= 0.85 -> "Más pausado que tu media"
+            else -> "A tu ritmo de siempre"
+        }
+    }
+
+    /** «25 oct · 42 págs.», o «—» (`paceBestDay`). */
+    fun mejorDia(ritmo: RitmoDelLibro?): String {
+        val (fecha, paginas) = ritmo?.mejorDia ?: return "—"
+        val dia = runCatching { LocalDate.parse(fecha.take(10)).format(diaYMes).trimEnd('.') }.getOrDefault(fecha)
+        return "$dia · $paginas págs."
+    }
+
+    /** «18» o «18,5»: hasta una cifra decimal, como `number:'1.0-1'` en español. */
+    fun hastaUnDecimal(valor: Double): String = decimal(valor).removeSuffix(",0")
+
+    private val diaYMes = DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es-ES"))
 
     /** «dd/MM/yyyy» de una fecha de la API (con hora o sin ella), como el `date` de Angular. */
     fun fechaCorta(iso: String?): String? = instanteDe(iso)?.atZone(ZoneId.systemDefault())?.toLocalDate()?.format(formatoDeFecha)

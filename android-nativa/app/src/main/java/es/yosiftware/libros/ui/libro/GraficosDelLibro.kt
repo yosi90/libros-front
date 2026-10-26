@@ -29,7 +29,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextMeasurer
@@ -48,33 +47,14 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-// Los gráficos del resumen del libro, dibujados con Canvas en lugar de ApexCharts (book-charts.ts en 5dc3120): el
-// medidor de lo leído, las barras por capítulo (el ritmo y el reparto), el mapa de presencia y el donut por grupos.
+// Los gráficos del resumen del libro, dibujados con Canvas en lugar de ApexCharts (book-charts.ts en 5dc3120): las
+// barras por capítulo (el ritmo y el reparto), el mapa de presencia y el donut por grupos.
 // Los colores salen de los tokens del tema, como la paleta que la web leía de las variables CSS.
 
 /** La anchura mínima de cada capítulo en los gráficos por capítulo: si no caben, se desplazan en horizontal. */
 val ColumnaDeCapitulo = 26.dp
 
 private val letraDeEje = TextStyle(fontSize = 11.sp)
-
-/** El medidor de lo leído (`progressChart`): un arco de 240° con el porcentaje y «leído» en el centro. */
-@Composable
-fun Medidor(porcentaje: Int, modifier: Modifier = Modifier) {
-    val colores = LocalColores.current
-    val medidor = rememberTextMeasurer()
-    Canvas(modifier.width(280.dp).height(202.dp)) {
-        val grosor = 15.dp.toPx()
-        val radio = 84.dp.toPx() - grosor / 2
-        val centro = Offset(size.width / 2, 109.dp.toPx())
-        val caja = Size(radio * 2, radio * 2)
-        val origen = Offset(centro.x - radio, centro.y - radio)
-        // En ApexCharts, de -120° a 120° desde arriba: en el Canvas, desde 150° y 240° en el sentido del reloj.
-        drawArc(colores.superficieAlta, 150f, 240f, false, origen, caja, style = Stroke(grosor, cap = StrokeCap.Round))
-        if (porcentaje > 0) drawArc(colores.primario, 150f, 240f * porcentaje.coerceIn(0, 100) / 100f, false, origen, caja, style = Stroke(grosor, cap = StrokeCap.Round))
-        texto(medidor, "$porcentaje%", TextStyle(fontSize = 34.sp, fontWeight = FontWeight.SemiBold, color = colores.tinta), Offset(centro.x, centro.y - 7.dp.toPx()), centrado = true)
-        texto(medidor, "leído", TextStyle(fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = colores.tintaSuave), Offset(centro.x, centro.y + 20.dp.toPx()), centrado = true)
-    }
-}
 
 /** Una serie de barras: su nombre (para la leyenda), sus valores por capítulo y su color. */
 class SerieDeBarras(val nombre: String, val valores: List<Int>, val color: Color)

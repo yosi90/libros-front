@@ -1,7 +1,10 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.datos.modelos.RitmoDelLibro
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import android.app.DatePickerDialog
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -64,8 +66,8 @@ import es.yosiftware.libros.ui.tema.rem
 import java.time.LocalDate
 
 // El resumen del libro, la primera pantalla al abrirlo: src/app/components/mobile/book/mobile-book-statistics-view/ en
-// su versión de la APK de Capacitor (5dc3120). «Tu lectura» (el medidor o la página, y las fechas), las cifras, los
-// personajes destacados y los cuatro gráficos.
+// su versión de la APK de Capacitor (5dc3120). «Tu lectura» (compacta desde el 26/10/2026: el progreso, las fechas con
+// dato y tu ritmo), las cifras, los personajes destacados y los cuatro gráficos.
 
 @Composable
 fun PantallaResumenDelLibro(vm: LibroViewModel) {
@@ -95,7 +97,8 @@ fun PantallaResumenDelLibro(vm: LibroViewModel) {
     }
 }
 
-/** `.m-book-stats__summary`: el degradado del contenedor primario, el medidor o la página, y las fechas. */
+/** `.m-book-stats__summary`: el degradado del contenedor primario, el progreso, las fechas con dato y tu ritmo. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TuLectura(vm: LibroViewModel, libro: Libro, resumen: EstadisticasDelLibro, ancha: Boolean) {
     val colores = LocalColores.current
@@ -114,89 +117,112 @@ private fun TuLectura(vm: LibroViewModel, libro: Libro, resumen: EstadisticasDel
             }
             Text("Tu lectura", style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.08), color = colores.tinta))
         }
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            if (progreso.porcentaje != null) {
-                Medidor(progreso.porcentaje, Modifier.offset(y = (-12).dp))
-                Text(
-                    buildAnnotatedString {
-                        append("Página ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = colores.tinta)) { append(progreso.pagina.toString()) }
-                        append(" de ${progreso.total}")
-                    },
-                    style = Textos.cuerpo.copy(fontSize = rem(0.82), color = colores.tintaSuave),
-                    modifier = Modifier.subir(20.dp).padding(bottom = Espacios.e3),
-                )
-            } else {
-                Column(Modifier.padding(bottom = Espacios.e2), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Vas por la página", style = Textos.cuerpo.copy(fontSize = rem(0.8), color = colores.tintaSuave))
-                    Text(progreso.pagina.takeIf { it > 0 }?.toString() ?: "—", style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(2.6), fontWeight = FontWeight.Bold, lineHeight = 1.em, color = colores.tinta))
+        // Compacta (opción A del propietario, 26/10/2026): lo que no tiene dato no ocupa sitio.
+        if (progreso.pagina > 0) {
+            val conTotal = progreso.porcentaje != null && progreso.total != null
+            val fuerte = SpanStyle(fontWeight = FontWeight.Bold, color = colores.tinta)
+            Text(
+                buildAnnotatedString {
+                    if (conTotal) {
+                        append("Pág. ")
+                        withStyle(fuerte) { append(progreso.pagina.toString()) }
+                        append(" de ${progreso.total} · ")
+                        withStyle(fuerte) { append("${progreso.porcentaje} %") }
+                    } else {
+                        append("Vas por la página ")
+                        withStyle(fuerte) { append(progreso.pagina.toString()) }
+                    }
+                },
+                style = Textos.cuerpo.copy(fontSize = rem(0.86), color = colores.tintaSuave),
+            )
+            if (conTotal) BarraDeProgreso(progreso.porcentaje ?: 0, Modifier.padding(top = Espacios.e2))
+        }
+        val hitos = ResumenDelLibro.hitos(libro)
+        val estado = ResumenDelLibro.estadoSinFecha(libro)
+        if (hitos.isNotEmpty() || estado.isNotEmpty()) {
+            FlowRow(
+                Modifier.fillMaxWidth().padding(top = Espacios.e3),
+                horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
+                verticalArrangement = Arrangement.spacedBy(Espacios.e1),
+            ) {
+                hitos.forEach { hito ->
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(color = colores.tintaSuave)) { append(hito.nombre) }
+                            append(" ${hito.fecha}")
+                            if (hito.detalle.isNotEmpty()) append(" · ${hito.detalle}")
+                        },
+                        style = Textos.cuerpo.copy(fontSize = rem(0.8), color = colores.tinta),
+                    )
                 }
-                TextoVacio("El libro no tiene registrado su total de páginas.", Modifier.padding(vertical = Espacios.e4))
+                if (estado.isNotEmpty()) Text(estado, style = Textos.cuerpo.copy(fontSize = rem(0.8), fontWeight = FontWeight.Bold, color = colores.primario))
             }
         }
-        Column {
-            HitoDeLectura("Comprado", ultimo = false) {
-                val comprado = ResumenDelLibro.comprado(libro)
-                if (comprado != null) ValorDeHito(ResumenDelLibro.fechaCorta(comprado) ?: comprado) else FechaDeCompra(vm)
-            }
-            HitoDeLectura("Comenzado", ultimo = false) {
-                ValorDeHito(ResumenDelLibro.comenzado(libro)?.let { ResumenDelLibro.fechaCorta(it) ?: it } ?: ResumenDelLibro.etiquetaDeComenzado(libro))
-            }
-            HitoDeLectura("Leído", ultimo = true) {
-                ValorDeHito(ResumenDelLibro.leido(libro)?.let { ResumenDelLibro.fechaCorta(it) ?: it } ?: ResumenDelLibro.etiquetaDeLeido(libro))
+        if (ResumenDelLibro.comprado(libro) == null) FechaDeCompra(vm)
+        libro.metricas?.ritmo?.let { ritmo ->
+            CifrasDelRitmo(ritmo)
+            ResumenDelLibro.comparacionDeRitmo(ritmo).takeIf { it.isNotEmpty() }?.let {
+                Text(it, style = Textos.cuerpo.copy(fontSize = rem(0.72), color = colores.tintaSuave), modifier = Modifier.padding(top = Espacios.e2))
             }
         }
     }
 }
 
-/** Una fila de `.m-book-stats__timeline`: el círculo, el nombre y la raya hacia la siguiente; el valor a la derecha. */
+/** `.m-book-stats__bar`: lo leído, en una barra de 8 dp. */
 @Composable
-private fun HitoDeLectura(nombre: String, ultimo: Boolean, valor: @Composable () -> Unit) {
+private fun BarraDeProgreso(porcentaje: Int, modifier: Modifier = Modifier) {
     val colores = LocalColores.current
-    Row(Modifier.fillMaxWidth().heightIn(min = 58.dp), horizontalArrangement = Arrangement.spacedBy(Espacios.e3), verticalAlignment = Alignment.CenterVertically) {
-        Row(
-            Modifier.widthIn(min = 104.dp).drawBehind {
-                if (!ultimo) {
-                    // La raya de 2 dp que baja hasta el círculo siguiente (`dt::after`).
-                    val x = 5.dp.toPx()
-                    drawRect(colores.contornoFuerte, Offset(x, size.height / 2 + 12.dp.toPx()), Size(2.dp.toPx(), 34.dp.toPx()))
-                }
-            },
-            horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.size(12.dp).clip(CircleShape).background(colores.superficie).border(3.dp, colores.primario, CircleShape))
-            Text(nombre, style = Textos.cuerpo.copy(fontSize = rem(0.76), fontWeight = FontWeight.Bold, color = colores.tintaSuave))
-        }
-        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) { valor() }
+    Box(modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(50)).background(colores.superficieAlta)) {
+        Box(Modifier.fillMaxWidth(porcentaje.coerceIn(0, 100) / 100f).fillMaxHeight().clip(RoundedCornerShape(50)).background(colores.primario))
     }
 }
 
+/** `.m-book-stats__pace`: las cuatro cifras de tu ritmo en este libro, en una fila (dos por debajo de 360 dp). */
 @Composable
-private fun ValorDeHito(texto: String) {
-    Text(texto, style = Textos.cuerpo.copy(fontSize = rem(0.82), color = LocalColores.current.tinta, textAlign = TextAlign.End))
+private fun CifrasDelRitmo(ritmo: RitmoDelLibro) {
+    val colores = LocalColores.current
+    val cifras = listOf(
+        "Págs./día" to ResumenDelLibro.hastaUnDecimal(ritmo.paginasPorDia),
+        "Días" to ritmo.diasActivos.toString(),
+        "Mejor día" to ResumenDelLibro.mejorDia(ritmo),
+        "Tu media" to (ritmo.mediaPersonalPorDia?.let(ResumenDelLibro::hastaUnDecimal) ?: "—"),
+    )
+    Column(
+        Modifier.fillMaxWidth().padding(top = Espacios.e3)
+            .drawBehind { drawRect(colores.contorno, Offset.Zero, Size(size.width, 1.dp.toPx())) }
+            .padding(top = Espacios.e3),
+        verticalArrangement = Arrangement.spacedBy(Espacios.e2),
+    ) {
+        cifras.chunked(if (LocalVentana.current.anchoDp < 360) 2 else 4).forEach { fila ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+                fila.forEach { (nombre, valor) ->
+                    Column(Modifier.weight(1f)) {
+                        Text(nombre.uppercase(), style = Textos.cuerpo.copy(fontSize = rem(0.67), fontWeight = FontWeight.Bold, color = colores.tintaSuave))
+                        Text(valor, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(0.95), color = colores.tinta), modifier = Modifier.padding(top = 2.dp))
+                    }
+                }
+            }
+        }
+    }
 }
 
-/** «Establecer fecha» con su campo de fecha (`input type="date"`), que abre el calendario de Android. */
+/** «Añadir fecha de compra»: abre el calendario de Android (en la web, un `input type="date"`). */
 @Composable
 private fun FechaDeCompra(vm: LibroViewModel) {
     val colores = LocalColores.current
     val contexto = LocalContext.current
-    val forma = RoundedCornerShape(Radios.sm)
-    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-        Text("Establecer fecha", style = Textos.cuerpo.copy(fontSize = rem(0.7), fontWeight = FontWeight.Bold, color = colores.primario))
-        Row(
-            Modifier.width(145.dp).heightIn(min = 44.dp).clip(forma).background(colores.superficie).border(1.dp, colores.contornoFuerte, forma)
-                .clickable(enabled = !vm.guardandoCompra) {
-                    val hoy = LocalDate.now()
-                    DatePickerDialog(contexto, { _, anio, mes, dia -> vm.ponerFechaDeCompra(LocalDate.of(anio, mes + 1, dia)) }, hoy.year, hoy.monthValue - 1, hoy.dayOfMonth).show()
-                }
-                .padding(horizontal = Espacios.e2),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("dd/mm/aaaa", style = Textos.cuerpo.copy(fontSize = rem(0.82), color = colores.tinta), modifier = Modifier.weight(1f))
-            Icon(painterResource(Iconos.calendarToday), contentDescription = "Elegir la fecha de compra", tint = colores.tinta, modifier = Modifier.size(18.dp))
-        }
+    Row(
+        Modifier.padding(top = Espacios.e2).heightIn(min = 44.dp).clip(RoundedCornerShape(Radios.sm))
+            .clickable(enabled = !vm.guardandoCompra, role = Role.Button) {
+                val hoy = LocalDate.now()
+                DatePickerDialog(contexto, { _, anio, mes, dia -> vm.ponerFechaDeCompra(LocalDate.of(anio, mes + 1, dia)) }, hoy.year, hoy.monthValue - 1, hoy.dayOfMonth).show()
+            }
+            .padding(horizontal = Espacios.e1),
+        horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(painterResource(Iconos.calendarToday), contentDescription = null, tint = colores.primario, modifier = Modifier.size(18.dp))
+        Text("Añadir fecha de compra", style = Textos.cuerpo.copy(fontSize = rem(0.76), fontWeight = FontWeight.Bold, color = colores.primario))
     }
 }
 

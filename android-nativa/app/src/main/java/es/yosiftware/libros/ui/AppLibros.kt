@@ -374,6 +374,7 @@ fun AppLibros(app: LibrosApp) {
                             avisosSinVer = centroDeAvisos.contadores.noVistas,
                             avisosAbiertos = centroDeAvisos.abierto,
                             alPulsarCampana = centroDeAvisos::alternar,
+                            conIslaDelLector = libro.abierto != null && libro.minimizado,
                             panelDeAvisos = { alto ->
                                 val contexto = LocalContext.current
                                 PanelDeAvisos(
