@@ -73,9 +73,10 @@ android {
         minSdk = 26
         targetSdk = 36
         // versionCode = mayor * 10000 + menor * 100 + arreglo. Tiene que superar el de la APK de Capacitor (22 en
-        // android-v1.0.21) para instalarse encima con el mismo paquete.
-        versionCode = 20000
-        versionName = "2.0.0"
+        // android-v1.0.21) para instalarse encima con el mismo paquete. El flujo de publicación los pasa con
+        // `-PversionCode=… -PversionName=…`.
+        versionCode = (findProperty("versionCode") as String?)?.toInt() ?: 20000
+        versionName = findProperty("versionName") as String? ?: "2.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

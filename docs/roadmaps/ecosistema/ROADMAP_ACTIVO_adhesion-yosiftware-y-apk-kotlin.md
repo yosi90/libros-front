@@ -407,7 +407,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - Con la app delante, un aviso dentro de ella.
   - Cada aviso abre su pantalla, como Mis peticiones o el club.
   - La campana con el centro de notificaciones de la plataforma.
-  - Pedido a la plataforma (P1 y P2): que la app de Yosiftware no repita los avisos de Libros.
+  - P1 y P2, respondidas por la plataforma el 25/10/2026 (kit 1.62, en QA y producción). El push trae `marca`, y lo de Libros llega solo a esta app: la de Yosiftware ya no lo repite. El filtro del móvil se queda, porque sin la app Yosiftware siguen llegando avisos de la plataforma.
 - [x] Chat con la interfaz actual sobre la plataforma (`12fc76e`, `d71168e`, `e53f900`, `61f8adb`, `770b49d`). Visto en el Honor con la cuenta «activa»: directo, del club, en tiempo real, con reacciones y el push con la app cerrada.
   - Los mensajes van como en WhatsApp, a petición del propietario: tocar reacciona, mantener pulsado da las opciones y deslizar responde.
   - El chat limitado por la moderación dice hasta cuándo.
@@ -438,7 +438,9 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** si cambia la clave de firma, no se puede instalar encima de la anterior. Se usa la misma.
 
-- [ ] Lista «App Android» con su evidencia.
+- [ ] Lista «App Android» con su evidencia: `EVIDENCIA_app-android.md` (26/10/2026). Lo que hace la APK está todo; falta lo del propietario (subir la ficha, la primera publicación y la pasada de plegables).
+  - La ficha (icono de 512 × 512 e imagen de 1600 × 900), en `android-nativa/ficha/`, con sus scripts.
+  - La firma: `.github/workflows/android-nativa-publicacion.yml` compila la de producción con la clave de siempre (los secretos `ANDROID_KEY*` de la APK de Capacitor). Comprueba que la huella sea la del `assetlinks.json` de producción y deja la APK y su `.sha256` como artefacto, sin GitHub Release. Necesita el secreto `ANDROID_NATIVA_GOOGLE_SERVICES_PRODUCCION_BASE64`, con el `google-services.json` de la plataforma: los `ANDROID_GOOGLE_SERVICES_*` son del Firebase propio de Capacitor.
 - [ ] Plegables y QA del propietario.
 - [ ] Publicada, con su ficha y su novedad. Desde el kit 1.57 (petición `Libros API/docs/peticiones/publicar-tu-apk-con-tu-credencial-kit-1-57.md`):
   - la primera versión la revisa el propietario, que activa las actualizaciones remotas de `libros`;
