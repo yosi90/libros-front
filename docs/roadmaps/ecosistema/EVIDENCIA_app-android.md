@@ -5,7 +5,7 @@ La lista es la de `ecosistema-kit/LISTA_DE_COMPROBACION.md`, «App Android», de
 | Punto | Estado | Evidencia |
 | --- | --- | --- |
 | Librería de la sesión del kit, sin cambios y con su versión | Hecho | `yosiftware-sesion/` es la 1.7.1 del kit 1.62. Su `ORIGEN.md` lo anota. `diff -rq` contra el kit actual de la plataforma (`8d944fa`): sin diferencias. |
-| Ficha de la app (icono de 512 × 512 e imagen de 1600 × 900) | Hecha, falta subirla | Están en `android-nativa/ficha/`, con los scripts que las generan. La plataforma aún no tiene ninguna (`app.icono` y `app.ficha` son `null` en los dos entornos). Las sube el propietario en la administración, en la ficha de Libros («Marca»). |
+| Ficha de la app (icono de 512 × 512 e imagen de 1600 × 900) | Hecho | Están en `android-nativa/ficha/`, con los scripts que las generan. El propietario las subió el 26/10/2026: producción ya da `app.icono` y `app.ficha`. |
 | Publicar con la credencial y `publicar_apk.py` | En curso | La 2.0.0 (`versionCode` 20000) salió firmada del flujo `.github/workflows/android-nativa-publicacion.yml` (sobre `6826083`), con la huella de producción comprobada. El propietario la publicó desde la administración el 26/10/2026; producción la sirve en `/v1/webs/libros/apk`. Las siguientes versiones, con la credencial de publicación y `publicar_apk.py`. |
 | Comprobar la sesión al volver a primer plano | Hecho | `MainActivity.onStart` llama a `sesion.comprobar()`. |
 | Sesión en la `Application` y «Continuar como @alias» | Hecho en QA | `LibrosApp` crea la única sesión. La pantalla de entrar ofrece «Continuar como @alias» solo al tocarlo (`PantallasDeCuenta.kt`). En QA funciona en el Honor. En producción, la 2.0.0 instalada en el Honor encima de la de Capacitor (26/10/2026) ofrece «Continuar como @Yosi con tu sesión de Lorcana», así que la plataforma la reconoce, y su App Link (`libros.yosiftware.es`) sigue verificado. |
@@ -20,5 +20,4 @@ La lista es la de `ecosistema-kit/LISTA_DE_COMPROBACION.md`, «App Android», de
 
 Lo pendiente depende del propietario:
 
-- subir la ficha (le gusta, 26/10/2026);
-- activar las actualizaciones remotas, para tener la credencial de publicación.
+- activar las actualizaciones remotas de `libros` en producción, si no lo están, para tener la credencial de publicación.
