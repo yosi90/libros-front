@@ -161,7 +161,7 @@ fun AppLibros(app: LibrosApp) {
         CatalogoViewModel(app.datos.ambito, app.datos.catalogo, app.datos.coleccion, app.datos.peticiones, avisos, biblioteca::recibirUniversos)
     }
     val estadisticas: EstadisticasViewModel = viewModel {
-        EstadisticasViewModel(app.datos.ambito, app.datos.estadisticas, app.datos.catalogo)
+        EstadisticasViewModel(app.datos.ambito, app.datos.estadisticas, app.datos.catalogo, usuario = app.datos.usuario)
     }
     val perfil: PerfilViewModel = viewModel {
         PerfilViewModel(
@@ -409,7 +409,10 @@ fun AppLibros(app: LibrosApp) {
                                         alAbrirCatalogo = { nav.irA(Destino.Catalogo) },
                                     )
                                     Destino.Catalogo -> PantallaCatalogo(catalogo)
-                                    Destino.Estadisticas -> PantallaEstadisticas(estadisticas)
+                                    Destino.Estadisticas -> PantallaEstadisticas(estadisticas, alVerNuevos = { ventana ->
+                                        catalogo.elegirNuevos(ventana)
+                                        nav.irA(Destino.Catalogo)
+                                    })
                                     Destino.Comunidad -> {
                                         val contexto = LocalContext.current
                                         PantallaComunidad(

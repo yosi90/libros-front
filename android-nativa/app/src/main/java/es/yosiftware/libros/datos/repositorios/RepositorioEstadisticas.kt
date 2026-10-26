@@ -49,7 +49,10 @@ class RepositorioEstadisticas(private val api: ClienteLibros, private val colecc
         val historial = async { tolerante(emptyList()) { historialDeLectura() } }
         val promedio = async { tolerante(null) { promedioDeDiasDeCompraALectura() } }
         val obras = async { tolerante(emptyList<Obra>()) { coleccion.obras() } }
+        // Tu ritmo y tus puntuaciones en el tiempo (F2 y F3).
+        val metricas = async { tolerante(null) { metricasDeUniversos() } }
         val todas = obras.await()
+        val deUniversos = metricas.await()
         EstadisticasGenerales(
             librosLeidos = librosLeidos.await(),
             librosNoLeidos = librosNoLeidos.await(),
@@ -66,6 +69,8 @@ class RepositorioEstadisticas(private val api: ClienteLibros, private val colecc
             coleccion = todas,
             metricasSolicitadas = METRICAS_GENERALES,
             metricasNoDisponibles = fallidas.get(),
+            ritmoLectura = deUniversos?.ritmoLectura,
+            valoraciones = deUniversos?.valoraciones,
         )
     }
 
@@ -100,6 +105,6 @@ class RepositorioEstadisticas(private val api: ClienteLibros, private val colecc
 
     private companion object {
         /** Las métricas que se piden para las generales, como `Object.keys(requests).length` en la web. */
-        const val METRICAS_GENERALES = 12
+        const val METRICAS_GENERALES = 13
     }
 }

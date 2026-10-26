@@ -43,9 +43,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import es.yosiftware.libros.datos.modelos.CrecimientoDelCatalogo
 import es.yosiftware.libros.datos.modelos.EstadisticasDeComunidad
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.componentes.Superficie
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.TextoDeApoyo
@@ -72,7 +74,7 @@ private class Bloques {
 }
 
 @Composable
-fun PantallaEstadisticas(vm: EstadisticasViewModel) {
+fun PantallaEstadisticas(vm: EstadisticasViewModel, alVerNuevos: (String) -> Unit = {}) {
     val colores = LocalColores.current
     val ancha = LocalVentana.current.anchoDp >= 600
     Box(Modifier.fillMaxSize().background(colores.lienzo), contentAlignment = Alignment.TopCenter) {
@@ -86,7 +88,7 @@ fun PantallaEstadisticas(vm: EstadisticasViewModel) {
                 }
             }
             mitad { Pestanas(vm) }
-            if (vm.pestana == PestanaDeEstadisticas.PERSONAL) personal(vm) else general(vm)
+            if (vm.pestana == PestanaDeEstadisticas.PERSONAL) personal(vm) else general(vm, alVerNuevos)
         }
         Column(
             Modifier.widthIn(max = 960.dp).fillMaxWidth().verticalScroll(rememberScrollState())
@@ -186,11 +188,61 @@ private fun Bloques.personal(vm: EstadisticasViewModel) {
             }
         }
     }
+    ritmoYPuntuaciones(datos)
+}
+
+/** «Tu ritmo de lectura» y «Tus puntuaciones en el tiempo» (F2 y F3 de «Estadísticas y altas»). */
+private fun Bloques.ritmoYPuntuaciones(datos: EstadisticasPersonales) {
+    completo { TituloDeSeccion(Iconos.speed, "Tu ritmo de lectura") }
+    completo { TextoDeApoyo("Sale de cuándo registras cada capítulo. Se mide desde el ${Estadisticas.DESDE}.") }
+    val ritmo = datos.datos.ritmoLectura
+    if (ritmo != null) {
+        completo {
+            Cifras(
+                listOf(
+                    Cifra(Iconos.localFireDepartment, ritmo.rachaActual.toString(), "Días seguidos"),
+                    Cifra(Iconos.emojiEvents, ritmo.mejorRacha.toString(), "Mejor racha"),
+                    Cifra(Iconos.eventAvailable, ritmo.diasConLectura.toString(), "Días con lectura"),
+                    Cifra(Iconos.autoStories, numero(ritmo.paginasPorDiaActivo), "Págs./día leído"),
+                ),
+            )
+        }
+        mitad { Panel(Iconos.calendarMonth, "Páginas por mes") { FilasDeEstadistica(datos.paginasPorMes, vacio = "Aún no hay meses con lectura registrada.") } }
+        mitad { Panel(Iconos.dateRange, "Qué días lees") { FilasDeEstadistica(datos.diasQueLees) } }
+        mitad { Panel(Iconos.schedule, "A qué hora lees") { FilasDeEstadistica(datos.horasQueLees) } }
+    } else {
+        mitad {
+            Panel(Iconos.schedule, "Tu ritmo aparecerá en cuanto registres capítulos", discontinuo = true) {
+                TextoDeApoyo("Cada capítulo que anotes desde el ${Estadisticas.DESDE} cuenta: rachas, páginas por día y a qué hora lees.")
+            }
+        }
+    }
+    completo { TituloDeSeccion(Iconos.hotelClass, "Tus puntuaciones en el tiempo") }
+    completo { TextoDeApoyo("Cuenta la última vez que puntuaste o reseñaste cada obra. Se mide desde el ${Estadisticas.DESDE}.") }
+    val valoraciones = datos.datos.valoraciones
+    if (valoraciones != null) {
+        completo {
+            Cifras(
+                listOf(
+                    Cifra(Iconos.starHalf, valoraciones.notaMedia?.let { numero(it) } ?: "—", "Tu nota media"),
+                    Cifra(Iconos.rateReview, datos.resenasDelAnio.toString(), "Reseñas en el año"),
+                ),
+            )
+        }
+        mitad { Panel(Iconos.calendarMonth, "Puntuaciones por mes") { FilasDeEstadistica(datos.puntuacionesPorMes, vacio = "Aún no hay meses con puntuaciones.") } }
+        mitad { Panel(Iconos.star, "Tu nota media por mes") { FilasDeEstadistica(datos.notaMediaPorMes) } }
+    } else {
+        mitad {
+            Panel(Iconos.schedule, "Tus puntuaciones aparecerán en cuanto puntúes o reseñes", discontinuo = true) {
+                TextoDeApoyo("Cada puntuación y reseña desde el ${Estadisticas.DESDE} cuenta: por meses y tu nota media en el tiempo.")
+            }
+        }
+    }
 }
 
 // --- General. ---
 
-private fun Bloques.general(vm: EstadisticasViewModel) {
+private fun Bloques.general(vm: EstadisticasViewModel, alVerNuevos: (String) -> Unit) {
     when {
         vm.cargandoGeneral -> completo {
             TextoDeApoyo("Cargando el catálogo…", Modifier.fillMaxWidth().padding(Espacios.e4))
@@ -201,13 +253,14 @@ private fun Bloques.general(vm: EstadisticasViewModel) {
             // Corregido: en la APK capturada, desde 600 dp, los títulos y esta nota caían en una sola columna, al lado
             // de lo que no tocaba. Aquí van a lo ancho.
             completo { TextoDeApoyo("Solo cuentan quienes comparten sus estadísticas; se ocultan los datos de menos de tres personas.") }
+            if (vm.compartir != null) completo { Compartir(vm) }
             val comunidad = vm.comunidad
             if (vm.errorComunidad || comunidad == null) {
                 completo { AvisoDeError("No se pudieron cargar los datos de la comunidad.", Iconos.info) }
             } else {
                 comunidad(comunidad)
             }
-            vm.catalogoEnCifras?.let { catalogo(it) }
+            vm.catalogoEnCifras?.let { catalogo(it, vm.comunidad?.catalogo, alVerNuevos) }
         }
     }
 }
@@ -218,9 +271,16 @@ private fun Bloques.comunidad(comunidad: EstadisticasDeComunidad) {
             listOf(
                 Cifra(Iconos.groups, comunidad.lectoresActivos?.toString() ?: "—", "Lectores"),
                 Cifra(Iconos.menuBook, comunidad.librosLeidos?.toString() ?: "—", "Libros leídos"),
+                Cifra(Iconos.speed, comunidad.ritmoComunidad?.ritmoMedio?.let { numero(it) } ?: "—", "Págs./día"),
             ),
         )
     }
+    val paginas = Estadisticas.paginasDeLaComunidad(comunidad.ritmoComunidad)
+    if (paginas.isNotEmpty()) mitad { Panel(Iconos.autoStories, "Páginas leídas por mes") { FilasDeEstadistica(paginas) } }
+    val puntuaciones = Estadisticas.puntuacionesPorMes(comunidad.valoracionesComunidad)
+    if (puntuaciones.isNotEmpty()) mitad { Panel(Iconos.hotelClass, "Puntuaciones por mes") { FilasDeEstadistica(puntuaciones) } }
+    val notas = Estadisticas.notaMediaPorMes(comunidad.valoracionesComunidad)
+    if (notas.isNotEmpty()) mitad { Panel(Iconos.star, "Nota media por mes") { FilasDeEstadistica(notas) } }
     val meses = Estadisticas.lecturasPorMes(comunidad)
     if (meses.isNotEmpty()) mitad { Panel(Iconos.calendarMonth, "Lecturas por mes") { FilasDeEstadistica(meses) } }
     val rankings = Estadisticas.rankings(comunidad)
@@ -238,7 +298,7 @@ private fun Bloques.comunidad(comunidad: EstadisticasDeComunidad) {
     mitad { Panel(Iconos.localFireDepartment, "Clubes más activos") { FilasDeEstadistica(Estadisticas.filasDeClubes(comunidad.clubesMasActivos, porActividad = true), ordenadas = true, vacio = "Ningún club ha tenido actividad este mes.") } }
 }
 
-private fun Bloques.catalogo(catalogo: ResumenDelCatalogo) {
+private fun Bloques.catalogo(catalogo: ResumenDelCatalogo, crecimiento: CrecimientoDelCatalogo?, alVerNuevos: (String) -> Unit) {
     completo { TituloDeSeccion(Iconos.travelExplore, "El catálogo") }
     completo {
         Cifras(
@@ -250,6 +310,19 @@ private fun Bloques.catalogo(catalogo: ResumenDelCatalogo) {
             ),
         )
     }
+    // Las obras nuevas (F1): cada cifra abre el catálogo con su filtro «Nuevos».
+    if (crecimiento != null) {
+        completo {
+            Cifras(
+                listOf(
+                    Cifra(Iconos.fiberNew, crecimiento.nuevas24h.toString(), "Nuevos en 24 horas") { alVerNuevos("24h") },
+                    Cifra(Iconos.fiberNew, crecimiento.nuevas7d.toString(), "Nuevos esta semana") { alVerNuevos("7d") },
+                    Cifra(Iconos.fiberNew, crecimiento.nuevas30d.toString(), "Nuevos este mes") { alVerNuevos("30d") },
+                ),
+            )
+        }
+    }
+    mitad { Panel(Iconos.addCircle, "Obras añadidas por mes") { FilasDeEstadistica(Estadisticas.altasPorMes(crecimiento), vacio = "Aún no hay altas con fecha.") } }
     mitad { Panel(Iconos.palette, "Títulos por estilo") { FilasDeEstadistica(catalogo.estilos, vacio = "Los libros aún no tienen estilo asignado.") } }
     mitad { Panel(Iconos.personSearch, "Autores con más títulos") { FilasDeEstadistica(catalogo.autoresConMasTitulos, ordenadas = true, vacio = "Sin autores en el catálogo.") } }
     mitad { Panel(Iconos.translate, "Idiomas disponibles") { FilasDeEstadistica(catalogo.idiomas, vacio = "Sin idiomas registrados.") } }
@@ -295,7 +368,7 @@ private fun Pestanas(vm: EstadisticasViewModel) {
     }
 }
 
-private class Cifra(@DrawableRes val icono: Int, val valor: String, val nombre: String)
+private class Cifra(@DrawableRes val icono: Int, val valor: String, val nombre: String, val alPulsar: (() -> Unit)? = null)
 
 /** `.m-stats__metrics`: dos columnas en el móvil y cuatro desde 600 dp. */
 @Composable
@@ -314,7 +387,9 @@ private fun Cifras(cifras: List<Cifra>) {
 @Composable
 private fun TarjetaDeCifra(cifra: Cifra, modifier: Modifier) {
     val colores = LocalColores.current
-    Tarjeta(modifier) {
+    // Las de «Nuevos» llevan al catálogo con ese filtro (`.m-stats__metric-link`).
+    val pulsable = cifra.alPulsar?.let { accion -> Modifier.clip(RoundedCornerShape(Radios.lg)).clickable(role = Role.Button, onClick = accion) } ?: Modifier
+    Tarjeta(modifier.then(pulsable)) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Icon(painterResource(cifra.icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
             // El interlineado, medido en la captura: el `strong` de la rejilla deja más aire que el de la letra.
@@ -478,6 +553,26 @@ private fun NoDisponible(titulo: String, texto: String?, alReintentar: () -> Uni
             Text(titulo, style = Textos.cuerpo.copy(fontSize = rem(1.5), lineHeight = 1.25.em, color = colores.tinta, textAlign = TextAlign.Center))
             if (texto != null) Text(texto, style = Textos.cuerpo.copy(color = colores.tinta, textAlign = TextAlign.Center))
             Boton("Reintentar", alReintentar, icono = Iconos.refresh)
+        }
+    }
+}
+
+/**
+ * «Tus lecturas cuentan aquí» o «no cuentan», y el botón de compartir o dejar de hacerlo (`.m-stats__consent`, F1 de
+ * «Estadísticas y altas»). Siempre de forma anónima.
+ */
+@Composable
+private fun Compartir(vm: EstadisticasViewModel) {
+    val colores = LocalColores.current
+    val comparto = vm.compartir == true
+    Tarjeta(Modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e3), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(if (comparto) "Tus lecturas cuentan aquí" else "Tus lecturas no cuentan aquí", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta))
+                TextoDeApoyo("Siempre de forma anónima: nadie ve qué lees tú.")
+                if (vm.errorCompartir.isNotEmpty()) Text(vm.errorCompartir, style = Textos.cuerpo.copy(fontSize = rem(0.75), color = colores.error))
+            }
+            Boton(if (comparto) "Dejar de compartir" else "Compartir", vm::alternarCompartir, variante = VarianteDeBoton.Contorno, habilitado = !vm.guardandoCompartir)
         }
     }
 }

@@ -157,6 +157,7 @@ class RepositoriosTest {
         responde("GET /libros/historial_leidos", """[{"anio": 2026, "mes": 1, "cantidad": 2}]""")
         responde("GET /libros/promedio_compra_lectura", """{"promedio_dias": 12.5}""")
         responde("GET /coleccion/items", """[{"Id": 7, "Nombre": "A", "Estados": [{"Id": 1, "EstadoId": 2}]}]""")
+        responde("GET /universos/metricas", """{"RitmoLectura": {"DiasConLectura": 2, "PaginasPorMes": []}, "Valoraciones": null}""")
         val coleccion = RepositorioColeccion(api)
         val generales = RepositorioEstadisticas(api, coleccion, RepositorioLibro(api)).generales()
         assertEquals(12, generales.librosLeidos)
@@ -164,8 +165,11 @@ class RepositoriosTest {
         assertNull(generales.libroMasTiempoSinLeer)
         assertEquals(12.5, generales.promedioDiasCompraLectura!!, 0.0)
         assertEquals(1, generales.metricasNoDisponibles)
-        assertEquals(12, generales.metricasSolicitadas)
+        assertEquals(13, generales.metricasSolicitadas)
         assertEquals(1, generales.repartoDeEstados.toMap()[TipoDeEstado.LEIDO])
+        // Tu ritmo y tus puntuaciones en el tiempo salen de `/universos/metricas`.
+        assertEquals(2, generales.ritmoLectura?.diasConLectura)
+        assertNull(generales.valoraciones)
     }
 
     @Test

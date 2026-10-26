@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.estadisticas
 
+import es.yosiftware.libros.datos.repositorios.RepositorioUsuario
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -27,6 +28,14 @@ data class EstadisticasPersonales(
     val autores: List<FilaDeEstadistica>,
     val estilos: List<FilaDeEstadistica>,
     val puntuaciones: List<FilaDeEstadistica>,
+    /** Tu ritmo de lectura (F2): por mes, por día de la semana y por franja; vacías sin ritmo. */
+    val paginasPorMes: List<FilaDeEstadistica> = emptyList(),
+    val diasQueLees: List<FilaDeEstadistica> = emptyList(),
+    val horasQueLees: List<FilaDeEstadistica> = emptyList(),
+    /** Tus puntuaciones en el tiempo (F3). */
+    val puntuacionesPorMes: List<FilaDeEstadistica> = emptyList(),
+    val notaMediaPorMes: List<FilaDeEstadistica> = emptyList(),
+    val resenasDelAnio: Int = 0,
 ) {
     companion object {
         fun de(datos: EstadisticasGenerales, ahora: Instant) = EstadisticasPersonales(
@@ -37,6 +46,12 @@ data class EstadisticasPersonales(
             autores = Estadisticas.autoresMasLeidos(datos.coleccion),
             estilos = Estadisticas.estilosLeidos(datos.coleccion),
             puntuaciones = Estadisticas.repartoDePuntuaciones(datos.coleccion),
+            paginasPorMes = datos.ritmoLectura?.let { Estadisticas.paginasPorMes(it.paginasPorMes) }.orEmpty(),
+            diasQueLees = datos.ritmoLectura?.let { Estadisticas.diasQueLees(it.paginasPorDiaSemana) }.orEmpty(),
+            horasQueLees = datos.ritmoLectura?.let { Estadisticas.horasQueLees(it.paginasPorHora) }.orEmpty(),
+            puntuacionesPorMes = datos.valoraciones?.let { Estadisticas.puntuacionesPorMes(it.porMes) }.orEmpty(),
+            notaMediaPorMes = datos.valoraciones?.let { Estadisticas.notaMediaPorMes(it.porMes) }.orEmpty(),
+            resenasDelAnio = datos.valoraciones?.let { Estadisticas.resenasDelAnio(it.porMes) } ?: 0,
         )
     }
 }
@@ -72,6 +87,8 @@ class EstadisticasViewModel(
     private val estadisticas: RepositorioEstadisticas,
     private val catalogo: RepositorioCatalogo,
     private val ahora: () -> Instant = Instant::now,
+    /** «Compartir mis lecturas» (`CompartirEstadisticas`); sin él, no se enseña el interruptor. */
+    private val usuario: RepositorioUsuario? = null,
 ) : ViewModelDeCuenta(ambito) {
     var pestana by mutableStateOf(PestanaDeEstadisticas.PERSONAL)
         private set
@@ -99,6 +116,13 @@ class EstadisticasViewModel(
         private set
     var errorComunidad by mutableStateOf(false)
         private set
+    /** Si mis lecturas cuentan en «Lectura en la comunidad»; `null` hasta saberlo. */
+    var compartir by mutableStateOf<Boolean?>(null)
+        private set
+    var guardandoCompartir by mutableStateOf(false)
+        private set
+    var errorCompartir by mutableStateOf("")
+        private set
 
     init {
         if (ambito.identidad.value != null) cargarPersonal()
@@ -122,15 +146,34 @@ class EstadisticasViewModel(
             coroutineScope {
                 val obras = async { intentar { catalogo.libros() }.getOrNull() }
                 val deComunidad = async { intentar { estadisticas.comunidad() }.getOrNull() }
-                obras.await() to deComunidad.await()
+                val comparto = async { usuario?.let { u -> intentar { u.comparteEstadisticas() }.getOrNull() } }
+                Triple(obras.await(), deComunidad.await(), comparto.await())
             }
-        }) { (obras, deComunidad) ->
+        }) { (obras, deComunidad, comparto) ->
+            if (comparto != null) compartir = comparto
             if (obras != null) catalogoEnCifras = ResumenDelCatalogo.de(obras)
             comunidad = deComunidad
             errorComunidad = deComunidad == null
             errorGeneral = obras == null && deComunidad == null
             generalCargado = !errorGeneral
             cargandoGeneral = false
+        }
+    }
+
+    /** «Compartir» o «Dejar de compartir»: los agregados cambian con la decisión, así que se vuelven a pedir. */
+    fun alternarCompartir() {
+        val usuario = usuario ?: return
+        val ahora = compartir ?: return
+        if (guardandoCompartir) return
+        guardandoCompartir = true
+        errorCompartir = ""
+        cargar({ usuario.compartirEstadisticas(!ahora) }, alFallar = { error ->
+            guardandoCompartir = false
+            errorCompartir = error.mensajeO("No se pudo guardar. Inténtalo de nuevo.")
+        }) { nuevo ->
+            compartir = nuevo
+            guardandoCompartir = false
+            cargarGeneral()
         }
     }
 
@@ -159,6 +202,9 @@ class EstadisticasViewModel(
         catalogoEnCifras = null
         comunidad = null
         errorComunidad = false
+        compartir = null
+        guardandoCompartir = false
+        errorCompartir = ""
         if (identidad != null) cargarPersonal()
     }
 

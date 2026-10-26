@@ -73,6 +73,9 @@ data class EstadisticasGenerales(
     val coleccion: List<Obra>,
     val metricasSolicitadas: Int,
     val metricasNoDisponibles: Int,
+    /** Tu ritmo de lectura y tus puntuaciones en el tiempo (F2 y F3; de `/universos/metricas`), o `null` sin datos aún. */
+    val ritmoLectura: RitmoDelUsuario? = null,
+    val valoraciones: ValoracionesDelUsuario? = null,
 ) {
     companion object {
         /** El reparto por el último estado de cada obra (`getReadingStatusDistribution`). */
@@ -259,6 +262,8 @@ data class MetricasDeUniversos(
     val topLibrosMasRapidos: List<LibroMasRapido>,
     /** El desglose de cada universo, por su id (la clave del JSON). */
     val porUniverso: Map<String, DesgloseDeMetricas>,
+    val ritmoLectura: RitmoDelUsuario? = null,
+    val valoraciones: ValoracionesDelUsuario? = null,
 ) {
     companion object {
         fun de(json: JSONObject): MetricasDeUniversos {
@@ -267,6 +272,8 @@ data class MetricasDeUniversos(
                 total = DesgloseDeMetricas.de(json),
                 topLibrosMasRapidos = json.lista("TopLibrosMasRapidos", LibroMasRapido::de),
                 porUniverso = porUniverso?.keys()?.asSequence()?.mapNotNull { clave -> porUniverso.objeto(clave)?.let { clave to DesgloseDeMetricas.de(it) } }?.toMap().orEmpty(),
+                ritmoLectura = json.objeto("RitmoLectura")?.let(RitmoDelUsuario::de),
+                valoraciones = json.objeto("Valoraciones")?.let(ValoracionesDelUsuario::de),
             )
         }
     }
@@ -332,6 +339,10 @@ data class EstadisticasDeComunidad(
     val actividad30Dias: Map<String, Int?>,
     val clubesMasAmplios: List<PuestoDeComunidad>,
     val clubesMasActivos: List<PuestoDeComunidad>,
+    /** El ritmo, las puntuaciones por mes y el crecimiento del catálogo (F1 a F3), con el umbral de tres personas. */
+    val ritmoComunidad: RitmoDeComunidad? = null,
+    val valoracionesComunidad: List<MesDeValoraciones> = emptyList(),
+    val catalogo: CrecimientoDelCatalogo? = null,
 ) {
     companion object {
         fun de(json: JSONObject): EstadisticasDeComunidad {
@@ -354,6 +365,9 @@ data class EstadisticasDeComunidad(
                 actividad30Dias = ACTIVIDAD.associateWith { actividad?.entero(it) },
                 clubesMasAmplios = json.lista("ClubesMasAmplios", PuestoDeComunidad::de),
                 clubesMasActivos = json.lista("ClubesMasActivos", PuestoDeComunidad::de),
+                ritmoComunidad = json.objeto("RitmoComunidad")?.let(RitmoDeComunidad::de),
+                valoracionesComunidad = json.objeto("ValoracionesComunidad")?.lista("PorMes", MesDeValoraciones::de).orEmpty(),
+                catalogo = json.objeto("Catalogo")?.let(CrecimientoDelCatalogo::de),
             )
         }
 
@@ -369,5 +383,79 @@ data class EstadisticasDeClub(val club: PuestoDeComunidad, val umbralPrivacidad:
             umbralPrivacidad = json.entero("UmbralPrivacidad") ?: 3,
             autoresMasLeidos = json.lista("AutoresMasLeidos", PuestoDeComunidad::de),
         )
+    }
+}
+
+// ---------- «Estadísticas y altas» (F1 a F3): el ritmo, las puntuaciones en el tiempo y las altas del catálogo ----------
+// Se guarda desde el 25 de octubre de 2026. Lo de la comunidad lleva el umbral de tres personas: `null` es «aún no hay
+// datos suficientes», no cero.
+
+/** Las páginas de un mes (`PaginasPorMes`); `null` en la comunidad con menos de tres personas. */
+data class MesDePaginas(val anio: Int, val mes: Int, val paginas: Int?) {
+    companion object {
+        fun de(json: JSONObject) = MesDePaginas(json.entero("Anio") ?: 0, json.entero("Mes") ?: 0, json.entero("Paginas"))
+    }
+}
+
+/** Tu ritmo de lectura (`ReadingPaceUser`). */
+data class RitmoDelUsuario(
+    val paginasPorMes: List<MesDePaginas>,
+    val diasConLectura: Int,
+    val paginasPorDiaActivo: Double,
+    val rachaActual: Int,
+    val mejorRacha: Int,
+    /** De lunes a domingo. */
+    val paginasPorDiaSemana: List<Int>,
+    /** Por hora del día, de 0 a 23. */
+    val paginasPorHora: List<Int>,
+) {
+    companion object {
+        fun de(json: JSONObject) = RitmoDelUsuario(
+            paginasPorMes = json.lista("PaginasPorMes", MesDePaginas::de),
+            diasConLectura = json.entero("DiasConLectura") ?: 0,
+            paginasPorDiaActivo = json.decimal("PaginasPorDiaActivo") ?: 0.0,
+            rachaActual = json.entero("RachaActual") ?: 0,
+            mejorRacha = json.entero("MejorRacha") ?: 0,
+            paginasPorDiaSemana = enteros(json.optJSONArray("PaginasPorDiaSemana")),
+            paginasPorHora = enteros(json.optJSONArray("PaginasPorHora")),
+        )
+
+        private fun enteros(lista: org.json.JSONArray?): List<Int> = if (lista == null) emptyList() else List(lista.length()) { lista.optInt(it, 0) }
+    }
+}
+
+/** El ritmo de la comunidad (`ReadingPaceCommunity`). */
+data class RitmoDeComunidad(val paginasPorMes: List<MesDePaginas>, val ritmoMedio: Double?, val lectores: Int?) {
+    companion object {
+        fun de(json: JSONObject) = RitmoDeComunidad(json.lista("PaginasPorMes", MesDePaginas::de), json.decimal("RitmoMedio"), json.entero("Lectores"))
+    }
+}
+
+/** Las puntuaciones, las reseñas y la nota media de un mes (`RatingMonth`). */
+data class MesDeValoraciones(val anio: Int, val mes: Int, val puntuaciones: Int?, val resenas: Int?, val notaMedia: Double?) {
+    companion object {
+        fun de(json: JSONObject) = MesDeValoraciones(json.entero("Anio") ?: 0, json.entero("Mes") ?: 0, json.entero("Puntuaciones"), json.entero("Resenas"), json.decimal("NotaMedia"))
+    }
+}
+
+/** Tus puntuaciones en el tiempo (`RatingHistoryUser`). */
+data class ValoracionesDelUsuario(val porMes: List<MesDeValoraciones>, val notaMedia: Double?) {
+    companion object {
+        fun de(json: JSONObject) = ValoracionesDelUsuario(json.lista("PorMes", MesDeValoraciones::de), json.decimal("NotaMedia"))
+    }
+}
+
+/** Las altas del catálogo (`CommunityCatalogGrowth`): las obras nuevas en 24 horas, 7 días y 30 días, y las de cada mes. */
+data class CrecimientoDelCatalogo(val nuevas24h: Int, val nuevas7d: Int, val nuevas30d: Int, val altasPorMes: List<CuentaMensual>) {
+    companion object {
+        fun de(json: JSONObject): CrecimientoDelCatalogo {
+            val nuevos = json.objeto("Nuevos")
+            return CrecimientoDelCatalogo(
+                nuevas24h = nuevos?.entero("Horas24") ?: 0,
+                nuevas7d = nuevos?.entero("Dias7") ?: 0,
+                nuevas30d = nuevos?.entero("Dias30") ?: 0,
+                altasPorMes = json.lista("AltasPorMes") { CuentaMensual(it.entero("Anio") ?: 0, it.entero("Mes") ?: 0, (it.entero("Libros") ?: 0) + (it.entero("Antologias") ?: 0)) },
+            )
+        }
     }
 }

@@ -14,6 +14,49 @@ import java.time.Instant
 
 /** Las Estadísticas, con los casos de `library-stats.spec.ts` y de la vista Mobile. */
 class EstadisticasTest {
+    @Test
+    fun elRitmoYLasPuntuacionesEnElTiempo() {
+        val metricas = es.yosiftware.libros.datos.modelos.MetricasDeUniversos.de(org.json.JSONObject("""
+            {"RitmoLectura": {"Desde": "2026-10-25", "DiasConLectura": 3, "PaginasPorDiaActivo": 18.5, "RachaActual": 2, "MejorRacha": 3,
+               "PaginasPorMes": [{"Anio": 2026, "Mes": 9, "Paginas": 0}, {"Anio": 2026, "Mes": 10, "Paginas": 55}],
+               "PaginasPorDiaSemana": [10, 0, 0, 0, 0, 20, 25],
+               "PaginasPorHora": [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 20, 0]},
+             "Valoraciones": {"Desde": "2026-10-25", "NotaMedia": 4.5,
+               "PorMes": [{"Anio": 2026, "Mes": 9, "Puntuaciones": 0, "Resenas": 0, "NotaMedia": null},
+                          {"Anio": 2026, "Mes": 10, "Puntuaciones": 2, "Resenas": 1, "NotaMedia": 4.5}]}}
+        """.trimIndent()))
+        val ritmo = metricas.ritmoLectura!!
+        // Sin los meses a cero del principio.
+        assertEquals(listOf(FilaDeEstadistica("oct 2026", 55.0)), Estadisticas.paginasPorMes(ritmo.paginasPorMes))
+        assertEquals(FilaDeEstadistica("Domingo", 25.0), Estadisticas.diasQueLees(ritmo.paginasPorDiaSemana).last())
+        assertEquals(
+            listOf(FilaDeEstadistica("Madrugada (0–6 h)", 5.0), FilaDeEstadistica("Mañana (6–12 h)", 0.0), FilaDeEstadistica("Tarde (12–18 h)", 0.0), FilaDeEstadistica("Noche (18–24 h)", 50.0)),
+            Estadisticas.horasQueLees(ritmo.paginasPorHora),
+        )
+        val valoraciones = metricas.valoraciones!!
+        assertEquals(listOf(FilaDeEstadistica("oct 2026", 2.0)), Estadisticas.puntuacionesPorMes(valoraciones.porMes))
+        assertEquals(listOf(FilaDeEstadistica("oct 2026", 4.5)), Estadisticas.notaMediaPorMes(valoraciones.porMes))
+        assertEquals(1, Estadisticas.resenasDelAnio(valoraciones.porMes))
+    }
+
+    @Test
+    fun laComunidadConSuUmbralYLasAltasDelCatalogo() {
+        val comunidad = es.yosiftware.libros.datos.modelos.EstadisticasDeComunidad.de(org.json.JSONObject("""
+            {"RitmoComunidad": {"RitmoMedio": 21.3, "Lectores": null, "PaginasPorMes": [{"Anio": 2026, "Mes": 10, "Paginas": null}]},
+             "ValoracionesComunidad": {"PorMes": [{"Anio": 2026, "Mes": 10, "Puntuaciones": 5, "Resenas": null, "NotaMedia": 3.8}]},
+             "Catalogo": {"Nuevos": {"Horas24": 2, "Dias7": 9, "Dias30": 31},
+               "AltasPorMes": [{"Anio": 2026, "Mes": 9, "Libros": 0, "Antologias": 0}, {"Anio": 2026, "Mes": 10, "Libros": 30, "Antologias": 1}]}}
+        """.trimIndent()))
+        // Un mes oculto por el umbral no sale como cero.
+        assertEquals(emptyList<FilaDeEstadistica>(), Estadisticas.paginasDeLaComunidad(comunidad.ritmoComunidad))
+        assertEquals(21.3, comunidad.ritmoComunidad?.ritmoMedio!!, 0.0)
+        assertEquals(listOf(FilaDeEstadistica("oct 2026", 5.0)), Estadisticas.puntuacionesPorMes(comunidad.valoracionesComunidad))
+        val catalogo = comunidad.catalogo!!
+        assertEquals(listOf(2, 9, 31), listOf(catalogo.nuevas24h, catalogo.nuevas7d, catalogo.nuevas30d))
+        assertEquals(listOf(FilaDeEstadistica("9/2026", 0.0), FilaDeEstadistica("10/2026", 31.0)), Estadisticas.altasPorMes(catalogo))
+        assertEquals(emptyList<FilaDeEstadistica>(), Estadisticas.altasPorMes(null))
+    }
+
     private fun estado(tipo: TipoDeEstado, fecha: String) = EstadoDeLectura(1, tipo.id, tipo.nombre, fecha)
 
     private fun obra(id: Int, nombre: String, autores: List<String>, vararg estados: EstadoDeLectura, estilos: List<String> = emptyList(), puntuacion: Int? = null, fecha: String? = null, idiomas: List<String> = emptyList()) = Obra(

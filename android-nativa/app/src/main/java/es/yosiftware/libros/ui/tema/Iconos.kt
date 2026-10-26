@@ -74,6 +74,14 @@ object Iconos {
 
     // Los estados de lectura (readingStatusOptions).
     @DrawableRes val schedule = R.drawable.mi_schedule
+    @DrawableRes val emojiEvents = R.drawable.mi_emoji_events
+    @DrawableRes val eventAvailable = R.drawable.mi_event_available
+    @DrawableRes val dateRange = R.drawable.mi_date_range
+    @DrawableRes val starHalf = R.drawable.mi_star_half
+    @DrawableRes val speed = R.drawable.mi_speed
+    @DrawableRes val hotelClass = R.drawable.mi_hotel_class
+    @DrawableRes val fiberNew = R.drawable.mi_fiber_new
+    @DrawableRes val addCircle = R.drawable.mi_add_circle
     @DrawableRes val doneAll = R.drawable.mi_done_all
     @DrawableRes val notificationsNone = R.drawable.mi_notifications_none
     @DrawableRes val addShoppingCart = R.drawable.mi_add_shopping_cart

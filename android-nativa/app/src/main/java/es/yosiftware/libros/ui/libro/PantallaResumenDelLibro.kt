@@ -300,7 +300,15 @@ private fun Graficos(libro: Libro, resumen: EstadisticasDelLibro, ancha: Boolean
     val presencia = remember(libro, resumen) { ResumenDelLibro.presencia(libro, resumen) }
     val reparto = remember(resumen) { ResumenDelLibro.reparto(resumen) }
     val grupos = remember(libro) { ResumenDelLibro.grupos(libro) }
-    val tarjetas: List<@Composable (Modifier) -> Unit> = listOf(
+    // Tu ritmo en este libro (F2): sus cifras van en «Tu lectura»; aquí, solo la curva, y nada si no hay ritmo.
+    val curva = libro.metricas?.ritmo?.curva.orEmpty()
+    val tarjetas: List<@Composable (Modifier) -> Unit> = listOfNotNull<@Composable (Modifier) -> Unit>(
+        if (curva.isEmpty()) null else { m ->
+            TarjetaDeGrafico("Tu ritmo en este libro", "Hasta qué página llegaste cada día", ancha, m) {
+                Box(Modifier.padding(horizontal = Espacios.e2)) { CurvaDeRitmo(curva, 200.dp) }
+            }
+        },
+    ) + listOf(
         { m ->
             TarjetaDeGrafico("Ritmo del libro", "Páginas de cada capítulo", ancha, m) {
                 if (ritmo == null) TextoVacio("Añade páginas a los capítulos para ver el ritmo.", Modifier.padding(horizontal = Espacios.e4, vertical = Espacios.e4))

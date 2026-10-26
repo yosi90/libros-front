@@ -1,5 +1,9 @@
 package es.yosiftware.libros.ui.estadisticas
 
+import es.yosiftware.libros.datos.modelos.CrecimientoDelCatalogo
+import es.yosiftware.libros.datos.modelos.RitmoDeComunidad
+import es.yosiftware.libros.datos.modelos.MesDeValoraciones
+import es.yosiftware.libros.datos.modelos.MesDePaginas
 import es.yosiftware.libros.datos.conUnDecimal
 import es.yosiftware.libros.datos.instanteDe
 import es.yosiftware.libros.datos.modelos.EstadisticasDeComunidad
@@ -129,6 +133,54 @@ object Estadisticas {
     }
 
     /** Los meses con dato («11/2025»); un mes sin dato es privacidad, no cero, y no sale (`communityMonthlyRows`). */
+    // --- «Estadísticas y altas» (F1 a F3): reading-pace.ts y rating-history.ts. ---
+
+    /** Desde cuándo se mide el ritmo y las puntuaciones en el tiempo (`READING_PACE_SINCE`). */
+    const val DESDE = "25 de octubre de 2026"
+    private val diasDeLaSemana = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+    private val franjas = listOf("Madrugada (0–6 h)" to 0..5, "Mañana (6–12 h)" to 6..11, "Tarde (12–18 h)" to 12..17, "Noche (18–24 h)" to 18..23)
+    private val meses = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic")
+
+    /** «oct 2026» (`monthLabel`). */
+    fun mes(anio: Int, mes: Int): String = "${meses.getOrElse(mes - 1) { mes.toString() }} $anio"
+
+    /** Sin los meses a cero del principio (`withoutLeadingZeros`). */
+    private fun sinCerosDelPrincipio(filas: List<FilaDeEstadistica>): List<FilaDeEstadistica> {
+        val primera = filas.indexOfFirst { it.valor != 0.0 }
+        return if (primera < 0) emptyList() else filas.drop(primera)
+    }
+
+    /** Las páginas por mes, sin los meses ocultos por el umbral (`paceMonthRows`). */
+    fun paginasPorMes(meses: List<MesDePaginas>): List<FilaDeEstadistica> =
+        sinCerosDelPrincipio(meses.mapNotNull { m -> m.paginas?.let { FilaDeEstadistica(mes(m.anio, m.mes), it.toDouble()) } })
+
+    /** Qué días lees, de lunes a domingo (`paceWeekdayRows`). */
+    fun diasQueLees(paginas: List<Int>): List<FilaDeEstadistica> =
+        diasDeLaSemana.mapIndexed { i, dia -> FilaDeEstadistica(dia, (paginas.getOrNull(i) ?: 0).toDouble()) }
+
+    /** A qué hora lees, en cuatro franjas (`paceHourBandRows`). */
+    fun horasQueLees(paginas: List<Int>): List<FilaDeEstadistica> =
+        franjas.map { (nombre, horas) -> FilaDeEstadistica(nombre, horas.sumOf { paginas.getOrNull(it) ?: 0 }.toDouble()) }
+
+    /** El ritmo de la comunidad: solo si algún mes tiene páginas (`communityPaceMonths`). */
+    fun paginasDeLaComunidad(ritmo: RitmoDeComunidad?): List<FilaDeEstadistica> =
+        ritmo?.paginasPorMes?.takeIf { lista -> lista.any { (it.paginas ?: 0) > 0 } }?.let(::paginasPorMes).orEmpty()
+
+    /** Las puntuaciones por mes (`ratingCountRows`). */
+    fun puntuacionesPorMes(meses: List<MesDeValoraciones>): List<FilaDeEstadistica> =
+        sinCerosDelPrincipio(meses.mapNotNull { m -> m.puntuaciones?.let { FilaDeEstadistica(mes(m.anio, m.mes), it.toDouble()) } })
+
+    /** La nota media de los meses que la tienen (`ratingAverageRows`). */
+    fun notaMediaPorMes(meses: List<MesDeValoraciones>): List<FilaDeEstadistica> =
+        meses.mapNotNull { m -> m.notaMedia?.let { FilaDeEstadistica(mes(m.anio, m.mes), it) } }
+
+    /** Las reseñas de los doce meses (`ratingReviewTotal`). */
+    fun resenasDelAnio(meses: List<MesDeValoraciones>): Int = meses.sumOf { it.resenas ?: 0 }
+
+    /** Las obras añadidas al catálogo cada mes, si alguna lo fue (`catalogMonthlyAdditions`). */
+    fun altasPorMes(catalogo: CrecimientoDelCatalogo?): List<FilaDeEstadistica> =
+        catalogo?.altasPorMes?.map { FilaDeEstadistica("${it.mes}/${it.anio}", it.cantidad.toDouble()) }?.takeIf { filas -> filas.any { it.valor > 0 } }.orEmpty()
+
     fun lecturasPorMes(comunidad: EstadisticasDeComunidad): List<FilaDeEstadistica> =
         comunidad.lecturasPorMes.mapNotNull { (anio, mes, cantidad) -> cantidad?.let { FilaDeEstadistica("$mes/$anio", it.toDouble()) } }
 

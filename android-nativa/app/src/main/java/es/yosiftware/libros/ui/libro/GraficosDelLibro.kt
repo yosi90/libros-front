@@ -1,5 +1,7 @@
 package es.yosiftware.libros.ui.libro
 
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -118,6 +120,50 @@ fun BarrasPorCapitulo(categorias: List<String>, series: List<SerieDeBarras>, alt
                 }
             }
         }
+    }
+}
+
+/**
+ * Tu ritmo en este libro (`paceCurveChart`): la página más alta a la que llegaste cada día con lectura, en una línea con
+ * su relleno suave, la escala del eje como en las barras y el primer y el último día abajo.
+ */
+@Composable
+fun CurvaDeRitmo(puntos: List<Pair<String, Int>>, alto: Dp) {
+    val colores = LocalColores.current
+    val medidor = rememberTextMeasurer()
+    Canvas(Modifier.fillMaxWidth().height(alto)) {
+        if (puntos.isEmpty()) return@Canvas
+        val (tope, paso) = ResumenDelLibro.escala(puntos.maxOf { it.second }.toDouble())
+        val izquierda = 34.dp.toPx()
+        val abajo = 24.dp.toPx()
+        val arriba = 10.dp.toPx()
+        val derecha = 12.dp.toPx()
+        val alturaUtil = size.height - abajo - arriba
+        val anchoUtil = size.width - izquierda - derecha
+        fun y(valor: Double) = arriba + alturaUtil * (1 - valor / tope).toFloat()
+        fun x(i: Int) = izquierda + if (puntos.size == 1) anchoUtil / 2 else anchoUtil * i / (puntos.size - 1)
+        var marca = 0.0
+        while (marca <= tope + 0.001) {
+            val linea = y(marca)
+            drawLine(colores.contorno, Offset(izquierda, linea), Offset(size.width - derecha, linea), 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx())))
+            texto(medidor, marca.roundToInt().toString(), letraDeEje.copy(color = colores.tintaSuave), Offset(izquierda - 8.dp.toPx(), linea), derecha = true)
+            marca += paso
+        }
+        val linea = Path().apply {
+            puntos.forEachIndexed { i, (_, pagina) -> if (i == 0) moveTo(x(i), y(pagina.toDouble())) else lineTo(x(i), y(pagina.toDouble())) }
+        }
+        val relleno = Path().apply {
+            addPath(linea)
+            lineTo(x(puntos.lastIndex), y(0.0))
+            lineTo(x(0), y(0.0))
+            close()
+        }
+        drawPath(relleno, colores.primario.copy(alpha = 0.16f))
+        drawPath(linea, colores.primario, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+        puntos.indices.forEach { i -> drawCircle(colores.primario, 3.dp.toPx(), Offset(x(i), y(puntos[i].second.toDouble()))) }
+        val base = size.height - abajo + 14.dp.toPx()
+        texto(medidor, ResumenDelLibro.diaCorto(puntos.first().first), letraDeEje.copy(color = colores.tintaSuave), Offset(x(0), base), centrado = puntos.size == 1)
+        if (puntos.size > 1) texto(medidor, ResumenDelLibro.diaCorto(puntos.last().first), letraDeEje.copy(color = colores.tintaSuave), Offset(x(puntos.lastIndex), base), derecha = true)
     }
 }
 

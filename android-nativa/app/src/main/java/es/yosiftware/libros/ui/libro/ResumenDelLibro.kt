@@ -112,9 +112,11 @@ object ResumenDelLibro {
     /** «25 oct · 42 págs.», o «—» (`paceBestDay`). */
     fun mejorDia(ritmo: RitmoDelLibro?): String {
         val (fecha, paginas) = ritmo?.mejorDia ?: return "—"
-        val dia = runCatching { LocalDate.parse(fecha.take(10)).format(diaYMes).trimEnd('.') }.getOrDefault(fecha)
-        return "$dia · $paginas págs."
+        return "${diaCorto(fecha)} · $paginas págs."
     }
+
+    /** «25 oct» (`paceDayLabel`): un día «2026-10-25» de la curva del ritmo. */
+    fun diaCorto(fecha: String): String = runCatching { LocalDate.parse(fecha.take(10)).format(diaYMes).trimEnd('.') }.getOrDefault(fecha)
 
     /** «18» o «18,5»: hasta una cifra decimal, como `number:'1.0-1'` en español. */
     fun hastaUnDecimal(valor: Double): String = decimal(valor).removeSuffix(",0")
