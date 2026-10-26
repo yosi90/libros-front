@@ -29,11 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -47,12 +43,12 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.MarcoDeBarraDePantallaCompleta
 import es.yosiftware.libros.ui.componentes.Portada
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.TextoDeApoyo
 import es.yosiftware.libros.ui.componentes.TextoEyebrow
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
-import es.yosiftware.libros.ui.tema.Alturas
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
@@ -79,25 +75,12 @@ fun PantallaAntologia(
     val colores = LocalColores.current
     val ventana = LocalVentana.current
     val zona = WindowInsets.zonaSegura.asPaddingValues()
-    val direccion = LocalLayoutDirection.current
     val ancha = ventana.anchoDp >= 600
     BackHandler(onBack = vm::cerrarAntologia)
 
     Column(Modifier.fillMaxSize().background(colores.lienzo).clickable(enabled = false) {}) {
         // La barra (`.m-fullscreen-surface__bar`): volver | portada y nombre | hueco.
-        Row(
-            Modifier.fillMaxWidth().background(colores.superficie)
-                .drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
-                .heightIn(min = Alturas.barraSuperior + zona.calculateTopPadding())
-                .padding(
-                    start = maxOf(Espacios.e3, zona.calculateLeftPadding(direccion)),
-                    end = maxOf(Espacios.e3, zona.calculateRightPadding(direccion)),
-                    top = zona.calculateTopPadding(),
-                    bottom = Espacios.e2,
-                ),
-            horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-            verticalAlignment = Alignment.Bottom,
-        ) {
+        MarcoDeBarraDePantallaCompleta {
             BotonDeIcono(Iconos.arrowBack, "Volver a la biblioteca", vm::cerrarAntologia)
             Row(
                 Modifier.weight(1f).align(Alignment.CenterVertically),
