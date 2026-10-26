@@ -206,6 +206,24 @@ class ElementosViewModelTest {
     }
 
     @Test
+    fun laHojaSinSexoNoCreaYMarcaLosCamposHastaLaSiguienteAlta() = runTest {
+        val m = montar()
+        val vm = m.vm()
+        vm.abrir(libro, VistaDelLibro.DeElemento(Elemento.PERSONAJES, crear = true))
+        advanceUntilIdle()
+        vm.cambiar { it.copy(nombre = "Syl") }
+        assertFalse(vm.revisarCampos)
+        // Sin sexo o género no se crea, y los campos vacíos enseñan su error (antes solo salía un aviso genérico).
+        vm.crearDesdeLaHoja(otro = false)
+        advanceUntilIdle()
+        assertTrue(vm.revisarCampos)
+        assertFalse(m.servidor.intentos.any { it.startsWith("crearPersonaje") })
+        vm.volver()
+        vm.abrirAlta()
+        assertFalse(vm.revisarCampos)
+    }
+
+    @Test
     fun elAltaDePersonajeReintentaConElMismoIdCliente() = runTest {
         val m = montar()
         val vm = m.vm()

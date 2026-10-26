@@ -337,7 +337,7 @@ private fun Formulario(libroVm: LibroViewModel, vm: ElementosViewModel, libro: L
 private fun DatosBasicos(vm: ElementosViewModel, libro: Libro, ficha: FichaEditable) {
     val tipo = ficha.tipo
     val ancha = LocalVentana.current.anchoDp >= 600
-        val nombreError = vm.errorDeNombre ?: if (ficha.tocada && !ReglasDeLaFicha.nombreValido(ficha.nombre)) ReglasDeLaFicha.ERROR_DE_NOMBRE else null
+        val nombreError = vm.errorDeNombre ?: if ((ficha.tocada || vm.revisarCampos) && !ReglasDeLaFicha.nombreValido(ficha.nombre)) ReglasDeLaFicha.ERROR_DE_NOMBRE else null
         CampoConContorno(if (tipo == Elemento.CITAS) "Título" else "Nombre de ${tipo.singular}", ficha.nombre, { v -> vm.cambiar { it.copy(nombre = v) } }, Modifier.fillMaxWidth(), error = nombreError, maximo = 100)
         if (ficha.nombreCambiado) {
             SelectorConContorno(
@@ -348,9 +348,16 @@ private fun DatosBasicos(vm: ElementosViewModel, libro: Libro, ficha: FichaEdita
         }
         when (tipo) {
             Elemento.PERSONAJES -> Pareja(ancha,
-                { m -> SelectorConContorno("Estado", vm.estadosDePersonaje, ficha.estadoDePersonaje, { v -> vm.cambiar { it.copy(estadoDePersonaje = v) } }, m) },
-                { m -> SelectorConContorno("Sexo / género", listOf(0 to "Chico", 1 to "Chica", 2 to "No sé"), ficha.sexo, { v -> vm.cambiar { it.copy(sexo = v) } }, m) })
-            Elemento.LOCALIZACIONES -> SelectorConContorno("Estado", vm.estadosDeLugar, ficha.estadoDeLugar, { v -> vm.cambiar { it.copy(estadoDeLugar = v) } }, Modifier.fillMaxWidth())
+                { m ->
+                    SelectorConContorno("Estado", vm.estadosDePersonaje, ficha.estadoDePersonaje, { v -> vm.cambiar { it.copy(estadoDePersonaje = v) } }, m,
+                        error = if (vm.revisarCampos && ficha.estadoDePersonaje == null) "Selecciona un estado." else null)
+                },
+                { m ->
+                    SelectorConContorno("Sexo / género", listOf(0 to "Chico", 1 to "Chica", 2 to "No sé"), ficha.sexo, { v -> vm.cambiar { it.copy(sexo = v) } }, m,
+                        error = if (vm.revisarCampos && ficha.sexo == null) "Selecciona sexo o género." else null)
+                })
+            Elemento.LOCALIZACIONES -> SelectorConContorno("Estado", vm.estadosDeLugar, ficha.estadoDeLugar, { v -> vm.cambiar { it.copy(estadoDeLugar = v) } }, Modifier.fillMaxWidth(),
+                error = if (vm.revisarCampos && ficha.estadoDeLugar == null) "Selecciona un estado." else null)
             Elemento.EVENTOS -> {
                 val elegida = libro.localizaciones.firstOrNull { it.id == ficha.idLocalizacion }?.nombre.orEmpty()
                 val consulta = ficha.textoDeLocalizacion?.let { plegar(it).trim() }.orEmpty()
@@ -390,8 +397,13 @@ private fun DatosBasicos(vm: ElementosViewModel, libro: Libro, ficha: FichaEdita
 @Composable
 private fun HojaDeAlta(vm: ElementosViewModel, libro: Libro, tipo: Elemento) {
     val ficha = vm.ficha?.takeIf { vm.modo == ModoDeElementos.Alta }
-    HojaInferior(abierta = ficha != null, alCerrar = { vm.volver() }, titulo = "${if (tipo.femenino) "Nueva" else "Nuevo"} ${tipo.singular}") {
+    val titulo = "${if (tipo.femenino) "Nueva" else "Nuevo"} ${tipo.singular}"
+    HojaInferior(abierta = ficha != null, alCerrar = { vm.volver() }, titulo = titulo) {
         if (ficha == null) return@HojaInferior
+        Row(Modifier.fillMaxWidth().padding(start = Espacios.e4, end = Espacios.e2, bottom = Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
+            Text(titulo, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.2), color = LocalColores.current.tinta), modifier = Modifier.weight(1f))
+            BotonDeIcono(Iconos.close, "Cerrar", { vm.volver() })
+        }
         Column(Modifier.fillMaxWidth().padding(horizontal = Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
             DatosBasicos(vm, libro, ficha)
             Text(

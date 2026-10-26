@@ -1,5 +1,11 @@
 package es.yosiftware.libros.ui.componentes
 
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.ime
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -123,7 +129,19 @@ fun HojaInferior(
         } else {
             Modifier
         }
-        Box(Modifier.fillMaxSize().then(margen), contentAlignment = Alignment.BottomCenter) {
+        // Con el teclado abierto, la hoja sube justo encima: lo que el teclado tapa de su caja, que no siempre llega al
+        // borde de la pantalla (en el libro acaba sobre su barra de abajo) y sin la barra de gestos, que ya va en su relleno.
+        val teclado = WindowInsets.ime.getBottom(densidad)
+        val gestos = WindowInsets.navigationBars.getBottom(densidad)
+        var hastaElBorde by remember { mutableIntStateOf(0) }
+        val subida = with(densidad) { (teclado - maxOf(hastaElBorde, gestos)).coerceAtLeast(0).toDp() }
+        Box(
+            Modifier.fillMaxSize()
+                .onGloballyPositioned { caja -> hastaElBorde = (caja.findRootCoordinates().size.height - caja.boundsInRoot().bottom).roundToInt() }
+                .padding(bottom = subida)
+                .then(margen),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
             val salida = with(densidad) { max(Espacios.e5, abajo).roundToPx() }
             AnimatedVisibility(
                 visible,

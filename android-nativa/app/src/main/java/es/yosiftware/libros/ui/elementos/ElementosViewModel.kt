@@ -74,6 +74,9 @@ class ElementosViewModel(
     /** El error del servidor en el nombre (`markBackendFieldError`). */
     var errorDeNombre by mutableStateOf<String?>(null)
         private set
+    /** Tras intentar guardar con algo pendiente: los campos obligatorios vacíos enseñan su error (el `mat-error` de la web). */
+    var revisarCampos by mutableStateOf(false)
+        private set
     /** Para el libro abierto: el libro tras guardar. */
     var alGuardar: (Libro) -> Unit = {}
 
@@ -133,6 +136,7 @@ class ElementosViewModel(
         original = null
         idCliente = null
         errorDeNombre = null
+        revisarCampos = false
         modo = ModoDeElementos.Alta
         ficha = ReglasDeLaFicha.alta(tipo, libro, estadosDePersonaje, estadosDeLugar, clave())
         recuperar()
@@ -143,6 +147,7 @@ class ElementosViewModel(
         val abierta = ReglasDeLaFicha.deElemento(tipo, libro, id, estadosDeLugar, ::clave) ?: return
         original = abierta
         errorDeNombre = null
+        revisarCampos = false
         modo = ModoDeElementos.Ficha(id)
         ficha = abierta
         recuperar()
@@ -237,6 +242,7 @@ class ElementosViewModel(
         val actual = ficha ?: return
         if (guardando || abandonado) return
         ReglasDeLaFicha.pista(actual)?.let { pista ->
+            revisarCampos = true
             avisos.error(if (actual.esAlta) "Completa los campos obligatorios" else "Revisa los datos de la entidad")
             avisos.informar(pista)
             return
