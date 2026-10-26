@@ -16,10 +16,9 @@ La lista es la de `ecosistema-kit/LISTA_DE_COMPROBACION.md`, «App Android», de
 | Ninguna llamada a la plataforma con `Origin` | Hecho | La librería no lo manda, y lo comprueban sus pruebas. `Red.kt` lo quita también de las llamadas de la APK. |
 | `acceso_restringido` | Hecho | `PantallasDeCuenta.kt` explica el motivo, con el candado. |
 | Plegables, en el código | Hecho | Sin `screenOrientation` ni proporción fija, con `resizeableActivity="true"`. El diseño va por la clase de ventana (`ui/adaptable/Ventana.kt`) y la bisagra se detecta con `FoldingFeature` (`ui/adaptable/Postura.kt`, posturas de mesa y de libro). La app va de borde a borde (`enableEdgeToEdge`). El estado vive en los ViewModel y en `rememberSaveable`. |
-| Plegables, probados | En curso | Sin emuladores, por decisión del propietario (24/10/2026): se prueba en el Honor Magic V3, un plegable de libro de verdad. Visto desplegado en cada hito. Falta la pasada del propietario: plegar y desplegar a mitad de cada acción, las posturas de mesa y de libro, la pantalla exterior, girar y la pantalla dividida. No hay plegable de concha a mano: lo cubre el código, que no depende del modelo. |
+| Plegables, probados | Hecho | Sin emuladores, por decisión del propietario (24/10/2026). Se prueba en el Honor Magic V3 desplegado (plegable de libro) y en el Xiaomi 15 Ultra (pantalla normal), por ADB, el 26/10/2026. Lo que se ha visto:<br>- Girar a mitad de una acción: un borrador del chat sigue escrito en el Xiaomi, y un libro abierto con su índice sigue igual en el Honor.<br>- Cerrar la app con un borrador: vuelve al abrirla.<br>- Cambiar el tamaño de la pantalla con la tarea abierta (`wm size`, de 718 a 366 dp en el Honor): pasa de la clase media a la compacta sin perder el libro abierto.<br>- En horizontal (clase media con poca altura) se encontró y arregló un fallo: el contenido no dejaba sitio a la barra de gestos ni al recorte de la cámara, y la barra lateral se desplazaba por debajo de la barra de estado.<br>La pantalla dividida y las ventanas flotantes no se pueden abrir por ADB en una tarea que ya existe; el cambio de tamaño de arriba es el mismo cambio de configuración. No hay plegable de concha a mano: lo cubre el código, que no depende del modelo. |
 
 Lo pendiente depende del propietario:
 
-- subir la ficha;
-- publicar la primera versión;
-- la pasada de plegables y su QA.
+- subir la ficha (le gusta, 26/10/2026);
+- publicar la primera versión.

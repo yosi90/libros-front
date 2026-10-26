@@ -256,13 +256,18 @@ fun Rail(
             .background(mezclar(colores.superficie, 0.94f))
             .bordeDeNavegacion(arriba = false, mezclar(colores.contorno, 0.68f)),
     ) {
+        // Se desplaza entre las barras del sistema (en horizontal no cabe entero): lo que sube no pasa por debajo de la
+        // de estado.
+        val arriba = zona.calculateTopPadding()
+        val abajo = zona.calculateBottomPadding()
         Column(
             Modifier
+                .padding(top = arriba, bottom = abajo)
                 .verticalScroll(rememberScrollState())
-                .heightIn(min = maxHeight)
+                .heightIn(min = maxHeight - arriba - abajo)
                 .padding(
-                    top = max(Espacios.e5, zona.calculateTopPadding()),
-                    bottom = max(Espacios.e4, zona.calculateBottomPadding()),
+                    top = (Espacios.e5 - arriba).coerceAtLeast(0.dp),
+                    bottom = (Espacios.e4 - abajo).coerceAtLeast(0.dp),
                     start = max(10.dp, izquierda),
                     end = 10.dp + 1.dp,
                 ),

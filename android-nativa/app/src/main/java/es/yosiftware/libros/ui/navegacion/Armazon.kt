@@ -95,7 +95,13 @@ fun Armazon(
 
     Box(Modifier.fillMaxSize().background(colores.lienzo)) {
         val hueco = if (ventana.clase.conRail) {
-            PaddingValues(start = Alturas.anchoRail + zona.calculateLeftPadding(direccion), top = zona.calculateTopPadding())
+            // En horizontal, la barra de gestos queda debajo y el recorte de la cámara puede quedar a la derecha.
+            PaddingValues(
+                start = Alturas.anchoRail + zona.calculateLeftPadding(direccion),
+                top = zona.calculateTopPadding(),
+                end = zona.calculateRightPadding(direccion),
+                bottom = zona.calculateBottomPadding(),
+            )
         } else {
             PaddingValues(
                 top = Alturas.barraSuperior + zona.calculateTopPadding(),
