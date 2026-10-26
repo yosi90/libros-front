@@ -1,0 +1,66 @@
+<div class="fun-title__title" [class.is-hero]="state.html && mode === 'summary'" [class.is-strip]="state.html && mode !== 'summary'">
+  @if (state.html && mode === 'summary') {
+    <!-- Resumen del libro: la cabecera grande arriba. -->
+    <app-book-title-banner class="fun-title__hero" [title]="state.title || ''" [html]="state.html" [styles]="state.styles" [height]="bannerHeight ?? 240"></app-book-title-banner>
+  } @else if (state.html) {
+    <!-- Ficha pública: una franja baja; tocarla la abre en grande (los toques dentro del marco no salen de él). -->
+    <app-book-title-banner class="fun-title__strip" [title]="state.title || ''" [html]="state.html" [styles]="state.styles" [height]="bannerHeight ?? 76"></app-book-title-banner>
+    <button class="fun-title__strip-open" type="button" aria-label="Ver en grande" (click)="openLarge()"></button>
+  } @else {
+    <app-book-title-banner class="fun-title__text" [class.is-empty]="!state.title" [title]="state.title || state.emptyText"></app-book-title-banner>
+  }
+  <button #optionsButton class="icon-button fun-title__options" type="button" cdkOverlayOrigin #optionsOrigin="cdkOverlayOrigin"
+    aria-label="Opciones de tu título" aria-haspopup="dialog" [attr.aria-expanded]="state.optionsOpen" (click)="toggleOptions()"><mat-icon aria-hidden="true">more_horiz</mat-icon></button>
+</div>
+
+<ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="optionsOrigin" [cdkConnectedOverlayOpen]="state.optionsOpen"
+  [cdkConnectedOverlayPositions]="panelPositions" cdkConnectedOverlayPush [cdkConnectedOverlayViewportMargin]="16"
+  (overlayOutsideClick)="closeFromOutside($event)" (overlayKeydown)="onPanelKeydown($event)" (detach)="state.closeOptions()">
+  <div class="fun-title__panel" role="dialog" aria-label="Opciones de tu título" cdkTrapFocus cdkTrapFocusAutoCapture>
+    <div class="fun-title__menu">
+      <button class="fun-title__item" type="button" [class.is-active]="state.generatorOpen" [attr.aria-expanded]="state.generatorOpen" (click)="state.toggleGenerator()"><mat-icon aria-hidden="true">auto_awesome</mat-icon>Generar con IA</button>
+      <button class="fun-title__item" type="button" [class.is-active]="state.editing" [disabled]="state.generating" (click)="state.startEditing()"><mat-icon aria-hidden="true">edit</mat-icon>Editar la frase</button>
+      @if (state.html) {<button class="fun-title__item" type="button" (click)="openLarge()"><mat-icon aria-hidden="true">open_in_full</mat-icon>Ver en grande</button>}
+    </div>
+
+    @if (state.editing) {
+      <form class="fun-title__edit" (ngSubmit)="state.save()">
+        <input class="fun-title__field" type="text" name="funTitle" aria-label="Tu título divertido" autocomplete="off"
+          [maxlength]="state.maxLength" [(ngModel)]="state.draft" [disabled]="state.saving" [attr.aria-invalid]="state.editError ? true : null"
+          (keydown.escape)="$event.stopPropagation(); state.cancelEditing()">
+        @if (state.showCounter) {<small class="fun-title__counter">{{ state.draft.length }} / {{ state.maxLength }}</small>}
+        @if (state.editError) {<p class="fun-title__error" role="alert">{{ state.editError }}</p>}
+        <div class="fun-title__actions">
+          <button class="web-button web-button--small" type="button" (click)="state.cancelEditing()">Cancelar</button>
+          <button class="web-button web-button--small web-button--primary" type="submit" [disabled]="state.saving">{{ state.saving ? 'Guardando…' : 'Guardar' }}</button>
+        </div>
+      </form>
+    } @else if (state.generatorOpen) {
+      <div class="fun-title__generator">
+        @if (state.checkingAi) {
+          <p class="fun-title__note" role="status"><span class="fun-title__spinner" aria-hidden="true"></span>Comprobando tu clave de IA…</p>
+        } @else if (state.aiProblem) {
+          <p class="fun-title__note">{{ state.aiProblem }}</p>
+          <a class="fun-title__link" [href]="state.managementUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>{{ state.managementText }}</a>
+        } @else {
+          <label class="fun-title__model"><span>Modelo</span>
+            <select class="fun-title__field" name="funTitleModel" [(ngModel)]="state.model" [disabled]="state.generating">
+              @for (model of state.models; track model.key) {<option [ngValue]="model.key">{{ model.label }}</option>}
+            </select>
+          </label>
+          <button class="web-button web-button--small web-button--primary" type="button" [disabled]="!state.canGenerate" [attr.aria-busy]="state.generating" (click)="state.generate()">
+            @if (state.generating) {<span class="fun-title__spinner" aria-hidden="true"></span>Generando…} @else {<mat-icon aria-hidden="true">auto_awesome</mat-icon>Generar}
+          </button>
+          @if (state.limitReached) {<p class="fun-title__note fun-title__note--warning">{{ state.limitReachedText }}</p>}
+          @else if (state.limit) {<p class="fun-title__note">{{ state.remainingText }}</p>}
+        }
+        @if (state.generateError) {
+          <p class="fun-title__error" role="alert">{{ state.generateError }}</p>
+          @if (state.generateErrorNeedsManagement) {
+            <a class="fun-title__link" [href]="state.managementUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>{{ state.managementText }}</a>
+          }
+        }
+      </div>
+    }
+  </div>
+</ng-template>

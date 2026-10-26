@@ -1,9 +1,20 @@
 @if (c.snapshot; as snapshot) {
   <div class="stats">
+    <!-- Con cabecera animada, arriba del todo; sin ella, la frase en su bloque. -->
+    @if (c.bookTitle.available && c.bookTitle.html) {
+      <app-web-book-title class="stats__fun-title" mode="summary" [state]="c.bookTitle"></app-web-book-title>
+    }
     <header class="stats__head">
       <p class="eyebrow">Resumen del libro</p>
       <h1>Tu lectura de un vistazo</h1>
     </header>
+
+    @if (c.bookTitle.available && !c.bookTitle.html) {
+      <section class="panel" aria-labelledby="web-book-fun-title">
+        <header><h2 id="web-book-fun-title">Tu título</h2></header>
+        <app-web-book-title [state]="c.bookTitle"></app-web-book-title>
+      </section>
+    }
 
     <div class="hero">
       <!-- Compacta (opción A del propietario, 26/10/2026): lo que no tiene dato no ocupa sitio. -->

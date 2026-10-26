@@ -7,6 +7,7 @@ import { BookSimple } from '../../../../interfaces/book';
 import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
+import { OwnFunTitlePipe } from '../../../../shared/own-fun-title.pipe';
 import { WebScopedSearchComponent } from '../../ui/web-scoped-search/web-scoped-search.component';
 import {
     anthologySectionPageLabel, anthologySectionProgress, isNeutralUniverse, LibraryCardItem,
@@ -24,7 +25,7 @@ import { sagaChainCaption, sagaChainPosition } from '../../../../shared/saga-cha
 @Component({
     selector: 'app-web-library-view',
     standalone: true,
-    imports: [SwipeToCloseDirective, AsyncPipe, NgTemplateOutlet, MatIconModule, RouterLink, CoverCachePipe, WebScopedSearchComponent],
+    imports: [SwipeToCloseDirective, AsyncPipe, NgTemplateOutlet, MatIconModule, RouterLink, CoverCachePipe, OwnFunTitlePipe, WebScopedSearchComponent],
     templateUrl: './web-library-view.component.html',
     styleUrl: './web-library-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

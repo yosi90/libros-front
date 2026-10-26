@@ -1,0 +1,213 @@
+@use '../../../../../assets/css/wood/primitives' as wood
+
+// «Tu título» Wood: la cabecera o la frase en cursiva serif crema, con un solo botón de opciones dorado.
+:host
+    display: block
+    min-width: 0
+    color: #f0dfc5
+
+.wood-fun-title__title
+    position: relative
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+    &.is-hero,
+    &.is-strip
+        display: block
+
+.wood-fun-title__text
+    flex: 1
+    min-width: 0
+    color: #fbecd6
+    font-family: Georgia, 'Times New Roman', serif
+    font-size: 1.08rem
+    font-style: italic
+    line-height: 1.45
+    overflow-wrap: anywhere
+
+    &.is-empty
+        color: #bfa77f
+        font-size: .95rem
+
+.wood-fun-title__hero
+    --book-title-banner-radius: 8px
+
+.wood-fun-title__strip
+    --book-title-banner-radius: 7px
+
+// Tocar la franja la abre en grande: el marco no deja salir los toques, así que un botón transparente la cubre.
+.wood-fun-title__strip-open
+    position: absolute
+    inset: 0
+    padding: 0
+    background: transparent
+    border: 0
+    border-radius: 7px
+    cursor: zoom-in
+    @include wood.focus-ring
+
+.wood-fun-title__options
+    @include wood.button-ghost
+    flex: none
+    width: 34px
+    padding: 0
+
+    .is-hero &,
+    .is-strip &
+        position: absolute
+        top: 8px
+        right: 8px
+        background: rgba(20, 17, 13, .78)
+
+// ---------- Panel de opciones ----------
+
+.wood-fun-title__panel
+    box-sizing: border-box
+    display: grid
+    gap: 10px
+    width: min(380px, calc(100vw - 32px))
+    max-height: calc(100dvh - 32px)
+    overflow: auto
+    padding: 12px
+    color: #f0dfc5
+    font-family: Arial, sans-serif
+    background: rgba(29, 24, 18, .97)
+    border: 1px solid rgba(218, 166, 91, .32)
+    border-radius: 8px
+    box-shadow: 0 16px 36px rgba(0, 0, 0, .45)
+
+.wood-fun-title__menu
+    display: grid
+    gap: 2px
+
+.wood-fun-title__item
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 36px
+    padding: 0 10px
+    color: #f5deb3
+    font: inherit
+    text-align: left
+    background: transparent
+    border: 0
+    border-radius: 6px
+    cursor: pointer
+    @include wood.focus-ring
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+        color: #d9a956
+
+    &:hover,
+    &.is-active
+        background: rgba(218, 166, 91, .14)
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .5
+
+.wood-fun-title__edit,
+.wood-fun-title__generator
+    display: grid
+    gap: 8px
+    padding-top: 10px
+    border-top: 1px solid rgba(218, 166, 91, .2)
+
+.wood-fun-title__field
+    box-sizing: border-box
+    width: 100%
+    min-height: 34px
+    padding: 6px 10px
+    color: #f6e6c9
+    font: inherit
+    background: rgba(10, 8, 6, .74)
+    border: 1px solid rgba(218, 166, 91, .26)
+    border-radius: 6px
+
+    &:focus
+        border-color: rgba(245, 214, 154, .6)
+        outline: 0
+
+    &[aria-invalid='true']
+        border-color: #ff9e85
+
+    option
+        color: #f6e6c9
+        background: #1d1712
+
+.wood-fun-title__counter
+    justify-self: end
+    color: #bfa77f
+    font-size: .78rem
+
+.wood-fun-title__actions
+    display: flex
+    flex-wrap: wrap
+    justify-content: flex-end
+    gap: 8px
+
+.wood-fun-title__generator > .wood-fun-title__button
+    justify-self: end
+
+.wood-fun-title__button
+    @include wood.button
+
+.wood-fun-title__button--ghost
+    @include wood.button-ghost
+
+.wood-fun-title__model
+    display: grid
+    gap: 4px
+    min-width: 0
+
+    span
+        color: #bfa77f
+        font-size: .78rem
+
+.wood-fun-title__note,
+.wood-fun-title__error
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    color: #d8c3a2
+    font-size: .86rem
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+        color: #d9a956
+
+.wood-fun-title__note--warning
+    color: #f2c77c
+
+.wood-fun-title__error
+    color: #ffb4a0
+
+.wood-fun-title__link
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    justify-self: start
+    color: #f2c77c
+    font-size: .86rem
+    @include wood.focus-ring
+
+    &:hover
+        color: #f5d69a
+
+.wood-fun-title__busy
+    animation: wood-fun-title-turn 1.6s ease-in-out infinite
+
+    @media (prefers-reduced-motion: reduce)
+        animation: none
+
+@keyframes wood-fun-title-turn
+    to
+        transform: rotate(180deg)

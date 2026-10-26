@@ -23,6 +23,7 @@ import { collectionStateRequests, CollectionStateValues } from '../../../../shar
 import { catalogEntryText } from '../../../../shared/catalog-entry';
 import { ratingEvolutionRows } from '../../../../shared/rating-history';
 import { PublicDetailController } from './public-detail.model';
+import { BookTitleState } from '../book-title/book-title.state';
 
 /**
  * Estado y acciones de la ficha pública de una obra y de su editor de estado,
@@ -52,6 +53,8 @@ export abstract class PublicDetailHost implements PublicDetailController {
     selectedCollectionReview = '';
     excludeCollectionActivity = false;
     isSavingCollection = false;
+    /** «Tu título» del libro de la ficha, si está en la colección (no en antologías). */
+    readonly bookTitle = new BookTitleState();
     /** Lo que había al abrir el editor: solo se envía lo que cambia. */
     private collectionOriginal: CollectionStateValues = { status: null, rating: null, review: '' };
 
@@ -89,6 +92,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
         this.resetReviewDisplayState();
         this.publicDetailLoadFailed = false;
         this.isLoadingPublicDetail = true;
+        this.bookTitle.reset();
 
         const request = item.Tipo === 'libro'
             ? this.catalogSrv.getBookPublicDetail(item.Id)
@@ -103,12 +107,14 @@ export abstract class PublicDetailHost implements PublicDetailController {
                 this.selectedEditionId = preferredEdition(detail.Ediciones ?? item.Ediciones ?? [], detail.MiColeccion?.EdicionesIds)?.Id ?? null;
                 this.applyOwnCollectionFromDetail(detail);
                 this.isLoadingPublicDetail = false;
+                this.loadBookTitle();
             },
             error: () => {
                 if (this.selectedDetailItem?.Id !== item.Id || this.selectedDetailItem.Tipo !== item.Tipo)
                     return;
                 this.publicDetailLoadFailed = true;
                 this.isLoadingPublicDetail = false;
+                this.loadBookTitle();
             }
         });
     }
@@ -121,6 +127,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
         this.resetReviewDisplayState();
         this.publicDetailLoadFailed = false;
         this.isLoadingPublicDetail = false;
+        this.bookTitle.reset();
     }
 
     openCollectionModal(item: CatalogItem, event?: MouseEvent): void {
@@ -191,6 +198,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
                 this.announceCollectionSaved(item, wasInCollection);
                 this.syncSelectedDetailFromCollectionModal();
                 this.closeCollectionModal();
+                this.loadBookTitle();
                 this.afterCollectionSaved();
             },
             error: error => {
@@ -555,6 +563,13 @@ export abstract class PublicDetailHost implements PublicDetailController {
             return 'Sin datos';
 
         return `#${metric.Ranking} de ${metric.TotalItems}`;
+    }
+
+    /** El título divertido solo es de los libros de la colección: lo carga al abrir la ficha y al añadirlo. */
+    protected loadBookTitle(): void {
+        const item = this.selectedDetailItem;
+        if (item?.Tipo === 'libro' && this.isDetailInCollection())
+            this.bookTitle.load(item.Id);
     }
 
     /** Aviso tras guardar el editor de estado; Catálogo distingue el alta de la actualización. */

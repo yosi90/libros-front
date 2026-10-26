@@ -1,5 +1,9 @@
 @if (c.snapshot; as snapshot) {
   <main class="m-book-stats">
+    <!-- Con cabecera animada, arriba del todo y a sangre; sin ella, la frase en su bloque. -->
+    @if (c.bookTitle.available && c.bookTitle.html) {
+      <app-mobile-book-title class="m-book-stats__fun-title" mode="summary" [state]="c.bookTitle"></app-mobile-book-title>
+    }
     <section class="m-book-stats__summary" aria-labelledby="reading-summary-title">
       <header class="m-book-stats__section-heading">
         <div><span class="m-book-stats__section-icon"><mat-icon>insights</mat-icon></span><h1 id="reading-summary-title">Tu lectura</h1></div>
@@ -35,6 +39,15 @@
         @if (c.paceComparison) {<p class="m-book-stats__pace-note">{{c.paceComparison}}</p>}
       }
     </section>
+
+    @if (c.bookTitle.available && !c.bookTitle.html) {
+      <section class="m-book-stats__section" aria-labelledby="m-fun-title-heading">
+        <header class="m-book-stats__section-heading">
+          <div><span class="m-book-stats__section-icon"><mat-icon>auto_awesome</mat-icon></span><h2 id="m-fun-title-heading">Tu título</h2></div>
+        </header>
+        <app-mobile-book-title [state]="c.bookTitle"></app-mobile-book-title>
+      </section>
+    }
 
     <section class="m-book-stats__metrics" aria-label="Cifras del libro">
       @for (metric of [

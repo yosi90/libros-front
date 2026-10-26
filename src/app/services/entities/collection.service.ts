@@ -139,7 +139,8 @@ export class CollectionService {
             FechaAgregado: item.FechaAgregado,
             FechaActualizacion: item.FechaActualizacion,
             PuedeAbrirNarrativa: item.PuedeAbrirNarrativa,
-            NarrativaPersonalDisponible: item.NarrativaPersonalDisponible
+            NarrativaPersonalDisponible: item.NarrativaPersonalDisponible,
+            TituloPropio: item.TituloPropio ?? null
         };
     }
 

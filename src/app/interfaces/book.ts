@@ -91,6 +91,8 @@ export interface BookSimple {
     FechaActualizacion?: string | null;
     PuedeAbrirNarrativa?: boolean;
     NarrativaPersonalDisponible?: boolean;
+    /** El título divertido de la persona (`GET /coleccion/universos`); solo la frase, sin la cabecera. */
+    TituloPropio?: string | null;
 }
 
 export interface DisplayChapter {

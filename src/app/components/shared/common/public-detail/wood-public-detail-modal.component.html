@@ -137,6 +137,10 @@
           @if (controller.publicDetailPersonalReview() && controller.publicDetailPersonalReviewHidden()) {
             <p class="public-own-collection__review public-own-collection__review--muted">Reseña oculta por moderación.</p>
           }
+          @if (controller.isDetailInCollection() && controller.bookTitle.available) {
+            <h4><mat-icon>auto_awesome</mat-icon>Tu título</h4>
+            <app-wood-book-title [state]="controller.bookTitle"></app-wood-book-title>
+          }
         </section>
       }
       @if (controller.isLoadingPublicDetail) {

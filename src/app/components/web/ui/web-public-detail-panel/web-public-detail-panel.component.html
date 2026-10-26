@@ -73,6 +73,10 @@
             @if (controller.publicDetailPersonalRating(); as rating) {<span class="detail__stars" [attr.aria-label]="rating + ' de 5'">@for (star of ratingOptions; track star) {<mat-icon aria-hidden="true">{{star <= rating ? 'star' : 'star_border'}}</mat-icon>}</span>}
           </div>
           @if (controller.publicDetailPersonalReview()) {<blockquote>{{controller.publicDetailPersonalReview()}}</blockquote>}
+          @if (controller.bookTitle.available) {
+            <h3 class="web-eyebrow detail__subhead">Tu título</h3>
+            <app-web-book-title [state]="controller.bookTitle"></app-web-book-title>
+          }
         </section>
       }
 

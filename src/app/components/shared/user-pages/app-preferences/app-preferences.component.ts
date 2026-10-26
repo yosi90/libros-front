@@ -6,13 +6,14 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { ProfileChatPreferencesComponent } from '../user-profile/preferences/profile-chat-preferences.component';
 import { ProfilePlatformPrivacyComponent } from '../user-profile/preferences/profile-platform-privacy.component';
 import { AppearancePreferencesComponent } from './appearance-preferences.component';
+import { ReadingPreferencesComponent } from './reading-preferences.component';
 
-type PreferenceSection = 'appearance' | 'privacy' | 'chat';
+type PreferenceSection = 'appearance' | 'reading' | 'privacy' | 'chat';
 
 @Component({
     selector: 'app-app-preferences',
     standalone: true,
-    imports: [MatIconModule, ProfileChatPreferencesComponent, ProfilePlatformPrivacyComponent, AppearancePreferencesComponent],
+    imports: [MatIconModule, ProfileChatPreferencesComponent, ProfilePlatformPrivacyComponent, AppearancePreferencesComponent, ReadingPreferencesComponent],
     templateUrl: './app-preferences.component.html',
     styleUrl: './app-preferences.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
@@ -21,6 +22,7 @@ export class AppPreferencesComponent {
     activeSection: PreferenceSection = 'privacy';
     readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; description: string; webOnly?: boolean }> = [
         { id: 'appearance', label: 'Apariencia', icon: 'palette', description: 'Tema de la interfaz en este navegador.', webOnly: true },
+        { id: 'reading', label: 'Lectura', icon: 'auto_stories', description: 'Cómo se abren tus libros en este dispositivo.' },
         { id: 'privacy', label: 'Privacidad', icon: 'visibility', description: 'Tu privacidad en Libros es la de tu cuenta de Yosiftware.' },
         { id: 'chat', label: 'Chat', icon: 'forum', description: 'Cómo se comportan tus ventanas de chat en este escritorio.' }
     ];
@@ -46,7 +48,7 @@ export class AppPreferencesComponent {
     availableSections() { return this.sections.filter(section => this.isAvailable(section)); }
     select(section: PreferenceSection): void { this.activeSection = section; }
     private isSection(value: string | null): value is PreferenceSection {
-        return value === 'appearance' || value === 'privacy' || value === 'chat';
+        return value === 'appearance' || value === 'reading' || value === 'privacy' || value === 'chat';
     }
     private section(id: PreferenceSection) { return this.sections.find(section => section.id === id)!; }
     private isAvailable(section: { webOnly?: boolean }): boolean {

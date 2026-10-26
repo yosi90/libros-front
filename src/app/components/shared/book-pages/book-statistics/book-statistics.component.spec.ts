@@ -117,6 +117,30 @@ describe('BookStatisticsComponent', () => {
 
     expect(bookStore.getBook().Estados[0].Fecha).toBe('2026-01-05T00:00:00');
     expect(component.purchaseDate.value).toBeNull();
+    // El libro recargado abre también su título divertido.
+    httpMock.expectOne(`${environment.apiUrl}coleccion/libros/1/titulo`).flush({ success: true, Titulo: null, Generaciones: { Hoy: 0, Limite: 10 } });
+  });
+
+  it('loads the fun title of the open book and hides it when it is not in the collection', () => {
+    bookStore.setBook(createBook([]));
+    const request = httpMock.expectOne(`${environment.apiUrl}coleccion/libros/1/titulo`);
+    expect(request.request.method).toBe('GET');
+    request.flush({ success: true, Titulo: 'Brumas ⚙️ (¬‿¬)', Generaciones: { Hoy: 1, Limite: 10 } });
+    expect(component.bookTitle.available).toBeTrue();
+    expect(component.bookTitle.title).toBe('Brumas ⚙️ (¬‿¬)');
+
+    bookStore.setBook({ ...createBook([]), Id: 2 });
+    httpMock.expectOne(`${environment.apiUrl}coleccion/libros/2/titulo`)
+      .flush({ success: false, code: 'book_not_in_collection', error: 'Ese libro no está en tu colección.' }, { status: 404, statusText: 'Not Found' });
+    expect(component.bookTitle.available).toBeFalse();
+  });
+
+  it('does not ask for a fun title for an anthology section', () => {
+    // Abierta con ?anthologyId= (bookLoadGuard).
+    spyOn(component as unknown as { isAnthologySection: () => boolean }, 'isAnthologySection').and.returnValue(true);
+    bookStore.setBook(createBook([]));
+    httpMock.expectNone(`${environment.apiUrl}coleccion/libros/1/titulo`);
+    expect(component.bookTitle.available).toBeFalse();
   });
 
   it('takes the purchase date of a native date input as a local day', () => {

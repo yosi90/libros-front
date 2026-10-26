@@ -3,6 +3,7 @@ import { PlatformSessionService } from '../../../../services/auth/platform-sessi
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { ObjectManagerComponent } from './object-manager.component';
+import { withBookTitleContext } from '../../common/book-title/book-title.testing';
 
 describe('ObjectManagerComponent editions', () => {
     let component: ObjectManagerComponent;
@@ -16,11 +17,11 @@ describe('ObjectManagerComponent editions', () => {
         universeStore = { setUniverses: jasmine.createSpy('setUniverses'), clear: jasmine.createSpy('clear') };
         collection.getUniverses.and.returnValue(of([]));
         const unused = {} as never;
-        component = new ObjectManagerComponent(
+        component = withBookTitleContext(() => new ObjectManagerComponent(
             unused, unused, universeStore as never,
             { openSnackBar: jasmine.createSpy('openSnackBar'), openApiError: jasmine.createSpy('openApiError') } as never,
             unused, {} as PlatformSessionService, catalog, collection
-        );
+        ));
         component.selectedDetailItem = {
             Tipo: 'libro', Id: 9, Nombre: 'Obra', Portada: null, Autores: [], Estados: [],
             Ediciones: [

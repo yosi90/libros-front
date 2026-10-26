@@ -127,6 +127,13 @@ export async function installLocalVisualSession(page: Page, options: { webPresen
             contentType: 'application/json',
             body: JSON.stringify(visualBook)
         }));
+        // El título divertido del libro: aún sin título ni cabecera, así que no hay escena al abrirlo. Un 404 dejaría
+        // un error de consola; las pruebas del título lo sustituyen por el suyo.
+        await page.route('**/coleccion/libros/*/titulo', route => route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true, Titulo: null, Html: null, Estilos: null, Generaciones: { Hoy: 0, Limite: 10 } })
+        }));
         // Al entrar en la lista de personajes se comprueba con la API su orden y sus grupos (arreglo del alta, `9d98454`).
         await page.route('**/libros/73/personajes/orden', route => route.fulfill({
             status: 200,

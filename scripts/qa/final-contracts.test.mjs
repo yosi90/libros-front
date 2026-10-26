@@ -155,6 +155,13 @@ test('Hosting publica la CSP del kit de Yosiftware y cabeceras defensivas sin bl
     assert.match(csp, /connect-src [^;]*https:\/\/cuentas-api\.yosiftware\.es [^;]*wss:\/\/cuentas-ws\.yosiftware\.es/);
     assert.match(csp, /frame-src https:\/\/cuentas\.yosiftware\.es;/);
     assert.match(csp, /img-src [^;]*https:\/\/cuentas-api\.yosiftware\.es/);
+    // El título divertido de cada libro (iframe `sandbox` con `srcdoc`, que hereda esta CSP): sus fuentes y estilos de
+    // Google Fonts y de los tres CDN que deja el servidor. Nada de esos CDN en `script-src`.
+    for (const cdn of [String.raw`cdnjs\.cloudflare\.com`, String.raw`unpkg\.com`, String.raw`cdn\.jsdelivr\.net`]) {
+        assert.match(csp, new RegExp(`style-src [^;]*https://${cdn}`));
+        assert.match(csp, new RegExp(`font-src [^;]*https://${cdn}`));
+        assert.doesNotMatch(csp, new RegExp(`script-src [^;]*${cdn}`));
+    }
     assert.equal(headers['cross-origin-embedder-policy'], undefined);
     assert.equal(headers['x-content-type-options'], 'nosniff');
     assert.equal(headers['referrer-policy'], 'strict-origin-when-cross-origin');
