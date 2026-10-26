@@ -456,7 +456,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** duplicados que crecerían con las mejoras.
 - **Peligros del cambio:** los mismos que en el hito 1, con `./gradlew :app:testQaDebugUnitTest :app:assembleQaDebug`.
 
-- [ ] Rama, commits, propuestas y pruebas; rama unida y veredicto anotado.
+- [x] Rama, commits, propuestas y pruebas; rama unida y veredicto anotado (26/10/2026). Base `6826083`, unida en `f4590c2`: 12 refactorizaciones, 328 pruebas en verde y 14 propuestas en `ROADMAP_PAUSADO_duplicados-apk-kotlin.md`. Veredicto en `docs/codex/PROJECT_WORKING_NOTES.md`. Falta ver en un móvil los cuatro cambios de interfaz (diálogo de confirmación, filas, sugerencias de ámbito y barra de pantalla completa).
 
 ### Hito 15. Mejoras
 
