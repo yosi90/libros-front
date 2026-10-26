@@ -64,6 +64,8 @@ data class FichaPublica(
         get() = if (ediciones.isNotEmpty()) edicion?.fechaPublicacion else detalle?.obra?.fechaPublicacion ?: obra.fechaPublicacion
 
     val autores: String get() = Catalogo.autores(detalle?.obra?.takeIf { it.autores.isNotEmpty() } ?: obra)
+    /** «26 de octubre de 2026» o «Desde octubre de 2025 (aproximada)» (`catalogEntryText`); vacío si no se sabe. */
+    val enElCatalogo: String get() = Catalogo.textoDeAlta(detalle?.obra?.fechaAlta ?: obra.fechaAlta, detalle?.obra?.fechaAltaAproximada ?: obra.fechaAltaAproximada)
     val idiomas: String get() = (detalle?.obra?.idiomasDisponibles?.takeIf { it.isNotEmpty() } ?: obra.idiomasDisponibles).joinToString(", ") { it.nombre }
     val estilos: String get() = (detalle?.obra?.estilos?.takeIf { it.isNotEmpty() } ?: obra.estilos).joinToString(", ") { it.nombre }
     val notaMedia: String get() = Catalogo.notaMedia(detalle)
@@ -143,6 +145,9 @@ class CatalogoViewModel(
         private set
     var estiloId by mutableStateOf<Int?>(null)
         private set
+    /** «Nuevos» (`selectedNewFilter`): `24h`, `7d`, `30d` o ninguno; con él, de lo más nuevo a lo más antiguo. */
+    var nuevos by mutableStateOf<String?>(null)
+        private set
 
     var sagas by mutableStateOf<List<Saga>>(emptyList())
         private set
@@ -178,7 +183,7 @@ class CatalogoViewModel(
     val chips: List<FiltroDeTexto> get() = Busqueda.filtros(terminos.joinToString("\n"))
     val hayFiltros: Boolean
         get() = terminos.isNotEmpty() || borrador.isNotBlank() || tipo != TipoDeFiltro.TODOS || estado != null ||
-            puntuacionMinima != null || idiomaId != null || estiloId != null
+            puntuacionMinima != null || idiomaId != null || estiloId != null || nuevos != null
 
     // --- La búsqueda y los filtros. ---
 
@@ -208,6 +213,7 @@ class CatalogoViewModel(
         puntuacionMinima = null
         idiomaId = null
         estiloId = null
+        nuevos = null
         cargarCatalogo()
     }
 
@@ -237,6 +243,12 @@ class CatalogoViewModel(
 
     fun elegirEstilo(id: Int?) {
         estiloId = id
+        cargarCatalogo()
+    }
+
+    /** «Nuevos» o el enlace de la novedad diaria (`?nuevos=7d`): solo valen las tres ventanas. */
+    fun elegirNuevos(ventana: String?) {
+        nuevos = ventana?.takeIf { it in VENTANAS_DE_NUEVOS }
         cargarCatalogo()
     }
 
@@ -599,6 +611,7 @@ class CatalogoViewModel(
         puntuacionMinima = null
         idiomaId = null
         estiloId = null
+        nuevos = null
         sagas = emptyList()
         hoja = null
         ficha = null
@@ -620,7 +633,7 @@ class CatalogoViewModel(
         cargando = true
         errorDeCarga = ""
         cargarSagas()
-        val consulta = ConsultaDeCatalogo(estadoId = estado?.id, puntuacionMin = puntuacionMinima, idiomaId = idiomaId, estiloId = estiloId)
+        val consulta = ConsultaDeCatalogo(estadoId = estado?.id, puntuacionMin = puntuacionMinima, idiomaId = idiomaId, estiloId = estiloId, nuevos = nuevos)
         val texto = terminos.joinToString("\n")
         val conLibros = tipo != TipoDeFiltro.ANTOLOGIAS
         val conAntologias = tipo != TipoDeFiltro.LIBROS
@@ -636,7 +649,8 @@ class CatalogoViewModel(
             errorDeCarga = error.mensajeO("No hemos podido cargar el catálogo. Comprueba tu conexión e inténtalo de nuevo.")
             cargando = false
         }) { todas ->
-            obras = Catalogo.filtrar(todas, texto)
+            val filtradas = Catalogo.filtrar(todas, texto)
+            obras = if (nuevos != null) Catalogo.deLoMasNuevo(filtradas) else filtradas
             cargando = false
         }
     }
@@ -798,3 +812,6 @@ class CatalogoViewModel(
         edicion = edicion?.let(cambio)
     }
 }
+
+/** Las ventanas del filtro «Nuevos» (`CATALOG_NEW_WORKS_OPTIONS`), con su nombre. */
+val VENTANAS_DE_NUEVOS = linkedMapOf("24h" to "Últimas 24 horas", "7d" to "Última semana", "30d" to "Último mes")

@@ -43,6 +43,9 @@ data class Obra(
     val porcentajeCompletado: Double? = null,
     val fechaAgregado: String? = null,
     val fechaActualizacion: String? = null,
+    /** Cuándo entró en el catálogo (`FechaAlta`), y si esa fecha es aproximada (lo de antes del 25/10/2026). */
+    val fechaAlta: String? = null,
+    val fechaAltaAproximada: Boolean = false,
     /** De una antología en la colección: el progreso de cada sección. */
     val seccionesProgreso: List<ProgresoDeSeccion> = emptyList(),
     /**
@@ -89,6 +92,8 @@ data class Obra(
             fechaAgregado = json.texto("FechaAgregado"),
             fechaActualizacion = json.texto("FechaActualizacion"),
             seccionesProgreso = json.lista("SeccionesProgreso", ProgresoDeSeccion::de),
+            fechaAlta = json.texto("FechaAlta"),
+            fechaAltaAproximada = json.booleano("FechaAltaAproximada") ?: false,
             secciones = json.listaDe("Secciones", "Libros", leer = Obra::de),
             paginaInicio = json.decimal("PaginaInicio"),
             paginaFinal = json.decimal("PaginaFinal"),
@@ -347,6 +352,11 @@ data class EstadisticasPublicas(
     val popularidadPorPuntuacion: MetricaDeRanking?,
     val popularidadPorIdioma: List<PopularidadDeMetadato>,
     val popularidadPorEstilo: List<PopularidadDeMetadato>,
+    /** Las páginas por día de lectura de sus lectores y los días que tardan en terminarlo (F2; `null` con menos de tres). */
+    val ritmoLectores: Double? = null,
+    val diasMediosParaTerminar: Double? = null,
+    /** La nota media al final de cada mes (F3): año, mes y nota; los meses sin dato no vienen. */
+    val evolucionNota: List<NotaDelMes> = emptyList(),
 ) {
     companion object {
         fun de(json: JSONObject): EstadisticasPublicas {
@@ -373,6 +383,10 @@ data class EstadisticasPublicas(
                 popularidadPorPuntuacion = popularidad?.objeto("Puntuacion")?.let(MetricaDeRanking::de),
                 popularidadPorIdioma = json.lista("PopularidadPorIdioma", PopularidadDeMetadato::de),
                 popularidadPorEstilo = json.lista("PopularidadPorEstilo", PopularidadDeMetadato::de),
+                ritmoLectores = json.decimal("RitmoLectores"),
+                diasMediosParaTerminar = json.decimal("DiasMediosParaTerminar"),
+                evolucionNota = json.lista("EvolucionNota") { mes -> NotaDelMes(mes.entero("Anio") ?: 0, mes.entero("Mes") ?: 0, mes.decimal("NotaMedia")) }
+                    .filter { it.nota != null && it.anio > 0 && it.mes in 1..12 },
             )
         }
     }
@@ -407,3 +421,6 @@ data class DatosDeGoogleBooks(
         )
     }
 }
+
+/** La nota media de una obra al final de un mes (`RatingEvolutionMonth`). */
+data class NotaDelMes(val anio: Int, val mes: Int, val nota: Double?)

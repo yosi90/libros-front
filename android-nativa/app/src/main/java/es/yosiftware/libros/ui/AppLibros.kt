@@ -248,8 +248,9 @@ fun AppLibros(app: LibrosApp) {
             }
             DestinoDelAviso.InvitacionesRecibidas -> accesoA(TipoDeAcceso.INVITACIONES)
             DestinoDelAviso.SolicitudesRecibidas -> accesoA(TipoDeAcceso.SOLICITUDES)
-            // El filtro «Nuevos» (`?nuevos=`) llega a la APK con la F4 de «Estadísticas y altas»; hasta entonces, el catálogo sin él.
+            // `?addBook=` (el libro aprobado) y `?nuevos=` (la novedad diaria).
             is DestinoDelAviso.Catalogo -> {
+                destino.nuevos?.let(catalogo::elegirNuevos)
                 destino.libro?.let(catalogo::anadirLibroAprobado)
                 nav.irA(Destino.Catalogo)
             }

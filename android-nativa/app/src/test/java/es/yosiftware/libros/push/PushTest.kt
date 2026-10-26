@@ -74,7 +74,7 @@ class PushTest {
             DestinoDeEnlace.de("https://qa-libros.yosiftware.es/dashboard/community/clubs?clubTab=access&accessType=invitaciones&direction=recibidas", null, o),
         )
         assertEquals(DestinoDelAviso.Catalogo(libro = 40), DestinoDeEnlace.de("https://qa-libros.yosiftware.es/dashboard/catalog?addBook=40", null, o))
-        assertEquals(DestinoDelAviso.Catalogo(nuevos = true), DestinoDeEnlace.de("https://qa-libros.yosiftware.es/dashboard/catalog?nuevos=7d", null, o))
+        assertEquals(DestinoDelAviso.Catalogo(nuevos = "7d"), DestinoDeEnlace.de("https://qa-libros.yosiftware.es/dashboard/catalog?nuevos=7d", null, o))
         assertEquals(DestinoDelAviso.Libro(139), DestinoDeEnlace.de("https://qa-libros.yosiftware.es/book/139", null, o))
         assertEquals(DestinoDelAviso.Biblioteca, DestinoDeEnlace.de("https://qa-libros.yosiftware.es/book/abc", null, o))
         assertEquals(

@@ -25,6 +25,36 @@ class CatalogoTest {
     private val arcanum = obra(3, "Arcanum ilimitado", antologia = true)
 
     @Test
+    fun losTextosDeLaFichaDeEstadisticasYAltas() {
+        assertEquals("15 de octubre de 2026", Catalogo.textoDeAlta("2026-10-15T12:00:00Z", aproximada = false))
+        assertEquals("Desde marzo de 2025 (aproximada)", Catalogo.textoDeAlta("2025-03-15T12:00:00Z", aproximada = true))
+        assertEquals("", Catalogo.textoDeAlta(null, aproximada = false))
+        assertEquals("oct 2026", Catalogo.mesCorto(2026, 10))
+        assertEquals("sept 2026", Catalogo.mesCorto(2026, 9))
+        assertEquals("4,25", Catalogo.hastaDosDecimales(4.25))
+        assertEquals("4", Catalogo.hastaDosDecimales(4.0))
+        assertEquals("18,5", Catalogo.hastaUnDecimal(18.5))
+        assertEquals("12", Catalogo.hastaUnDecimal(12.0))
+        val estadisticas = es.yosiftware.libros.datos.modelos.EstadisticasPublicas.de(org.json.JSONObject(
+            """{"RitmoLectores": 22.4, "DiasMediosParaTerminar": null,
+                "EvolucionNota": [{"Anio": 2026, "Mes": 9, "NotaMedia": null}, {"Anio": 2026, "Mes": 10, "NotaMedia": 4.2}]}""",
+        ))
+        assertEquals(22.4, estadisticas.ritmoLectores!!, 0.0)
+        assertEquals(null, estadisticas.diasMediosParaTerminar)
+        assertEquals(listOf(es.yosiftware.libros.datos.modelos.NotaDelMes(2026, 10, 4.2)), estadisticas.evolucionNota)
+    }
+
+    @Test
+    fun conNuevosVaDeLoMasNuevoALoMasAntiguo() {
+        val ayer = siega.copy(fechaAlta = "2026-10-25T09:00:00Z")
+        val hoy = elantris.copy(fechaAlta = "2026-10-26T08:00:00Z")
+        val tambienHoy = arcanum.copy(fechaAlta = "2026-10-26T08:00:00Z")
+        val sinFecha = obra(4, "Alcatraz")
+        assertEquals(listOf(tambienHoy, hoy, ayer, sinFecha), Catalogo.deLoMasNuevo(listOf(sinFecha, ayer, hoy, tambienHoy)))
+        assertEquals(listOf("24h", "7d", "30d"), VENTANAS_DE_NUEVOS.keys.toList())
+    }
+
+    @Test
     fun filtraEnElMovilYOrdenaPorNombre() {
         val obras = listOf(siega, elantris, arcanum)
         assertEquals(listOf("Arcanum ilimitado", "Elantris", "Siega"), Catalogo.filtrar(obras, "").map { it.nombre })

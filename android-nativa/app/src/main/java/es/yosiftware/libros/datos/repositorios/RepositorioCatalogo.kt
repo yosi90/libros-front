@@ -25,6 +25,8 @@ data class ConsultaDeCatalogo(
     val estiloId: Int? = null,
     val estadoId: Int? = null,
     val puntuacionMin: Int? = null,
+    /** El filtro «Nuevos» (F1 de «Estadísticas y altas»): `24h`, `7d` o `30d`. */
+    val nuevos: String? = null,
 ) {
     fun comoConsulta(): Map<String, Any?> = mapOf(
         "q" to q,
@@ -35,6 +37,7 @@ data class ConsultaDeCatalogo(
         "estiloId" to estiloId,
         "estadoId" to estadoId,
         "puntuacionMin" to puntuacionMin,
+        "nuevos" to nuevos,
     )
 }
 

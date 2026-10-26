@@ -12,7 +12,7 @@ sealed interface DestinoDelAviso {
     data class Club(val id: Int) : DestinoDelAviso
     data object InvitacionesRecibidas : DestinoDelAviso
     data object SolicitudesRecibidas : DestinoDelAviso
-    data class Catalogo(val libro: Int? = null, val nuevos: Boolean = false) : DestinoDelAviso
+    data class Catalogo(val libro: Int? = null, val nuevos: String? = null) : DestinoDelAviso
     data object Biblioteca : DestinoDelAviso
     /** Un libro de la biblioteca (`/book/{id}`, el enlace compartido de un libro). */
     data class Libro(val id: Int) : DestinoDelAviso
@@ -70,7 +70,7 @@ object DestinoDeEnlace {
             ruta.startsWith("/dashboard/community/clubs/") ->
                 ruta.removePrefix("/dashboard/community/clubs/").toIntOrNull()?.let { DestinoDelAviso.Club(it) } ?: DestinoDelAviso.Clubes
             ruta == "/dashboard/community" -> DestinoDelAviso.Comunidad
-            ruta == "/dashboard/catalog" -> DestinoDelAviso.Catalogo(consulta["addBook"]?.toIntOrNull(), consulta["nuevos"] != null)
+            ruta == "/dashboard/catalog" -> DestinoDelAviso.Catalogo(consulta["addBook"]?.toIntOrNull(), consulta["nuevos"]?.takeIf { it.isNotBlank() })
             ruta == "/dashboard/books" || ruta == "/dashboard" -> DestinoDelAviso.Biblioteca
             // La sección de una antología (`?anthologyId=`) no tiene pantalla propia en la APK: la web.
             ruta.startsWith("/book/") && "anthologyId" !in consulta ->

@@ -87,6 +87,30 @@ object Catalogo {
     }
 
     /** Si la obra de la ficha es de la persona (`isDetailInCollection`). */
+    private val diaLargo = java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es-ES"))
+    private val mesLargo = java.time.format.DateTimeFormatter.ofPattern("MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es-ES"))
+    private val mesesCortos = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic")
+
+    /** Cuándo entró en el catálogo (`catalogEntryText`): el día, o el mes si es aproximada; vacío si no se sabe. */
+    fun textoDeAlta(fecha: String?, aproximada: Boolean): String {
+        val dia = es.yosiftware.libros.datos.leerFecha(fecha) ?: return ""
+        return if (aproximada) "Desde ${dia.format(mesLargo)} (aproximada)" else dia.format(diaLargo)
+    }
+
+    /** Hasta dos cifras decimales, con coma (la nota media de un mes). */
+    fun hastaDosDecimales(valor: Double): String =
+        java.math.BigDecimal(valor).setScale(2, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString().replace('.', ',')
+
+    /** «oct 2026» (`monthLabel`). */
+    fun mesCorto(anio: Int, mes: Int): String = "${mesesCortos.getOrElse(mes - 1) { mes.toString() }} $anio"
+
+    /** Hasta una cifra decimal, con coma (`toLocaleString('es-ES', { maximumFractionDigits: 1 })`). */
+    fun hastaUnDecimal(valor: Double): String = es.yosiftware.libros.datos.conUnDecimal(valor).replace('.', ',').removeSuffix(",0")
+
+    /** De lo más nuevo a lo más antiguo por su alta, y a igual alta por nombre (`newestFirst`). */
+    fun deLoMasNuevo(obras: List<Obra>): List<Obra> =
+        obras.sortedWith(compareByDescending<Obra> { it.fechaAlta.orEmpty() }.thenBy { it.nombre })
+
     fun fichaEnColeccion(detalle: DetallePublico?, obra: Obra?): Boolean {
         val mia = detalle?.miColeccion
         if (mia != null) {

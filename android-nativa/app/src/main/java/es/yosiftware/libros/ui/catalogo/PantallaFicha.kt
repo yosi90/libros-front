@@ -130,6 +130,7 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
                             Dato("ISBN", ficha.isbn, Modifier.weight(1f))
                             Dato("Publicación", ficha.fechaDePublicacion, Modifier.weight(1f))
                         }
+                        Dato("En el catálogo", ficha.enElCatalogo, Modifier.fillMaxWidth())
                         Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e4)) {
                             Dato("Idiomas", ficha.idiomas, Modifier.weight(1f))
                             Dato("Estilos", ficha.estilos, Modifier.weight(1f))
@@ -157,6 +158,25 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
                             Metrica(estadisticas.usuariosEnBiblioteca, "bibliotecas", Modifier.weight(1f))
                             Metrica(estadisticas.totalLeidos, "lecturas", Modifier.weight(1f))
                             Metrica(estadisticas.totalEnMarcha, "en marcha", Modifier.weight(1f))
+                        }
+                        // El ritmo de sus lectores y la evolución de la nota (F2 y F3): solo con datos (tres lectores o más).
+                        val ritmo = listOfNotNull(
+                            estadisticas.ritmoLectores?.let { Catalogo.hastaUnDecimal(it) to "págs. por día de lectura" },
+                            estadisticas.diasMediosParaTerminar?.let { Catalogo.hastaUnDecimal(it) to "días para terminarlo" },
+                        )
+                        if (ritmo.isNotEmpty()) {
+                            Row(Modifier.fillMaxWidth().padding(top = Espacios.e2).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+                                ritmo.forEach { (valor, nombre) -> Metrica(valor, nombre, Modifier.weight(1f)) }
+                            }
+                        }
+                        if (estadisticas.evolucionNota.isNotEmpty()) {
+                            TextoEyebrow("Evolución de la nota", Modifier.padding(top = Espacios.e4))
+                            estadisticas.evolucionNota.chunked(3).forEach { fila ->
+                                Row(Modifier.fillMaxWidth().padding(top = Espacios.e2).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+                                    fila.forEach { mes -> Metrica(Catalogo.hastaDosDecimales(mes.nota ?: 0.0), Catalogo.mesCorto(mes.anio, mes.mes), Modifier.weight(1f)) }
+                                    repeat(3 - fila.size) { Box(Modifier.weight(1f)) }
+                                }
+                            }
                         }
                     }
                 }
@@ -267,10 +287,13 @@ private fun Cita(texto: String) {
 
 /** Una cifra de la comunidad: el número en el primario y su nombre debajo. */
 @Composable
-private fun Metrica(valor: Int, nombre: String, modifier: Modifier) {
+private fun Metrica(valor: Int, nombre: String, modifier: Modifier) = Metrica(valor.toString(), nombre, modifier)
+
+@Composable
+private fun Metrica(valor: String, nombre: String, modifier: Modifier) {
     val colores = LocalColores.current
     Tarjeta(modifier.fillMaxHeight()) {
-        Text(valor.toString(), style = Textos.cuerpo.copy(fontSize = rem(1.25), fontWeight = FontWeight.Bold, color = colores.primario, textAlign = TextAlign.Center), modifier = Modifier.fillMaxWidth())
+        Text(valor, style = Textos.cuerpo.copy(fontSize = rem(1.25), fontWeight = FontWeight.Bold, color = colores.primario, textAlign = TextAlign.Center), modifier = Modifier.fillMaxWidth())
         Text(nombre, style = Textos.cuerpo.copy(fontSize = rem(0.68), color = colores.tintaSuave, textAlign = TextAlign.Center), modifier = Modifier.fillMaxWidth().padding(top = 3.dp))
     }
 }

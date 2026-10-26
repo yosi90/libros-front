@@ -214,7 +214,7 @@ private fun BotonCuadrado(@DrawableRes icono: Int, descripcion: String, activo: 
 
 // --- Los filtros. ---
 
-/** `.m-catalog__filters`: el tipo, cuatro desplegables y «Limpiar filtros». Dos columnas desde 600 dp. */
+/** `.m-catalog__filters`: el tipo, cinco desplegables (también «Nuevos») y «Limpiar filtros». Dos columnas desde 600 dp. */
 @Composable
 private fun PanelDeFiltros(vm: CatalogoViewModel, ancha: Boolean) {
     val colores = LocalColores.current
@@ -223,6 +223,7 @@ private fun PanelDeFiltros(vm: CatalogoViewModel, ancha: Boolean) {
         { m -> Desplegable("Puntuación", vm.puntuacionMinima?.let { "$it+" } ?: "Todas", listOf<Pair<String, Int?>>("Todas" to null) + (1..5).map { "$it+" to it }, vm::elegirPuntuacionMinima, m) },
         { m -> Desplegable("Idioma", vm.idiomas.firstOrNull { it.id == vm.idiomaId }?.nombre ?: "Todos", listOf<Pair<String, Int?>>("Todos" to null) + vm.idiomas.map { it.nombre to it.id }, vm::elegirIdioma, m) },
         { m -> Desplegable("Estilo", vm.estilos.firstOrNull { it.id == vm.estiloId }?.nombre ?: "Todos", listOf<Pair<String, Int?>>("Todos" to null) + vm.estilos.map { it.nombre to it.id }, vm::elegirEstilo, m) },
+        { m -> Desplegable("Nuevos", vm.nuevos?.let { VENTANAS_DE_NUEVOS[it] } ?: "Todos", listOf<Pair<String, String?>>("Todos" to null) + VENTANAS_DE_NUEVOS.map { (clave, nombre) -> nombre to clave }, vm::elegirNuevos, m) },
     )
     Tarjeta(Modifier.fillMaxWidth().padding(start = Espacios.e3, end = Espacios.e3, top = Espacios.e3)) {
         Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
