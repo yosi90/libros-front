@@ -3,7 +3,6 @@ package es.yosiftware.libros.datos.modelos
 import es.yosiftware.libros.datos.json.lista
 import es.yosiftware.libros.datos.json.objeto
 import es.yosiftware.libros.datos.json.texto
-import org.json.JSONArray
 import org.json.JSONObject
 
 // El centro de notificaciones de la plataforma (`GET /v1/notificaciones`, docs/publica/ENDPOINTS.md, «Notificaciones»),
@@ -56,11 +55,11 @@ data class AvisoDelCentro(
                 cuerpo = json.texto("cuerpo")?.takeIf { it.isNotBlank() },
                 enlace = json.texto("enlace")?.takeIf { it.isNotBlank() },
                 actor = json.objeto("actor")?.let(PersonaDeYosiftware::de),
-                botones = objetos(json.optJSONArray("botones")).mapNotNull { b ->
+                botones = json.lista("botones") { it }.mapNotNull { b ->
                     val texto = b.texto("texto") ?: return@mapNotNull null
                     BotonDelAviso(texto, b.texto("enlace") ?: return@mapNotNull null)
                 },
-                acciones = objetos(json.optJSONArray("acciones")).mapNotNull { a ->
+                acciones = json.lista("acciones") { it }.mapNotNull { a ->
                     AccionDelAviso(a.texto("clave") ?: return@mapNotNull null, a.texto("texto").orEmpty())
                 },
                 resuelta = json.texto("resuelta")?.takeIf { it.isNotBlank() },
@@ -73,8 +72,6 @@ data class AvisoDelCentro(
                 imagenDelLogro = json.objeto("logro")?.texto("imagen")?.takeIf { it.isNotBlank() },
             )
         }
-
-        private fun objetos(lista: JSONArray?): List<JSONObject> = (0 until (lista?.length() ?: 0)).mapNotNull { lista?.optJSONObject(it) }
     }
 }
 
