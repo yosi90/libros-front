@@ -9,6 +9,7 @@ import es.yosiftware.libros.datos.modelos.EdicionesDeObra
 import es.yosiftware.libros.datos.modelos.EstadoDeLectura
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.Saga
+import es.yosiftware.libros.datos.modelos.TituloDivertido
 import es.yosiftware.libros.datos.modelos.Universo
 import es.yosiftware.libros.datos.modelos.Valoracion
 import es.yosiftware.libros.datos.modelos.hecho
@@ -60,6 +61,16 @@ class RepositorioColeccion(private val api: ClienteLibros) {
     /** La reseña del libro; `null` la borra. */
     suspend fun cambiarResenaDeLibro(id: Int, resena: String?, publicarActividad: Boolean? = null): Valoracion =
         api.patch("coleccion/libros/$id/resena", json("Resena" to nulo(resena), "PublicarActividad" to publicarActividad)).objeto(Valoracion::de)
+
+    // El título divertido de la persona (IA2): suyo, solo de libros de su colección.
+    suspend fun tituloDeLibro(id: Int): TituloDivertido = api.get("coleccion/libros/$id/titulo").objeto(TituloDivertido::de)
+
+    suspend fun cambiarTituloDeLibro(id: Int, titulo: String?): TituloDivertido =
+        api.put("coleccion/libros/$id/titulo", json("Titulo" to nulo(titulo))).objeto(TituloDivertido::de)
+
+    /** Con su clave de IA y el [modelo] (de su [proveedor]) que elige de la lista de la plataforma; lo guarda y lo devuelve. */
+    suspend fun generarTituloDeLibro(id: Int, modelo: String?, proveedor: String?): TituloDivertido =
+        api.post("coleccion/libros/$id/titulo/generar", json("Modelo" to modelo, "Proveedor" to proveedor)).objeto(TituloDivertido::de)
 
     suspend fun corregirEstadoDeLibro(idHistorico: Int, estado: EstadoAGuardar): EstadoDeLectura =
         estadoGuardado(api.patch("coleccion/historicos/libros/estados/$idHistorico", estado.comoJson()).objeto())

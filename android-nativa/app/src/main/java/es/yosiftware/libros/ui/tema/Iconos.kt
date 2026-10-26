@@ -34,6 +34,7 @@ object Iconos {
     @DrawableRes val logout = R.drawable.mi_logout
     @DrawableRes val wifiOff = R.drawable.mi_wifi_off
     @DrawableRes val openInNew = R.drawable.mi_open_in_new
+    @DrawableRes val openInFull = R.drawable.mi_open_in_full
     @DrawableRes val warning = R.drawable.mi_warning
     @DrawableRes val info = R.drawable.mi_info
     @DrawableRes val password = R.drawable.mi_password

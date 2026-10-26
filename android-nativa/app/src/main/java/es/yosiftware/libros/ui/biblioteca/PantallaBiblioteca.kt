@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.biblioteca
 
+import es.yosiftware.libros.ui.libro.TituloEnLinea
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -411,6 +412,7 @@ private fun ContinuaLeyendo(libros: List<Obra>, alAbrir: (Obra) -> Unit) {
                         Portada(libro.portada, null, Modifier.width(64.dp).height(96.dp).clip(RoundedCornerShape(6.dp)))
                         Column(Modifier.weight(1f).heightIn(min = 96.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(libro.nombre, style = Textos.cuerpo.copy(fontSize = rem(0.95), fontWeight = FontWeight.Bold, lineHeight = 1.25.em, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            libro.tituloPropio?.let { TituloEnLinea(it) }
                             val pequena = Textos.cuerpo.copy(fontSize = rem(0.75), color = colores.tintaSuave)
                             Text(libro.autores.joinToString(", ") { it.nombre }, style = pequena, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Spacer(Modifier.weight(1f))

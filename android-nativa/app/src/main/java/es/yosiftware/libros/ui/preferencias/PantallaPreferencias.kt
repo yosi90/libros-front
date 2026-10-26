@@ -1,5 +1,9 @@
 package es.yosiftware.libros.ui.preferencias
 
+import es.yosiftware.libros.ui.libro.EscenaAlAbrir
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Switch
 import es.yosiftware.libros.LibrosApp
 import es.yosiftware.libros.push.EstadoDelPush
 import es.yosiftware.sesion.EstadoSesion
@@ -105,6 +109,7 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Un
             ) {
                 when (pestana) {
                     PestanaDePreferencias.PRIVACIDAD -> Privacidad(alAbrirPrivacidad)
+                    PestanaDePreferencias.LECTURA -> Lectura()
                     PestanaDePreferencias.PERMISOS -> Permisos(alElegirAvisos)
                 }
             }
@@ -121,6 +126,34 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Un
 private fun Privacidad(alAbrir: () -> Unit) {
     Pista("Tu privacidad en Libros es la de tu cuenta de Yosiftware: si ocultas que usas Libros y qué te llega al móvil. Tu perfil y quién puede escribirte se deciden en ella.")
     Boton("Privacidad de todas tus webs", alAbrir, Modifier.fillMaxWidth(), variante = VarianteDeBoton.Contorno, icono = Iconos.simboloYosiftware)
+}
+
+/** «Lectura»: la escena del título al abrir un libro (IA2), encendida por defecto. Es del móvil, no de la cuenta. */
+@Composable
+private fun Lectura() {
+    val colores = LocalColores.current
+    val contexto = LocalContext.current
+    var encendida by remember { mutableStateOf(EscenaAlAbrir.encendida(contexto)) }
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 68.dp).clip(RoundedCornerShape(Radios.sm))
+            .toggleable(value = encendida, role = Role.Switch) {
+                encendida = it
+                EscenaAlAbrir.cambiar(contexto, it)
+            }
+            .padding(vertical = Espacios.e3),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Escena al abrir un libro", color = colores.tinta, style = Textos.cuerpo.copy(fontSize = rem(0.84), fontWeight = FontWeight.Bold))
+            Text(
+                "Si el libro tiene tu título con cabecera animada, se ve a pantalla completa unos segundos al abrirlo. Toca para entrar antes.",
+                color = colores.tintaSuave,
+                style = Textos.cuerpo.copy(fontSize = rem(0.76), lineHeight = rem(0.76 * 1.45)),
+            )
+        }
+        Switch(checked = encendida, onCheckedChange = null)
+    }
 }
 
 /** «Permisos del móvil» (`mobile-app-permissions`), solo con las notificaciones, que se vuelven a mirar al volver a la app. */

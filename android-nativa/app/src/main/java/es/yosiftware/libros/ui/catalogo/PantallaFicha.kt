@@ -42,6 +42,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import es.yosiftware.libros.ui.libro.SitioDelTitulo
+import es.yosiftware.libros.ui.libro.TituloDelLibro
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.ResenaPublica
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
@@ -148,6 +150,7 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
                             Text("$it de 5 estrellas", style = Textos.cuerpo.copy(color = colores.tinta), modifier = Modifier.padding(top = Espacios.e2))
                         }
                         if (ficha.resenaPropia.isNotEmpty()) Cita(ficha.resenaPropia)
+                        if (!ficha.obra.esAntologia) TituloDelLibro(ficha.obra.id, SitioDelTitulo.FRANJA, Modifier.padding(top = Espacios.e4))
                     }
                 }
 

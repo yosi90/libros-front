@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.biblioteca
 
+import es.yosiftware.libros.ui.libro.TituloEnLinea
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -125,6 +126,8 @@ fun TarjetaDeObra(obra: Obra, alAbrir: () -> Unit, alEditar: () -> Unit, alVerEd
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 5.dp),
                 )
+                // Tu título divertido (IA2): solo la frase, sin su cabecera, para que la lista siga siendo ligera.
+                obra.tituloPropio?.let { TituloEnLinea(it, Modifier.padding(top = 2.dp)) }
                 if (tieneVariasEdiciones(obra)) {
                     Box(
                         Modifier.offset(x = (-8).dp).heightIn(min = 44.dp).clip(Radios.pildora).clickable(onClick = alVerEdiciones)

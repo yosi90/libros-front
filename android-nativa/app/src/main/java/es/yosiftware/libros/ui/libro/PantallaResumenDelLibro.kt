@@ -89,6 +89,8 @@ fun PantallaResumenDelLibro(vm: LibroViewModel) {
             Modifier.widthIn(max = 920.dp).fillMaxWidth().verticalScroll(rememberScrollState())
                 .padding(start = if (ancha) Espacios.e6 else 0.dp, end = if (ancha) Espacios.e6 else 0.dp, top = if (ancha) Espacios.e5 else 0.dp, bottom = Espacios.e8),
         ) {
+            // Tu título divertido (IA2), solo de los libros: la portada viva, arriba del todo.
+            if (!libro.obra.esAntologia) TituloDelLibro(libro.obra.id, SitioDelTitulo.CABECERA, Modifier.padding(bottom = Espacios.e4))
             TuLectura(vm, libro, resumen, ancha)
             Cifras(resumen, ancha)
             Destacados(resumen, ancha)

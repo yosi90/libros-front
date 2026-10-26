@@ -11,6 +11,7 @@ import es.yosiftware.libros.ui.tema.Iconos
  */
 enum class PestanaDePreferencias(val etiqueta: String, @param:DrawableRes val icono: Int) {
     PRIVACIDAD("Privacidad", Iconos.visibility),
+    LECTURA("Lectura", Iconos.autoStories),
     PERMISOS("Permisos del móvil", Iconos.appSettingsAlt),
 }
 

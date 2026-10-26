@@ -56,6 +56,8 @@ data class Obra(
     /** De una sección de antología: su primera y su última página dentro de ella. */
     val paginaInicio: Double? = null,
     val paginaFinal: Double? = null,
+    /** De un libro de la colección: el título divertido de la persona (`TituloPropio`, IA2), en texto. */
+    val tituloPropio: String? = null,
 ) {
     val esAntologia: Boolean get() = tipo == ANTOLOGIA
 
@@ -97,6 +99,7 @@ data class Obra(
             secciones = json.listaDe("Secciones", "Libros", leer = Obra::de),
             paginaInicio = json.decimal("PaginaInicio"),
             paginaFinal = json.decimal("PaginaFinal"),
+            tituloPropio = json.texto("TituloPropio")?.takeIf { it.isNotBlank() },
         )
     }
 }

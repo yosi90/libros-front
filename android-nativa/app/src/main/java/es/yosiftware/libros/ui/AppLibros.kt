@@ -35,6 +35,8 @@ import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.NotasViewModel
 import es.yosiftware.libros.ui.elementos.ElementosViewModel
 import es.yosiftware.libros.ui.libro.Elemento
+import es.yosiftware.libros.ui.libro.EscenaAlAbrir
+import es.yosiftware.libros.ui.libro.EscenaDelLibro
 import es.yosiftware.libros.ui.libro.IslaDelLector
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.estadisticas.PantallaEstadisticas
@@ -575,6 +577,15 @@ fun AppLibros(app: LibrosApp) {
                     }
                     val carga = remember(identidad?.generacion, contextoDeCarga != null) { contextoDeCarga?.let { FrasesDelDragon.abrir(it, null) } }
                     carga?.let { CargadorDelDragon(it) }
+                    // La escena del título al abrir un libro (IA2): su cabecera a pantalla completa unos segundos, encima
+                    // del cargador. Solo al abrirlo (no al volver de minimizado) y si la persona no la ha apagado.
+                    val contextoDeLaEscena = LocalContext.current
+                    var escena by remember { mutableStateOf<Int?>(null) }
+                    val obraAbierta = libro.abierto
+                    LaunchedEffect(obraAbierta?.id) {
+                        escena = obraAbierta?.takeIf { !it.esAntologia && !libro.minimizado && EscenaAlAbrir.encendida(contextoDeLaEscena) }?.id
+                    }
+                    escena?.let { id -> EscenaDelLibro(id, alTerminar = { escena = null }) }
                     val contextoDeLaInvitacion = LocalContext.current
                     DialogoDeInvitacion(
                         invitacion,
