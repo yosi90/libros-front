@@ -474,7 +474,14 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
       - «Crear y otro» deja la hoja vacía para el siguiente y «Crear» abre la ficha del nuevo para completarlo;
       - la ficha tiene un solo botón de guardar (en Mobile se quita el de la cabecera; Web y Wood ya tenían uno);
       - el alta sigue enviando la entrada «Descripción» por defecto, con el aviso de nombre repetido, el `IdCliente`, los errores junto al campo y los avisos de siempre. Sin cambios en la API.
-  - [ ] Espacio desperdiciado en los capítulos.
+  - [x] Espacio desperdiciado en los capítulos.
+    - Hecho el 26/10/2026 con la opción A que eligió el propietario, el capítulo compacto, en la APK (`3118bc0`) y en la web (`c4bd0ad`), en Mobile y Web:
+      - un capítulo guardado y sin errores resume sus datos en una línea («Indiscreciones · págs. 145–151 · nº 11», o «pág. 145») que se despliega al tocarla; uno nuevo, o con errores, enseña los campos;
+      - el contador del título solo desde 180 caracteres o con error;
+      - cada escena, sin la cabecera «Escena N»: el título sin etiqueta en una fila con la localización y la papelera (en estrecho, la localización debajo);
+      - la barra de formato de las escenas solo mientras se escribe, y sin ella el editor redondea las cuatro esquinas;
+      - los personajes en una sola fila de fichas estrechas (los solo nombrados en cursiva y con «·»), con «+ Personaje» y su buscador: el nombre pone en escena y la @, como solo nombrado.
+    - Sin cambios en el autoguardado, en «Guardar capítulo», en las validaciones ni en la API. Wood conserva su diseño.
   - [x] Espacio desperdiciado en las estadísticas personales del libro: ocupan demasiado y muestran poco, sobre todo «Tu lectura» (propietario, 2026-10-25).
     - Hecho el 26/10/2026 con la opción A que eligió el propietario, la tarjeta compacta, en Mobile y Web (la web) y en la APK:
       - la línea «Pág. X de Y · Z %» con su barra (o «Vas por la página X»);
