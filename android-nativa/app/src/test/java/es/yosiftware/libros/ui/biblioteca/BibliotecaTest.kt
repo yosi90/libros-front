@@ -200,6 +200,16 @@ class BibliotecaTest {
         assertEquals("La reseña necesita una puntuación", resultado.exceptionOrNull()?.message)
     }
 
+    @Test
+    fun elEditorDeLaBibliotecaYDelCatalogoExigeEstadoYQuitarLaPuntuacionBorraLaResena() {
+        val edicion = EdicionDeColeccion.de(obra(1, "Elantris"))
+        assertEquals("Selecciona un estado de lectura", edicion.cambios().exceptionOrNull()?.message)
+        val conEstado = edicion.copy(valores = edicion.valores.copy(estado = TipoDeEstado.LEIDO))
+        assertEquals(listOf(CambioDeColeccion.Estado(TipoDeEstado.LEIDO)), conEstado.cambios().getOrThrow())
+        assertEquals(ValoresDeColeccion(TipoDeEstado.LEIDO, null, ""), ValoresDeColeccion(TipoDeEstado.LEIDO, 4, "Buena").conPuntuacion(null))
+        assertEquals(ValoresDeColeccion(TipoDeEstado.LEIDO, 5, "Buena"), ValoresDeColeccion(TipoDeEstado.LEIDO, 4, "Buena").conPuntuacion(5))
+    }
+
     // --- Guardar el editor de una sección (`saveAnthologySectionState`). ---
 
     @Test

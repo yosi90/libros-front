@@ -1,9 +1,15 @@
 package es.yosiftware.libros.ui.biblioteca
 
+import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
+import es.yosiftware.libros.datos.repositorios.EstadoAGuardar
+import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 
 /** Lo que edita el editor de estado, puntuación y reseña de una obra (`CollectionStateValues`). */
-data class ValoresDeColeccion(val estado: TipoDeEstado?, val puntuacion: Int?, val resena: String)
+data class ValoresDeColeccion(val estado: TipoDeEstado?, val puntuacion: Int?, val resena: String) {
+    /** Sin puntuación no hay reseña: quitarla la borra (`setCollectionRating`). */
+    fun conPuntuacion(puntuacion: Int?) = copy(puntuacion = puntuacion, resena = if (puntuacion == null) "" else resena)
+}
 
 /** Una llamada que hay que hacer para guardar el editor. */
 sealed interface CambioDeColeccion {
@@ -27,6 +33,26 @@ fun cambiosDeColeccion(nuevo: ValoresDeColeccion, original: ValoresDeColeccion):
         return Result.failure(IllegalStateException("La reseña necesita una puntuación"))
     }
     return Result.success(cambios)
+}
+
+/**
+ * Lo que hay que mandar para guardar el editor de una obra ([cambiosDeColeccion]), o el error para la persona: sin
+ * estado elegido no se guarda (`requireStatus`). Lo comparten la Biblioteca y el Catálogo.
+ */
+fun EdicionDeColeccion.cambios(): Result<List<CambioDeColeccion>> =
+    if (valores.estado == null) Result.failure(IllegalStateException("Selecciona un estado de lectura")) else cambiosDeColeccion(valores, original)
+
+/** Manda [cambios] de [obra], en su orden; con [sinCompartir], sin publicarlos en Comunidad (`PublicarActividad`). */
+suspend fun RepositorioColeccion.guardar(obra: Obra, cambios: List<CambioDeColeccion>, sinCompartir: Boolean) {
+    val publicar = if (sinCompartir) false else null
+    cambios.forEach { cambio ->
+        when (cambio) {
+            is CambioDeColeccion.Estado -> cambiarEstado(obra, EstadoAGuardar(cambio.estado.id, publicarActividad = publicar))
+            is CambioDeColeccion.Puntuacion ->
+                if (obra.esAntologia) puntuarAntologia(obra.id, cambio.puntuacion, cambio.resena, publicar)
+                else puntuarLibro(obra.id, cambio.puntuacion, cambio.resena, publicar)
+        }
+    }
 }
 
 /** Lo que se manda de una sección de antología (`AnthologySectionCollectionWrite`): solo los campos que cambian. */

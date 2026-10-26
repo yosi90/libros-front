@@ -4,14 +4,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import es.yosiftware.libros.datos.ErrorDeLibros
-import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Almacen
+import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.datos.modelos.Universo
-import es.yosiftware.libros.datos.repositorios.EstadoAGuardar
 import es.yosiftware.libros.datos.repositorios.RepositorioCatalogo
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 import es.yosiftware.libros.ui.componentes.Avisador
@@ -27,6 +26,14 @@ data class EdicionDeColeccion(
     /** La reseña solo se escribe con puntuación (`canWriteCollectionReview`). */
     val puedeResenar: Boolean get() = valores.puntuacion != null
     val titulo: String get() = "Actualizando ${obra.nombre}"
+
+    companion object {
+        /** El editor abierto sobre [obra], con lo que tiene ahora. */
+        fun de(obra: Obra): EdicionDeColeccion {
+            val valores = ValoresDeColeccion(obra.ultimoEstado, obra.puntuacion, obra.resena.orEmpty())
+            return EdicionDeColeccion(obra, valores, valores)
+        }
+    }
 }
 
 /** La sección de una antología que se está editando, con lo que tenía al abrir el editor. */
@@ -158,8 +165,7 @@ class BibliotecaViewModel(
     // --- El editor de estado, puntuación y reseña. ---
 
     fun abrirEditor(obra: Obra) {
-        val valores = ValoresDeColeccion(obra.ultimoEstado, obra.puntuacion, obra.resena.orEmpty())
-        edicion = EdicionDeColeccion(obra, valores, valores)
+        edicion = EdicionDeColeccion.de(obra)
     }
 
     fun cerrarEditor() {
@@ -168,10 +174,7 @@ class BibliotecaViewModel(
 
     fun elegirEstadoEnEditor(estado: TipoDeEstado) = cambiarEdicion { it.copy(valores = it.valores.copy(estado = estado)) }
 
-    /** Sin puntuación no hay reseña: quitarla la borra (`setCollectionRating`). */
-    fun elegirPuntuacion(puntuacion: Int?) = cambiarEdicion {
-        it.copy(valores = it.valores.copy(puntuacion = puntuacion, resena = if (puntuacion == null) "" else it.valores.resena))
-    }
+    fun elegirPuntuacion(puntuacion: Int?) = cambiarEdicion { it.copy(valores = it.valores.conPuntuacion(puntuacion)) }
 
     fun escribirResena(texto: String) = cambiarEdicion { it.copy(valores = it.valores.copy(resena = texto)) }
 
@@ -181,11 +184,7 @@ class BibliotecaViewModel(
     fun guardar() {
         val actual = edicion ?: return
         if (guardando) return
-        if (actual.valores.estado == null) {
-            avisos.error("Selecciona un estado de lectura")
-            return
-        }
-        val cambios = cambiosDeColeccion(actual.valores, actual.original).getOrElse {
+        val cambios = actual.cambios().getOrElse {
             avisos.error(it.message.orEmpty())
             return
         }
@@ -194,21 +193,9 @@ class BibliotecaViewModel(
             return
         }
         guardando = true
-        val obra = actual.obra
-        val publicar = if (actual.sinCompartir) false else null
         cargar(
             bloque = {
-                cambios.forEach { cambio ->
-                    when (cambio) {
-                        is CambioDeColeccion.Estado -> {
-                            val estado = EstadoAGuardar(cambio.estado.id, publicarActividad = publicar)
-                            if (obra.esAntologia) coleccion.cambiarEstadoDeAntologia(obra.id, estado) else coleccion.cambiarEstadoDeLibro(obra.id, estado)
-                        }
-                        is CambioDeColeccion.Puntuacion ->
-                            if (obra.esAntologia) coleccion.puntuarAntologia(obra.id, cambio.puntuacion, cambio.resena, publicar)
-                            else coleccion.puntuarLibro(obra.id, cambio.puntuacion, cambio.resena, publicar)
-                    }
-                }
+                coleccion.guardar(actual.obra, cambios, actual.sinCompartir)
                 coleccion.universos()
             },
             alFallar = { error ->
@@ -284,9 +271,7 @@ class BibliotecaViewModel(
 
     fun elegirEstadoDeSeccion(estado: TipoDeEstado) = cambiarSeccion { it.copy(valores = it.valores.copy(estado = estado)) }
 
-    fun puntuarSeccion(puntuacion: Int?) = cambiarSeccion {
-        it.copy(valores = it.valores.copy(puntuacion = puntuacion, resena = if (puntuacion == null) "" else it.valores.resena))
-    }
+    fun puntuarSeccion(puntuacion: Int?) = cambiarSeccion { it.copy(valores = it.valores.conPuntuacion(puntuacion)) }
 
     fun escribirResenaDeSeccion(texto: String) = cambiarSeccion { it.copy(valores = it.valores.copy(resena = texto)) }
 
