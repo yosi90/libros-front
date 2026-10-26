@@ -61,36 +61,62 @@ apx-chart
 .reading
     display: grid
     align-content: start
-    justify-items: center
-    text-align: center
+    gap: var(--web-space-2)
 
-    h2
-        justify-self: start
-
-.reading__gauge
-    width: 100%
-    max-width: 300px
-    margin-top: calc(var(--web-space-2) * -1)
-
-.reading__pages
-    margin: calc(var(--web-space-5) * -1) 0 var(--web-space-2)
+.reading__line
+    margin: 0
     color: var(--web-color-ink-muted)
-    font-size: 14px
+    font-size: 15px
 
     strong
         color: var(--web-color-ink)
+        font-variant-numeric: tabular-nums
 
-.reading__page
-    display: grid
-    gap: 2px
-    margin: var(--web-space-4) 0 var(--web-space-2)
+.reading__bar
+    height: 8px
+    overflow: hidden
+    border-radius: 999px
+    background: var(--web-color-surface-high)
+
+    span
+        display: block
+        height: 100%
+        border-radius: inherit
+        background: var(--web-color-primary)
+
+.reading__dates
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-1) var(--web-space-3)
+    margin: var(--web-space-1) 0 0
+    padding: 0
+    list-style: none
+    font-size: 14px
 
     span
         color: var(--web-color-ink-muted)
-        font-size: 14px
 
-    strong
-        font: 600 44px/1 var(--web-font-reading)
+    .is-state
+        color: var(--web-color-primary)
+        font-weight: 600
+
+.reading__add-date
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-2)
+    color: var(--web-color-primary)
+    font-size: 13px
+    font-weight: 600
+
+    input
+        @include web.field
+        min-height: 30px
+        padding: 2px 6px
+        font-size: 12px
+
+.reading__note
+    margin: 0
 
 .metrics
     display: grid
@@ -141,56 +167,13 @@ apx-chart
         white-space: nowrap
         text-overflow: ellipsis
 
-.journey
-    display: grid
-    grid-template-columns: repeat(3, minmax(0, 1fr))
-    gap: var(--web-space-2)
-    width: 100%
-    margin: var(--web-space-2) 0 0
-    padding: 0
-    text-align: left
-    list-style: none
-
-    li
-        display: grid
-        align-content: start
-        gap: 2px
-        padding-top: var(--web-space-2)
-        border-top: 3px solid var(--web-color-surface-high)
-
-        &.is-done
-            border-top-color: var(--web-color-primary)
-
-    span
-        color: var(--web-color-ink-muted)
-        font-size: 12px
-
-    strong
-        font-size: 14px
-        font-weight: 600
-
-    strong.is-muted
-        color: var(--web-color-ink-subtle)
-        font-weight: 500
-
-.journey__date
-    display: grid
-    gap: 2px
-    color: var(--web-color-primary)
-    font-size: 12px
-    font-weight: 600
-
-    input
-        @include web.field
-        min-height: 30px
-        padding: 2px 6px
-        font-size: 12px
-
 .pace
     display: grid
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr))
     gap: var(--web-space-3)
-    margin: 0 0 var(--web-space-3)
+    margin: var(--web-space-2) 0 0
+    padding-top: var(--web-space-3)
+    border-top: 1px solid var(--web-color-outline)
 
     dt
         color: var(--web-color-ink-muted)

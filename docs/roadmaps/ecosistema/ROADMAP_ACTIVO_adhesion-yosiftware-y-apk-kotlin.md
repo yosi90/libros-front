@@ -466,11 +466,20 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** —.
 - **Peligros del cambio:** mezclarlas con el clon haría imposible comparar con las capturas.
 
-- [ ] Abrir su roadmap o sus entradas en `bugs.md` cuando se cierre el hito 14.
+- [x] Abrir su roadmap o sus entradas en `bugs.md` cuando se cierre el hito 14: se trabaja aquí, punto por punto (26/10/2026).
 - Lista del propietario (2026-10-24, vista en el móvil desplegado), para cuando termine el clon:
   - [ ] La inserción de personajes está mal diseñada, y en general la de todas las entradas.
   - [ ] Espacio desperdiciado en los capítulos.
-  - [ ] Espacio desperdiciado en las estadísticas personales del libro: ocupan demasiado y muestran poco, sobre todo «Tu lectura» (propietario, 2026-10-25).
+  - [x] Espacio desperdiciado en las estadísticas personales del libro: ocupan demasiado y muestran poco, sobre todo «Tu lectura» (propietario, 2026-10-25).
+    - Hecho el 26/10/2026 con la opción A que eligió el propietario, la tarjeta compacta, en Mobile y Web (la web) y en la APK:
+      - la línea «Pág. X de Y · Z %» con su barra (o «Vas por la página X»);
+      - las fechas que tienen dato en una línea, con la puntuación junto a «Puntuado»;
+      - el estado sin fecha, una sola vez;
+      - «Añadir fecha de compra»;
+      - las cuatro cifras de tu ritmo.
+    - Lo que no tiene dato no ocupa sitio. Sin el medidor ni la línea de tiempo vertical.
+    - Wood conserva su diseño.
+    - La APK ya lee `Metricas` (el ritmo y la valoración, de la F4); le falta aún la curva «Tu ritmo en este libro».
   - [ ] Función nueva: el campo `titulo` del libro pasa a `usuario_libros`, propio de cada persona, y se puede generar con IA por la pasarela de la plataforma (Anthropic primero, kit 1.54). Detalle en el roadmap de la IA de la API (`Libros API/docs/roadmaps/PAUSADO_ia/`, IA2).
   - [ ] Función nueva: dictado por voz a los editores RTF de escenas y entradas, con la transcripción de la pasarela y una clave de IA para un modelo mejor (mismo roadmap, IA3).
 - Añadido por el propietario el 2026-10-25, fuera del clon: las peticiones de alta de libros resueltas por la IA con su clave (`PAUSADO_ia`, IA1) y la auditoría de los estilos literarios (`Libros API/docs/roadmaps/PAUSADO_auditoria-estilos/`). Son del backend; la web solo enseña las aprobaciones automáticas.

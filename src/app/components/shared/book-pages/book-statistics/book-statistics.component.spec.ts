@@ -76,6 +76,26 @@ describe('BookStatisticsComponent', () => {
     expect(component.readDateLabel).toBe('Quiero leer');
   });
 
+  it('lists only the reading dates it has, with the rating, and says the state once', () => {
+    component.book = {
+      ...createBook([
+        { Id: 10, EstadoId: 3, Nombre: 'Por comprar', Fecha: '2026-01-10T00:00:00' },
+        { Id: 11, EstadoId: 1, Nombre: 'En marcha', Fecha: '2026-02-10T00:00:00' }
+      ]),
+      Metricas: { Valoracion: { Puntuacion: 4, FechaPuntuacion: '2026-10-26T10:00:00Z', FechaResena: null } }
+    } as Book;
+
+    expect(component.readingMilestones.map(milestone => [milestone.label, milestone.detail])).toEqual([
+      ['Comprado', ''], ['Comenzado', ''], ['Puntuado', '4 ★']
+    ]);
+    expect(component.readingStateLabel).toBe('Lectura actual');
+
+    component.book = createBook([{ Id: 12, EstadoId: 0, Nombre: 'En espera', Fecha: '2026-01-10T00:00:00' }]);
+
+    expect(component.readingMilestones).toEqual([]);
+    expect(component.readingStateLabel).toBe('En espera');
+  });
+
   it('saves a selected purchase date and refreshes the book', () => {
     component.book = createBook([
       { Id: 10, EstadoId: 1, Nombre: 'En marcha', Fecha: '2026-02-10T00:00:00' }

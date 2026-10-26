@@ -62,28 +62,6 @@ function baseChart(palette: BookChartPalette, type: string, height: number): Rec
     };
 }
 
-export function progressChart(progress: ReadingProgress, palette: BookChartPalette): Record<string, unknown> {
-    return {
-        series: [progress.percent ?? 0],
-        chart: { ...baseChart(palette, 'radialBar', 240), sparkline: { enabled: true } },
-        colors: [palette.primary],
-        plotOptions: {
-            radialBar: {
-                startAngle: -120,
-                endAngle: 120,
-                hollow: { size: '64%' },
-                track: { background: palette.surfaceHigh, strokeWidth: '100%' },
-                dataLabels: {
-                    name: { show: true, offsetY: 26, color: palette.muted, fontSize: '13px' },
-                    value: { show: true, offsetY: -12, color: palette.ink, fontSize: '34px', fontWeight: 600, formatter: (value: number) => `${Math.round(value)}%` }
-                }
-            }
-        },
-        stroke: { lineCap: 'round' },
-        labels: ['leído']
-    };
-}
-
 export function pacingChart(snapshot: BookStatisticsSnapshot, palette: BookChartPalette): Record<string, unknown> | null {
     const chapters = orderedChapters(snapshot).filter(chapter => chapter.PaginasEstimadas !== null);
     if (!chapters.length)

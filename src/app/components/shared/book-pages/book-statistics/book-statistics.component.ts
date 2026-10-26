@@ -212,6 +212,27 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         return this.book.Metricas?.Valoracion?.FechaResena ?? null;
     }
 
+    /**
+     * «Tu lectura», compacta (opción A del propietario, 26/10/2026): solo las fechas que tienen dato, en su orden, y la
+     * puntuación junto a «Puntuado».
+     */
+    get readingMilestones(): Array<{ label: string; date: string; detail: string }> {
+        const rating = this.book.Metricas?.Valoracion?.Puntuacion;
+        return [
+            { label: 'Comprado', date: this.boughtDate, detail: '' },
+            { label: 'Comenzado', date: this.startedDate, detail: '' },
+            { label: 'Leído', date: this.finishedDate, detail: '' },
+            { label: 'Puntuado', date: this.ratedDate, detail: rating ? `${rating} ★` : '' },
+            { label: 'Reseñado', date: this.reviewedDate, detail: '' },
+        ].filter((milestone): milestone is { label: string; date: string; detail: string } => !!milestone.date);
+    }
+
+    /** El estado sin fecha que dice algo («En espera», «Lectura actual», «Descartado»), una sola vez; vacío si no. */
+    get readingStateLabel(): string {
+        const label = !this.startedDate ? this.startedDateLabel : !this.finishedDate ? this.readDateLabel : '';
+        return label === 'Sin dato' ? '' : label;
+    }
+
     get canAddPurchaseDate(): boolean {
         return !!this.book.Id && !this.boughtDate;
     }

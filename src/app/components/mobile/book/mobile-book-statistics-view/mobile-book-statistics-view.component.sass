@@ -103,71 +103,6 @@
                 font-size: .64rem
                 line-height: 1.2
 
-    &__timeline
-        display: grid
-        margin: 0
-
-        > div
-            min-height: 58px
-            display: grid
-            grid-template-columns: minmax(104px, .45fr) minmax(0, 1fr)
-            align-items: center
-            gap: var(--mobile-space-3)
-
-        dt
-            position: relative
-            display: flex
-            align-items: center
-            gap: var(--mobile-space-3)
-            color: var(--mobile-color-ink-muted)
-            font-size: .76rem
-            font-weight: 750
-
-            i
-                width: 12px
-                height: 12px
-                z-index: 1
-                flex: 0 0 auto
-                border: 3px solid var(--mobile-color-primary)
-                border-radius: 50%
-                background: var(--mobile-color-surface)
-
-            &::after
-                position: absolute
-                top: 24px
-                bottom: -34px
-                left: 5px
-                width: 2px
-                content: ''
-                background: var(--mobile-color-outline-strong)
-
-        > div:last-child dt::after
-            display: none
-
-        dd
-            margin: 0
-            color: var(--mobile-color-ink)
-            font-size: .82rem
-            text-align: right
-
-        label
-            display: grid
-            justify-items: end
-            gap: var(--mobile-space-2)
-            color: var(--mobile-color-primary)
-            font-size: .7rem
-            font-weight: 750
-
-        input
-            width: min(145px, 58vw)
-            min-height: 44px
-            padding: 0 var(--mobile-space-2)
-            border: 1px solid var(--mobile-color-outline-strong)
-            border-radius: var(--mobile-radius-sm)
-            color: var(--mobile-color-ink)
-            color-scheme: light dark
-            background: var(--mobile-color-surface)
-
     &__highlights
         display: grid
         gap: 1px
@@ -201,37 +136,69 @@
                 color: var(--mobile-color-primary)
                 font-size: .69rem
 
-    &__progress
-        display: grid
-        justify-items: center
-        text-align: center
-
-    &__gauge
-        display: block
-        width: min(100%, 280px)
-        margin-top: calc(var(--mobile-space-3) * -1)
-
-    &__pages
-        margin: calc(var(--mobile-space-5) * -1) 0 var(--mobile-space-3)
+    // «Tu lectura», compacta (opción A del propietario, 26/10/2026).
+    &__progress-line
+        margin: 0
         color: var(--mobile-color-ink-muted)
-        font-size: .82rem
+        font-size: .86rem
 
         strong
             color: var(--mobile-color-ink)
+            font-variant-numeric: tabular-nums
 
-    &__page
-        display: grid
-        gap: 2px
-        margin: 0 0 var(--mobile-space-2)
+    &__bar
+        height: 8px
+        margin-top: var(--mobile-space-2)
+        overflow: hidden
+        border-radius: 999px
+        background: var(--mobile-color-surface-high)
+
+        span
+            display: block
+            height: 100%
+            border-radius: inherit
+            background: var(--mobile-color-primary)
+
+    &__dates
+        display: flex
+        flex-wrap: wrap
+        gap: var(--mobile-space-1) var(--mobile-space-3)
+        margin: var(--mobile-space-3) 0 0
+        padding: 0
+        list-style: none
+        color: var(--mobile-color-ink)
+        font-size: .8rem
 
         span
             color: var(--mobile-color-ink-muted)
-            font-size: .8rem
 
-        strong
-            font-family: var(--mobile-font-display)
-            font-size: 2.6rem
-            line-height: 1
+        .is-state
+            color: var(--mobile-color-primary)
+            font-weight: 750
+
+    &__add-date
+        display: flex
+        flex-wrap: wrap
+        align-items: center
+        gap: var(--mobile-space-2) var(--mobile-space-3)
+        margin-top: var(--mobile-space-3)
+        color: var(--mobile-color-primary)
+        font-size: .76rem
+        font-weight: 750
+
+        input
+            min-height: 44px
+            padding: 0 var(--mobile-space-2)
+            border: 1px solid var(--mobile-color-outline-strong)
+            border-radius: var(--mobile-radius-sm)
+            color: var(--mobile-color-ink)
+            color-scheme: light dark
+            background: var(--mobile-color-surface)
+
+    &__pace-note
+        margin: var(--mobile-space-2) 0 0
+        color: var(--mobile-color-ink-muted)
+        font-size: .72rem
 
     &__metrics,
     &__highlights
@@ -275,10 +242,11 @@
 
     &__pace
         display: grid
-        grid-template-columns: repeat(2, minmax(0, 1fr))
-        gap: var(--mobile-space-3)
-        margin: 0
-        padding: 0 var(--mobile-space-4) var(--mobile-space-3)
+        grid-template-columns: repeat(4, minmax(0, 1fr))
+        gap: var(--mobile-space-2)
+        margin: var(--mobile-space-3) 0 0
+        padding: var(--mobile-space-3) 0 0
+        border-top: 1px solid var(--mobile-color-outline)
 
         dt
             color: var(--mobile-color-ink-muted)
@@ -289,8 +257,9 @@
         dd
             margin: 2px 0 0
             font-family: var(--mobile-font-display)
-            font-size: 1.05rem
+            font-size: .95rem
             font-variant-numeric: tabular-nums
+            overflow-wrap: anywhere
 
     &__scroll
         overflow-x: auto
@@ -353,7 +322,8 @@
         grid-template-columns: repeat(2, minmax(0, 1fr))
 
 @media (max-width: 359px)
-    .m-book-stats__metrics
+    .m-book-stats__metrics,
+    .m-book-stats__pace
         grid-template-columns: repeat(2, minmax(0, 1fr))
 
 @media (prefers-reduced-motion: reduce)

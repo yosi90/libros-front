@@ -6,7 +6,7 @@ import { BookStatisticsSnapshot } from '../../../../interfaces/statistics';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import type { BookStatisticsComponent } from '../../../shared/book-pages/book-statistics/book-statistics.component';
 import {
-    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, paceCurveChart, pacingChart, presenceHeatmap, progressChart, readingProgress
+    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, paceCurveChart, pacingChart, presenceHeatmap, readingProgress
 } from '../../../../shared/book-charts';
 
 /**
@@ -27,7 +27,6 @@ export class WebBookStatisticsViewComponent implements DoCheck {
 
     progress: ReadingProgress | null = null;
     // Opciones memorizadas: Apex vuelve a dibujar si cambia la identidad de sus entradas.
-    progressOptions: any = null;
     pacing: any = null;
     heatmap: any = null;
     cast: any = null;
@@ -55,12 +54,11 @@ export class WebBookStatisticsViewComponent implements DoCheck {
         const snapshot = this.c.snapshot;
         this.builtFor = snapshot;
         if (!snapshot) {
-            this.progress = this.progressOptions = this.pacing = this.heatmap = this.cast = this.groups = this.paceCurve = null;
+            this.progress = this.pacing = this.heatmap = this.cast = this.groups = this.paceCurve = null;
             return;
         }
         const palette = this.readPalette();
         this.progress = readingProgress(this.c.book, snapshot, !!this.c.finishedDate);
-        this.progressOptions = this.progress.percent === null ? null : progressChart(this.progress, palette);
         this.pacing = pacingChart(snapshot, palette);
         this.heatmap = presenceHeatmap(this.c.book, snapshot, palette);
         this.cast = castPerChapterChart(snapshot, palette);

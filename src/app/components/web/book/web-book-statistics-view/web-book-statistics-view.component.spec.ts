@@ -70,6 +70,12 @@ describe('WebBookStatisticsViewComponent', () => {
             readDateLabel: 'Lectura actual',
             ratedDate: '2026-10-26T18:00:00+01:00',
             reviewedDate: null,
+            readingMilestones: [
+                { label: 'Comenzado', date: '2026-08-20T10:00:00Z', detail: '' },
+                { label: 'Puntuado', date: '2026-10-26T18:00:00+01:00', detail: '4 ★' }
+            ],
+            readingStateLabel: 'Lectura actual',
+            readingPace: null,
             canAddPurchaseDate: true,
             isSavingPurchaseDate: false,
             mostFrequentCharacter: { Nombre: 'Iria', Apariciones: 4 },
@@ -83,20 +89,22 @@ describe('WebBookStatisticsViewComponent', () => {
         fixture.detectChanges();
     });
 
-    it('shows the current page when the book has no page total', () => {
-        expect(fixture.nativeElement.querySelector('.reading__page strong').textContent).toBe('24');
-        expect(fixture.componentInstance.progressOptions).toBeNull();
+    it('shows the current page, without a bar, when the book has no page total', () => {
+        expect(fixture.nativeElement.querySelector('.reading__line strong').textContent).toBe('24');
+        expect(fixture.nativeElement.querySelector('.reading__bar')).toBeNull();
     });
 
-    it('marks the reached steps of the reading journey, also when it was rated and reviewed', () => {
-        const steps = [...fixture.nativeElement.querySelectorAll('.journey li')] as HTMLElement[];
+    it('lists only the reading dates it has, the rating and the state, and no empty pace', () => {
+        const dates = [...fixture.nativeElement.querySelectorAll('.reading__dates li')] as HTMLElement[];
 
-        expect(steps.map(step => step.classList.contains('is-done'))).toEqual([false, true, false, true, false]);
-        expect(steps[4].textContent).toContain('Sin dato');
+        expect(dates.map(date => date.textContent!.trim().split(' ')[0])).toEqual(['Comenzado', 'Puntuado', 'Lectura']);
+        expect(dates[1].textContent).toContain('4 ★');
+        expect(fixture.nativeElement.textContent).not.toContain('Sin dato');
+        expect(fixture.nativeElement.querySelector('.pace')).toBeNull();
     });
 
-    it('saves a purchase date picked in the journey', () => {
-        const input = fixture.nativeElement.querySelector('.journey__date input') as HTMLInputElement;
+    it('saves a purchase date picked in the card', () => {
+        const input = fixture.nativeElement.querySelector('.reading__add-date input') as HTMLInputElement;
         input.value = '2026-07-01';
         input.dispatchEvent(new Event('change'));
 

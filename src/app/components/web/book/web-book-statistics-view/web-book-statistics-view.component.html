@@ -6,32 +6,38 @@
     </header>
 
     <div class="hero">
+      <!-- Compacta (opción A del propietario, 26/10/2026): lo que no tiene dato no ocupa sitio. -->
       <section class="panel reading" aria-labelledby="web-book-progress">
         <h2 id="web-book-progress">Progreso</h2>
-        @if (progressOptions) {
-          <apx-chart class="reading__gauge" [series]="progressOptions.series" [chart]="progressOptions.chart" [colors]="progressOptions.colors"
-            [plotOptions]="progressOptions.plotOptions" [stroke]="progressOptions.stroke" [labels]="progressOptions.labels"></apx-chart>
-          <p class="reading__pages">Página <strong>{{progress?.page}}</strong> de {{progress?.total}}</p>
-        } @else {
-          <p class="reading__page"><span>Vas por la página</span><strong>{{progress?.page || '—'}}</strong></p>
-          <p class="muted">El libro no tiene registrado su total de páginas, así que no podemos calcular el porcentaje.</p>
+        @if (progress && progress.page) {
+          <p class="reading__line">
+            @if (progress.percent !== null && progress.total) {Página <strong>{{progress.page}}</strong> de {{progress.total}} · <strong>{{progress.percent}} %</strong>}
+            @else {Vas por la página <strong>{{progress.page}}</strong>}
+          </p>
+          @if (progress.percent !== null && progress.total) {
+            <div class="reading__bar" role="progressbar" aria-label="Leído" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress.percent"><span [style.width.%]="progress.percent"></span></div>
+          }
         }
-        <ol class="journey">
-          <li [class.is-done]="!!c.boughtDate">
-            <span>Comprado</span>
-            @if (c.boughtDate) {
-              <strong>{{c.boughtDate | date:'d MMM y'}}</strong>
-            } @else if (c.canAddPurchaseDate) {
-              <label class="journey__date">Añadir fecha<input #purchaseInput type="date" [disabled]="c.isSavingPurchaseDate" (change)="c.savePurchaseDateFromInput(purchaseInput.value)"></label>
-            } @else {
-              <strong class="is-muted">Sin dato</strong>
+        @if (c.readingMilestones.length || c.readingStateLabel) {
+          <ul class="reading__dates">
+            @for (milestone of c.readingMilestones; track milestone.label) {
+              <li><span>{{milestone.label}}</span> {{milestone.date | date:'d MMM y'}}@if (milestone.detail) { · {{milestone.detail}}}</li>
             }
-          </li>
-          <li [class.is-done]="!!c.startedDate"><span>Comenzado</span><strong [class.is-muted]="!c.startedDate">{{c.startedDate ? (c.startedDate | date:'d MMM y') : c.startedDateLabel}}</strong></li>
-          <li [class.is-done]="!!c.finishedDate"><span>Leído</span><strong [class.is-muted]="!c.finishedDate">{{c.finishedDate ? (c.finishedDate | date:'d MMM y') : c.readDateLabel}}</strong></li>
-          <li [class.is-done]="!!c.ratedDate"><span>Puntuado</span><strong [class.is-muted]="!c.ratedDate">{{c.ratedDate ? (c.ratedDate | date:'d MMM y') : 'Sin dato'}}</strong></li>
-          <li [class.is-done]="!!c.reviewedDate"><span>Reseñado</span><strong [class.is-muted]="!c.reviewedDate">{{c.reviewedDate ? (c.reviewedDate | date:'d MMM y') : 'Sin dato'}}</strong></li>
-        </ol>
+            @if (c.readingStateLabel) {<li class="is-state">{{c.readingStateLabel}}</li>}
+          </ul>
+        }
+        @if (c.canAddPurchaseDate) {
+          <label class="reading__add-date">Añadir fecha de compra<input #purchaseInput type="date" [disabled]="c.isSavingPurchaseDate" (change)="c.savePurchaseDateFromInput(purchaseInput.value)"></label>
+        }
+        @if (c.readingPace; as pace) {
+          <dl class="pace">
+            <div><dt>Páginas por día</dt><dd>{{pace.PaginasPorDia | number:'1.0-1'}}</dd></div>
+            <div><dt>Días de lectura</dt><dd>{{pace.DiasActivos}}</dd></div>
+            <div><dt>Mejor día</dt><dd>{{c.paceBestDay}}</dd></div>
+            <div><dt>Tu media</dt><dd>{{pace.MediaPersonalPorDia === null ? '—' : (pace.MediaPersonalPorDia | number:'1.0-1')}}</dd></div>
+          </dl>
+          @if (c.paceComparison) {<p class="muted reading__note">{{c.paceComparison}}</p>}
+        }
       </section>
 
       <div class="metrics" aria-label="Cifras del libro">
@@ -58,21 +64,14 @@
       </div>
     </div>
 
-    <section class="panel" aria-labelledby="web-book-my-pace">
-      <header><h2 id="web-book-my-pace">Tu ritmo en este libro</h2>@if (c.paceComparison) {<small>{{c.paceComparison}}</small>}</header>
-      @if (c.readingPace; as pace) {
-        <dl class="pace">
-          <div><dt>Páginas por día</dt><dd>{{pace.PaginasPorDia | number:'1.0-1'}}</dd></div>
-          <div><dt>Días de lectura</dt><dd>{{pace.DiasActivos}}</dd></div>
-          <div><dt>Mejor día</dt><dd>{{c.paceBestDay}}</dd></div>
-          <div><dt>Tu media</dt><dd>{{pace.MediaPersonalPorDia === null ? '—' : (pace.MediaPersonalPorDia | number:'1.0-1')}}</dd></div>
-        </dl>
-        @if (paceCurve) {
-          <apx-chart [series]="paceCurve.series" [chart]="paceCurve.chart" [colors]="paceCurve.colors" [stroke]="paceCurve.stroke" [fill]="paceCurve.fill"
-            [markers]="paceCurve.markers" [dataLabels]="paceCurve.dataLabels" [grid]="paceCurve.grid" [xaxis]="paceCurve.xaxis" [yaxis]="paceCurve.yaxis" [tooltip]="paceCurve.tooltip"></apx-chart>
-        }
-      } @else {<p class="muted">Tu ritmo aparecerá en cuanto registres capítulos de este libro: se guarda desde el {{c.paceSince}}.</p>}
-    </section>
+    <!-- Sus cifras van en «Tu lectura»; aquí, solo la curva, y nada si no hay ritmo. -->
+    @if (paceCurve) {
+      <section class="panel" aria-labelledby="web-book-my-pace">
+        <header><h2 id="web-book-my-pace">Tu ritmo en este libro</h2><small>Hasta qué página llegaste cada día</small></header>
+        <apx-chart [series]="paceCurve.series" [chart]="paceCurve.chart" [colors]="paceCurve.colors" [stroke]="paceCurve.stroke" [fill]="paceCurve.fill"
+          [markers]="paceCurve.markers" [dataLabels]="paceCurve.dataLabels" [grid]="paceCurve.grid" [xaxis]="paceCurve.xaxis" [yaxis]="paceCurve.yaxis" [tooltip]="paceCurve.tooltip"></apx-chart>
+      </section>
+    }
 
     <section class="panel" aria-labelledby="web-book-pacing">
       <header><h2 id="web-book-pacing">Ritmo del libro</h2><small>Páginas de cada capítulo, en orden de lectura</small></header>

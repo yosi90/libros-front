@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { BookStatisticsSnapshot } from '../../../../interfaces/statistics';
 import {
-    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, orderedChapters, paceCurveChart, pacingChart, presenceHeatmap, progressChart, readingProgress
+    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, orderedChapters, paceCurveChart, pacingChart, presenceHeatmap, readingProgress
 } from '../../../../shared/book-charts';
 import type { BookStatisticsComponent } from '../../../shared/book-pages/book-statistics/book-statistics.component';
 
@@ -27,7 +27,6 @@ export class MobileBookStatisticsViewComponent implements OnInit, DoCheck, OnDes
     @Input({ required: true }) controller!: BookStatisticsComponent;
 
     progress: ReadingProgress | null = null;
-    progressOptions: any = null;
     pacing: any = null;
     heatmap: any = null;
     cast: any = null;
@@ -63,13 +62,12 @@ export class MobileBookStatisticsViewComponent implements OnInit, DoCheck, OnDes
         const snapshot = this.c.snapshot;
         this.builtFor = snapshot;
         if (!snapshot) {
-            this.progress = this.progressOptions = this.pacing = this.heatmap = this.cast = this.groups = this.paceCurve = null;
+            this.progress = this.pacing = this.heatmap = this.cast = this.groups = this.paceCurve = null;
             return;
         }
         const palette = this.readPalette();
         const compact = (options: any, height: number) => options ? { ...options, chart: { ...options.chart, height } } : null;
         this.progress = readingProgress(this.c.book, snapshot, !!this.c.finishedDate);
-        this.progressOptions = this.progress.percent === null ? null : compact(progressChart(this.progress, palette), 210);
         this.pacing = compact(pacingChart(snapshot, palette), 220);
         this.heatmap = presenceHeatmap(this.c.book, snapshot, palette);
         this.cast = compact(castPerChapterChart(snapshot, palette), 220);
