@@ -468,7 +468,12 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 
 - [x] Abrir su roadmap o sus entradas en `bugs.md` cuando se cierre el hito 14: se trabaja aquí, punto por punto (26/10/2026).
 - Lista del propietario (2026-10-24, vista en el móvil desplegado), para cuando termine el clon:
-  - [ ] La inserción de personajes está mal diseñada, y en general la de todas las entradas.
+  - [x] La inserción de personajes está mal diseñada, y en general la de todas las entradas.
+    - Hecho el 26/10/2026 con la opción A que eligió el propietario, la creación rápida, en la APK (`2a26c8d`) y en la web (`b114847`), en Mobile, Web y Wood:
+      - «Crear …» abre sobre la lista una hoja con solo los datos básicos de cada tipo (nombre; estado y sexo en personajes; estado en localizaciones; localización en eventos; página y personaje en citas) y la línea «Después podrás añadir su descripción… en su ficha.»;
+      - «Crear y otro» deja la hoja vacía para el siguiente y «Crear» abre la ficha del nuevo para completarlo;
+      - la ficha tiene un solo botón de guardar (en Mobile se quita el de la cabecera; Web y Wood ya tenían uno);
+      - el alta sigue enviando la entrada «Descripción» por defecto, con el aviso de nombre repetido, el `IdCliente`, los errores junto al campo y los avisos de siempre. Sin cambios en la API.
   - [ ] Espacio desperdiciado en los capítulos.
   - [x] Espacio desperdiciado en las estadísticas personales del libro: ocupan demasiado y muestran poco, sobre todo «Tu lectura» (propietario, 2026-10-25).
     - Hecho el 26/10/2026 con la opción A que eligió el propietario, la tarjeta compacta, en Mobile y Web (la web) y en la APK:
