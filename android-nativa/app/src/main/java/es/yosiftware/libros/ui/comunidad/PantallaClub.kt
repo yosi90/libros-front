@@ -57,6 +57,7 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
 import es.yosiftware.libros.ui.componentes.DialogoModal
 import es.yosiftware.libros.ui.componentes.Superficie
 import es.yosiftware.libros.ui.componentes.Tarjeta
@@ -135,15 +136,7 @@ fun PantallaClub(vm: ClubViewModel, acciones: AccionesDelClub) {
             SeccionesDelClub(vm, club, acciones, ancha)
         }
     }
-    vm.confirmacion?.let { confirmacion ->
-        DialogoModal(alCerrar = vm::cancelarConfirmacion) {
-            Text(confirmacion.texto, color = LocalColores.current.tinta, style = Textos.cuerpo)
-            Row(Modifier.fillMaxWidth().padding(top = Espacios.e5), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
-                Boton("Cancelar", vm::cancelarConfirmacion, variante = VarianteDeBoton.Contorno)
-                Boton("Aceptar", vm::aceptarConfirmacion)
-            }
-        }
-    }
+    vm.confirmacion?.let { DialogoDeConfirmacion(it.texto, vm::cancelarConfirmacion, vm::aceptarConfirmacion) }
     vm.denuncia?.let { DialogoDeDenuncia(vm) }
     if (vm.hojaDeSolicitud) DialogoDeSolicitud(vm)
 }

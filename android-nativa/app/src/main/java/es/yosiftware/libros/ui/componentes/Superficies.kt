@@ -4,9 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -31,6 +34,7 @@ import androidx.compose.ui.window.DialogWindowProvider
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
+import es.yosiftware.libros.ui.tema.Textos
 import es.yosiftware.libros.ui.tema.mezclar
 import es.yosiftware.libros.ui.tema.sombra1
 import es.yosiftware.libros.ui.tema.sombra2
@@ -144,6 +148,21 @@ fun DialogoModal(alCerrar: () -> Unit, cerrarFuera: Boolean = true, contenido: @
         ) {
             // El toque dentro no cierra (el `stopPropagation` de la web).
             Dialogo(Modifier.clickable(remember { MutableInteractionSource() }, indication = null) {}, contenido)
+        }
+    }
+}
+
+/**
+ * La confirmación de una acción (el `confirm()` de la web): el [texto] y, abajo a la derecha, «Cancelar» (contorno) y
+ * «Aceptar». Atrás y tocar fuera cancelan.
+ */
+@Composable
+fun DialogoDeConfirmacion(texto: String, alCancelar: () -> Unit, alAceptar: () -> Unit) {
+    DialogoModal(alCerrar = alCancelar) {
+        Text(texto, color = LocalColores.current.tinta, style = Textos.cuerpo)
+        Row(Modifier.fillMaxWidth().padding(top = Espacios.e5), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
+            Boton("Cancelar", alCancelar, variante = VarianteDeBoton.Contorno)
+            Boton("Aceptar", alAceptar)
         }
     }
 }
