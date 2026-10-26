@@ -3,7 +3,6 @@ package es.yosiftware.libros.datos.red
 import es.yosiftware.libros.datos.ErrorDeLibros
 import es.yosiftware.libros.datos.json.texto
 import es.yosiftware.libros.datos.repositorios.TicketDeTiempoReal
-import java.net.URLEncoder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -224,7 +223,7 @@ class TiempoReal(
         val direccion = buildString {
             append(ticket.url)
             append(if ('?' in ticket.url) '&' else '?')
-            append("ticket=").append(URLEncoder.encode(ticket.ticket, "UTF-8"))
+            append("ticket=").append(codificarComponente(ticket.ticket))
             synchronized(cerrojo) { secuencia }?.let { append("&desde=").append(it) }
         }
         val oyente = object : WebSocketListener() {

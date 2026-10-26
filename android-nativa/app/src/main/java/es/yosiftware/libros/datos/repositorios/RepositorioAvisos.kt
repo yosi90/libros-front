@@ -4,7 +4,7 @@ import es.yosiftware.libros.datos.json.objeto
 import es.yosiftware.libros.datos.modelos.AvisoDelCentro
 import es.yosiftware.libros.datos.modelos.Contadores
 import es.yosiftware.libros.datos.modelos.PaginaDelCentro
-import java.net.URLEncoder
+import es.yosiftware.libros.datos.red.codificarComponente
 import org.json.JSONObject
 
 /**
@@ -13,12 +13,12 @@ import org.json.JSONObject
  */
 class RepositorioAvisos(private val plataforma: LlamadaDePlataforma) {
     private suspend fun leer(metodo: String, ruta: String): JSONObject =
-        plataforma.llamar(metodo, ruta, if (metodo == "POST") JSONObject() else null).takeIf { it.isNotBlank() }?.let(::JSONObject) ?: JSONObject()
+        plataforma.objeto(metodo, ruta, if (metodo == "POST") JSONObject() else null)
 
     suspend fun pagina(cursor: String? = null, sinLeer: Boolean = false): PaginaDelCentro {
         val consulta = buildString {
             append("?limite=30")
-            cursor?.let { append("&cursor=").append(URLEncoder.encode(it, "UTF-8")) }
+            cursor?.let { append("&cursor=").append(codificarComponente(it)) }
             if (sinLeer) append("&sinLeer=true")
         }
         return PaginaDelCentro.de(leer("GET", "/v1/notificaciones$consulta"))

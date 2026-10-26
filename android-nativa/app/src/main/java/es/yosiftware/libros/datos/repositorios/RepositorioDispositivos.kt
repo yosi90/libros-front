@@ -1,5 +1,6 @@
 package es.yosiftware.libros.datos.repositorios
 
+import es.yosiftware.libros.datos.json.objetos
 import org.json.JSONObject
 
 /**
@@ -12,7 +13,7 @@ class RepositorioDispositivos(private val plataforma: LlamadaDePlataforma, priva
     suspend fun registrar(fid: String, nombre: String?): Long {
         val cuerpo = JSONObject().put("fid", fid).put("plataforma", "android")
         nombre?.takeIf { it.isNotBlank() }?.let { cuerpo.put("nombre", it.take(80)) }
-        return plataforma.llamar("POST", "/v1/cuenta/dispositivos", cuerpo).takeIf { it.isNotBlank() }?.let { JSONObject(it).optLong("id") } ?: 0
+        return plataforma.objeto("POST", "/v1/cuenta/dispositivos", cuerpo).optLong("id")
     }
 
     suspend fun quitar(id: Long) {
@@ -21,9 +22,8 @@ class RepositorioDispositivos(private val plataforma: LlamadaDePlataforma, priva
 
     /** El id de este móvil en la cuenta (`esteDispositivo`), o `null`. */
     suspend fun este(): Long? {
-        val json = plataforma.llamar("GET", "/v1/cuenta/dispositivos", null).takeIf { it.isNotBlank() }?.let(::JSONObject) ?: return null
-        val lista = json.optJSONArray("dispositivos") ?: return null
-        return (0 until lista.length()).mapNotNull { lista.optJSONObject(it) }.firstOrNull { it.optBoolean("esteDispositivo") }?.optLong("id")
+        val lista = plataforma.objeto("GET", "/v1/cuenta/dispositivos").optJSONArray("dispositivos") ?: return null
+        return lista.objetos().firstOrNull { it.optBoolean("esteDispositivo") }?.optLong("id")
     }
 
     /** Marca leída la notificación del aviso pulsado. `204` también si ya no existe. */
