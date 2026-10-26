@@ -62,6 +62,7 @@ import es.yosiftware.libros.datos.plegar
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.HojaInferior
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.editor.EditorRtf
 import es.yosiftware.libros.ui.libro.Elemento
@@ -116,9 +117,11 @@ fun PantallaElementos(libroVm: LibroViewModel, vista: VistaDelLibro.DeElemento, 
             vm.guardarAhora()
         }
     }
-    val enFormulario = vm.modo != ModoDeElementos.Lista
-    // Atrás en el formulario vuelve a la lista (como la flecha); en la lista, lo atiende el libro.
-    BackHandler(enabled = enFormulario) { vm.volver() }
+    // El formulario a pantalla completa es la ficha; el alta es una hoja sobre la lista (opción A del propietario,
+    // 26/10/2026).
+    val enFormulario = vm.modo is ModoDeElementos.Ficha
+    // Atrás en la ficha vuelve a la lista (como la flecha); en la hoja de alta, la cierra; en la lista, lo atiende el libro.
+    BackHandler(enabled = vm.modo != ModoDeElementos.Lista) { vm.volver() }
     val tipo = vista.elemento
     Column(Modifier.fillMaxSize().background(colores.lienzo)) {
         Cabecera(vm, libro, tipo)
@@ -129,16 +132,15 @@ fun PantallaElementos(libroVm: LibroViewModel, vista: VistaDelLibro.DeElemento, 
                     else Lista(vm, libro, tipo)
                 }
             }
+            // El único botón de guardar de la ficha (antes había también uno en la cabecera).
             if (enFormulario) {
                 Box(Modifier.align(Alignment.BottomEnd).padding(Espacios.e4).sombra2(Radios.pildora, colores)) {
-                    Boton(
-                        if (vm.modo is ModoDeElementos.Ficha) "Guardar cambios" else "Crear ${tipo.singular}",
-                        vm::guardar, icono = Iconos.save, habilitado = !vm.guardando,
-                    )
+                    Boton("Guardar cambios", vm::guardar, icono = Iconos.save, habilitado = !vm.guardando)
                 }
             }
         }
     }
+    HojaDeAlta(vm, libro, tipo)
     vm.nombreRepetido?.let { nombre ->
         AlertDialog(
             onDismissRequest = { vm.confirmarNombreRepetido(false) },
@@ -157,12 +159,8 @@ fun PantallaElementos(libroVm: LibroViewModel, vista: VistaDelLibro.DeElemento, 
 @Composable
 private fun Cabecera(vm: ElementosViewModel, libro: Libro, tipo: Elemento) {
     val colores = LocalColores.current
-    val enFormulario = vm.modo != ModoDeElementos.Lista
-    val titulo = when (vm.modo) {
-        is ModoDeElementos.Ficha -> "Modificar ${tipo.singular}"
-        ModoDeElementos.Alta -> "Crear ${tipo.singular}"
-        ModoDeElementos.Lista -> tipo.etiqueta
-    }
+    val enFormulario = vm.modo is ModoDeElementos.Ficha
+    val titulo = if (enFormulario) "Modificar ${tipo.singular}" else tipo.etiqueta
     val ancho = LocalVentana.current.anchoDp
     Row(
         Modifier.fillMaxWidth().heightIn(min = 64.dp).background(mezclar(colores.lienzo, 0.94f))
@@ -178,14 +176,7 @@ private fun Cabecera(vm: ElementosViewModel, libro: Libro, tipo: Elemento) {
             val tamano = (ancho * 0.04f / 16f).coerceIn(1.15f, 1.55f)
             Text(titulo, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(tamano.toDouble()), lineHeight = 1.2.em, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp))
         }
-        if (enFormulario) {
-            Box(
-                Modifier.size(48.dp).clip(CircleShape).background(colores.primario)
-                    .clickable(enabled = !vm.guardando, role = Role.Button, onClick = vm::guardar)
-                    .semantics { contentDescription = (if (vm.modo is ModoDeElementos.Ficha) "Actualizar " else "Crear ") + tipo.singular },
-                contentAlignment = Alignment.Center,
-            ) { Icon(painterResource(Iconos.save), contentDescription = null, tint = colores.sobrePrimario, modifier = Modifier.size(24.dp)) }
-        } else {
+        if (!enFormulario) {
             Row(
                 Modifier.heightIn(min = 44.dp).clip(Radios.pildora).background(colores.primario)
                     .clickable(role = Role.Button) { vm.abrirAlta() }.padding(horizontal = Espacios.e3),
@@ -303,52 +294,7 @@ private fun Formulario(libroVm: LibroViewModel, vm: ElementosViewModel, libro: L
     val ancha = LocalVentana.current.anchoDp >= 600
     val enlaces = remember(libro, ficha.id) { enlacesDe(libro).filterNot { ficha.id != null && it.id == ficha.id && elementoDe(it.tipo) == tipo } }
     Column {
-        Seccion(null, null) {
-            val nombreError = vm.errorDeNombre ?: if (ficha.tocada && !ReglasDeLaFicha.nombreValido(ficha.nombre)) ReglasDeLaFicha.ERROR_DE_NOMBRE else null
-            CampoConContorno(if (tipo == Elemento.CITAS) "Título" else "Nombre de ${tipo.singular}", ficha.nombre, { v -> vm.cambiar { it.copy(nombre = v) } }, Modifier.fillMaxWidth(), error = nombreError, maximo = 100)
-            if (ficha.nombreCambiado) {
-                SelectorConContorno(
-                    "Tipo de cambio",
-                    listOf(CambioDeNombre.NARRATIVO to "Nuevo nombre; conservar el anterior como apodo", CambioDeNombre.ERRATA to "Corrección de errata"),
-                    ficha.cambioDeNombre, { v -> vm.cambiar { it.copy(cambioDeNombre = v) } }, Modifier.fillMaxWidth(),
-                )
-            }
-            when (tipo) {
-                Elemento.PERSONAJES -> Pareja(ancha,
-                    { m -> SelectorConContorno("Estado", vm.estadosDePersonaje, ficha.estadoDePersonaje, { v -> vm.cambiar { it.copy(estadoDePersonaje = v) } }, m) },
-                    { m -> SelectorConContorno("Sexo / género", listOf(0 to "Chico", 1 to "Chica", 2 to "No sé"), ficha.sexo, { v -> vm.cambiar { it.copy(sexo = v) } }, m) })
-                Elemento.LOCALIZACIONES -> SelectorConContorno("Estado", vm.estadosDeLugar, ficha.estadoDeLugar, { v -> vm.cambiar { it.copy(estadoDeLugar = v) } }, Modifier.fillMaxWidth())
-                Elemento.EVENTOS -> {
-                    val elegida = libro.localizaciones.firstOrNull { it.id == ficha.idLocalizacion }?.nombre.orEmpty()
-                    val consulta = ficha.textoDeLocalizacion?.let { plegar(it).trim() }.orEmpty()
-                    AutocompletadoConContorno(
-                        "Localización", ficha.textoDeLocalizacion ?: elegida,
-                        libro.localizaciones.filter { consulta.isEmpty() || plegar(it.nombre).contains(consulta) }.map { it.id to it.nombre },
-                        "No hay localizaciones disponibles",
-                        alEscribir = { v -> vm.cambiar { it.copy(textoDeLocalizacion = v, idLocalizacion = null) } },
-                        alElegir = { id -> vm.cambiar { it.copy(idLocalizacion = id, textoDeLocalizacion = null) } },
-                        modifier = Modifier.fillMaxWidth(),
-                        ayuda = if (libro.localizaciones.isEmpty()) "Falta la localización base del libro." else null,
-                    )
-                }
-                Elemento.CITAS -> Pareja(ancha,
-                    { m -> CampoConContorno("Página", ficha.pagina, { v -> vm.cambiar { it.copy(pagina = v.filter(Char::isDigit)) } }, m, numerico = true) },
-                    { m ->
-                        val elegido = libro.personajes.firstOrNull { it.id == ficha.idPersonaje }?.nombre.orEmpty()
-                        val consulta = ficha.textoDePersonaje?.let { plegar(it).trim() }.orEmpty()
-                        AutocompletadoConContorno(
-                            "Personaje", ficha.textoDePersonaje ?: elegido,
-                            ListaDeElementos.porOrigen(ListaDeElementos.elementos(libro, Elemento.PERSONAJES), Elemento.PERSONAJES)
-                                .filter { consulta.isEmpty() || plegar(it.nombre).contains(consulta) }.map { it.id to it.nombre },
-                            "No hay personajes disponibles",
-                            alEscribir = { v -> vm.cambiar { it.copy(textoDePersonaje = v, idPersonaje = null) } },
-                            alElegir = { id -> vm.cambiar { it.copy(idPersonaje = id, textoDePersonaje = null) } },
-                            modifier = m,
-                        )
-                    })
-                else -> Unit
-            }
-        }
+        Seccion(null, null) { DatosBasicos(vm, libro, ficha) }
         Seccion(Iconos.notes, "Entradas narrativas", accion = { BotonPequeno("Nueva entrada", Iconos.add) { vm.anadirEntrada() } }) {
             ficha.entradas.forEachIndexed { i, entrada ->
                 Column(
@@ -383,6 +329,80 @@ private fun Formulario(libroVm: LibroViewModel, vm: ElementosViewModel, libro: L
             else -> Unit
         }
         Box(Modifier.heightIn(min = 72.dp))
+    }
+}
+
+/** El nombre y lo que pide cada tipo para existir (estado, sexo, localización, página…): la hoja de alta y la ficha. */
+@Composable
+private fun DatosBasicos(vm: ElementosViewModel, libro: Libro, ficha: FichaEditable) {
+    val tipo = ficha.tipo
+    val ancha = LocalVentana.current.anchoDp >= 600
+        val nombreError = vm.errorDeNombre ?: if (ficha.tocada && !ReglasDeLaFicha.nombreValido(ficha.nombre)) ReglasDeLaFicha.ERROR_DE_NOMBRE else null
+        CampoConContorno(if (tipo == Elemento.CITAS) "Título" else "Nombre de ${tipo.singular}", ficha.nombre, { v -> vm.cambiar { it.copy(nombre = v) } }, Modifier.fillMaxWidth(), error = nombreError, maximo = 100)
+        if (ficha.nombreCambiado) {
+            SelectorConContorno(
+                "Tipo de cambio",
+                listOf(CambioDeNombre.NARRATIVO to "Nuevo nombre; conservar el anterior como apodo", CambioDeNombre.ERRATA to "Corrección de errata"),
+                ficha.cambioDeNombre, { v -> vm.cambiar { it.copy(cambioDeNombre = v) } }, Modifier.fillMaxWidth(),
+            )
+        }
+        when (tipo) {
+            Elemento.PERSONAJES -> Pareja(ancha,
+                { m -> SelectorConContorno("Estado", vm.estadosDePersonaje, ficha.estadoDePersonaje, { v -> vm.cambiar { it.copy(estadoDePersonaje = v) } }, m) },
+                { m -> SelectorConContorno("Sexo / género", listOf(0 to "Chico", 1 to "Chica", 2 to "No sé"), ficha.sexo, { v -> vm.cambiar { it.copy(sexo = v) } }, m) })
+            Elemento.LOCALIZACIONES -> SelectorConContorno("Estado", vm.estadosDeLugar, ficha.estadoDeLugar, { v -> vm.cambiar { it.copy(estadoDeLugar = v) } }, Modifier.fillMaxWidth())
+            Elemento.EVENTOS -> {
+                val elegida = libro.localizaciones.firstOrNull { it.id == ficha.idLocalizacion }?.nombre.orEmpty()
+                val consulta = ficha.textoDeLocalizacion?.let { plegar(it).trim() }.orEmpty()
+                AutocompletadoConContorno(
+                    "Localización", ficha.textoDeLocalizacion ?: elegida,
+                    libro.localizaciones.filter { consulta.isEmpty() || plegar(it.nombre).contains(consulta) }.map { it.id to it.nombre },
+                    "No hay localizaciones disponibles",
+                    alEscribir = { v -> vm.cambiar { it.copy(textoDeLocalizacion = v, idLocalizacion = null) } },
+                    alElegir = { id -> vm.cambiar { it.copy(idLocalizacion = id, textoDeLocalizacion = null) } },
+                    modifier = Modifier.fillMaxWidth(),
+                    ayuda = if (libro.localizaciones.isEmpty()) "Falta la localización base del libro." else null,
+                )
+            }
+            Elemento.CITAS -> Pareja(ancha,
+                { m -> CampoConContorno("Página", ficha.pagina, { v -> vm.cambiar { it.copy(pagina = v.filter(Char::isDigit)) } }, m, numerico = true) },
+                { m ->
+                    val elegido = libro.personajes.firstOrNull { it.id == ficha.idPersonaje }?.nombre.orEmpty()
+                    val consulta = ficha.textoDePersonaje?.let { plegar(it).trim() }.orEmpty()
+                    AutocompletadoConContorno(
+                        "Personaje", ficha.textoDePersonaje ?: elegido,
+                        ListaDeElementos.porOrigen(ListaDeElementos.elementos(libro, Elemento.PERSONAJES), Elemento.PERSONAJES)
+                            .filter { consulta.isEmpty() || plegar(it.nombre).contains(consulta) }.map { it.id to it.nombre },
+                        "No hay personajes disponibles",
+                        alEscribir = { v -> vm.cambiar { it.copy(textoDePersonaje = v, idPersonaje = null) } },
+                        alElegir = { id -> vm.cambiar { it.copy(idPersonaje = id, textoDePersonaje = null) } },
+                        modifier = m,
+                    )
+                })
+            else -> Unit
+        }
+}
+
+/**
+ * La hoja de alta rápida (opción A del propietario, 26/10/2026): solo los datos básicos y «Crear y otro» o «Crear». Al
+ * crear se abre la ficha del nuevo para completarla; la entrada «Descripción» por defecto la exige la API.
+ */
+@Composable
+private fun HojaDeAlta(vm: ElementosViewModel, libro: Libro, tipo: Elemento) {
+    val ficha = vm.ficha?.takeIf { vm.modo == ModoDeElementos.Alta }
+    HojaInferior(abierta = ficha != null, alCerrar = { vm.volver() }, titulo = "${if (tipo.femenino) "Nueva" else "Nuevo"} ${tipo.singular}") {
+        if (ficha == null) return@HojaInferior
+        Column(Modifier.fillMaxWidth().padding(horizontal = Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
+            DatosBasicos(vm, libro, ficha)
+            Text(
+                "Después podrás añadir su descripción${if (tipo == Elemento.PERSONAJES) ", sus apodos y sus relaciones" else ""} en su ficha.",
+                style = Textos.cuerpo.copy(fontSize = rem(0.78), color = LocalColores.current.tintaSuave),
+            )
+            Row(Modifier.fillMaxWidth().padding(top = Espacios.e2, bottom = Espacios.e4), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
+                Boton("Crear y otro", { vm.crearDesdeLaHoja(otro = true) }, variante = VarianteDeBoton.Contorno, habilitado = !vm.guardando)
+                Boton("Crear", { vm.crearDesdeLaHoja(otro = false) }, icono = Iconos.add, habilitado = !vm.guardando)
+            }
+        }
     }
 }
 

@@ -85,6 +85,8 @@ class ElementosViewModel(
     private var borrador: Job? = null
     private var borradorPendiente = false
     private var abandonado = false
+    /** «Crear y otro» en la hoja de alta: tras crear, otra hoja vacía en vez de la ficha del nuevo. */
+    private var otroDespues = false
     private var siguienteClave = System.nanoTime()
     private fun clave() = ++siguienteClave
 
@@ -242,6 +244,16 @@ class ElementosViewModel(
         if (actual.esAlta) crear() else actualizar(silencioso = false) { irALaLista {} }
     }
 
+    /**
+     * La hoja de alta rápida (opción A del propietario, 26/10/2026): solo los datos básicos; con [otro], al crear se abre
+     * otra hoja vacía; si no, la ficha del nuevo, para completarla (entradas, apodos, relaciones).
+     */
+    fun crearDesdeLaHoja(otro: Boolean) {
+        if (ficha?.esAlta != true) return
+        otroDespues = otro
+        guardar()
+    }
+
     /** Al pasar a segundo plano o salir del libro: el borrador en el acto y, si la ficha está bien, al servidor. */
     fun guardarAhora() {
         if (abandonado || ficha == null) return
@@ -306,7 +318,7 @@ class ElementosViewModel(
                 escribirBorrador()
                 return@cargar
             }
-            terminarAlta(actual)
+            terminarAlta(actual, id)
             avisos.exito("${tipo.singularConMayuscula} ${tipo.participio("cread")}")
         }
     }
@@ -350,7 +362,7 @@ class ElementosViewModel(
             if (relaciones.any { it.isFailure }) fallos += "las relaciones"
             val apodos = actual.apodos.filterNot { plegar(it).trim() == plegar(nombre) }.map { a -> runCatching { withTimeout(esperaDelAlta) { servidor.crearApodo(creado.id, libro.id, a) } } }
             if (apodos.any { it.isFailure }) fallos += "los apodos"
-            fallos to runCatching { cargarLibro(libro.id) }.getOrNull()
+            Triple(fallos, runCatching { cargarLibro(libro.id) }.getOrNull(), creado.id)
         }, alFallar = { error ->
             guardando = false
             if (error.codigo == "invalid_client_request_id" || error.codigo == "character_client_request_conflict") idCliente = null
@@ -362,10 +374,10 @@ class ElementosViewModel(
                 avisos.error("La API no ha respondido a tiempo. Si el personaje se ha creado aparecerá en la lista; si vuelves a guardar este formulario no se duplicará.")
                 return@cargar
             }
-            val (fallos, nuevo) = resultado
+            val (fallos, nuevo, id) = resultado
             idCliente = null
             nuevo?.let { recibirLibro(it) }
-            terminarAlta(actual)
+            terminarAlta(actual, id)
             if (fallos.isEmpty()) avisos.exito("Personaje creado")
             else avisos.error("Personaje creado, pero no se ha podido guardar ${unir(fallos)}. Revísalo en su ficha.")
         }
@@ -374,9 +386,14 @@ class ElementosViewModel(
     /** «A, B ni C». */
     private fun unir(partes: List<String>): String = if (partes.size == 1) partes[0] else partes.dropLast(1).joinToString(", ") + " ni " + partes.last()
 
-    private fun terminarAlta(actual: FichaEditable) {
+    /** Tras crear: otra hoja vacía («Crear y otro») o la ficha del nuevo; sin el libro recargado, la lista. */
+    private fun terminarAlta(actual: FichaEditable, id: Int) {
         carpeta?.let { c -> runCatching { BorradoresLocales.borrar(c, actual.claveDelBorrador) } }
-        irALaLista {}
+        val otro = otroDespues
+        otroDespues = false
+        if (otro) return abrirAlta()
+        abrirFicha(id)
+        if (modo != ModoDeElementos.Ficha(id)) irALaLista {}
     }
 
     // --- Actualizar. ---

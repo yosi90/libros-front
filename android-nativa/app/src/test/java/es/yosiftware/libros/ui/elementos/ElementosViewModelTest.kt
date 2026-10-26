@@ -146,10 +146,10 @@ class ElementosViewModelTest {
 
     private val base by lazy { temporal.newFolder("borradores") }
 
-    private fun Montaje.vm(tienda: ViewModelStore = this.tienda): ElementosViewModel {
+    private fun Montaje.vm(tienda: ViewModelStore = this.tienda, recargado: () -> Libro = { libro }): ElementosViewModel {
         val fabrica = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = ElementosViewModel(ambito, servidor, Avisador.Mudo, base, cargarLibro = { libro }) as T
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = ElementosViewModel(ambito, servidor, Avisador.Mudo, base, cargarLibro = { recargado() }) as T
         }
         return ViewModelProvider(tienda, fabrica)[ElementosViewModel::class.java]
     }
@@ -174,6 +174,35 @@ class ElementosViewModelTest {
             m.servidor.llamadas,
         )
         assertEquals(ModoDeElementos.Lista, vm.modo)
+    }
+
+    @Test
+    fun laHojaDeAltaAbreLaFichaDelNuevoOOtraHojaVacia() = runTest {
+        val m = montar()
+        val conConcepto = Libro.de(JSONObject("""
+            {"Tipo": "libro", "Id": 9, "Nombre": "Siega", "Autores": [], "Estados": [], "Capitulos": [], "Partes": [], "Interludios": [],
+             "Personajes": [], "Localizaciones": [{"Id": 1, "Nombre": "Sin localización"}],
+             "Conceptos": [{"Id": 500, "Nombre": "Investidura", "Entradas": [{"Id": 1, "Nombre": "Descripción", "Descripcion": "x"}]}]}
+        """.trimIndent()))
+        val vm = m.vm(recargado = { conConcepto })
+        vm.abrir(libro, VistaDelLibro.DeElemento(Elemento.CONCEPTOS, crear = true))
+        advanceUntilIdle()
+        assertEquals(ModoDeElementos.Alta, vm.modo)
+        // «Crear»: se abre la ficha del nuevo para completarla.
+        vm.cambiar { it.copy(nombre = "Investidura") }
+        vm.crearDesdeLaHoja(otro = false)
+        advanceUntilIdle()
+        assertEquals(ModoDeElementos.Ficha(500), vm.modo)
+        assertEquals("Investidura", vm.ficha?.nombre)
+        // «Crear y otro»: otra hoja vacía.
+        vm.volver()
+        vm.abrirAlta()
+        vm.cambiar { it.copy(nombre = "Esquirlada") }
+        vm.crearDesdeLaHoja(otro = true)
+        advanceUntilIdle()
+        assertEquals(ModoDeElementos.Alta, vm.modo)
+        assertEquals("", vm.ficha?.nombre)
+        assertEquals(listOf("crearConcepto Investidura", "crearConcepto Esquirlada"), m.servidor.llamadas)
     }
 
     @Test
