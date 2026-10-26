@@ -25,7 +25,7 @@
         z-index: 12
         min-height: 64px
         display: grid
-        grid-template-columns: 48px minmax(0, 1fr) 48px
+        grid-template-columns: 48px minmax(0, 1fr)
         align-items: center
         gap: var(--mobile-space-2)
         margin: calc(var(--mobile-space-3) * -1) calc(var(--mobile-space-4) * -1) var(--mobile-space-4)
@@ -489,9 +489,46 @@
 .m-icon-button.is-danger
     color: var(--mobile-color-error)
 
-.m-icon-button--filled
-    color: var(--mobile-color-on-primary)
-    background: var(--mobile-color-primary)
+// ---------- Hoja de alta rápida ----------
+
+.m-quick-create
+    @include mobile.mobile-sheet-scrim(85)
+
+    .m-sheet
+        box-sizing: border-box
+        width: 100%
+        max-height: min(86dvh, calc(var(--app-viewport-height) - var(--app-safe-top)))
+        display: grid
+        gap: var(--mobile-space-3)
+        overflow-y: auto
+        padding-bottom: max(var(--mobile-space-5), var(--app-safe-bottom))
+
+        > header
+            display: flex
+            align-items: center
+            justify-content: space-between
+
+            h2
+                margin: 0
+                font-family: var(--mobile-font-display)
+
+    &__note
+        margin: 0
+        color: var(--mobile-color-ink-muted)
+        font-size: .8rem
+
+    &__actions
+        display: flex
+        flex-wrap: wrap
+        justify-content: flex-end
+        gap: var(--mobile-space-2)
+
+@media (min-width: 600px)
+    .m-quick-create
+        justify-content: center
+
+        .m-sheet
+            width: min(560px, 100%)
 
 @media (max-width: 599px)
     .m-form-grid,

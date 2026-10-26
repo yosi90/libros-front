@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { A11yModule } from '@angular/cdk/a11y';
 import { Book } from '../../../../interfaces/book';
 import { Character, CharacterAlias, CharacterRelation } from '../../../../interfaces/character';
 import { ContextOrigin, NarrativeEntityCreate } from '../../../../interfaces/api-contract';
@@ -100,7 +101,7 @@ function relationRowId(relation: CharacterRelation): number | null {
 @Component({
     standalone: true,
     selector: 'app-narrative-entity-placeholder',
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatTooltipModule, MatAutocompleteModule, SnackbarModule, NarrativeRtfEditorComponent, MobileNarrativeEntityViewComponent, WebNarrativeEntityViewComponent],
+    imports: [A11yModule, CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatTooltipModule, MatAutocompleteModule, SnackbarModule, NarrativeRtfEditorComponent, MobileNarrativeEntityViewComponent, WebNarrativeEntityViewComponent],
     templateUrl: './narrative-entity-placeholder.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './narrative-entity-placeholder.component.sass'
@@ -138,6 +139,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     isSubmittingEntity = false;
     /** IdCliente del alta de personaje en curso; se conserva en los reintentos hasta confirmarla. */
     private characterCreateClientId: string | null = null;
+    /** «Crear y otro» en la hoja de alta: tras crear, la hoja vacía en vez de la ficha del nuevo. */
+    private createAnotherAfter = false;
     private isDestroyed = false;
 
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
@@ -218,7 +221,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         private characterOrderRefreshSrv: CharacterOrderRefreshService,
         private presentation: PresentationModeService,
         private saveIndicator: BookSaveIndicatorService,
-        private pendingWork: PendingWorkService
+        private pendingWork: PendingWorkService,
+        private host: ElementRef<HTMLElement>
     ) {
         this.stopPendingWork = this.pendingWork.register(this);
     }
@@ -412,8 +416,50 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         return this.isCreateMode() || this.isUpdateMode();
     }
 
+    /**
+     * La ruta de alta (`character`, `location`…) es la hoja de alta rápida sobre la lista (opción A del propietario,
+     * 26/10/2026): solo los datos básicos; lo demás se completa en la ficha que se abre al crear.
+     */
     isCreatingEntity(): boolean {
         return this.isCreateMode() && !this.isUpdateMode();
+    }
+
+    /** «Nuevo personaje», «Nueva localización»… */
+    getQuickCreateTitle(): string {
+        return `${this.isFeminineEntity() ? 'Nueva' : 'Nuevo'} ${this.getConfig().singular}`;
+    }
+
+    /** La línea bajo los datos básicos de la hoja: lo demás se añade en la ficha. */
+    getQuickCreateNote(): string {
+        const extra = this.getListPath() === 'characters' ? ', sus apodos y sus relaciones' : '';
+        return `Después podrás añadir su descripción${extra} en su ficha.`;
+    }
+
+    /**
+     * «Crear» abre después la ficha del nuevo para completarlo; «Crear y otro» deja la hoja vacía para el siguiente.
+     * El alta envía, como siempre, la entrada «Descripción» por defecto: la API exige al menos una.
+     */
+    createFromSheet(another: boolean): void {
+        if (this.abandoned || this.isSubmittingEntity || !this.isCreatingEntity())
+            return;
+        if (!this.canSubmit())
+            this.entityForm.markAllAsTouched();
+        this.createAnotherAfter = another;
+        this.createEntity();
+    }
+
+    /** Cerrar la hoja vuelve a la lista. Tocar fuera no la cierra si ya se ha escrito el nombre. */
+    closeQuickCreate(fromBackdrop = false): void {
+        if (this.isSubmittingEntity || (fromBackdrop && (this.name.value ?? '').trim()))
+            return;
+        this.navigateToList();
+    }
+
+    @HostListener('document:keydown.escape', ['$event'])
+    onEscape(event: Event): void {
+        // Si el Escape cerraba un desplegable de la hoja (select o autocompletado), la hoja sigue abierta.
+        if (this.isCreatingEntity() && !event.defaultPrevented)
+            this.closeQuickCreate();
     }
 
     getListPath(): string {
@@ -468,8 +514,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             this.router.navigate([`../${createRoute}`], { relativeTo: this.route });
     }
 
-    navigateToList(): void {
-        this.router.navigate([`../${this.getListPath()}`], { relativeTo: this.route });
+    /** A la lista del tipo; con `selectedId`, con la ficha de ese elemento abierta. */
+    navigateToList(selectedId: number | null = null): void {
+        this.router.navigate([`../${this.getListPath()}`], selectedId
+            ? { relativeTo: this.route, queryParams: { selected: selectedId } }
+            : { relativeTo: this.route });
     }
 
     openNarrativeEntityLink(link: NarrativeEntityLink): void {
@@ -565,7 +614,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     shouldShowViewMode(): boolean {
-        return !this.isFormMode()
+        // La hoja de alta se abre sobre la lista, que conserva su agrupación.
+        return !this.isUpdateMode()
             && this.getHistoricalItems().some(item => item.OrigenContexto === 'libro_previo');
     }
 
@@ -986,7 +1036,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             return;
         }
 
-        this.createEntity();
+        this.createFromSheet(false);
     }
 
     createEntity(): void {
@@ -1024,18 +1074,15 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
         this.beginEntitySubmit();
         request.pipe(
-            switchMap(() => this.bookSrv.getBook(this.book.Id)),
+            switchMap(created => this.bookSrv.getBook(this.book.Id).pipe(map(book => ({ book, createdId: this.createdEntityId(created) })))),
             finalize(() => this.endEntitySubmit())
         ).subscribe({
-            next: book => {
+            next: ({ book, createdId }) => {
                 this.bookStore.setBook(book);
                 this.book = book;
                 this.saveIndicator.notifySaved(book.Id);
-                this.resetCreateForm();
-                this.selectedCharacterIds = [];
-                this.snackBar.openSnackBar(`${this.capitalize(this.getConfig().singular)} creado`, 'successBar');
-                if (!this.isDestroyed)
-                    this.navigateToList();
+                this.snackBar.openSnackBar(`${this.capitalize(this.getConfig().singular)} ${this.isFeminineEntity() ? 'creada' : 'creado'}`, 'successBar');
+                this.finishCreate(createdId);
             },
             error: errorData => {
                 this.markBackendField(errorData);
@@ -1065,7 +1112,6 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             next: result => {
                 this.characterCreateClientId = null;
                 this.saveIndicator.notifySaved(bookId);
-                this.resetCreateForm();
                 if (result.failedDetails.length)
                     this.snackBar.openSnackBar(
                         `Personaje creado, pero no se ha podido guardar ${this.joinLabels(result.failedDetails)}. Revísalo en su ficha.`,
@@ -1073,9 +1119,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                     );
                 else
                     this.snackBar.openSnackBar('Personaje creado', 'successBar');
-                // Si la persona ya salió (por ejemplo, a escribir), no se la devuelve a la lista.
-                if (!this.isDestroyed)
-                    this.navigateToList();
+                this.finishCreate(this.createdEntityId(result.character));
             },
             error: errorData => {
                 this.markBackendField(errorData);
@@ -1094,6 +1138,34 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                     this.characterOrderRefreshSrv.refresh(bookId);
             }
         });
+    }
+
+    /**
+     * Tras crear desde la hoja: con «Crear y otro», la hoja vacía para el siguiente; con «Crear», la ficha del nuevo
+     * para completarlo (o la lista, si no se sabe cuál es). Si la persona ya salió (por ejemplo, a escribir), no se la
+     * lleva a ningún sitio.
+     */
+    private finishCreate(createdId: number | null): void {
+        const another = this.createAnotherAfter;
+        this.createAnotherAfter = false;
+        this.resetCreateForm();
+        this.selectedCharacterIds = [];
+        if (this.isDestroyed)
+            return;
+        if (another) {
+            this.focusQuickCreateName();
+            return;
+        }
+        this.navigateToList(createdId);
+    }
+
+    private focusQuickCreateName(): void {
+        setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('[data-quick-create-name]')?.focus());
+    }
+
+    private createdEntityId(created: unknown): number | null {
+        const id = Number((created as { Id?: unknown } | null)?.Id);
+        return Number.isFinite(id) && id > 0 ? id : null;
     }
 
     private beginEntitySubmit(): void {
@@ -1724,7 +1796,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                         Descripcion: relation.description.value ?? ''
                     }));
 
-                return relationRequests.length ? forkJoin(relationRequests) : of(organization);
+                // Devuelve la organización creada: su id abre después la ficha.
+                const relations$: Observable<unknown> = relationRequests.length ? forkJoin(relationRequests) : of(null);
+                return relations$.pipe(map(() => organization));
             })
         );
     }
@@ -1937,9 +2011,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     private getDefaultEntryDescriptionText(): string {
-        const singular = this.getConfig().singular;
-        const preposition = ['organización', 'localización', 'cita'].includes(singular) ? 'de la' : 'del';
-        return `Descripción ${preposition} ${singular}`;
+        return `Descripción ${this.isFeminineEntity() ? 'de la' : 'del'} ${this.getConfig().singular}`;
+    }
+
+    private isFeminineEntity(): boolean {
+        return ['organización', 'localización', 'cita'].includes(this.getConfig().singular);
     }
 
     private resetCreateEntries(): void {

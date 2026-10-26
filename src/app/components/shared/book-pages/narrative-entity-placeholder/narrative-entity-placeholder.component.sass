@@ -1,4 +1,5 @@
 @use '../../../../../assets/css/modern-workspace' as workspace
+@use '../../../../../assets/css/wood/catalog-modal' as wood-modal
 
 :host
     display: block
@@ -1347,6 +1348,51 @@
 
         p
             margin: 0
+
+// Hoja de alta rápida: solo los datos básicos, sobre la lista.
+.narrative-quick-create
+    @include wood-modal.backdrop
+
+    &__surface
+        @include wood-modal.surface
+        width: min(520px, 100%)
+
+        header button
+            @include wood-modal.close-button
+
+        footer
+            justify-content: flex-end
+
+            button
+                display: inline-flex
+                align-items: center
+                gap: 6px
+                cursor: pointer
+
+                &:disabled
+                    cursor: wait
+                    opacity: .6
+
+            mat-icon
+                width: 20px
+                height: 20px
+                font-size: 20px
+
+    &__fields
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        column-gap: 12px
+
+        mat-form-field
+            width: 100%
+
+        // El nombre y, si es el único dato más (estado o localización), ese también, a todo el ancho.
+        .entity-name-field,
+        mat-form-field:nth-child(2):last-child
+            grid-column: 1 / -1
+
+    &__note
+        font-size: .86rem
 
 @media screen and (max-width: 700px)
     .narrative-entity-page

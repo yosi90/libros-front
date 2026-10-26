@@ -182,6 +182,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 ### Entidades narrativas
 
 - Personajes, organizaciones, eventos, localizaciones, conceptos y citas comparten contrato de guardado, no necesariamente markup.
+- **Alta rápida** (opción A del propietario, 26/10/2026; igual en la APK): «Crear …» abre sobre la lista una hoja con solo los datos básicos del tipo (el nombre; en personajes, estado —Vivo— y sexo; en localizaciones, estado —Buen estado—; en eventos, la localización —Sin localización—; en citas, página y personaje) y la línea «Después podrás añadir su descripción (y, en personajes, sus apodos y sus relaciones) en su ficha.». «Crear y otro» (contorno) la vacía para el siguiente; «Crear» (primario) abre la ficha del nuevo. Se cierra con la X, Escape o tocando fuera si aún no hay nombre. Web usa `web.dialog`, Mobile `.m-sheet` sobre `mobile-sheet-scrim` y Wood los mixins de `wood/_catalog-modal.sass`.
+- La ficha de edición tiene un solo botón de guardar: en la cabecera en Web y Wood, al pie en Mobile (como la APK).
 - Mobile usa una columna en compact y expansión progresiva en medium.
 - Los formularios Mobile agrupan sus campos mediante secciones planas de ancho completo y separadores, no mediante una sucesión de cards. La sección inicial empieza directamente por los campos; las restantes muestran un único título útil, sin eyebrow verde redundante. Las unidades repetibles internas pueden conservar superficie propia cuando ayude a distinguir cada borrador.
 - Relaciones, apodos y entradas se editan con toque y teclado, sin depender de drag.

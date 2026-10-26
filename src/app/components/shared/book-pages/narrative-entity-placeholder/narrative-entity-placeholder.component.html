@@ -4,12 +4,12 @@
   <app-web-narrative-entity-view [controller]="mobileController"></app-web-narrative-entity-view>
 } @else {
 <section class="narrative-entity-page">
-  <header [class.list-header]="!isFormMode()">
+  <header [class.list-header]="!isUpdateMode()">
     <div class="header-title">
       <mat-icon>{{ getConfig().icon }}</mat-icon>
-      <h1>{{ isFormMode() ? (isUpdateMode() ? 'Modificar ' : 'Crear ') + getConfig().singular : getConfig().title }}</h1>
+      <h1>{{ isUpdateMode() ? 'Modificar ' + getConfig().singular : getConfig().title }}</h1>
     </div>
-    @if (!isFormMode()) {
+    @if (!isUpdateMode()) {
       <strong class="list-total">
         {{ getItems().length }} {{ getTotalLabel() }}
       </strong>
@@ -25,7 +25,7 @@
       </div>
     }
     <div class="header-actions">
-      @if (!isFormMode()) {
+      @if (!isUpdateMode()) {
         <button mat-stroked-button type="button" (click)="navigateToCreate()">
           <mat-icon>add</mat-icon>
           Crear
@@ -36,13 +36,11 @@
           <mat-icon>arrow_back</mat-icon>
           <span class="action-label">Listado</span>
         </button>
-      }
-      @if (isFormMode()) {
         <span class="button-tooltip-anchor"
-          [matTooltip]="canSubmit() ? (isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular : getCreateSubmitHint()"
+          [matTooltip]="canSubmit() ? 'Actualizar ' + getConfig().singular : getCreateSubmitHint()"
           matTooltipClass="tt-accent">
           <button class="header-create-submit" mat-raised-button type="submit" form="narrative-create-form"
-            [disabled]="!canSubmit() || isSubmittingEntity" [attr.aria-label]="(isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular">
+            [disabled]="!canSubmit() || isSubmittingEntity" [attr.aria-label]="'Actualizar ' + getConfig().singular">
             <mat-icon>save</mat-icon>
           </button>
         </span>
@@ -50,7 +48,7 @@
     </div>
   </header>
 
-  @if (isFormMode()) {
+  @if (isUpdateMode()) {
     <form id="narrative-create-form" class="create-entity-form"
       [class.event-create-form]="getListPath() === 'events'" [class.organization-create-form]="getListPath() === 'organizations'"
       [class.character-create-form]="getListPath() === 'characters'"
@@ -58,118 +56,8 @@
       <section class="create-main-fields" [class.quote-main-fields]="getListPath() === 'quotes'"
         [class.location-main-fields]="getListPath() === 'locations'" [class.event-main-fields]="getListPath() === 'events'"
         [class.character-main-fields]="getListPath() === 'characters'">
-        <mat-form-field appearance="outline" class="entity-name-field">
-          <mat-label>{{ getConfig().singular === 'cita' ? 'Título' : 'Nombre de ' + getConfig().singular }}</mat-label>
-          <input matInput formControlName="name" maxlength="100">
-          <mat-icon matTextPrefix>{{ getConfig().icon }}</mat-icon>
-          @if (name.invalid) {
-            <mat-error>Indica un nombre de al menos 3 caracteres.</mat-error>
-          }
-        </mat-form-field>
-        @if (isCharacterNameChanged()) {
-          <mat-form-field appearance="outline">
-            <mat-label>Tipo de cambio de nombre</mat-label>
-            <mat-select formControlName="characterNameChangeMode" panelClass="chapter-select-panel">
-              <mat-option value="narrative">Nuevo nombre; conservar el anterior como apodo</mat-option>
-              <mat-option value="correction">Corrección de errata del nombre actual</mat-option>
-            </mat-select>
-            <mat-icon matTextPrefix>badge</mat-icon>
-          </mat-form-field>
-        }
-        @if (getListPath() === 'characters') {
-          <mat-form-field appearance="outline">
-            <mat-label>Estado</mat-label>
-            <mat-select formControlName="characterStatusId" panelClass="chapter-select-panel">
-              @for (state of characterStates; track state) {
-                <mat-option [value]="state.Id">
-                  {{ state.Nombre }}
-                </mat-option>
-              }
-            </mat-select>
-            <mat-icon matTextPrefix>favorite</mat-icon>
-            <mat-error>Selecciona un estado.</mat-error>
-          </mat-form-field>
-        }
-        @if (getListPath() === 'characters') {
-          <mat-form-field appearance="outline">
-            <mat-label>Sexo / género</mat-label>
-            <mat-select formControlName="characterSex" panelClass="chapter-select-panel">
-              <mat-option [value]="0">Chico</mat-option>
-              <mat-option [value]="1">Chica</mat-option>
-              <mat-option [value]="2">No sé</mat-option>
-            </mat-select>
-            <mat-icon matTextPrefix>transgender</mat-icon>
-            <mat-error>Selecciona sexo o género.</mat-error>
-          </mat-form-field>
-        }
-        @if (getListPath() === 'locations') {
-          <mat-form-field appearance="outline">
-            <mat-label>Estado</mat-label>
-            <mat-select formControlName="locationStatusId" panelClass="chapter-select-panel">
-              @for (state of locationStates; track state) {
-                <mat-option [value]="state.Id">
-                  {{ state.Nombre }}
-                </mat-option>
-              }
-            </mat-select>
-            <mat-icon matTextPrefix>flag</mat-icon>
-            <mat-error>Selecciona un estado.</mat-error>
-          </mat-form-field>
-        }
-        @if (getListPath() === 'events') {
-          <mat-form-field appearance="outline">
-            <mat-label>Localización</mat-label>
-            <input matInput type="text" autocomplete="off" [formControl]="eventLocationSearch"
-              [matAutocomplete]="eventLocationAuto" #eventLocationTrigger="matAutocompleteTrigger"
-              (focus)="eventLocationTrigger.openPanel()" (click)="eventLocationTrigger.openPanel()"
-              (input)="clearEventLocationIfTyped()">
-            <mat-icon matTextPrefix>my_location</mat-icon>
-            <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
-            <mat-autocomplete #eventLocationAuto="matAutocomplete" autoActiveFirstOption [displayWith]="displayEventLocation.bind(this)"
-              class="chapter-select-panel" (optionSelected)="selectEventLocation($event.option.value)">
-              @for (location of getFilteredEventLocations(); track location) {
-                <mat-option [value]="location">
-                  {{ location.Nombre }}
-                </mat-option>
-              } @empty {
-                <mat-option disabled>No hay localizaciones disponibles</mat-option>
-              }
-            </mat-autocomplete>
-            @if (!book.Localizaciones.length) { <mat-hint>Falta la localización base del libro.</mat-hint> }
-            <mat-error>Selecciona una localización.</mat-error>
-          </mat-form-field>
-        }
-        @if (getListPath() === 'quotes') {
-          <mat-form-field appearance="outline">
-            <mat-label>Página</mat-label>
-            <input matInput type="number" formControlName="page" min="1">
-            <mat-icon matTextPrefix>pin</mat-icon>
-            <mat-error>Indica una página.</mat-error>
-          </mat-form-field>
-        }
-        @if (getListPath() === 'quotes') {
-          <mat-form-field appearance="outline">
-            <mat-label>Personaje</mat-label>
-            <input matInput type="text" autocomplete="off" [formControl]="quoteCharacterSearch"
-              [matAutocomplete]="quoteCharacterAuto" #quoteCharacterTrigger="matAutocompleteTrigger"
-              (focus)="quoteCharacterTrigger.openPanel()" (click)="quoteCharacterTrigger.openPanel()"
-              (input)="clearQuoteCharacterIfTyped()">
-            <mat-icon matTextPrefix>person_search</mat-icon>
-            <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
-            <mat-autocomplete #quoteCharacterAuto="matAutocomplete" autoActiveFirstOption [displayWith]="displayQuoteCharacter.bind(this)"
-              class="chapter-select-panel" (optionSelected)="selectQuoteCharacter($event.option.value)">
-              @for (character of getFilteredQuoteCharacters(); track character) {
-                <mat-option [value]="character">
-                  {{ character.Nombre }}
-                </mat-option>
-              } @empty {
-                <mat-option disabled>No hay personajes disponibles</mat-option>
-              }
-            </mat-autocomplete>
-            <mat-error>Selecciona un personaje.</mat-error>
-          </mat-form-field>
-        }
-</section>
+        <ng-container *ngTemplateOutlet="basicFields"></ng-container>
+      </section>
       <section class="create-entry-panel scene-panel">
         <div class="section-title">
           <h2>Entradas</h2>
@@ -791,4 +679,137 @@
     }
 
   </section>
+
+  @if (isCreatingEntity()) {
+    <div class="narrative-quick-create" (click)="closeQuickCreate(true)">
+      <form class="narrative-quick-create__surface" role="dialog" aria-modal="true" aria-labelledby="wood-quick-create-title"
+        cdkTrapFocus [cdkTrapFocusAutoCapture]="true" [formGroup]="entityForm" (click)="$event.stopPropagation()" (ngSubmit)="createFromSheet(false)">
+        <header>
+          <h2 id="wood-quick-create-title">{{ getQuickCreateTitle() }}</h2>
+          <button type="button" aria-label="Cerrar" (click)="closeQuickCreate()"><mat-icon>close</mat-icon></button>
+        </header>
+        <div class="narrative-quick-create__fields"><ng-container *ngTemplateOutlet="basicFields"></ng-container></div>
+        <p class="narrative-quick-create__note">{{ getQuickCreateNote() }}</p>
+        <footer>
+          <button type="button" [disabled]="isSubmittingEntity" (click)="createFromSheet(true)">Crear y otro</button>
+          <button type="submit" [disabled]="isSubmittingEntity"><mat-icon>add</mat-icon>Crear</button>
+        </footer>
+      </form>
+    </div>
+  }
 }
+
+<!-- Lo mínimo para que exista: la ficha y la hoja de alta usan los mismos campos. -->
+<ng-template #basicFields>
+  <mat-form-field appearance="outline" class="entity-name-field">
+    <mat-label>{{ getConfig().singular === 'cita' ? 'Título' : 'Nombre de ' + getConfig().singular }}</mat-label>
+    <input matInput [formControl]="name" maxlength="100" data-quick-create-name cdkFocusInitial>
+    <mat-icon matTextPrefix>{{ getConfig().icon }}</mat-icon>
+    @if (name.invalid) {
+      <mat-error>{{ name.getError('server') ?? 'Indica un nombre de al menos 3 caracteres.' }}</mat-error>
+    }
+  </mat-form-field>
+  @if (isCharacterNameChanged()) {
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo de cambio de nombre</mat-label>
+      <mat-select [formControl]="characterNameChangeMode" panelClass="chapter-select-panel">
+        <mat-option value="narrative">Nuevo nombre; conservar el anterior como apodo</mat-option>
+        <mat-option value="correction">Corrección de errata del nombre actual</mat-option>
+      </mat-select>
+      <mat-icon matTextPrefix>badge</mat-icon>
+    </mat-form-field>
+  }
+  @if (getListPath() === 'characters') {
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select [formControl]="characterStatusId" panelClass="chapter-select-panel">
+        @for (state of characterStates; track state) {
+          <mat-option [value]="state.Id">
+            {{ state.Nombre }}
+          </mat-option>
+        }
+      </mat-select>
+      <mat-icon matTextPrefix>favorite</mat-icon>
+      <mat-error>Selecciona un estado.</mat-error>
+    </mat-form-field>
+  }
+  @if (getListPath() === 'characters') {
+    <mat-form-field appearance="outline">
+      <mat-label>Sexo / género</mat-label>
+      <mat-select [formControl]="characterSex" panelClass="chapter-select-panel">
+        <mat-option [value]="0">Chico</mat-option>
+        <mat-option [value]="1">Chica</mat-option>
+        <mat-option [value]="2">No sé</mat-option>
+      </mat-select>
+      <mat-icon matTextPrefix>transgender</mat-icon>
+      <mat-error>Selecciona sexo o género.</mat-error>
+    </mat-form-field>
+  }
+  @if (getListPath() === 'locations') {
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select [formControl]="locationStatusId" panelClass="chapter-select-panel">
+        @for (state of locationStates; track state) {
+          <mat-option [value]="state.Id">
+            {{ state.Nombre }}
+          </mat-option>
+        }
+      </mat-select>
+      <mat-icon matTextPrefix>flag</mat-icon>
+      <mat-error>Selecciona un estado.</mat-error>
+    </mat-form-field>
+  }
+  @if (getListPath() === 'events') {
+    <mat-form-field appearance="outline">
+      <mat-label>Localización</mat-label>
+      <input matInput type="text" autocomplete="off" [formControl]="eventLocationSearch"
+        [matAutocomplete]="eventLocationAuto" #eventLocationTrigger="matAutocompleteTrigger"
+        (focus)="eventLocationTrigger.openPanel()" (click)="eventLocationTrigger.openPanel()"
+        (input)="clearEventLocationIfTyped()">
+      <mat-icon matTextPrefix>my_location</mat-icon>
+      <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
+      <mat-autocomplete #eventLocationAuto="matAutocomplete" autoActiveFirstOption [displayWith]="displayEventLocation.bind(this)"
+        class="chapter-select-panel" (optionSelected)="selectEventLocation($event.option.value)">
+        @for (location of getFilteredEventLocations(); track location) {
+          <mat-option [value]="location">
+            {{ location.Nombre }}
+          </mat-option>
+        } @empty {
+          <mat-option disabled>No hay localizaciones disponibles</mat-option>
+        }
+      </mat-autocomplete>
+      @if (!book.Localizaciones.length) { <mat-hint>Falta la localización base del libro.</mat-hint> }
+      <mat-error>Selecciona una localización.</mat-error>
+    </mat-form-field>
+  }
+  @if (getListPath() === 'quotes') {
+    <mat-form-field appearance="outline">
+      <mat-label>Página</mat-label>
+      <input matInput type="number" [formControl]="page" min="1">
+      <mat-icon matTextPrefix>pin</mat-icon>
+      <mat-error>Indica una página.</mat-error>
+    </mat-form-field>
+  }
+  @if (getListPath() === 'quotes') {
+    <mat-form-field appearance="outline">
+      <mat-label>Personaje</mat-label>
+      <input matInput type="text" autocomplete="off" [formControl]="quoteCharacterSearch"
+        [matAutocomplete]="quoteCharacterAuto" #quoteCharacterTrigger="matAutocompleteTrigger"
+        (focus)="quoteCharacterTrigger.openPanel()" (click)="quoteCharacterTrigger.openPanel()"
+        (input)="clearQuoteCharacterIfTyped()">
+      <mat-icon matTextPrefix>person_search</mat-icon>
+      <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
+      <mat-autocomplete #quoteCharacterAuto="matAutocomplete" autoActiveFirstOption [displayWith]="displayQuoteCharacter.bind(this)"
+        class="chapter-select-panel" (optionSelected)="selectQuoteCharacter($event.option.value)">
+        @for (character of getFilteredQuoteCharacters(); track character) {
+          <mat-option [value]="character">
+            {{ character.Nombre }}
+          </mat-option>
+        } @empty {
+          <mat-option disabled>No hay personajes disponibles</mat-option>
+        }
+      </mat-autocomplete>
+      <mat-error>Selecciona un personaje.</mat-error>
+    </mat-form-field>
+  }
+</ng-template>

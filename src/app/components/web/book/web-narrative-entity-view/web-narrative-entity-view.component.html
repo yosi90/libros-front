@@ -1,17 +1,17 @@
-<div class="entity" [class.entity--form]="c.isFormMode()">
+<div class="entity" [class.entity--form]="c.isUpdateMode()">
   <header class="entity__head">
-    @if (c.isFormMode()) {
+    @if (c.isUpdateMode()) {
       <button class="web-button web-button--ghost" type="button" (click)="c.requestCloseUpdateForm()"><mat-icon>arrow_back</mat-icon>{{c.getConfig().title}}</button>
     }
     <div class="entity__title">
       <span class="entity__icon" aria-hidden="true"><mat-icon>{{c.getConfig().icon}}</mat-icon></span>
       <div>
-        <h1>{{c.isFormMode() ? formTitle : c.getConfig().title}}</h1>
-        @if (!c.isFormMode()) {<p>{{c.getItems().length}} {{c.getTotalLabel()}}</p>}
+        <h1>{{c.isUpdateMode() ? formTitle : c.getConfig().title}}</h1>
+        @if (!c.isUpdateMode()) {<p>{{c.getItems().length}} {{c.getTotalLabel()}}</p>}
       </div>
     </div>
     <div class="entity__actions">
-      @if (!c.isFormMode()) {
+      @if (!c.isUpdateMode()) {
         @if (c.shouldShowViewMode()) {
           <div class="segmented" role="group" aria-label="Agrupación del listado">
             <button type="button" [class.is-selected]="!c.groupItemsByOrigin" [attr.aria-pressed]="!c.groupItemsByOrigin" (click)="c.groupItemsByOrigin = false">Mezclados</button>
@@ -22,85 +22,18 @@
       } @else {
         <span [matTooltip]="c.canSubmit() ? '' : c.getCreateSubmitHint()">
           <button class="web-button web-button--primary" type="submit" form="web-narrative-form" [disabled]="!c.canSubmit() || c.isSubmittingEntity">
-            <mat-icon>save</mat-icon>{{c.isUpdateMode() ? 'Guardar cambios' : 'Crear ' + c.getConfig().singular}}
+            <mat-icon>save</mat-icon>Guardar cambios
           </button>
         </span>
       }
     </div>
   </header>
 
-  @if (c.isFormMode()) {
+  @if (c.isUpdateMode()) {
     <form id="web-narrative-form" class="form" [class.form--split]="hasSideColumn" [formGroup]="c.entityForm" (ngSubmit)="c.submitEntityForm()">
       <div class="form__main">
         <section class="box">
-          <div class="grid">
-            <mat-form-field appearance="outline" class="is-wide">
-              <mat-label>{{c.getConfig().singular === 'cita' ? 'Título' : 'Nombre'}}</mat-label>
-              <input matInput formControlName="name" maxlength="100">
-              <mat-error>Indica un nombre de al menos 3 caracteres.</mat-error>
-            </mat-form-field>
-            @if (c.isCharacterNameChanged()) {
-              <mat-form-field appearance="outline" class="is-wide">
-                <mat-label>Tipo de cambio</mat-label>
-                <mat-select formControlName="characterNameChangeMode">
-                  <mat-option value="narrative">Nuevo nombre; conservar el anterior como apodo</mat-option>
-                  <mat-option value="correction">Corrección de errata</mat-option>
-                </mat-select>
-              </mat-form-field>
-            }
-            @if (c.getListPath() === 'characters') {
-              <mat-form-field appearance="outline">
-                <mat-label>Estado</mat-label>
-                <mat-select formControlName="characterStatusId">
-                  @for (state of c.characterStates; track state.Id) {<mat-option [value]="state.Id">{{state.Nombre}}</mat-option>}
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Sexo / género</mat-label>
-                <mat-select formControlName="characterSex">
-                  <mat-option [value]="0">Chico</mat-option><mat-option [value]="1">Chica</mat-option><mat-option [value]="2">No sé</mat-option>
-                </mat-select>
-              </mat-form-field>
-            }
-            @if (c.getListPath() === 'locations') {
-              <mat-form-field appearance="outline" class="is-wide">
-                <mat-label>Estado</mat-label>
-                <mat-select formControlName="locationStatusId">
-                  @for (state of c.locationStates; track state.Id) {<mat-option [value]="state.Id">{{state.Nombre}}</mat-option>}
-                </mat-select>
-              </mat-form-field>
-            }
-            @if (c.getListPath() === 'events') {
-              <mat-form-field appearance="outline" class="is-wide">
-                <mat-label>Localización</mat-label>
-                <input matInput type="text" autocomplete="off" [formControl]="c.eventLocationSearch"
-                  [matAutocomplete]="eventLocationAuto" #eventLocationTrigger="matAutocompleteTrigger"
-                  (focus)="eventLocationTrigger.openPanel()" (input)="c.clearEventLocationIfTyped()">
-                <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
-                <mat-autocomplete #eventLocationAuto="matAutocomplete" autoActiveFirstOption [displayWith]="c.displayEventLocation.bind(c)"
-                  (optionSelected)="c.selectEventLocation($event.option.value)">
-                  @for (location of c.getFilteredEventLocations(); track location.Id) {<mat-option [value]="location">{{location.Nombre}}</mat-option>}
-                  @empty {<mat-option disabled>No hay localizaciones disponibles</mat-option>}
-                </mat-autocomplete>
-                @if (!c.book.Localizaciones.length) {<mat-hint>Falta la localización base del libro.</mat-hint>}
-              </mat-form-field>
-            }
-            @if (c.getListPath() === 'quotes') {
-              <mat-form-field appearance="outline"><mat-label>Página</mat-label><input matInput type="number" formControlName="page" min="1"></mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Personaje</mat-label>
-                <input matInput type="text" autocomplete="off" [formControl]="c.quoteCharacterSearch"
-                  [matAutocomplete]="quoteCharacterAuto" #quoteCharacterTrigger="matAutocompleteTrigger"
-                  (focus)="quoteCharacterTrigger.openPanel()" (input)="c.clearQuoteCharacterIfTyped()">
-                <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
-                <mat-autocomplete #quoteCharacterAuto="matAutocomplete" autoActiveFirstOption [displayWith]="c.displayQuoteCharacter.bind(c)"
-                  (optionSelected)="c.selectQuoteCharacter($event.option.value)">
-                  @for (character of c.getFilteredQuoteCharacters(); track character.Id) {<mat-option [value]="character">{{character.Nombre}}</mat-option>}
-                  @empty {<mat-option disabled>No hay personajes disponibles</mat-option>}
-                </mat-autocomplete>
-              </mat-form-field>
-            }
-          </div>
+          <div class="grid"><ng-container *ngTemplateOutlet="basicFields"></ng-container></div>
         </section>
 
         <section class="box" aria-labelledby="web-entries-title">
@@ -258,3 +191,91 @@
     <mat-icon class="item__chevron" aria-hidden="true">chevron_right</mat-icon>
   </button>
 </ng-template>
+
+<!-- Lo mínimo para que exista: la ficha y la hoja de alta usan los mismos campos. -->
+<ng-template #basicFields>
+    <mat-form-field appearance="outline" class="is-wide">
+      <mat-label>{{c.getConfig().singular === 'cita' ? 'Título' : 'Nombre'}}</mat-label>
+      <input matInput [formControl]="c.name" maxlength="100" data-quick-create-name cdkFocusInitial>
+      <mat-error>{{c.name.getError('server') ?? 'Indica un nombre de al menos 3 caracteres.'}}</mat-error>
+    </mat-form-field>
+    @if (c.isCharacterNameChanged()) {
+      <mat-form-field appearance="outline" class="is-wide">
+        <mat-label>Tipo de cambio</mat-label>
+        <mat-select [formControl]="c.characterNameChangeMode">
+          <mat-option value="narrative">Nuevo nombre; conservar el anterior como apodo</mat-option>
+          <mat-option value="correction">Corrección de errata</mat-option>
+        </mat-select>
+      </mat-form-field>
+    }
+    @if (c.getListPath() === 'characters') {
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select [formControl]="c.characterStatusId">
+          @for (state of c.characterStates; track state.Id) {<mat-option [value]="state.Id">{{state.Nombre}}</mat-option>}
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Sexo / género</mat-label>
+        <mat-select [formControl]="c.characterSex">
+          <mat-option [value]="0">Chico</mat-option><mat-option [value]="1">Chica</mat-option><mat-option [value]="2">No sé</mat-option>
+        </mat-select>
+      </mat-form-field>
+    }
+    @if (c.getListPath() === 'locations') {
+      <mat-form-field appearance="outline" class="is-wide">
+        <mat-label>Estado</mat-label>
+        <mat-select [formControl]="c.locationStatusId">
+          @for (state of c.locationStates; track state.Id) {<mat-option [value]="state.Id">{{state.Nombre}}</mat-option>}
+        </mat-select>
+      </mat-form-field>
+    }
+    @if (c.getListPath() === 'events') {
+      <mat-form-field appearance="outline" class="is-wide">
+        <mat-label>Localización</mat-label>
+        <input matInput type="text" autocomplete="off" [formControl]="c.eventLocationSearch"
+          [matAutocomplete]="eventLocationAuto" #eventLocationTrigger="matAutocompleteTrigger"
+          (focus)="eventLocationTrigger.openPanel()" (input)="c.clearEventLocationIfTyped()">
+        <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
+        <mat-autocomplete #eventLocationAuto="matAutocomplete" autoActiveFirstOption [displayWith]="c.displayEventLocation.bind(c)"
+          (optionSelected)="c.selectEventLocation($event.option.value)">
+          @for (location of c.getFilteredEventLocations(); track location.Id) {<mat-option [value]="location">{{location.Nombre}}</mat-option>}
+          @empty {<mat-option disabled>No hay localizaciones disponibles</mat-option>}
+        </mat-autocomplete>
+        @if (!c.book.Localizaciones.length) {<mat-hint>Falta la localización base del libro.</mat-hint>}
+      </mat-form-field>
+    }
+    @if (c.getListPath() === 'quotes') {
+      <mat-form-field appearance="outline"><mat-label>Página</mat-label><input matInput type="number" [formControl]="c.page" min="1"></mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Personaje</mat-label>
+        <input matInput type="text" autocomplete="off" [formControl]="c.quoteCharacterSearch"
+          [matAutocomplete]="quoteCharacterAuto" #quoteCharacterTrigger="matAutocompleteTrigger"
+          (focus)="quoteCharacterTrigger.openPanel()" (input)="c.clearQuoteCharacterIfTyped()">
+        <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
+        <mat-autocomplete #quoteCharacterAuto="matAutocomplete" autoActiveFirstOption [displayWith]="c.displayQuoteCharacter.bind(c)"
+          (optionSelected)="c.selectQuoteCharacter($event.option.value)">
+          @for (character of c.getFilteredQuoteCharacters(); track character.Id) {<mat-option [value]="character">{{character.Nombre}}</mat-option>}
+          @empty {<mat-option disabled>No hay personajes disponibles</mat-option>}
+        </mat-autocomplete>
+      </mat-form-field>
+    }
+</ng-template>
+
+@if (c.isCreatingEntity()) {
+  <div class="dialog-scrim" (click)="c.closeQuickCreate(true)">
+    <form class="dialog quick-create" role="dialog" aria-modal="true" aria-labelledby="web-quick-create-title"
+      cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); c.createFromSheet(false)">
+      <header class="dialog__head">
+        <h2 id="web-quick-create-title">{{c.getQuickCreateTitle()}}</h2>
+        <button class="icon-button" type="button" aria-label="Cerrar" (click)="c.closeQuickCreate()"><mat-icon>close</mat-icon></button>
+      </header>
+      <div class="grid"><ng-container *ngTemplateOutlet="basicFields"></ng-container></div>
+      <p class="muted">{{c.getQuickCreateNote()}}</p>
+      <footer class="dialog__foot">
+        <button class="web-button" type="button" [disabled]="c.isSubmittingEntity" (click)="c.createFromSheet(true)">Crear y otro</button>
+        <button class="web-button web-button--primary" type="submit" [disabled]="c.isSubmittingEntity"><mat-icon>add</mat-icon>Crear</button>
+      </footer>
+    </form>
+  </div>
+}

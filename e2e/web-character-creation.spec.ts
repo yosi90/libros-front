@@ -62,9 +62,15 @@ async function installCharacterApi(page: Page, options: { loseFirstCreateRespons
     return server;
 }
 
+/** La hoja de alta rápida (opción A del propietario, 26/10/2026): solo nombre, estado y sexo. */
+function sheet(page: Page) {
+    return page.getByRole('dialog', { name: 'Nuevo personaje' });
+}
+
 async function fillCharacterForm(page: Page, name: string): Promise<void> {
-    await page.getByRole('textbox', { name: 'Nombre' }).first().fill(name);
-    await page.getByRole('combobox', { name: 'Sexo / género' }).click();
+    await sheet(page).getByRole('textbox', { name: 'Nombre' }).fill(name);
+    // En la hoja, el centro del select cae sobre su etiqueta, que pasa el clic al campo (como al tocarla).
+    await sheet(page).getByRole('combobox', { name: 'Sexo / género' }).click({ force: true });
     await page.getByRole('option', { name: 'Chica' }).click();
 }
 
@@ -81,7 +87,7 @@ test.describe('Alta de personajes en la web', () => {
         await page.goto('/book/73/character');
         await fillCharacterForm(page, 'Segador Goodall');
 
-        const submit = page.getByRole('button', { name: 'Crear personaje' });
+        const submit = sheet(page).getByRole('button', { name: 'Crear', exact: true });
         await submit.click();
         await expect(page.locator('.dragon-loader')).toBeHidden();
         await expect(submit).toBeEnabled();
@@ -95,10 +101,11 @@ test.describe('Alta de personajes en la web', () => {
             void dialog.accept();
         });
         await submit.click();
-        await expect(page).toHaveURL(/\/book\/73\/characters$/);
+        // «Crear» abre la ficha del personaje para completarlo.
+        await expect(page).toHaveURL(/\/book\/73\/characters\?selected=1203$/);
         expect(question).toContain('Ya hay un personaje llamado «Segador Goodall»');
-        const list = page.locator('app-web-narrative-entity-view');
-        await expect(list.getByText('Segador Goodall', { exact: true })).toHaveCount(1);
+        await expect(page.getByRole('heading', { name: 'Modificar personaje' })).toBeVisible();
+        await expect(page.getByRole('textbox', { name: 'Nombre' })).toHaveValue('Segador Goodall');
         expect(server.created).toHaveLength(1);
         expect(server.createRequests).toHaveLength(2);
         expect(server.createRequests[1]['IdCliente']).toBe(server.createRequests[0]['IdCliente']);
@@ -109,10 +116,10 @@ test.describe('Alta de personajes en la web', () => {
         const server = await installCharacterApi(page, { loseFirstCreateResponse: true });
         await page.goto('/book/73/character');
         await fillCharacterForm(page, 'Segador Goodall');
-        await page.getByRole('button', { name: 'Crear personaje' }).click();
+        await sheet(page).getByRole('button', { name: 'Crear', exact: true }).click();
         await expect(page.locator('.dragon-loader')).toBeHidden();
 
-        await page.locator('.entity__head .web-button--ghost').click();
+        await sheet(page).getByRole('button', { name: 'Cerrar' }).click();
         await expect(page).toHaveURL(/\/book\/73\/characters$/);
         const list = page.locator('app-web-narrative-entity-view');
         await expect(list.getByText('Segador Goodall', { exact: true })).toHaveCount(1);
@@ -124,10 +131,36 @@ test.describe('Alta de personajes en la web', () => {
             question = dialog.message();
             void dialog.dismiss();
         });
-        await page.getByRole('button', { name: 'Crear personaje' }).click();
+        await sheet(page).getByRole('button', { name: 'Crear', exact: true }).click();
 
         await expect.poll(() => question).toContain('Ya hay un personaje llamado «Segador Goodall»');
         expect(server.createRequests).toHaveLength(1);
         expect(server.created).toHaveLength(1);
+    });
+
+    test('«Crear y otro» deja la hoja vacía y «Crear» abre la ficha del nuevo, con un solo botón de guardar', async ({ page }) => {
+        const server = await installCharacterApi(page, { loseFirstCreateResponse: false });
+        await page.goto('/book/73/characters');
+        await page.getByRole('button', { name: 'Crear personaje' }).click();
+        await expect(sheet(page)).toBeVisible();
+        await expect(sheet(page).getByText('Después podrás añadir su descripción, sus apodos y sus relaciones en su ficha.')).toBeVisible();
+        await expect(sheet(page).getByText('Entradas narrativas')).toHaveCount(0);
+        await expect(sheet(page).getByRole('textbox', { name: 'Nombre' })).toBeFocused();
+
+        await fillCharacterForm(page, 'Segador Mandela');
+        await sheet(page).getByRole('button', { name: 'Crear y otro' }).click();
+        await expect.poll(() => server.created.length).toBe(1);
+        await expect(sheet(page).getByRole('textbox', { name: 'Nombre' })).toHaveValue('');
+        await expect(sheet(page).getByRole('textbox', { name: 'Nombre' })).toBeFocused();
+        await expect(page).toHaveURL(/\/book\/73\/character$/);
+
+        await fillCharacterForm(page, 'Segador Goodall');
+        await sheet(page).getByRole('button', { name: 'Crear', exact: true }).click();
+        await expect(page).toHaveURL(/\/book\/73\/characters\?selected=1204$/);
+        await expect(page.getByRole('heading', { name: 'Modificar personaje' })).toBeVisible();
+        await expect(page.getByRole('textbox', { name: 'Nombre' })).toHaveValue('Segador Goodall');
+        await expect(page.getByRole('button', { name: /Guardar/ })).toHaveCount(1);
+        expect(server.created.map(item => item.Nombre)).toEqual(['Segador Mandela', 'Segador Goodall']);
+        expect(server.createRequests.every(body => Array.isArray(body['Entradas']) && (body['Entradas'] as unknown[]).length === 1)).toBe(true);
     });
 });

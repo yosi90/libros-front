@@ -312,12 +312,7 @@
         font-size: 20px
 
 .m-chapter-characters
-    position: fixed
-    inset: 0
-    z-index: 85
-    display: flex
-    align-items: flex-end
-    background: var(--mobile-color-scrim)
+    @include mobile.mobile-sheet-scrim(85)
 
     .m-sheet
         width: 100%

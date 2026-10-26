@@ -32,6 +32,16 @@
         &.mdc-list-item--selected:not(.mdc-list-item--disabled)
             color: var(--mobile-color-primary)
 
+// Velo de una hoja inferior (`.m-sheet`): cubre la pantalla y la apoya abajo. Lo comparten el capítulo, el libro y las
+// entidades narrativas; cada uno pone su capa.
+@mixin mobile-sheet-scrim($z-index)
+    position: fixed
+    inset: 0
+    z-index: $z-index
+    display: flex
+    align-items: flex-end
+    background: var(--mobile-color-scrim)
+
 @mixin mobile-primitives
     *, *::before, *::after
         box-sizing: border-box

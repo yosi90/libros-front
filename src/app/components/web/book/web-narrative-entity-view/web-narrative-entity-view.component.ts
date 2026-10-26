@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { A11yModule } from '@angular/cdk/a11y';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,13 +12,14 @@ import { NarrativeRtfEditorComponent } from '../../../shared/common/narrative-rt
 import type { NarrativeEntityPlaceholderComponent } from '../../../shared/book-pages/narrative-entity-placeholder/narrative-entity-placeholder.component';
 
 /**
- * Entidades narrativas en Web: listado del tipo activo y formulario de alta o
- * edición con columna lateral para apodos, relaciones o personajes.
+ * Entidades narrativas en Web: listado del tipo activo, hoja de alta rápida sobre él
+ * (solo los datos básicos) y ficha de edición con columna lateral para apodos,
+ * relaciones o personajes.
  */
 @Component({
     selector: 'app-web-narrative-entity-view',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, MatAutocompleteModule, MatFormFieldModule, MatIconModule, MatInputModule,
+    imports: [A11yModule, CommonModule, ReactiveFormsModule, MatAutocompleteModule, MatFormFieldModule, MatIconModule, MatInputModule,
         MatSelectModule, MatTooltipModule, NarrativeRtfEditorComponent],
     templateUrl: './web-narrative-entity-view.component.html',
     styleUrl: './web-narrative-entity-view.component.sass',
@@ -36,7 +38,7 @@ export class WebNarrativeEntityViewComponent {
     }
 
     get formTitle(): string {
-        return (this.c.isUpdateMode() ? 'Modificar ' : 'Crear ') + this.c.getConfig().singular;
+        return 'Modificar ' + this.c.getConfig().singular;
     }
 
     addCreateEntry(): void {

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { A11yModule } from '@angular/cdk/a11y';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,7 +14,7 @@ import { scrollMobileFormBlockIntoView } from '../../../../shared/mobile-form-sc
 @Component({
     selector: 'app-mobile-narrative-entity-view',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, MatAutocompleteModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, NarrativeRtfEditorComponent],
+    imports: [A11yModule, CommonModule, ReactiveFormsModule, MatAutocompleteModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, NarrativeRtfEditorComponent],
     templateUrl: './mobile-narrative-entity-view.component.html',
     styleUrl: './mobile-narrative-entity-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

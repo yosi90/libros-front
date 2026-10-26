@@ -17,8 +17,8 @@ describe('WebNarrativeEntityViewComponent', () => {
         controller = {
             book: { Id: 7, Nombre: 'Libro', Localizaciones: [], Personajes: [] },
             groupItemsByOrigin: false,
-            isFormMode: () => false,
             isUpdateMode: () => false,
+            isCreatingEntity: () => false,
             getConfig: () => ({ title: 'Localizaciones', singular: 'localización', icon: 'my_location' }),
             getListPath: () => 'locations',
             getItems: () => items,

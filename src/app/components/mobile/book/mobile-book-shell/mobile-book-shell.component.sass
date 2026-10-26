@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/mobile/primitives' as mobile
+
 :host
     display: block
     height: 100%
@@ -325,12 +327,7 @@
 
 .m-book-actions,
 .m-book-structure-dialog
-    position: fixed
-    inset: 0
-    z-index: 80
-    display: flex
-    align-items: flex-end
-    background: var(--mobile-color-scrim)
+    @include mobile.mobile-sheet-scrim(80)
 
 .m-book-actions
     .m-sheet

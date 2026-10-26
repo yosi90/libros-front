@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient, withXhr } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap, Router, UrlSegment } from '@angular/router';
 import { BehaviorSubject, NEVER, of, Subject, throwError } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
@@ -13,6 +13,7 @@ import { BookStoreService } from '../../../../services/stores/book-store.service
 import { CharacterOrderRefreshService } from '../../../../services/stores/character-order-refresh.service';
 import { rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { PendingWorkService } from '../../../../services/auth/pending-work.service';
+import { PresentationModeService, PresentationState } from '../../../../services/ui/presentation-mode.service';
 import { NarrativeEntityPlaceholderComponent } from './narrative-entity-placeholder.component';
 
 describe('NarrativeEntityPlaceholderComponent', () => {
@@ -54,7 +55,8 @@ describe('NarrativeEntityPlaceholderComponent', () => {
                         getLocationStates: of([]),
                         getOrganizationCharacters: of([]),
                         getOrganizationLocations: of([]),
-                        updateConcept: of({ Id: 30 } as any)
+                        updateConcept: of({ Id: 30 } as any),
+                        createConcept: of({ Id: 31, Nombre: 'Investidura' } as any)
                     })
                 },
                 {
@@ -340,6 +342,177 @@ describe('NarrativeEntityPlaceholderComponent', () => {
             4200,
             jasmine.objectContaining({ icon: 'help_outline' })
         );
+    });
+
+    // Opción A del propietario (26/10/2026): «Crear …» abre una hoja con solo los datos básicos; «Crear» abre la
+    // ficha del nuevo para completarlo y «Crear y otro» deja la hoja vacía.
+    describe('hoja de alta rápida', () => {
+        let activeMode: 'web' | 'mobile' | 'wood' = 'web';
+        const host = () => fixture.nativeElement as HTMLElement;
+        const sheet = () => host().querySelector<HTMLElement>('[role="dialog"]');
+        const sheetButtons = () => [...(sheet()?.querySelectorAll<HTMLButtonElement>('button') ?? [])]
+            .map(button => button.textContent?.replace(/\s+/g, ' ').trim());
+
+        beforeEach(() => {
+            const presentation = TestBed.inject(PresentationModeService);
+            const real = presentation.snapshot;
+            activeMode = 'web';
+            spyOnProperty(presentation, 'snapshot', 'get').and.callFake(() => ({
+                ...real, activeMode, isMobilePresentationActive: activeMode === 'mobile', isWoodPresentationActive: activeMode === 'wood'
+            } as PresentationState));
+            characterService.getStateCatalog.and.returnValue(of([{ Id: 1, Nombre: 'Vivo' }, { Id: 3, Nombre: 'Muerto' }] as any));
+            snackBar = {
+                openSnackBar: spyOn((component as any).snackBar, 'openSnackBar'),
+                openApiError: spyOn((component as any).snackBar, 'openApiError')
+            };
+        });
+
+        function openSheet(routePath: string): void {
+            queryParamMap$.next(convertToParamMap({}));
+            routeUrl$.next([new UrlSegment(routePath, {})]);
+            fixture.detectChanges();
+        }
+
+        it('enseña solo los datos básicos sobre la lista en las tres presentaciones', () => {
+            openSheet('character');
+
+            for (const mode of ['web', 'mobile', 'wood'] as const) {
+                activeMode = mode;
+                fixture.detectChanges();
+
+                expect(sheet()).withContext(mode).not.toBeNull();
+                expect(sheet()!.querySelector('[data-quick-create-name]')).withContext(mode).not.toBeNull();
+                expect(sheet()!.querySelectorAll('mat-select').length).withContext(mode).toBe(2);
+                expect(host().querySelector('app-narrative-rtf-editor')).withContext(mode).toBeNull();
+                expect(sheet()!.textContent).withContext(mode).toContain('Nuevo personaje');
+                expect(sheet()!.textContent).withContext(mode)
+                    .toContain('Después podrás añadir su descripción, sus apodos y sus relaciones en su ficha.');
+                expect(sheet()!.textContent).withContext(mode).not.toContain('Apodos');
+                expect(sheetButtons()).withContext(mode).toEqual(jasmine.arrayContaining(['Crear y otro', 'addCrear']));
+            }
+            expect(component.characterStatusId.value).toBe(1);
+        });
+
+        it('pide lo mínimo de cada tipo y explica que la descripción se añade después', () => {
+            const cases: Array<[string, string, number, number]> = [
+                ['location', 'Nueva localización', 1, 1],
+                ['event', 'Nuevo evento', 0, 2],
+                ['quote', 'Nueva cita', 0, 3],
+                ['organization', 'Nueva organización', 0, 1],
+                ['concept', 'Nuevo concepto', 0, 1]
+            ];
+            for (const [routePath, title, selects, inputs] of cases) {
+                openSheet(routePath);
+
+                expect(sheet()?.textContent).withContext(routePath).toContain(title);
+                expect(sheet()!.textContent).withContext(routePath).toContain('Después podrás añadir su descripción en su ficha.');
+                expect(sheet()!.querySelectorAll('mat-select').length).withContext(routePath).toBe(selects);
+                expect(sheet()!.querySelectorAll('input').length).withContext(routePath).toBe(inputs);
+            }
+        });
+
+        it('«Crear» crea el personaje con la descripción por defecto y abre su ficha', () => {
+            openSheet('character');
+            characterService.create.and.returnValue(of({ Id: 1203, Nombre: 'Segador Goodall', Estados: [{ EstadoId: 1, Origen: 1 }] } as any));
+            component.name.setValue('Segador Goodall');
+            component.characterSex.setValue(1);
+
+            component.createFromSheet(false);
+
+            const payload = characterService.create.calls.mostRecent().args[0] as any;
+            expect(payload.Apodo).toBe('Segador Goodall');
+            expect(payload.IdCliente).toBeTruthy();
+            expect(payload.Entradas).toHaveSize(1);
+            expect(payload.Entradas[0].Nombre).toBe('Descripción');
+            expect(rtfToPlainText(payload.Entradas[0].Descripcion).trim()).toBe('Descripción del personaje');
+            expect(characterService.updateBookState).not.toHaveBeenCalled();
+            expect(snackBar.openSnackBar).toHaveBeenCalledWith('Personaje creado', 'successBar');
+            expect(router.navigate).toHaveBeenCalledWith(['../characters'], jasmine.objectContaining({ queryParams: { selected: 1203 } }));
+        });
+
+        it('«Crear» abre también la ficha de las demás entradas', () => {
+            openSheet('concept');
+            component.name.setValue('Investidura');
+
+            component.createFromSheet(false);
+
+            expect(narrativeService.createConcept).toHaveBeenCalledWith(jasmine.objectContaining({
+                LibroId: 1, Nombre: 'Investidura', Entradas: [jasmine.objectContaining({ Nombre: 'Descripción' })]
+            }));
+            expect(snackBar.openSnackBar).toHaveBeenCalledWith('Concepto creado', 'successBar');
+            expect(router.navigate).toHaveBeenCalledWith(['../concepts'], jasmine.objectContaining({ queryParams: { selected: 31 } }));
+        });
+
+        it('«Crear y otro» crea y deja la hoja vacía para el siguiente', fakeAsync(() => {
+            openSheet('character');
+            characterService.create.and.returnValue(of({ Id: 1203, Nombre: 'Segador Goodall', Estados: [{ EstadoId: 1, Origen: 1 }] } as any));
+            component.name.setValue('Segador Goodall');
+            component.characterSex.setValue(1);
+            component.characterStatusId.setValue(3);
+
+            component.createFromSheet(true);
+            fixture.detectChanges();
+            tick();
+
+            expect(characterService.create).toHaveBeenCalledTimes(1);
+            expect(router.navigate).not.toHaveBeenCalled();
+            expect(component.isCreatingEntity()).toBeTrue();
+            expect(sheet()).not.toBeNull();
+            expect(component.name.value).toBeNull();
+            expect(component.name.touched).toBeFalse();
+            expect(component.characterSex.value).toBeNull();
+            expect(component.characterStatusId.value).toBe(1);
+            expect(document.activeElement).toBe(sheet()!.querySelector('[data-quick-create-name]'));
+        }));
+
+        it('no crea con los datos incompletos y marca los campos', () => {
+            openSheet('character');
+
+            component.createFromSheet(false);
+
+            expect(characterService.create).not.toHaveBeenCalled();
+            expect(component.name.touched).toBeTrue();
+            expect(snackBar.openSnackBar).toHaveBeenCalledWith('Completa los campos obligatorios', 'errorBar');
+        });
+
+        it('deja el error del servidor junto al campo y la hoja abierta', () => {
+            openSheet('concept');
+            narrativeService.createConcept.and.returnValue(throwError(() => new HttpErrorResponse({
+                status: 409, error: { success: false, error: 'Ya hay un concepto con ese nombre.', field: 'Nombre' }
+            })));
+            component.name.setValue('Investidura');
+
+            component.createFromSheet(false);
+            fixture.detectChanges();
+
+            expect(component.name.getError('server')).toBe('Ya hay un concepto con ese nombre.');
+            expect(sheet()?.textContent).toContain('Ya hay un concepto con ese nombre.');
+            expect(snackBar.openApiError).toHaveBeenCalled();
+            expect(router.navigate).not.toHaveBeenCalled();
+        });
+
+        it('se cierra con Escape o la X, pero tocar fuera no la cierra si ya hay nombre', () => {
+            openSheet('character');
+            component.name.setValue('Segador');
+
+            component.closeQuickCreate(true);
+            expect(router.navigate).not.toHaveBeenCalled();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            expect(router.navigate).toHaveBeenCalledWith(['../characters'], { relativeTo: jasmine.anything() as any });
+        });
+
+        it('la ficha tiene un solo botón de guardar en cada presentación', () => {
+            // El beforeEach general abre la ficha del concepto 30.
+            for (const mode of ['web', 'mobile', 'wood'] as const) {
+                activeMode = mode;
+                fixture.detectChanges();
+
+                expect(component.isUpdateMode()).withContext(mode).toBeTrue();
+                expect(sheet()).withContext(mode).toBeNull();
+                expect(host().querySelectorAll('button[type="submit"]').length).withContext(mode).toBe(1);
+            }
+        });
     });
 
     describe('creating characters', () => {
