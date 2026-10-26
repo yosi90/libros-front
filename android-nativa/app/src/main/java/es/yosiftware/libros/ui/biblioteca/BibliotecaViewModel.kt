@@ -367,6 +367,11 @@ class BibliotecaViewModel(
     var obraPorRevelar by mutableStateOf<String?>(null)
         private set
 
+    /** El libro [id] de la colección, en un universo o en una de sus sagas (el enlace `/book/{id}`). */
+    fun libro(id: Int): Obra? = universos.firstNotNullOfOrNull { universo ->
+        universo.libros.firstOrNull { it.id == id } ?: universo.sagas.firstNotNullOfOrNull { saga -> saga.libros.firstOrNull { it.id == id } }
+    }
+
     /** La colección recién leída tras un cambio en otra pantalla (`universeStore.setUniverses`). */
     fun recibirUniversos(nuevos: List<Universo>) {
         cargando = false

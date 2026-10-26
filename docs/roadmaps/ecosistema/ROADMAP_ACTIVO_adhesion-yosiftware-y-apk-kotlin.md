@@ -351,7 +351,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** el Markdown con spoilers y el realtime de comunidad dependen de decisiones de las fases 3 y 4.
 
-- [ ] Clubes con espacios. Hecho. En el Honor, con la cuenta de QA, se han visto el Resumen, Clubes y Acceso; falta ver el detalle de un club, porque la cuenta no tiene ninguno.
+- [x] Clubes con espacios. Visto en el Honor con la cuenta de QA (25/10/2026): el Resumen, Clubes, Acceso y, con un club de prueba de la cuenta «activa», el detalle como miembro.
   - Comunidad: la tira de secciones (el rail desde 600 dp), con Resumen, Clubes (según la capacidad `clubes`) y Mensajes, más Personas, Amistades y Bloqueos en la web social.
   - Resumen: las tarjetas de la plataforma (`/v1/social/resumen`) y de Libros, y las invitaciones a clubes. «Mensajes sin leer» llega con el chat (hito 12).
   - Clubes: Descubrir (populares, búsqueda, cargar más y crear), Mis clubes, Eventos y el centro de acceso (invitaciones y solicitudes, recibidas y enviadas).
@@ -401,9 +401,27 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - **Peligros si se mantiene como estaba:** no aplica.
 - **Peligros del cambio:** mostrar un aviso de una cuenta que ya no está activa. Se descarta comparando `cuenta`.
 
-- [ ] Push central y avisos.
-- [ ] Chat con la interfaz actual sobre la plataforma.
-- [ ] App Links y aviso de versión nueva. Desde el kit 1.57, la versión disponible la da la plataforma (`GET /v1/webs`, `app.version`, con su enlace de instalación), no GitHub Releases como `AndroidReleaseUpdateService` de la APK actual.
+- [x] Push central y avisos (`87fa858`, `35c894c`). Visto en el Honor con QA el 25/10/2026.
+  - El dispositivo se registra por cuenta.
+  - Solo se enseña lo de Libros y el chat, y solo de cuentas con sesión (decisiones D1 a D7 del propietario).
+  - Con la app delante, un aviso dentro de ella.
+  - Cada aviso abre su pantalla, como Mis peticiones o el club.
+  - La campana con el centro de notificaciones de la plataforma.
+  - Pedido a la plataforma (P1 y P2): que la app de Yosiftware no repita los avisos de Libros.
+- [x] Chat con la interfaz actual sobre la plataforma (`12fc76e`, `d71168e`, `e53f900`, `61f8adb`, `770b49d`). Visto en el Honor con la cuenta «activa»: directo, del club, en tiempo real, con reacciones y el push con la app cerrada.
+  - Los mensajes van como en WhatsApp, a petición del propietario: tocar reacciona, mantener pulsado da las opciones y deslizar responde.
+  - El chat limitado por la moderación dice hasta cuándo.
+  - El canal en tiempo real de los clubes: un hito creado o borrado por otra cuenta aparece y desaparece solo.
+- [ ] App Links y aviso de versión nueva (`0cfd677`). Desde el kit 1.57, la versión disponible la da la plataforma (`GET /v1/webs`, `app.version`, con su enlace de instalación), no GitHub Releases como `AndroidReleaseUpdateService` de la APK actual.
+  - App Links verificados en el Honor para QA. Abren en la app:
+    - la invitación por código;
+    - el chat;
+    - el club;
+    - `?addBook=` (el diálogo para añadir el libro aprobado o «ya está en tu biblioteca»);
+    - `/book/{id}` (el libro, si está en tu biblioteca).
+  - «Entrar con otra cuenta» conserva la invitación para la cuenta nueva.
+  - El filtro «Nuevos» (`?nuevos=`) llega con la F4 de «Estadísticas y altas»; mientras, abre el catálogo sin filtro.
+  - Falta ver el aviso de versión nueva: la plataforma aún no da `version` ni `instalacion` para Libros.
 
 ### Hito 13. APK Kotlin: plegables, QA y publicación
 

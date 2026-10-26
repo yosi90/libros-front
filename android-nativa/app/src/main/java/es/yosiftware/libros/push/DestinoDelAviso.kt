@@ -14,6 +14,8 @@ sealed interface DestinoDelAviso {
     data object SolicitudesRecibidas : DestinoDelAviso
     data class Catalogo(val libro: Int? = null, val nuevos: Boolean = false) : DestinoDelAviso
     data object Biblioteca : DestinoDelAviso
+    /** Un libro de la biblioteca (`/book/{id}`, el enlace compartido de un libro). */
+    data class Libro(val id: Int) : DestinoDelAviso
     data object Estadisticas : DestinoDelAviso
     data object Comunidad : DestinoDelAviso
     data class Conversacion(val id: Long) : DestinoDelAviso
@@ -70,6 +72,9 @@ object DestinoDeEnlace {
             ruta == "/dashboard/community" -> DestinoDelAviso.Comunidad
             ruta == "/dashboard/catalog" -> DestinoDelAviso.Catalogo(consulta["addBook"]?.toIntOrNull(), consulta["nuevos"] != null)
             ruta == "/dashboard/books" || ruta == "/dashboard" -> DestinoDelAviso.Biblioteca
+            // La sección de una antología (`?anthologyId=`) no tiene pantalla propia en la APK: la web.
+            ruta.startsWith("/book/") && "anthologyId" !in consulta ->
+                ruta.removePrefix("/book/").toIntOrNull()?.takeIf { it > 0 }?.let { DestinoDelAviso.Libro(it) } ?: DestinoDelAviso.Biblioteca
             ruta == "/dashboard/statistics" -> DestinoDelAviso.Estadisticas
             else -> DestinoDelAviso.Navegador(texto)
         }

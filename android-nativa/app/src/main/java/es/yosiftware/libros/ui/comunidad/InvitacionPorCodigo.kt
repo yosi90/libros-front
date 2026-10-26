@@ -54,10 +54,20 @@ class InvitacionPorCodigoViewModel(
     var alEntrar: (Int?) -> Unit = {}
 
     private var codigo: String? = null
+    /** Se ha pedido entrar con otra cuenta desde la invitación: se retoma con la nueva (`keepAcrossIdentity`). */
+    private var conservar = false
 
     fun abrir(nuevo: String) {
         codigo = nuevo
+        conservar = false
         leer()
+    }
+
+    /** «Entrar con otra cuenta»: se cierra el diálogo, pero el código se queda para la cuenta que entre. */
+    fun conservarParaOtraCuenta() {
+        if (codigo == null) return
+        conservar = true
+        paso = null
     }
 
     fun reintentar() = leer()
@@ -94,6 +104,7 @@ class InvitacionPorCodigoViewModel(
     fun cerrar() {
         paso = null
         codigo = null
+        conservar = false
     }
 
     private fun fallo(error: ErrorDeLibros): PasoDeInvitacion.Fallo = when (error.codigo) {
@@ -104,7 +115,15 @@ class InvitacionPorCodigoViewModel(
     }
 
     override fun alCambiarDeCuenta(identidad: Identidad?) {
-        cerrar()
+        when {
+            !conservar -> cerrar()
+            // Sin cuenta todavía (entre una y otra): se sigue esperando.
+            identidad == null -> paso = null
+            else -> {
+                conservar = false
+                leer()
+            }
+        }
     }
 
     companion object {

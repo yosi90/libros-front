@@ -75,6 +75,12 @@ class PushTest {
         )
         assertEquals(DestinoDelAviso.Catalogo(libro = 40), DestinoDeEnlace.de("https://qa-libros.yosiftware.es/dashboard/catalog?addBook=40", null, o))
         assertEquals(DestinoDelAviso.Catalogo(nuevos = true), DestinoDeEnlace.de("https://qa-libros.yosiftware.es/dashboard/catalog?nuevos=7d", null, o))
+        assertEquals(DestinoDelAviso.Libro(139), DestinoDeEnlace.de("https://qa-libros.yosiftware.es/book/139", null, o))
+        assertEquals(DestinoDelAviso.Biblioteca, DestinoDeEnlace.de("https://qa-libros.yosiftware.es/book/abc", null, o))
+        assertEquals(
+            DestinoDelAviso.Navegador("https://qa-libros.yosiftware.es/book/5?anthologyId=3"),
+            DestinoDeEnlace.de("https://qa-libros.yosiftware.es/book/5?anthologyId=3", null, o),
+        )
         assertEquals(DestinoDelAviso.SolicitudesRecibidas, DestinoDeEnlace.de("https://qa-libros.yosiftware.es/", "espacio.solicitud", o))
         assertEquals(DestinoDelAviso.MisClubes, DestinoDeEnlace.de("https://qa-libros.yosiftware.es", "espacio.respuesta", o))
         assertEquals(DestinoDelAviso.Biblioteca, DestinoDeEnlace.de("https://qa-libros.yosiftware.es/", null, o))

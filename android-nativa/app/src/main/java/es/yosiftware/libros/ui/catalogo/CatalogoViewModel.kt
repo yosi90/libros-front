@@ -375,6 +375,17 @@ class CatalogoViewModel(
         }
     }
 
+    /**
+     * El aviso de un libro pedido y aprobado (`?addBook=`): abre el editor para añadirlo o, si ya está en la biblioteca,
+     * lo dice (`openApprovedBookCollectionModal`).
+     */
+    fun anadirLibroAprobado(id: Int) {
+        cargar({ catalogo.detalleDeLibro(id) }, alFallar = { avisos.deError(it, "No se ha podido abrir el libro") }) { detalle ->
+            if (Catalogo.fichaEnColeccion(detalle, detalle.obra)) avisos.informar("Este libro ya está en tu biblioteca")
+            else abrirEditor(detalle.obra)
+        }
+    }
+
     // --- El editor de estado («Actualizar lectura»). ---
 
     /** Abre el editor y, si la ficha era de esa obra, la cierra (`openCollectionModal`). */

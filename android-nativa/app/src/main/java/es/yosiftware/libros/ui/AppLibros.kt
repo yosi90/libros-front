@@ -223,6 +223,8 @@ fun AppLibros(app: LibrosApp) {
 
     // La pantalla de un aviso (la tabla de destinos de push/DestinoDelAviso.kt).
     val contextoDeLaApp = LocalContext.current
+    // El libro de un enlace `/book/{id}`: se abre cuando la Biblioteca ya tiene la colección.
+    var libroPedido by remember { mutableStateOf<Int?>(null) }
     val irAlAviso: (DestinoDelAviso) -> Unit = { destino ->
         val accesoA: (TipoDeAcceso) -> Unit = { tipo ->
             comunidad.abrir(SeccionDeComunidad.CLUBES)
@@ -246,9 +248,16 @@ fun AppLibros(app: LibrosApp) {
             }
             DestinoDelAviso.InvitacionesRecibidas -> accesoA(TipoDeAcceso.INVITACIONES)
             DestinoDelAviso.SolicitudesRecibidas -> accesoA(TipoDeAcceso.SOLICITUDES)
-            // TODO(hito 12): la ficha del libro de `addBook` y el filtro «Nuevos» del catálogo.
-            is DestinoDelAviso.Catalogo -> nav.irA(Destino.Catalogo)
+            // El filtro «Nuevos» (`?nuevos=`) llega a la APK con la F4 de «Estadísticas y altas»; hasta entonces, el catálogo sin él.
+            is DestinoDelAviso.Catalogo -> {
+                destino.libro?.let(catalogo::anadirLibroAprobado)
+                nav.irA(Destino.Catalogo)
+            }
             DestinoDelAviso.Biblioteca -> nav.irA(Destino.Biblioteca)
+            is DestinoDelAviso.Libro -> {
+                nav.irA(Destino.Biblioteca)
+                libroPedido = destino.id
+            }
             DestinoDelAviso.Estadisticas -> nav.irA(Destino.Estadisticas)
             DestinoDelAviso.Comunidad -> nav.irA(Destino.Comunidad)
             is DestinoDelAviso.Conversacion -> abrirMensajes(destino.id)
@@ -318,6 +327,18 @@ fun AppLibros(app: LibrosApp) {
         }
     }
     val abrirLibro: (Obra) -> Unit = libro::abrir
+    // Como `bookLoadGuard`: si no se puede abrir, se avisa y se queda en la Biblioteca.
+    LaunchedEffect(libroPedido, biblioteca.cargando) {
+        val id = libroPedido ?: return@LaunchedEffect
+        if (biblioteca.cargando) return@LaunchedEffect
+        libroPedido = null
+        val obra = biblioteca.libro(id)
+        if (obra != null) abrirLibro(obra)
+        else avisos.error(
+            if (biblioteca.errorDeCarga != null) "No se ha podido cargar tu biblioteca." else "No está en tu biblioteca.",
+            titulo = "No se pudo abrir el libro", clave = "book:open:$id:error",
+        )
+    }
     TemaLibros(temaViewModel.tema) {
         CompositionLocalProvider(LocalVentana provides rememberVentana(), LocalCuenta provides cuenta, LocalAvisos provides avisos) {
             val estado = acceso?.estado?.collectAsStateWithLifecycle()?.value
@@ -548,7 +569,7 @@ fun AppLibros(app: LibrosApp) {
                         invitacion,
                         AccionesDeInvitacion(
                             entrarConOtraCuenta = {
-                                invitacion.cerrar()
+                                invitacion.conservarParaOtraCuenta()
                                 panelAbierto = true
                             },
                             activarDosPasos = { acceso?.let { Enlaces.abrir(contextoDeLaInvitacion, it.direccionWebSocial("seguridad")) } },
