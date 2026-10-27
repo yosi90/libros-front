@@ -1,4 +1,4 @@
-name: QA integration campaign
+name: QA nightly browser suites
 
 on:
   workflow_dispatch:
@@ -62,19 +62,8 @@ jobs:
         env:
           QA_USE_BUILT_ARTIFACT: "true"
         run: npm run qa:browsers
-      - name: Acquire the global QA lease
-        run: node scripts/qa/campaign-control.mjs acquire
-      - name: Run the Chromium and Firefox integration campaign
-        run: node scripts/qa/run-with-lease.mjs npm run qa:integration
-      - name: Renew the lease before cleanup
-        if: ${{ always() }}
-        run: node scripts/qa/campaign-control.mjs renew-cleanup
-      - name: Restore the baseline dataset
-        if: ${{ always() }}
-        run: node scripts/qa/campaign-control.mjs reset-baseline
-      - name: Release the global QA lease
-        if: ${{ always() }}
-        run: node scripts/qa/campaign-control.mjs release
+      # La campaña de integración contra la API de QA (lease, reset y qa:integration) se lanza cada noche desde el
+      # servidor (scripts/qa/nocturna-servidor.ps1): Cloudflare responde al runner con un desafío (cf-mitigated=challenge).
       - name: Scan QA evidence for secret values
         id: evidence_scan
         if: ${{ always() }}

@@ -4,12 +4,13 @@
 
 ## Pendiente
 
-- [ ] Campaña de QA nocturna (26/10/2026). Fallaba cada noche desde el 10/10. Tres fallos arreglados y uno pendiente:
+- [ ] Campaña de QA nocturna (26/10/2026). Fallaba cada noche desde el 10/10. Arreglada; solo falta registrar la tarea:
   - [x] El contrato de la campaña (`scripts/qa/campaign-control.mjs` y `e2e/support/qa-environment.ts`) exigía el gateway, NATS y los workers del tiempo real propio, Firebase y el WebSocket, retirados con la adhesión. También esperaba 37 fixtures; con la adhesión quedan 26, así que ahora se comprueban los alias básicos.
   - [x] `/qa/reset` daba 500: la foto `qa_baseline` era anterior a las columnas nuevas (fechas de alta, título de cada persona) y a las tablas de la IA. El reset restaura ahora solo las columnas comunes (API `c6b5e9e`). La foto de `libros_qa` se rehízo con los rellenos de fechas y los scripts IA 02-04.
   - [x] La medida de Home salía 0 a veces porque leía la navegación antes de que acabara el evento load.
   - [x] Una respuesta que no es JSON ahora dice quién contestó.
-  - [ ] Desde GitHub, `qa-api.yosiftware.es` responde con un desafío de Cloudflare (`cf-mitigated=challenge`, run `40421656569`), así que el runner no pasa de `/verify`. Desde el servidor la campaña pasa entera: Chromium y Firefox, con reset, renovación y liberación del turno. Falta que el propietario decida entre quitar el desafío para el runner y lanzar la integración desde el servidor.
+  - [x] Desde GitHub, `qa-api.yosiftware.es` responde con un desafío de Cloudflare (`cf-mitigated=challenge`, run `40421656569`), así que el runner no pasa de `/verify`. El propietario eligió lanzarla desde el servidor (27/10): `scripts/qa/nocturna-servidor.ps1`, con registros en `.runtime/qa-nocturna/` y aviso por Notificapp si falla. Pasa entera en Chromium y Firefox. `qa-nightly.yml` se queda con `qa:ci` y `qa:browsers`.
+  - [ ] Registrar la tarea programada «Libros QA nocturna» con `scripts/qa/registrar-nocturna-servidor.ps1`. El modo automático del agente no puede hacerlo, así que lo hace el propietario.
 
 - [x] Clubes en la vista móvil de la web (25/10/2026, al especificar el clon Kotlin). Corregidos en la web y en la APK, con 613 unitarias. Fallos:
   - «Mis clubes» se queda en los 3 del resumen, y «Eventos», en 5 y sin «Cargar más».

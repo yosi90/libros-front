@@ -26,7 +26,7 @@ La integración `32978482599` terminó en verde sobre `31755e5`. La campaña alo
 - `qa:integration` es la única suite que usa identidades y escenarios reales. Se ejecuta con un solo worker dentro de la lease global.
 - La integración autenticada bloquea Service Workers: cubre sesión y producto sobre el artefacto servido, mientras el worker, el despliegue y el recorrido offline se acreditan en su gate alojado independiente.
 - `qa-hosting-manual.yml` construye el artefacto QA, lo prueba, despliega solo Hosting, repite smoke alojado y restaura `baseline` incluso tras fallo.
-- `qa-nightly.yml` ejecuta la misma cobertura de navegador y la campaña real sin convertirla en requisito de cada commit.
+- `qa-nightly.yml` ejecuta la misma cobertura de navegador sin convertirla en requisito de cada commit. La campaña real la lanza cada noche el servidor (`scripts/qa/nocturna-servidor.ps1`), porque Cloudflare desafía al runner de GitHub (27/10/2026).
 
 ## Incidencias encontradas durante la campaña
 
