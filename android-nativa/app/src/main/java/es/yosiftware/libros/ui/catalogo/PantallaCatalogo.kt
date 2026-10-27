@@ -138,20 +138,19 @@ private fun BarraDeBusqueda(vm: CatalogoViewModel, desplazada: Boolean) {
     val colores = LocalColores.current
     var enfocada by remember { mutableStateOf(false) }
     val raya = if (desplazada) mezclar(colores.contornoFuerte, 0.58f) else Color.Transparent
-    Row(
+    // Los botones van en la fila del campo: centrados en toda la barra, bajaban al aparecer los chips.
+    Column(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
             .background(colores.lienzo)
             .drawBehind {
                 if (desplazada) drawRect(mezclar(colores.tinta, 0.08f), Offset(0f, size.height), Size(size.width, 6.dp.toPx()))
                 drawRect(raya, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx()))
             },
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
             Row(
-                Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = Espacios.e4, end = Espacios.e2),
+                Modifier.weight(1f).heightIn(min = 56.dp).padding(start = Espacios.e4, end = Espacios.e2),
                 horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -179,20 +178,20 @@ private fun BarraDeBusqueda(vm: CatalogoViewModel, desplazada: Boolean) {
                     }
                 }
             }
-            if (enfocada && vm.borrador.isNotBlank()) SugerenciasDeAmbito(ambitosDelCatalogo, vm.borrador, vm::confirmarBorrador)
-            if (vm.chips.isNotEmpty()) {
-                Row(
-                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = Espacios.e2),
-                    horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
-                ) {
-                    vm.chips.forEach { chip ->
-                        ChipQuitable("${chip.ambito.etiqueta}: ${chip.valor}", "Quitar filtro ${chip.valor}") { vm.quitarFiltro(chip.crudo) }
-                    }
+            BotonCuadrado(Iconos.tune, "Filtros", vm.filtrosAbiertos, vm::alternarFiltros)
+            BotonCuadrado(Iconos.add, "Solicitar un libro nuevo", false) { vm.pedirNuevo() }
+        }
+        if (enfocada && vm.borrador.isNotBlank()) SugerenciasDeAmbito(ambitosDelCatalogo, vm.borrador, vm::confirmarBorrador, Modifier.padding(horizontal = Espacios.e4))
+        if (vm.chips.isNotEmpty()) {
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = Espacios.e4, end = Espacios.e4, top = Espacios.e2, bottom = Espacios.e2),
+                horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
+            ) {
+                vm.chips.forEach { chip ->
+                    ChipQuitable("${chip.ambito.etiqueta}: ${chip.valor}", "Quitar filtro ${chip.valor}") { vm.quitarFiltro(chip.crudo) }
                 }
             }
         }
-        BotonCuadrado(Iconos.tune, "Filtros", vm.filtrosAbiertos, vm::alternarFiltros)
-        BotonCuadrado(Iconos.add, "Solicitar un libro nuevo", false) { vm.pedirNuevo() }
     }
 }
 

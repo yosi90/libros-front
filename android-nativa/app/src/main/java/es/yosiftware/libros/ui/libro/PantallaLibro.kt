@@ -1,5 +1,7 @@
 package es.yosiftware.libros.ui.libro
 
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
@@ -60,6 +62,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
@@ -111,11 +114,21 @@ private fun iconoDe(elemento: Elemento): Int = when (elemento) {
     Elemento.CITAS -> Iconos.formatQuote
 }
 
+private fun ocultarTeclado(vista: View) {
+    vista.findFocus()?.clearFocus()
+    vista.context.getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(vista.windowToken, 0)
+}
+
 /** Arrastrar el índice más de esto hacia un lado lo cierra (`finishIndexDrag`). */
 private val ArrastreParaCerrar = 72.dp
 
 @Composable
 fun PantallaLibro(vm: LibroViewModel, contenido: @Composable (VistaDelLibro) -> Unit) {
+    // Al minimizar o cerrar el libro, su editor sale de la pantalla con el foco puesto: el teclado se quedaba abierto y
+    // lo que se escribiera iba a una escena que no se ve.
+    val vistaAndroid = LocalView.current
+    val visible = vm.abierto != null && !vm.minimizado
+    LaunchedEffect(visible) { if (!visible) ocultarTeclado(vistaAndroid) }
     val obra = vm.abierto ?: return
     // Minimizado, el libro se queda en la isla (`IslaDelLector`): su contenido no se pinta, pero lo de cada vista sigue.
     if (vm.minimizado) return

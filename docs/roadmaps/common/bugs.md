@@ -4,6 +4,10 @@
 
 ## Pendiente
 
+- [x] APK Kotlin (27/10/2026, vistos en el Xiaomi):
+  - Al minimizar el libro mientras se escribía en una escena, el teclado se quedaba abierto y el foco en el editor, que ya no se veía: lo que se tecleara iba a la escena sin verlo. Ahora se cierra el teclado al minimizar o cerrar el libro (`PantallaLibro`).
+  - En el Catálogo, con un chip de búsqueda, los botones de filtros y de pedir un libro bajaban 48 px respecto al campo, y el chip quedaba pegado al borde. Los botones van ahora en la fila del campo y los chips llevan margen, como en la Biblioteca.
+
 - [ ] Campaña de QA nocturna (26/10/2026). Fallaba cada noche desde el 10/10. Arreglada; solo falta registrar la tarea:
   - [x] El contrato de la campaña (`scripts/qa/campaign-control.mjs` y `e2e/support/qa-environment.ts`) exigía el gateway, NATS y los workers del tiempo real propio, Firebase y el WebSocket, retirados con la adhesión. También esperaba 37 fixtures; con la adhesión quedan 26, así que ahora se comprueban los alias básicos.
   - [x] `/qa/reset` daba 500: la foto `qa_baseline` era anterior a las columnas nuevas (fechas de alta, título de cada persona) y a las tablas de la IA. El reset restaura ahora solo las columnas comunes (API `c6b5e9e`). La foto de `libros_qa` se rehízo con los rellenos de fechas y los scripts IA 02-04.
