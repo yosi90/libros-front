@@ -64,3 +64,7 @@ No aplica: Libros no manda texto de las personas a la pasarela de IA. El kit 1.5
 ### Libros: auditoría recibida (2026-10-25)
 
 Confirmado tras la auditoría de la plataforma: ni la API ni la web ni la APK mandan texto de las personas a una IA (la única clave externa de la API es la de Google Books). No hay nada que limitar hoy. El título con IA y el dictado (hito 15) nacerán con estos límites por cuenta, aplicando el kit vigente entonces.
+
+### Libros: cerrada (2026-10-29)
+
+Aceptada. Desde el 2026-10-26 Libros usa la pasarela de IA: el título de cada persona y el relleno del catálogo. Al modelo solo van datos de la obra del catálogo (nombre, autores, sinopsis, saga y universo), nunca texto libre de las personas, y las instrucciones van aparte.

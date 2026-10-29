@@ -63,3 +63,7 @@ Sin fecha ni bloqueo. Cada proyecto, cuando le toque.
 ### Libros: estado provisional (2026-10-25)
 
 No aplica por ahora: Libros no usa la pasarela de IA. El kit vigente (1.57) está copiado. Cuando lleguen el título del libro con IA y el dictado por voz (mejoras pendientes tras el clon, hito 15), empezarán por el proveedor preferido de la persona (`GET /v1/ia/estado`, `preferidos`).
+
+### Libros: cerrada (2026-10-29)
+
+Aceptada. Desde el 2026-10-26, el título de cada persona elige por defecto un modelo ligero de su proveedor preferido para texto, y ofrece los demás que tenga listos.
