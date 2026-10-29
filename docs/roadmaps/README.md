@@ -17,15 +17,17 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `ecosistema/ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md`: adhesión de la web a Yosiftware con el kit vigente y clon exacto de la APK en Kotlin (`android-nativa/`), adherido desde el principio; abierto el 24/10/2026. Hitos 0, 1 y 5–7 unidos en `main`; hitos 2–4 de la web (acceso, lo social, limpieza al cambiar de cuenta, retirada de Capacitor y de la administración) en la rama `adhesion/web`, lista para unir en el corte con la API. Maestro y backend en `../Libros API/docs/roadmaps/ACTIVO_adhesion-yosiftware/`.
+Ninguno. Lo que quedó de la adhesión está en `../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`.
 
 ## Roadmaps pausados
 
 - `common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: implementación cerrada; queda la checklist manual de presentación, navegación y regresión.
+- `ecosistema/ROADMAP_PAUSADO_duplicados-apk-kotlin.md`: propuestas de la auditoría completa de duplicados de la APK Kotlin (26/10/2026).
 - `common/ROADMAP_PAUSADO_duplicados-frontend.md`: propuestas de la auditoría completa de duplicados del frontend (24/10/2026) que no se aplicaron por tamaño o por cruzar con el backend.
 
 ## Roadmaps finalizados
 
+- `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`: adhesión de la web a Yosiftware y clon de la APK en Kotlin (`android-nativa/`), del 24/10/2026; corte en producción el 25/10, APK 2.0.0 publicada el 26/10 y cerrado el 29/10/2026 con el visto bueno del propietario. Maestro y backend en `../Libros API/docs/roadmaps/FINALIZADO_adhesion-yosiftware/`.
 - `api-contract/ROADMAP_FINALIZADO_ediciones-isbn-y-avisos-agente.md`: migración de ediciones/ISBN y posesión, peticiones, administración y avisos de agente; QA aceptada y producción web/Android 1.0.18 verificada el 1/10/2026.
 
 - `common/ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md`: finalizado el 27/9/2026 (pendientes Android confirmados por el propietario en uso real); su Hito 4 queda sustituido y su Hito 5 se transfiere al roadmap Web.

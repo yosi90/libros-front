@@ -1,6 +1,6 @@
 # Duplicados pendientes del frontend
 
-**Pausado desde su apertura (24/10/2026):** recoge lo que la auditoría completa de duplicados del frontend (hito 1 de `ecosistema/ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md`, rama `revisor/auditoria-completa-frontend-2026-10-24`, base `5dc3120`) no aplicó porque es grande, cambia una API interna con muchos llamadores o cruza con el backend. Solo puede haber un roadmap activo; se retoma cuando el propietario lo decida, idealmente antes de portar a Kotlin la parte afectada.
+**Pausado desde su apertura (24/10/2026):** recoge lo que la auditoría completa de duplicados del frontend (hito 1 de `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, rama `revisor/auditoria-completa-frontend-2026-10-24`, base `5dc3120`) no aplicó porque es grande, cambia una API interna con muchos llamadores o cruza con el backend. Solo puede haber un roadmap activo; se retoma cuando el propietario lo decida, idealmente antes de portar a Kotlin la parte afectada.
 
 Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y menos coste a menos.
 

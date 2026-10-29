@@ -1,6 +1,6 @@
 # Checklist - Adhesión a Yosiftware (web) y APK nativa en Kotlin
 
-> Estado: pendiente. Matriz asociada a `docs/roadmaps/ecosistema/ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md`. Sale de `ecosistema-kit/LISTA_DE_COMPROBACION.md` (**kit 1.57**, recorrida entera para la web en el hito 4, 2026-10-25): cada punto se marca con su evidencia (prueba, captura o revisión publicada), **No aplica** con su motivo, o **En el corte** si solo se puede acreditar en producción o lo hace el propietario al publicar. **Web y APK se acreditan por separado.**
+> Estado: pendiente. Matriz asociada a `docs/roadmaps/ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`. Sale de `ecosistema-kit/LISTA_DE_COMPROBACION.md` (**kit 1.57**, recorrida entera para la web en el hito 4, 2026-10-25): cada punto se marca con su evidencia (prueba, captura o revisión publicada), **No aplica** con su motivo, o **En el corte** si solo se puede acreditar en producción o lo hace el propietario al publicar. **Web y APK se acreditan por separado.**
 >
 > Todo lo de la web está en la rama `adhesion/web` (desde `main` `478fc8e`), **sin unir**: sale en el corte con la API (`adhesion/api-identidad`, en QA). «Doble» es el doble del SDK de las pruebas locales (`e2e/support/yosiftware-sdk-double.ts`); «`libros.dev`» es `https://libros.dev.yosiftware.es` contra la plataforma y la API de QA, siempre **sin entrar** con ninguna cuenta. Lo que dice «API» lo acredita la guía `docs/backend/api/ADHESION_YOSIFTWARE.md` (copia de `adhesion/api-identidad` `3037b4e`).
 

@@ -2,7 +2,7 @@
 
 Punto de partida del frontend (web y APK Kotlin) para Libros con la cuenta de Yosiftware: qué ha dejado de hacer la API, qué usar de la plataforma en su lugar y qué falta. No sustituye a `ENDPOINTS.md` ni a OpenAPI; la lista exacta de rutas retiradas, con su recambio, está en [RUTAS_RETIRADAS.md](RUTAS_RETIRADAS.md).
 
-Roadmap: `docs/roadmaps/ACTIVO_adhesion-yosiftware/ROADMAP_ACTIVO_adhesion_yosiftware.md` (fases 2 a 4). Kit de la plataforma: 1.53 (espacios: `ecosistema-kit/ESPACIOS.md`).
+Roadmap: `docs/roadmaps/FINALIZADO_adhesion-yosiftware/ROADMAP_FINALIZADO_adhesion_yosiftware.md` (fases 2 a 4). Kit de la plataforma: 1.53 (espacios: `ecosistema-kit/ESPACIOS.md`).
 
 ## Estado de publicación
 
@@ -16,7 +16,7 @@ Roadmap: `docs/roadmaps/ACTIVO_adhesion-yosiftware/ROADMAP_ACTIVO_adhesion_yosif
 | **Clubes en los espacios** (roles, espacio con cada club, copia del feed, expulsión y roles por la credencial de servicio, conversación y canal del espacio); retiradas las rutas propias de entrar, salir, invitaciones, solicitudes y bandejas | Rama `adhesion/api-identidad`, 2026-10-24 (fase 4, `236dae7`). En QA desde ese día. |
 | **El panel de administración, plugin de la administración** (`libros` 1.0.0); retiradas `/admin/*`, `/catalogo/admin/*`, `/moderacion/*` y las demás rutas de administración | Rama `adhesion/api-identidad`, 2026-10-24 (fase 3). En la API de QA desde ese día; el plugin, **pendiente de que el propietario lo instale** (abajo). |
 | **Plugin de Notificapp `libros-api` 1.1.0** (sin `books_appeal`) | ZIP entregado; lo instala el propietario en el corte (abajo). |
-| Publicación | Solo en el corte: API y web a la vez. Hasta entonces, producción sigue con la sesión propia de Libros. **Guion preparado y ensayado sobre una copia de producción** (2026-10-25): `docs/roadmaps/ACTIVO_adhesion-yosiftware/CORTE.md`. La web se publica en su paso 10, después de comprobar la API; entre el arranque de la API nueva y el Hosting nuevo (unos 20 minutos) la web antigua no puede entrar. |
+| Publicación | Solo en el corte: API y web a la vez. Hasta entonces, producción sigue con la sesión propia de Libros. **Guion preparado y ensayado sobre una copia de producción** (2026-10-25): `docs/roadmaps/FINALIZADO_adhesion-yosiftware/CORTE.md`. La web se publica en su paso 10, después de comprobar la API; entre el arranque de la API nueva y el Hosting nuevo (unos 20 minutos) la web antigua no puede entrar. |
 
 ## Qué cambia para el frontend
 

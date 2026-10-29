@@ -13,7 +13,7 @@
 
 ## Líneas activas
 
-- `ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md`: adhesión de la web y APK Kotlin. Maestro y backend en `../Libros API/docs/roadmaps/ACTIVO_adhesion-yosiftware/`.
+- `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`: adhesión de la web y APK Kotlin. Maestro y backend en `../Libros API/docs/roadmaps/FINALIZADO_adhesion-yosiftware/`.
 
 ## Líneas pausadas
 

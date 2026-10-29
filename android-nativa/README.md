@@ -1,6 +1,6 @@
 # Libros: la APK nativa (Kotlin)
 
-El clon en Kotlin y Jetpack Compose de la APK actual de Memoria Bibliográfica, que es la web de Angular dentro de Capacitor (`../android/`). Es un **clon exacto** de lo propio de Libros, con el aspecto de la presentación Mobile (`../src/assets/css/mobile/` y `../src/app/components/mobile/`), y nace adherido a Yosiftware: la cuenta es la de la plataforma. Plan y estado: `../docs/roadmaps/ecosistema/ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md` (hitos 5 a 14).
+El clon en Kotlin y Jetpack Compose de la APK actual de Memoria Bibliográfica, que es la web de Angular dentro de Capacitor (`../android/`). Es un **clon exacto** de lo propio de Libros, con el aspecto de la presentación Mobile (`../src/assets/css/mobile/` y `../src/app/components/mobile/`), y nace adherido a Yosiftware: la cuenta es la de la plataforma. Plan y estado: `../docs/roadmaps/ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (hitos 5 a 14).
 
 Mismo paquete que la APK de Capacitor (`es.yosiftware.libros`, y `.qa` en QA), con un `versionCode` mayor, para instalarse encima con la misma firma.
 

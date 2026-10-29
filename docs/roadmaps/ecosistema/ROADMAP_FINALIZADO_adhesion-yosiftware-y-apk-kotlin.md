@@ -1,8 +1,8 @@
 # Adhesión a Yosiftware (web) y APK nativa en Kotlin
 
-Estado: ACTIVO
+Estado: FINALIZADO (2026-10-29, con el visto bueno del propietario al corte). Lo que quedó abierto sigue en `../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`.
 Abierto: 2026-10-24, a petición del propietario.
-Roadmap maestro (orden global y backend): `../Libros API/docs/roadmaps/ACTIVO_adhesion-yosiftware/ROADMAP_ACTIVO_adhesion_yosiftware.md`. Las fases citadas como «fase N» son las de ese documento.
+Roadmap maestro (orden global y backend): `../Libros API/docs/roadmaps/FINALIZADO_adhesion-yosiftware/ROADMAP_FINALIZADO_adhesion_yosiftware.md`. Las fases citadas como «fase N» son las de ese documento.
 Checklist de pruebas: `docs/pruebas/ecosistema/[pendiente][adhesion-yosiftware-y-apk-kotlin].md`.
 Kit del ecosistema: `ecosistema-kit/` (1.53 al abrir; 1.57 en el hito 4; ignorado por Git). Fuente vigente: `C:\Users\Yosi\Desktop\administracion yosiftware\ecosistema-kit\`.
 
@@ -82,7 +82,7 @@ Todo lo marcado está en la rama `adhesion/web` (desde `main` `478fc8e`), **sin 
 - [x] SDK, `<yosi-acceso>` (panel de cuentas) y token de la plataforma en los interceptores (rama sin unir). `PlatformSessionService` (estado del SDK, usuario local por `GET /usuarios/me`, generación por identidad), `PlatformTokenInterceptor` (`yosiftware.token()`, un reintento tras 401, descarta las respuestas de otra generación) y `AccountScopeService` (vacía los datos en memoria al cambiar de identidad). `<yosi-acceso>` en la barra lateral y la barra del libro de Wood, la navegación Web (barra compacta y pie), la cabecera del libro Web y la app bar de Mobile, con las variables `--yosi-*` de cada presentación; las ventanas, con `assets/yosiftware.css`. `restricciones` se explican con su fecha (`403 platform_restriction_active` y el aviso del panel); las normas las enseña el SDK. Claves por persona en `localStorage` con entorno y cuenta. `sessionVersion` `2026-10-24-adhesion-yosiftware`.
 - [x] CSP del kit y Yosiftadísticas: marca de propietario del SDK; retirada `ExcluirMedicionAudiencia` (rama sin unir). CSP de producción en `firebase.json` y la de QA generada por `scripts/qa/prepare-hosting-config.mjs`; sin COEP y con COOP `same-origin-allow-popups`. `yosiftadisticas:excluir` no se toca nunca.
 - [x] Servidor de desarrollo HTTPS en `libros.dev.yosiftware.es` con el certificado del servidor (ruta en configuración privada) (rama sin unir): `npm run start:dev-plataforma`, rutas del certificado en `.runtime/dev-plataforma.json` o variables, proxy a la API de QA (`127.0.0.1:5101`). Probado con Playwright en Chromium (2026-10-24): SDK 1.22.0 de QA, `sin_sesion`, `<yosi-acceso>` en Web claro, Web compacta oscura y Wood, la ventana de entrar abierta y cerrada sin entrar, y ninguna violación de la CSP.
-- [ ] Que el propietario entre en `https://libros.dev.yosiftware.es` con su cuenta de QA (enlazada al usuario 1 de `libros_qa`) y vea sus datos.
+- [x] Que el propietario entre en `https://libros.dev.yosiftware.es` con su cuenta de QA (enlazada al usuario 1 de `libros_qa`) y vea sus datos. **Superado (2026-10-29):** el propietario validó el corte directamente en producción (humo del 2026-10-25).
 - Lo que quedó apagado para el hito 3 (chat, campana, tiempo real, sanciones, normas, moderación, bloqueos, perfil y privacidad propios) ya está hecho con la plataforma: ver el hito 3. La campaña de integración de Playwright (entraba con el login propio) y las referencias visuales de la portada y de Wood se resolvieron en el hito 4.
 
 ### Hito 3. Web: lo social con la plataforma
@@ -133,7 +133,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - [x] Página de administración retirada (`5312ba8`): pasa al plugin de la plataforma; fuera la página, sus componentes, servicios, guardas, rutas y enlaces.
 - [x] Pruebas pendientes de los hitos 2 y 3: la campaña de integración (que entraba con el login propio) se retira o pasa a lo publicado sin sesión; referencias visuales de Windows regeneradas y revisadas (`home`, `account-security`, `book-search`, `chapter-editor`, `narrative-characters`); las de Linux, pendientes de Docker.
 - [x] `docs/backend` sincronizado desde `3037b4e` de la API (`98b7d1e`); la tarjeta «Invitaciones a clubes» sale solo de la plataforma (`c858553`).
-- [ ] Publicación coordinada con la fase 7; humo en producción con el propietario.
+- [x] Publicación coordinada con la fase 7; humo en producción con el propietario. **Hecho:** corte del 2026-10-25 y humo del propietario en producción ese día, con tres fallos de la web corregidos (`6e7e188`).
   - **Publicada el 2026-10-25:**
     - `adhesion/web` unida en `main` como `e890d0b`, después del revisor de duplicados en modo `corregir` (`e2a3316`…`af0c459`).
     - Hosting desplegado en verde (ejecución `40180912280`, con `qa:ci`).
@@ -143,7 +143,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
     - El propietario entró en producción. Instaló los dos plugins y apagó los proveedores de Authentication.
     - Las reglas de Firestore y de RTDB están en `false`.
     - La novedad de Yosiftware está publicada (id 34).
-    - En su humo encontró tres fallos, corregidos y publicados en `6e7e188` (`../Libros API/docs/roadmaps/ACTIVO_adhesion-yosiftware/bugs.md`):
+    - En su humo encontró tres fallos, corregidos y publicados en `6e7e188` (`../Libros API/docs/roadmaps/FINALIZADO_adhesion-yosiftware/bugs.md`):
       - las recargas volvían a la biblioteca;
       - los paneles del SDK quedaban cortados en las navegaciones laterales;
       - el perfil aparecía duplicado.
@@ -151,7 +151,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - **Falta:**
     - probar con cuentas reales el chat, los clubes y el cambio de cuenta;
     - regenerar las referencias visuales de Linux con Docker;
-    - la mejora no urgente de la CSP que señaló la plataforma: `'unsafe-inline'` en `script-src` (`docs/peticiones/migrar-libros-a-la-plataforma.md`, «Revisión de la plataforma»).
+    - la mejora no urgente de la CSP que señaló la plataforma: `'unsafe-inline'` en `script-src` (`docs/peticiones/respondidas/ACEPTADA_migrar-libros-a-la-plataforma.md`, «Revisión de la plataforma»).
 
 ### Hito 5. APK Kotlin: base del proyecto y referencia visual
 
@@ -175,7 +175,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 
   Huecos:
   - [x] Honor plegado: no hace falta. El propietario decidió (2026-10-24) que el Xiaomi cubre la vista de móvil normal.
-  - [ ] Contenido real: el dataset de QA no da, para member-a, antologías con secciones en la colección, obras con varias ediciones ni capítulos, escenas o entidades con contenido. Se completa con capturas de solo lectura de la APK de producción del propietario en el Honor, con su permiso (2026-10-24), marcadas `__real`.
+  - [x] Contenido real: el dataset de QA no da, para member-a, antologías con secciones en la colección, obras con varias ediciones ni capítulos, escenas o entidades con contenido. Se completa con capturas de solo lectura de la APK de producción del propietario en el Honor, con su permiso (2026-10-24), marcadas `__real`. **Superado (2026-10-29):** el clon se dio por bueno sin esas capturas; las pantallas con contenido real se probaron contra QA con la cuenta del propietario.
   - Comportamientos de la APK actual vistos al capturar:
     - «Cuenta y seguridad» no se puede desplazar (`overflow: hidden` en `app-user-router`). No importa: esa pantalla se retira con la adhesión.
     - El modal «Pedir nuevo libro» sale oscuro también en el tema claro. Es deuda técnica: tiene el estilo Wood y nunca se le hicieron las variantes clara y oscura (propietario, 2026-10-24). En la APK Kotlin se dibuja con el tema Mobile, en claro y en oscuro. En la web se corrige en `bugs.md` de `universes/`.
@@ -202,7 +202,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
 - [x] Estados de la sesión y panel de cuentas.
 - [x] Limpieza A → B → A probada.
 - [x] Unido en `main` (`2ef421a`, 2026-10-24). La plataforma dio de alta los paquetes, las huellas y el cliente OAuth (petición de migración); con los `google-services` de `.runtime/plataforma/`, el selector de Google se abre en el Xiaomi sin `DEVELOPER_ERROR`. Hay una pantalla por cada estado de la librería con el aspecto de las públicas de Capacitor, sin teléfono; el panel de cuentas se abre desde «Más › Cuenta» y el avatar del rail sigue llevando a Perfil, como en Capacitor. 127 pruebas JVM, entre ellas 8 de limpieza al cambiar de cuenta: A → B → A, salir, revocación, sin conexión y respuesta tardía. Capturas de las pantallas nuevas en `referencias-apk-capacitor\_kotlin\cuenta\`.
-- [ ] Que el propietario entre en QA (contraseña o Google) con la APK Kotlin del Xiaomi, cuando la API de QA acepte los tokens de la plataforma (ya lo hace en la rama de la adhesión).
+- [x] Que el propietario entre en QA (contraseña o Google) con la APK Kotlin del Xiaomi, cuando la API de QA acepte los tokens de la plataforma (ya lo hace en la rama de la adhesión). **Superado (2026-10-29):** el propietario usa la APK de producción, y la de QA del Xiaomi se probó con su cuenta de QA.
 - [x] Perfil de la plataforma (`/v1/perfil`) y avatar con cámara o galería: pasan al hito 11, con el resto del Perfil. Resuelto allí: se editan en la web social, como en la web.
 
 ### Hito 7. APK Kotlin: datos y red
@@ -270,7 +270,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - probar con red en la app de QA, con sesión (añadir, editar ediciones y pedir un libro).
 - [x] Estadísticas (2026-10-25): la pantalla entera, con sus pestañas Personal (cifras, estados, lecturas más rápidas, espera, autores, estilos, puntuaciones y pendientes de comprar) y General (la comunidad, con su umbral de privacidad, los clubes y su actividad, y el catálogo en cifras). Lógica en `ui/estadisticas/Estadisticas.kt` con sus pruebas; muestra de depuración `MuestrasDeEstadisticas`. Las novedades de F1 a F3 de la web (ritmo, puntuaciones en el tiempo) llegan en la F4.
   - **Corregido a propósito:** desde 600 dp, la APK capturada ponía los títulos de sección («Lectura en la comunidad», «Clubes y actividad», «El catálogo») y la nota de privacidad en una sola columna de la rejilla, al lado de paneles que no eran suyos. Aquí van a lo ancho.
-- [ ] Comparación con las capturas, en claro y oscuro, plegada y desplegada: hecha en el Honor desplegado (`referencias-apk-capacitor/_kotlin/catalogo/` y `estadisticas/`); falta el Xiaomi, que estaba bloqueado.
+- [x] Comparación con las capturas, en claro y oscuro, plegada y desplegada: hecha en el Honor desplegado (`referencias-apk-capacitor/_kotlin/catalogo/` y `estadisticas/`); falta el Xiaomi, que estaba bloqueado. **Se cierra sin la del Xiaomi (2026-10-29):** el clon se dio por bueno, y en el Xiaomi se revisaron estas pantallas en claro el 27/10.
 
 ### Hito 9. APK Kotlin: el libro
 
@@ -299,7 +299,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
     - **Pendiente, en todas las pantallas:** el texto del cuerpo sale entre un 4 y un 7 % más ancho que en la WebView del Honor (escala de letra 1,0). La web pide Inter, que no viene en el paquete, y cae en `system-ui`; Compose usa la letra del sistema. Hay que ver qué letra pinta la WebView y usar esa.
   - [x] Búsqueda avanzada (2026-10-25): en el libro ya cargado y fuera del hilo principal, primero las coincidencias exactas y si no las aproximadas (Levenshtein, dos por categoría); las siete categorías, los grupos plegables (dos columnas desde 600 dp) y, al tocar un resultado, su capítulo o su elemento (con `seleccionado`, el `?selected=` de la web).
     - Lógica en `ui/libro/BusquedaEnElLibro.kt` con sus pruebas. Muestras `busqueda-vacia`, `busqueda-sin-resultados`, `busqueda-con-resultados` y `busqueda-aproximada`; comparada con las capturas en el Honor desplegado (no hay captura con resultados: esos, según el Sass).
-- [ ] Capítulos y escenas, con autoguardado y cambios pendientes.
+- [x] Capítulos y escenas, con autoguardado y cambios pendientes. **Hecho:** ver sus puntos, probados en el Xiaomi el 2026-10-27.
   - **El editor RTF se adelanta del hito 10 a este paso:** la escena no se puede editar sin él, y un editor de texto plano borraría el formato al guardar. Irá con el `EditText` de Android y sus estilos dentro de Compose; Compose aún no tiene un editor de texto enriquecido maduro, y el nativo lleva bien el teclado, el autocorrector y el dictado.
   - **Autoguardado sin pérdidas** (el propietario perdió media escena al cerrar la APK del todo, 2026-10-25): cada cambio va antes a un borrador en el dispositivo, y se envía también al pasar a segundo plano. Al volver se recupera lo que no llegó. Probarlo matando la app a mitad de escritura.
   - [x] El conversor RTF (`datos/rtf/`, 2026-10-25): `LectorRtf` y `EscritorRtf` adaptan `rtf-text.ts` de la web. **Paridad completa** con lo que guarda la web en los 4.137 textos de QA (escenas, entradas y notas): el mismo RTF y el mismo texto plano. La prueba `ParidadRtfConLaWebTest` lee el corpus de `app/build/paridad-rtf/`, fuera de Git; `EscritorRtfTest` lleva casos inventados con lo esperado calculado por la web. `rtfATexto` (notas y búsqueda) usa ya este conversor.
@@ -412,7 +412,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - Los mensajes van como en WhatsApp, a petición del propietario: tocar reacciona, mantener pulsado da las opciones y deslizar responde.
   - El chat limitado por la moderación dice hasta cuándo.
   - El canal en tiempo real de los clubes: un hito creado o borrado por otra cuenta aparece y desaparece solo.
-- [ ] App Links y aviso de versión nueva (`0cfd677`). Desde el kit 1.57, la versión disponible la da la plataforma (`GET /v1/webs`, `app.version`, con su enlace de instalación), no GitHub Releases como `AndroidReleaseUpdateService` de la APK actual.
+- [x] App Links y aviso de versión nueva (`0cfd677`). Desde el kit 1.57, la versión disponible la da la plataforma (`GET /v1/webs`, `app.version`, con su enlace de instalación), no GitHub Releases como `AndroidReleaseUpdateService` de la APK actual. **Hecho lo que se podía ver (2026-10-29):** los App Links, y la plataforma ya da `version` e `instalacion` para Libros. El aviso de versión nueva se verá con la próxima versión de la APK (`../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`).
   - App Links verificados en el Honor para QA. Abren en la app:
     - la invitación por código;
     - el chat;
@@ -498,6 +498,6 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
       - lo mismo que Mobile;
       - la cabecera, en un WebView sin JavaScript, sin acceso a archivos y que no navega al tocar, con su CSP. Lleva `MATCH_PARENT`: con `WRAP_CONTENT` medía su ventana por el contenido, el alto era 0 y salía en blanco;
       - probado en el Xiaomi contra QA, generando con OpenAI.
-  - [ ] Función nueva: dictado por voz a los editores RTF de escenas y entradas, con la transcripción de la pasarela y una clave de IA para un modelo mejor (mismo roadmap, IA3).
+  - [x] Función nueva: dictado por voz a los editores RTF de escenas y entradas, con la transcripción de la pasarela y una clave de IA para un modelo mejor (mismo roadmap, IA3). **Pasa a IA3** de `../Libros API/docs/roadmaps/PAUSADO_ia/` (2026-10-29), que ya lo describe.
 - Añadido por el propietario el 2026-10-25, fuera del clon: las peticiones de alta de libros resueltas por la IA con su clave (`PAUSADO_ia`, IA1) y la auditoría de los estilos literarios (`Libros API/docs/roadmaps/PAUSADO_auditoria-estilos/`). Son del backend; la web solo enseña las aprobaciones automáticas.
   - El fallo al crear personajes (loader que no termina, personaje que no aparece y duplicado) no espera: se corrige ya en producción (`narrative-entities/bugs.md`).

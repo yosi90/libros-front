@@ -1,6 +1,6 @@
 # Duplicados pendientes de la APK Kotlin
 
-**Pausado desde su apertura (26/10/2026):** recoge lo que la auditoría completa de duplicados de la APK (hito 14 de `ROADMAP_ACTIVO_adhesion-yosiftware-y-apk-kotlin.md`, rama `revisor/auditoria-completa-apk-2026-10-26`, base `6826083`) no aplicó. Son cambios delicados (el autoguardado), cambios que hay que ver en el móvil o que dependen de la plataforma o del backend. Solo puede haber un roadmap activo: se retoma cuando el propietario lo decida, idealmente junto a las mejoras del hito 15.
+**Pausado desde su apertura (26/10/2026):** recoge lo que la auditoría completa de duplicados de la APK (hito 14 de `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, rama `revisor/auditoria-completa-apk-2026-10-26`, base `6826083`) no aplicó. Son cambios delicados (el autoguardado), cambios que hay que ver en el móvil o que dependen de la plataforma o del backend. Solo puede haber un roadmap activo: se retoma cuando el propietario lo decida, idealmente junto a las mejoras del hito 15.
 
 Alcance: `android-nativa/app/`. La librería `android-nativa/yosiftware-sesion/` no se toca nunca; lo que le falta va como petición a la plataforma. Las líneas citadas son las de la base `6826083`, rutas bajo `android-nativa/app/src/main/java/es/yosiftware/libros/`. Orden: de más ganancia y menos coste a menos.
 

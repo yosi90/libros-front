@@ -18,7 +18,7 @@ La publicación usa un Cloudflare Tunnel exclusivo y mantiene SQL privado. Confi
 
 ### La cuenta de Yosiftware
 
-`qa/.env` necesita `YOSIFTWARE_EMISOR`, `YOSIFTWARE_CREDENCIAL_SERVICIO_FILE` y `QA_PROPIETARIO_ID_GLOBAL` (ver `qa/.env.example`): la API solo acepta los tokens de la plataforma de QA y `qa/start.ps1` exige esas variables y arranca el lector del feed (`realtime.plataforma_feed_worker`), con su latido `plataformaFeedWorker` en `/verify`. Cada provisión enlaza `usuarios.id = 1` con la cuenta del propietario antes de capturar el baseline. La prueba con las cuentas de prueba de la plataforma es `scripts/qa-plataforma-smoke.py`. Guía: `../api/ADHESION_YOSIFTWARE.md`; operación desde el worktree de la rama: `docs/roadmaps/ACTIVO_adhesion-yosiftware/bugs.md`.
+`qa/.env` necesita `YOSIFTWARE_EMISOR`, `YOSIFTWARE_CREDENCIAL_SERVICIO_FILE` y `QA_PROPIETARIO_ID_GLOBAL` (ver `qa/.env.example`): la API solo acepta los tokens de la plataforma de QA y `qa/start.ps1` exige esas variables y arranca el lector del feed (`realtime.plataforma_feed_worker`), con su latido `plataformaFeedWorker` en `/verify`. Cada provisión enlaza `usuarios.id = 1` con la cuenta del propietario antes de capturar el baseline. La prueba con las cuentas de prueba de la plataforma es `scripts/qa-plataforma-smoke.py`. Guía: `../api/ADHESION_YOSIFTWARE.md`; operación desde el worktree de la rama: `docs/roadmaps/FINALIZADO_adhesion-yosiftware/bugs.md`.
 
 ## Primera ejecución
 

@@ -9,7 +9,7 @@ Completar el ciclo de trabajo de peticiones y reportes con avisos persistentes, 
 Las comprobaciones manuales y regresiones de esta iniciativa viven exclusivamente en `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md`.
 
 - [x] **1. Alinear el contrato de avisos de peticiones, reportes y alegaciones.**
-  - **Descripcion:** contrastar la respuesta a `docs/peticiones/notificaciones-operativas-y-normas.md` e incorporar únicamente los eventos, destinatarios, códigos y contextos tipados que publique el backend.
+  - **Descripcion:** contrastar la respuesta a `docs/peticiones/respondidas/ACEPTADA_notificaciones-operativas-y-normas.md` e incorporar únicamente los eventos, destinatarios, códigos y contextos tipados que publique el backend.
   - **Por que se necesita:** el frontend ya recibe y presenta notificaciones persistentes, pero no puede inventar quién debe recibirlas ni dirigir una misma entidad a una vista propia o de gestión.
   - **Que se espera lograr:** un contrato único, idempotente y respetuoso con permisos para altas, reenvíos, respuestas, resoluciones y alegaciones.
   - **Peligros si se mantiene como estaba:** personal sin aviso de trabajo pendiente, autores sin enterarse de una resolución y enlaces que siempre llevan al Perfil aunque el destinatario gestione una cola.
