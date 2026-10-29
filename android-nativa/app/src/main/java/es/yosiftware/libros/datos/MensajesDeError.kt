@@ -8,8 +8,9 @@ package es.yosiftware.libros.datos
  * Solo los códigos de lo que se queda en Libros. No se copian los de lo que se retira con la adhesión, que ya no puede
  * responder la API de Libros: la sesión propia y sus formas de acceso (`invalid_token`, `session_*`,
  * `access_method_*`, `phone_*`…), las preferencias de interfaz y de notificaciones, el chat (`chat_*`), las
- * restricciones de cuenta (`account_sanctioned`, `capability_sanctioned`) y la moderación y la administración
- * (`moderation_*`, `admin_*`, `appeal_*`, `community_report_*`, `policy_draft_required`…).
+ * restricciones de cuenta (`account_sanctioned`, `capability_sanctioned`), las normas de uso propias, la moderación y la
+ * administración (`moderation_*`, `admin_*`, `appeal_*`, `community_report_*`, `policy_draft_required`…), ni los que
+ * ya no emite nadie (`club_membership_limit_reached`, `club_owner_cannot_leave`).
  */
 object MensajesDeError {
     /** Sin respuesta del servidor (`connectionErrorMessage`). */
@@ -22,10 +23,7 @@ object MensajesDeError {
         "anthology_section_collection_forbidden" to "Esta sección se gestiona dentro de su antología.",
         "anthology_not_in_collection" to "Esta antología ya no está en tu biblioteca.",
         "anthology_section_relation_not_found" to "Esta sección ya no pertenece a la antología.",
-        "usage_policy_acceptance_required" to "Debes aceptar la política de uso antes de continuar.",
-        "creation_policy_acceptance_required" to "Debes aceptar la política de creación antes de publicar o modificar contenido.",
         "club_owner_limit_reached" to "Ya administras un club propio. Solo puedes crear uno.",
-        "club_membership_limit_reached" to "Ya participas en tres clubes activos. Sal de uno antes de unirte a otro.",
         "club_post_target_unavailable" to "No puedes publicar en ese club o ya no está disponible.",
         "invalid_comment_spoiler" to "El contexto de spoiler del comentario no es válido.",
         "invalid_comment_spoiler_range" to "El rango de páginas del spoiler no es válido.",
@@ -40,13 +38,11 @@ object MensajesDeError {
         "club_milestone_not_found" to "El hito ya no existe. Se ha actualizado el club.",
         "club_event_not_found" to "El evento ya no existe. Se ha actualizado el club.",
         "club_member_not_found" to "El miembro ya no pertenece al club. Se ha actualizado el listado.",
-        "club_owner_cannot_leave" to "La persona propietaria no puede abandonar el club; debe transferirlo o eliminarlo.",
     )
 
     /** La frase de la APK actual para [codigo], o `null` si no tiene. */
     fun deCodigo(codigo: String?): String? = codigo?.let(porCodigo::get)
 
-    /** Bloqueo por normas pendientes (`isPolicyAcceptanceBlock`). */
-    fun esBloqueoPorNormas(codigo: String?): Boolean =
-        codigo == "usage_policy_acceptance_required" || codigo == "creation_policy_acceptance_required"
+    /** Bloqueo por las normas de la plataforma pendientes (`isPolicyAcceptanceBlock`): lo explica su aviso, no un error. */
+    fun esBloqueoPorNormas(codigo: String?): Boolean = codigo == "platform_rules_acceptance_required"
 }

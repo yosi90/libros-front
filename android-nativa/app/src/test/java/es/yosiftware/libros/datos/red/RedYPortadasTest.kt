@@ -63,6 +63,6 @@ class RedYPortadasTest {
         assertEquals(403, dePlataforma.estadoHttp)
         assertEquals(ErrorDeLibros.RESPUESTA_NO_VALIDA, ErrorDeLibros.de(JSONException("x")).codigo)
         assertEquals(MensajesDeError.GENERICO, ErrorDeLibros.de(IllegalStateException("x")).mensaje)
-        assertTrue(ErrorDeLibros.deRespuesta(403, """{"error": "Acepta las normas.", "code": "usage_policy_acceptance_required"}""").bloqueoPorNormas)
+        assertTrue(ErrorDeLibros.deRespuesta(403, """{"error": "Acepta las normas.", "code": "platform_rules_acceptance_required"}""").bloqueoPorNormas)
     }
 }
