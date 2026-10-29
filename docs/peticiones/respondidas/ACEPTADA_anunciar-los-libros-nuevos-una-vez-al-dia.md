@@ -48,7 +48,7 @@ Sin fecha fija. **El kit 1.59 ya está en QA y en producción (`9a159d0`, 2026-1
 
 ### Libros: hecho (2026-10-25)
 
-Aceptada y en producción. Kit 1.59 adoptado. Roadmap: `docs/roadmaps/ACTIVO_estadisticas-y-altas/` (F1). El propietario lo amplió a guardar más datos con fecha y más estadísticas.
+Aceptada y en producción. Kit 1.59 adoptado. Roadmap: `docs/roadmaps/FINALIZADO_estadisticas-y-altas/` (F1). El propietario lo amplió a guardar más datos con fecha y más estadísticas.
 
 1. **El trabajo diario** (`utils/catalog_daily_news.py`):
    - Lo lanza el lector del feed a las 13:00 de Madrid; `LIBROS_NOVEDAD_DIARIA=0` lo apaga. A mano: `python -m scripts.novedad_diaria_catalogo [--dia AAAA-MM-DD] [--simular]`.
