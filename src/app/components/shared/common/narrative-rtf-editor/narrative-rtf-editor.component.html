@@ -1,5 +1,18 @@
 @if (showToolbar) {
   <div #toolbar class="rtf-toolbar" role="toolbar" aria-label="Formato de texto">
+    @if (showDictation) {
+      <div class="rtf-toolbar__group">
+        <button type="button" class="rtf-tool rtf-tool--dictation" [title]="dictationLabel" [attr.aria-label]="dictationLabel"
+          [class.is-listening]="dictationState === 'listening'" [attr.aria-pressed]="dictationState === 'listening'"
+          [disabled]="disabled || dictationState === 'transcribing'" (mousedown)="$event.preventDefault()" (click)="toggleDictation()">
+          @if (dictationState === 'transcribing') {
+            <span class="rtf-tool__spinner" aria-hidden="true"></span>
+          } @else {
+            <mat-icon>{{ dictationState === 'listening' ? 'stop' : 'mic' }}</mat-icon>
+          }
+        </button>
+      </div>
+    }
     <div class="rtf-toolbar__group rtf-toolbar__group--selectors">
       <label class="rtf-select" title="Fuente">
         <span class="sr-only">Fuente</span>
@@ -132,6 +145,9 @@
       </div>
     </details>
   </div>
+}
+@if (dictationMessage) {
+  <p class="rtf-dictation-message" role="status">{{ dictationMessage }}</p>
 }
 <div #editor class="rtf-editor" role="textbox" aria-multiline="true" [attr.aria-label]="ariaLabel"
   [attr.contenteditable]="readonly || disabled ? 'false' : 'true'"

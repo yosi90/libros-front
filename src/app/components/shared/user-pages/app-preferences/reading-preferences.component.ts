@@ -1,13 +1,16 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { BookScenePreferenceService } from '../../../../services/preferences/book-scene-preference.service';
+import { DictationPreferencesComponent } from './dictation-preferences.component';
 
 /**
- * Preferencias de lectura de este dispositivo: la escena del título divertido al abrir un libro. Estructura común; el
+ * Preferencias de lectura y escritura de este dispositivo: la escena del título divertido al abrir un libro y el dictado por
+ * voz. Estructura común; el
  * color lo aporta cada presentación con variables locales, como en Apariencia.
  */
 @Component({
     selector: 'app-reading-preferences',
     standalone: true,
+    imports: [DictationPreferencesComponent],
     template: `
         <section class="reading">
             <label class="reading__option">
@@ -17,6 +20,7 @@ import { BookScenePreferenceService } from '../../../../services/preferences/boo
                     <small>Si el libro tiene un título divertido con cabecera, la enseña a pantalla completa unos segundos al entrar. Se guarda en este dispositivo.</small>
                 </span>
             </label>
+            <app-dictation-preferences />
         </section>
     `,
     styles: `

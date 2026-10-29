@@ -34,6 +34,8 @@ tags:
   description: Configuracion publica y no sensible para el cliente web.
 - name: QA
   description: Operacion exclusiva del entorno QA; no se publica en produccion.
+- name: Dictado
+  description: El dictado por voz con la clave de IA de la persona.
 - name: Usuarios
   description: Usuario local de Libros de la cuenta de Yosiftware autenticada.
 - name: Catalogo
@@ -270,6 +272,8 @@ paths:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1titulo
   /coleccion/libros/{id_libro}/titulo/generar:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1titulo~1generar
+  /dictado:
+    $ref: ./openapi/paths/dictado.yaml#/~1dictado
   /coleccion/historicos/libros/estados/{id_estado_historico}:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1historicos~1libros~1estados~1{id_estado_historico}
   /coleccion/antologias/{id_antologia}/estado:

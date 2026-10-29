@@ -22,7 +22,7 @@ export class AppPreferencesComponent {
     activeSection: PreferenceSection = 'privacy';
     readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; description: string; webOnly?: boolean }> = [
         { id: 'appearance', label: 'Apariencia', icon: 'palette', description: 'Tema de la interfaz en este navegador.', webOnly: true },
-        { id: 'reading', label: 'Lectura', icon: 'auto_stories', description: 'Cómo se abren tus libros en este dispositivo.' },
+        { id: 'reading', label: 'Lectura y escritura', icon: 'auto_stories', description: 'Cómo se abren tus libros y cómo dictas, en este dispositivo.' },
         { id: 'privacy', label: 'Privacidad', icon: 'visibility', description: 'Tu privacidad en Libros es la de tu cuenta de Yosiftware.' },
         { id: 'chat', label: 'Chat', icon: 'forum', description: 'Cómo se comportan tus ventanas de chat en este escritorio.' }
     ];

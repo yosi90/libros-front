@@ -1,11 +1,16 @@
 
-import { AfterViewInit, Component, ElementRef, EventEmitter, forwardRef, HostBinding, HostListener, Input, OnChanges, OnDestroy, Optional, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, forwardRef, HostBinding, HostListener, Injector, Input, OnChanges, OnDestroy, Optional, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { applyNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { htmlToRtf, rtfToHtml } from '../../../../shared/rtf/rtf-text';
 import { markRtfInkTones } from '../../../../shared/rtf/rtf-ink';
+import { audioRecordingAvailable, browserSpeechAvailable, RecordedDictation, SpeechDictation } from '../../../../shared/dictation/browser-dictation';
+import { joinDictation } from '../../../../shared/dictation/join-dictation';
+import { DictationService } from '../../../../services/entities/dictation.service';
+import { DictationChoice, DictationPreferenceService, dictatesWithAi } from '../../../../services/preferences/dictation-preference.service';
+import { firstValueFrom } from 'rxjs';
 import {
     NARRATIVE_EDITOR_GOOGLE_FONTS,
     NARRATIVE_EDITOR_SYSTEM_FONTS,
@@ -13,6 +18,7 @@ import {
 } from '../../../../services/preferences/narrative-editor-font-preference.service';
 
 type EditorCommand = 'bold' | 'italic' | 'underline' | 'strikeThrough';
+type DictationState = 'idle' | 'listening' | 'transcribing';
 type ParagraphAlignment = 'left' | 'center' | 'right' | 'justify';
 type ParagraphMetric = 'li' | 'ri' | 'fi' | 'sb' | 'sa';
 interface EditorSelectionRange {
@@ -100,9 +106,17 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     /** Durante `ngAfterViewInit` la barra ya se ha comprobado: su sincronización se aplaza. */
     private deferToolbarSync = false;
 
+    // --- El dictado por voz (IA3): el micrófono de la barra. ---
+    dictationState: DictationState = 'idle';
+    dictationMessage = '';
+    private speech: SpeechDictation | null = null;
+    private recording: RecordedDictation | null = null;
+    private dictationMessageTimer: ReturnType<typeof setTimeout> | null = null;
+
     constructor(
         @Optional() private fontPreferences: NarrativeEditorFontPreferenceService | null = null,
-        @Optional() private changeDetector: ChangeDetectorRef | null = null
+        @Optional() private changeDetector: ChangeDetectorRef | null = null,
+        @Optional() private injector: Injector | null = null
     ) { }
 
     ngAfterViewInit(): void {
@@ -132,6 +146,125 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     ngOnDestroy(): void {
         if (this.keywordSyncTimer)
             clearTimeout(this.keywordSyncTimer);
+        if (this.dictationMessageTimer)
+            clearTimeout(this.dictationMessageTimer);
+        this.speech?.cancel();
+        this.recording?.cancel();
+    }
+
+    /** Cómo dicta la persona (Preferencias): el navegador o su clave de IA. Sin sesión, el navegador. */
+    private get dictationChoice(): DictationChoice {
+        try {
+            return this.injector?.get(DictationPreferenceService).choice ?? { mode: 'device', model: null, provider: null };
+        } catch {
+            return { mode: 'device', model: null, provider: null };
+        }
+    }
+
+    /** El micrófono sale si hay forma de dictar: el reconocedor del navegador o la IA elegida y el navegador graba. */
+    get showDictation(): boolean {
+        if (this.readonly) return false;
+        return dictatesWithAi(this.dictationChoice) ? audioRecordingAvailable() : browserSpeechAvailable();
+    }
+
+    get dictationLabel(): string {
+        if (this.dictationState === 'listening') return 'Parar el dictado';
+        if (this.dictationState === 'transcribing') return 'Transcribiendo el dictado';
+        return dictatesWithAi(this.dictationChoice) ? 'Dictar con tu clave de IA' : 'Dictar';
+    }
+
+    async toggleDictation(): Promise<void> {
+        if (this.disabled || this.dictationState === 'transcribing') return;
+        if (this.dictationState === 'listening') {
+            if (this.speech) this.speech.stop();
+            else await this.finishRecording();
+            return;
+        }
+        this.captureEditorSelection();
+        const choice = this.dictationChoice;
+        if (dictatesWithAi(choice)) {
+            const recording = new RecordedDictation(() => void this.finishRecording());
+            try {
+                await recording.start();
+            } catch {
+                this.showDictationMessage('No se ha podido abrir el micrófono. Revisa el permiso en la barra del navegador.');
+                return;
+            }
+            this.recording = recording;
+        } else {
+            this.speech = new SpeechDictation(text => this.insertDictation(text), message => {
+                this.speech = null;
+                this.setDictationState('idle');
+                if (message) this.showDictationMessage(message);
+            });
+            this.speech.start();
+        }
+        this.setDictationState('listening');
+    }
+
+    private async finishRecording(): Promise<void> {
+        const recording = this.recording;
+        this.recording = null;
+        if (!recording) return;
+        const result = await recording.stop();
+        const choice = this.dictationChoice;
+        if (!result) {
+            this.setDictationState('idle');
+            this.showDictationMessage('La grabación ha sido demasiado corta.');
+            return;
+        }
+        if (!result.heardVoice) {
+            this.setDictationState('idle');
+            this.showDictationMessage('No se ha oído nada. Acércate al micrófono y prueba otra vez.');
+            return;
+        }
+        if (!choice.model || !choice.provider) {
+            this.setDictationState('idle');
+            return;
+        }
+        this.setDictationState('transcribing');
+        try {
+            const service = this.injector?.get(DictationService);
+            if (!service) return;
+            const response = await firstValueFrom(service.transcribe(result.audio, choice.provider, choice.model, this.preferenceBookId));
+            if (response.Texto?.trim()) this.insertDictation(response.Texto);
+            else this.showDictationMessage('No se ha entendido nada. Prueba otra vez.');
+        } catch (error) {
+            const message = (error as { error?: { error?: string } })?.error?.error;
+            this.showDictationMessage(message || 'No se ha podido transcribir el dictado.');
+        } finally {
+            this.setDictationState('idle');
+        }
+    }
+
+    /** Lo dictado en el cursor que había al pulsar el micrófono, con el espacio y la mayúscula que toquen. */
+    private insertDictation(text: string): void {
+        if (!this.editor || this.readonly || this.disabled) return;
+        const root = this.editor.nativeElement;
+        if (!root.contains(window.getSelection()?.rangeCount ? window.getSelection()!.getRangeAt(0).startContainer : null)) {
+            root.focus();
+            this.restoreSavedSelection();
+        }
+        const start = this.getSelectionRange()?.start ?? (root.textContent ?? '').length;
+        const joined = joinDictation((root.textContent ?? '').slice(0, start), text);
+        if (!joined) return;
+        this.replaceEditableSelection(joined);
+        this.captureEditorSelection();
+    }
+
+    private setDictationState(state: DictationState): void {
+        this.dictationState = state;
+        this.changeDetector?.markForCheck();
+    }
+
+    private showDictationMessage(message: string): void {
+        this.dictationMessage = message;
+        if (this.dictationMessageTimer) clearTimeout(this.dictationMessageTimer);
+        this.dictationMessageTimer = setTimeout(() => {
+            this.dictationMessage = '';
+            this.changeDetector?.markForCheck();
+        }, 6000);
+        this.changeDetector?.markForCheck();
     }
 
     writeValue(value: string | null): void {

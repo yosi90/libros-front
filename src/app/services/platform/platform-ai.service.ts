@@ -56,10 +56,53 @@ export interface TextModelOption {
     label: string;
 }
 
+/** Los que pasan audio a texto (el dictado, IA3), en su orden y con su nombre visible. */
+export const TRANSCRIPTION_PROVIDERS = { openai: 'OpenAI', elevenlabs: 'ElevenLabs' } as const;
+export type TranscriptionProvider = keyof typeof TRANSCRIPTION_PROVIDERS;
+
+export interface TranscriptionModelOption {
+    key: string;
+    id: string;
+    proveedor: TranscriptionProvider;
+    /** «GPT-4o mini Transcribe · OpenAI». */
+    label: string;
+}
+
+/** Los proveedores de `names` listos (`estado: lista`) en `/v1/ia/estado`, en su orden. */
+function readyProviders<P extends string>(status: PlatformAiStatus | null | undefined, names: Record<P, string>): P[] {
+    return (Object.keys(names) as P[]).filter(provider =>
+        status?.proveedores?.some(item => item.proveedor === provider && item.estado === 'lista'));
+}
+
+/** Los modelos con tarifa de `use` de los proveedores `ready` (sin `precio`, con tope la llamada daría `modelo_sin_tarifa`). */
+function modelOptions<P extends string>(response: PlatformAiModels | null | undefined, ready: readonly P[], use: string,
+    names: Record<P, string>): Array<{ key: string; id: string; proveedor: P; label: string }> {
+    return ready.flatMap(provider => (response?.proveedores?.find(item => item.proveedor === provider)?.modelos ?? [])
+        .filter(model => !!model?.id && (model.usos ?? []).includes(use) && model.precio !== null && model.precio !== undefined)
+        .map(model => ({ key: `${provider}:${model.id}`, id: model.id, proveedor: provider, label: `${model.nombre || model.id} · ${names[provider]}` })));
+}
+
 /** Los proveedores de texto listos (`estado: lista`) en `/v1/ia/estado`. */
 export function readyTextProviders(status: PlatformAiStatus | null | undefined): TextProvider[] {
-    return (Object.keys(TEXT_PROVIDERS) as TextProvider[]).filter(provider =>
-        status?.proveedores?.some(item => item.proveedor === provider && item.estado === 'lista'));
+    return readyProviders(status, TEXT_PROVIDERS);
+}
+
+/** Los proveedores de transcripción listos. */
+export function readyTranscriptionProviders(status: PlatformAiStatus | null | undefined): TranscriptionProvider[] {
+    return readyProviders(status, TRANSCRIPTION_PROVIDERS);
+}
+
+/** Los modelos de transcripción con tarifa de los proveedores listos, en el orden de `TRANSCRIPTION_PROVIDERS`. */
+export function transcriptionModelOptions(response: PlatformAiModels | null | undefined,
+    ready: readonly TranscriptionProvider[]): TranscriptionModelOption[] {
+    return modelOptions(response, ready, 'transcripcion', TRANSCRIPTION_PROVIDERS);
+}
+
+/** El de transcripción que sale elegido: del preferido si está listo, uno ligero («mini») o su primero. */
+export function defaultTranscriptionModel(options: TranscriptionModelOption[], preferred: string | null | undefined): string | null {
+    const own = options.filter(option => option.proveedor === preferred);
+    const candidates = own.length ? own : options;
+    return (candidates.find(option => /mini/i.test(option.id)) ?? candidates[0])?.key ?? null;
 }
 
 /** El estado de cada proveedor de texto; sin dato, como si no hubiera clave. */
@@ -73,9 +116,7 @@ export function textProviderStates(status: PlatformAiStatus | null | undefined):
  * `modelo_sin_tarifa`), en el orden de `TEXT_PROVIDERS`.
  */
 export function textModelOptions(response: PlatformAiModels | null | undefined, ready: readonly TextProvider[]): TextModelOption[] {
-    return ready.flatMap(provider => (response?.proveedores?.find(item => item.proveedor === provider)?.modelos ?? [])
-        .filter(model => !!model?.id && (model.usos ?? []).includes('texto') && model.precio !== null && model.precio !== undefined)
-        .map(model => ({ key: `${provider}:${model.id}`, id: model.id, proveedor: provider, label: `${model.nombre || model.id} · ${TEXT_PROVIDERS[provider]}` })));
+    return modelOptions(response, ready, 'texto', TEXT_PROVIDERS);
 }
 
 /** Por qué no hay lista de modelos (`error` del proveedor) en el primero de los listos que lo diga. */

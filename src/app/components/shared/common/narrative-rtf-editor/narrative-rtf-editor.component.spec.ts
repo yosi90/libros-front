@@ -325,4 +325,80 @@ describe('NarrativeRtfEditorComponent', () => {
 
         expect(menu.open).toBeFalse();
     });
+
+    describe('el dictado del navegador (IA3)', () => {
+        class FakeRecognition {
+            static last: FakeRecognition | null = null;
+            lang = '';
+            continuous = false;
+            interimResults = true;
+            onresult: ((event: unknown) => void) | null = null;
+            onerror: ((event: { error: string }) => void) | null = null;
+            onend: (() => void) | null = null;
+            started = 0;
+            constructor() { FakeRecognition.last = this; }
+            start(): void { this.started++; }
+            stop(): void { this.onend?.(); }
+            abort(): void { }
+            say(text: string): void { this.onresult?.({ resultIndex: 0, results: [{ isFinal: true, 0: { transcript: text } }] }); }
+        }
+        const scope = globalThis as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
+        let previous: [unknown, unknown];
+
+        beforeEach(() => {
+            previous = [scope.SpeechRecognition, scope.webkitSpeechRecognition];
+            scope.SpeechRecognition = FakeRecognition;
+            scope.webkitSpeechRecognition = FakeRecognition;
+            FakeRecognition.last = null;
+        });
+
+        afterEach(() => { [scope.SpeechRecognition, scope.webkitSpeechRecognition] = previous; });
+
+        function cursorAlFinal(root: HTMLElement): void {
+            const range = document.createRange();
+            range.selectNodeContents(root);
+            range.collapse(false);
+            window.getSelection()?.removeAllRanges();
+            window.getSelection()?.addRange(range);
+        }
+
+        it('sale en la barra si el navegador dicta, y no en solo lectura', () => {
+            const { component } = createEditor();
+            expect(component.showDictation).toBeTrue();
+            expect(component.dictationLabel).toBe('Dictar');
+            component.readonly = true;
+            expect(component.showDictation).toBeFalse();
+            scope.SpeechRecognition = undefined;
+            scope.webkitSpeechRecognition = undefined;
+            component.readonly = false;
+            expect(component.showDictation).toBeFalse();
+        });
+
+        it('escribe cada frase en el cursor, en español, y para al pulsar otra vez', async () => {
+            const { component, root } = createEditor('Citra vino');
+            cursorAlFinal(root);
+            await component.toggleDictation();
+            const recognition = FakeRecognition.last!;
+            expect(recognition.lang).toBe('es-ES');
+            expect(recognition.continuous).toBeTrue();
+            expect(component.dictationState).toBe('listening');
+            expect(component.dictationLabel).toBe('Parar el dictado');
+
+            recognition.say('y luego ríe');
+            expect(root.textContent).toContain('Citra vino y luego ríe');
+
+            await component.toggleDictation();
+            expect(component.dictationState).toBe('idle');
+        });
+
+        it('sin permiso del micrófono para y lo dice', async () => {
+            const { component, root } = createEditor();
+            cursorAlFinal(root);
+            await component.toggleDictation();
+            FakeRecognition.last!.onerror?.({ error: 'not-allowed' });
+            FakeRecognition.last!.onend?.();
+            expect(component.dictationState).toBe('idle');
+            expect(component.dictationMessage).toContain('necesita el micrófono');
+        });
+    });
 });

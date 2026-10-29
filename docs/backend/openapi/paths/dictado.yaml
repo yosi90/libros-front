@@ -1,0 +1,56 @@
+/dictado:
+  post:
+    operationId: postDictado
+    tags:
+    - Dictado
+    summary: Transcribe un trozo de audio dictado, con la clave de IA de la persona
+    description: >-
+      El dictado con IA a los editores de escenas y entradas (el gratuito, con el reconocedor del móvil o del navegador,
+      no pasa por la API). Llama por la pasarela de IA de Yosiftware con la clave de la persona (OpenAI o ElevenLabs) y
+      dentro de su tope. Con `LibroId`, los nombres de sus personajes y localizaciones de ese libro (y de su saga) van
+      como pista para que se escriban bien. El audio no se guarda. Como mucho 10 MB por trozo y 200 dictados al día.
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [Audio, Proveedor, Modelo]
+            properties:
+              Audio: {type: string, format: binary, description: 'El audio: webm, ogg, m4a, aac, mp3 o wav, hasta 10 MB.'}
+              Proveedor: {type: string, enum: [openai, elevenlabs]}
+              Modelo: {type: string, description: 'Un id de modelo con el uso transcripcion de `GET /v1/ia/modelos` de la plataforma.'}
+              LibroId: {type: integer, minimum: 1, description: 'El libro en el que se dicta, para la pista de nombres.'}
+    responses:
+      '200':
+        description: El texto dictado.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Texto, Dictados]
+              properties:
+                success: {type: boolean}
+                Texto: {type: string, description: 'Lo que se ha dicho, como texto plano.'}
+                Dictados:
+                  type: object
+                  properties:
+                    Hoy: {type: integer, description: Dictados con IA de hoy (UTC).}
+                    Limite: {type: integer, description: Dictados con IA al día por persona.}
+      '400':
+        description: El audio, el proveedor, el modelo o el libro no valen (`invalid_dictation`), o el modelo no tiene tarifa (`modelo_sin_tarifa`, en el campo `Modelo`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        description: La cuenta no puede usar la IA (`cuenta_no_disponible`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '409':
+        description: Sin clave de IA de ese proveedor o sin tope fijado (`sin_clave_de_ia`, `tope_sin_fijar`); el cliente enlaza la gestión de las claves.
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '429':
+        description: El límite diario de Libros (`limite_diario_de_dictados`), el tope de gasto de la clave (`tope_de_gasto`) o demasiadas llamadas (`demasiadas_peticiones`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+      '502':
+        description: La IA no respondió (`proveedor`, `proveedor_sin_respuesta`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}

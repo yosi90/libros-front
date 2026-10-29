@@ -293,6 +293,39 @@
         font-size: 18px
         line-height: 18px
 
+    // El dictado mientras escucha: en rojo, para que se vea que el micrófono está abierto.
+    &.rtf-tool--dictation.is-listening
+        color: #fff
+        background: #b3261e
+        border-color: #b3261e
+        animation: rtf-dictation-pulse 1.4s ease-in-out infinite
+
+        @media (prefers-reduced-motion: reduce)
+            animation: none
+
+.rtf-tool__spinner
+    width: 13px
+    height: 13px
+    border: 2px solid currentColor
+    border-right-color: transparent
+    border-radius: 50%
+    animation: rtf-dictation-spin .8s linear infinite
+
+@keyframes rtf-dictation-pulse
+    50%
+        box-shadow: 0 0 0 4px rgba(179, 38, 30, .25)
+
+@keyframes rtf-dictation-spin
+    to
+        transform: rotate(360deg)
+
+.rtf-dictation-message
+    margin: 6px 2px 0
+    font-size: .78rem
+    line-height: 1.4
+    color: inherit
+    opacity: .85
+
 .rtf-editor
     min-height: 118px
     box-sizing: border-box
