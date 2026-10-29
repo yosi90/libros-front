@@ -182,7 +182,8 @@ fun BarraPublica(alVolver: (() -> Unit)?, etiquetaVolver: String = "Volver") {
  * Una pantalla de la cuenta con el aspecto de `app-mobile-auth-page`: la barra pública y, debajo, la presentación
  * ([eyebrow], [titulo] en `.m-display`, [apoyo] y la [cita]) y el panel (`.m-card` con 20 dp de relleno), centrados en
  * vertical y hasta 980 dp de ancho, con 32 dp entre los dos. En la ventana compacta, uno debajo del otro; la cita solo
- * con [citaEnCompacta] (la de entrar la lleva). Desde 600 dp, en dos columnas: la presentación (el titular, hasta 10ch y
+ * con [citaEnCompacta]. Con [ajustada] (la de entrar), la compacta solo lleva el titular y huecos más cortos, para que quepa
+ * sin desplazar en un móvil corriente (lo pidió el propietario, 2026-10-29). Desde 600 dp, en dos columnas: la presentación (el titular, hasta 10ch y
  * `clamp(2.35rem, 5.5vw, 3rem)`, con la cita debajo) y el panel, de [panelMinimo] a [panelMaximo] (`minmax`), separados
  * por `clamp(48px, 8vw, 96px)` (o la [separacion] de la pantalla).
  *
@@ -204,6 +205,7 @@ fun PaginaDeAcceso(
     panelMaximo: Dp = 440.dp,
     separacion: ((Float) -> Dp)? = null,
     desplazamiento: ScrollState = rememberScrollState(),
+    ajustada: Boolean = false,
     panel: @Composable ColumnScope.() -> Unit,
 ) {
     val colores = LocalColores.current
@@ -215,7 +217,11 @@ fun PaginaDeAcceso(
         BarraPublica(alVolver, etiquetaVolver)
         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
             val anchoDisponible = maxWidth
-            val (arriba, lados, abajo) = if (ancha) Triple(Espacios.e8, Espacios.e7, Espacios.e8) else Triple(Espacios.e6, Espacios.e4, Espacios.e7)
+            val (arriba, lados, abajo) = when {
+                ancha -> Triple(Espacios.e8, Espacios.e7, Espacios.e8)
+                ajustada -> Triple(Espacios.e4, Espacios.e4, Espacios.e4)
+                else -> Triple(Espacios.e6, Espacios.e4, Espacios.e7)
+            }
             val relleno = Modifier.padding(
                 top = arriba,
                 bottom = max(abajo, zona.calculateBottomPadding()),
@@ -235,15 +241,20 @@ fun PaginaDeAcceso(
                         // `minmax(min, max)` de la rejilla: el panel ocupa lo que quede, entre los dos.
                         val libre = (anchoDisponible - lados * 2).coerceAtMost(980.dp)
                         val anchoPanel = ((libre - hueco) * 0.42f).coerceIn(panelMinimo, panelMaximo)
-                        Panel(Modifier.width(anchoPanel), panel)
+                        Panel(Modifier.width(anchoPanel), Espacios.e4, panel)
                     }
                 } else {
                     Column(
                         Modifier.fillMaxWidth().heightIn(min = altoMinimo),
-                        verticalArrangement = Arrangement.spacedBy(Espacios.e7, Alignment.CenterVertically),
+                        verticalArrangement = Arrangement.spacedBy(if (ajustada) Espacios.e4 else Espacios.e7, Alignment.CenterVertically),
                     ) {
-                        Presentacion(eyebrow, titulo, apoyo, cita?.takeIf { citaEnCompacta }, Modifier.fillMaxWidth(), ancha = false)
-                        Panel(Modifier.fillMaxWidth(), panel)
+                        // Ajustada (la de entrar, en el móvil): solo el titular, para que todo quepa sin desplazar.
+                        if (ajustada) {
+                            Presentacion(null, titulo, null, null, Modifier.fillMaxWidth(), ancha = false, ajustada = true)
+                        } else {
+                            Presentacion(eyebrow, titulo, apoyo, cita?.takeIf { citaEnCompacta }, Modifier.fillMaxWidth(), ancha = false)
+                        }
+                        Panel(Modifier.fillMaxWidth(), if (ajustada) Espacios.e3 else Espacios.e4, panel)
                     }
                 }
             }
@@ -253,20 +264,31 @@ fun PaginaDeAcceso(
 
 /** `.mobile-auth-page__panel`: la tarjeta con 20 dp de relleno (y el borde de 1 dp dentro). */
 @Composable
-private fun Panel(modifier: Modifier, contenido: @Composable ColumnScope.() -> Unit) {
+private fun Panel(modifier: Modifier, hueco: Dp, contenido: @Composable ColumnScope.() -> Unit) {
     Superficie(modifier) {
-        Column(Modifier.padding(Espacios.e5 + 1.dp), verticalArrangement = Arrangement.spacedBy(Espacios.e4), content = contenido)
+        Column(Modifier.padding(Espacios.e5 + 1.dp), verticalArrangement = Arrangement.spacedBy(hueco), content = contenido)
     }
 }
 
 @Composable
-private fun Presentacion(eyebrow: String, titulo: String, apoyo: String?, cita: Cita?, modifier: Modifier, ancha: Boolean) {
+private fun Presentacion(
+    eyebrow: String?,
+    titulo: String,
+    apoyo: String?,
+    cita: Cita?,
+    modifier: Modifier,
+    ancha: Boolean,
+    ajustada: Boolean = false,
+) {
     val colores = LocalColores.current
     val ventana = LocalVentana.current
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Espacios.e4)) {
-        TextoEyebrow(eyebrow)
+        if (eyebrow != null) TextoEyebrow(eyebrow)
         val estilo = if (ancha) {
             Textos.display(ventana.anchoDp).copy(fontSize = (ventana.anchoDp * 0.055f).coerceIn(2.35f * 16, 3f * 16).sp)
+        } else if (ajustada) {
+            // En una línea en un móvil corriente: el titular entero mide unos 12 «0» de la serif.
+            Textos.display(ventana.anchoDp).let { it.copy(fontSize = minOf(it.fontSize.value, (ventana.anchoDp - 32f) / 12.5f).sp) }
         } else {
             Textos.display(ventana.anchoDp)
         }
@@ -324,10 +346,13 @@ fun CampoDeAcceso(
     alCambiarVisible: () -> Unit = {},
     habilitado: Boolean = true,
     error: String? = null,
+    conEtiqueta: Boolean = true,
 ) {
     val colores = LocalColores.current
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(etiqueta, color = colores.tinta, style = textoEtiqueta)
+        // Sin la etiqueta visible (la pantalla de entrar, para caber), el ejemplo dice qué es y la etiqueta sigue para
+        // la accesibilidad.
+        if (conEtiqueta) Text(etiqueta, color = colores.tinta, style = textoEtiqueta)
         Campo(
             valor = valor,
             alCambiar = alCambiar,

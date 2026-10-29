@@ -4,6 +4,8 @@
 
 ## Pendiente
 
+- [x] APK Kotlin, la pantalla de entrar (29/10/2026, lo señaló el propietario): en un móvil corriente ocupaba demasiado y había que desplazar. En la ventana compacta ya solo lleva el titular, en una línea, y el panel; los campos van sin la etiqueta encima (el texto de ejemplo dice qué es y la etiqueta queda para la accesibilidad), y «con tu sesión de…» va en una línea. Comprobado en el Xiaomi a 853, 780 y 731 dp de alto, con el botón «Continuar como…»: cabe entera sin desplazar.
+
 - [x] APK Kotlin (27/10/2026, vistos en el Xiaomi):
   - Al minimizar el libro mientras se escribía en una escena, el teclado se quedaba abierto y el foco en el editor, que ya no se veía: lo que se tecleara iba a la escena sin verlo. Ahora se cierra el teclado al minimizar o cerrar el libro (`PantallaLibro`).
   - En el Catálogo, con un chip de búsqueda, los botones de filtros y de pedir un libro bajaban 48 px respecto al campo, y el chip quedaba pegado al borde. Los botones van ahora en la fila del campo y los chips llevan margen, como en la Biblioteca.

@@ -49,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -217,6 +218,7 @@ fun PantallaDeEntrar(
         panelMaximo = 380.dp,
         separacion = { ancho -> (ancho * 0.07f).coerceIn(48f, 72f).dp },
         desplazamiento = desplazamiento,
+        ajustada = true,
     ) {
         ConTuCuentaDeYosiftware()
         if (vm.ocupado) Trabajando("Entrando con tu cuenta…")
@@ -251,7 +253,8 @@ fun PantallaDeEntrar(
             valor = correo,
             alCambiar = { correo = it.take(100); vm.olvidarError() },
             icono = Iconos.mail,
-            ejemplo = "tu@correo.com",
+            ejemplo = "Correo electrónico",
+            conEtiqueta = false,
             teclado = KeyboardOptions(keyboardType = KeyboardType.Email, autoCorrectEnabled = false, imeAction = ImeAction.Next),
             habilitado = !vm.ocupado,
         )
@@ -260,6 +263,8 @@ fun PantallaDeEntrar(
             valor = contrasena,
             alCambiar = { contrasena = it; vm.olvidarError() },
             icono = Iconos.lock,
+            ejemplo = "Contraseña",
+            conEtiqueta = false,
             teclado = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false, imeAction = ImeAction.Done),
             acciones = KeyboardActions(onDone = { entrar() }),
             secreto = true,
@@ -298,7 +303,14 @@ private fun BotonDeOtraApp(alias: String, app: String?, habilitado: Boolean, alP
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Continuar como @$alias", color = colores.sobreContenedorPrimario, style = Textos.boton)
             if (app != null) {
-                Text("con tu sesión de $app", Modifier.padding(top = 4.dp), color = colores.sobreContenedorPrimario, style = Textos.filaSecundaria)
+                Text(
+                    "con tu sesión de $app",
+                    Modifier.padding(top = 4.dp),
+                    color = colores.sobreContenedorPrimario,
+                    style = Textos.filaSecundaria,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
