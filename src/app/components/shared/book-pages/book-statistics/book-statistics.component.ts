@@ -272,7 +272,7 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         this.loader.activateLoader();
         const payload = { EstadoId: 3 as ReadingStatusId, Fecha: this.toApiDate(selectedDate) };
 
-        this.collectionSrv.updateBookStatus(this.book.Id, payload).pipe(
+        this.collectionSrv.updateWorkStatus('libro', this.book.Id, payload).pipe(
             switchMap(() => this.bookSrv.getBook(this.book.Id))
         ).subscribe({
             next: book => {

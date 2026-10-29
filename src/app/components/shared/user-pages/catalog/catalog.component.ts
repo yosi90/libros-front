@@ -23,6 +23,7 @@ import {
     CatalogEntityType,
     Edition,
     CatalogItem,
+    CatalogItemType,
     CatalogNewWorksWindow,
     CatalogQuery,
     CatalogRequestAction,
@@ -479,7 +480,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
     }
 
     private openApprovedBookCollectionModal(bookId: number): void {
-        this.catalogSrv.getBookPublicDetail(bookId).subscribe({
+        this.catalogSrv.getWorkPublicDetail('libro', bookId).subscribe({
             next: detail => {
                 if (detail.MiColeccion?.EnBiblioteca || this.isInCollection(detail)) {
                     this.snackBar.openSnackBar('Este libro ya está en tu biblioteca', 'infoBar');
@@ -497,9 +498,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
             return;
 
         this.isSavingCollection = true;
-        const request = item.Tipo === 'libro'
-            ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: statusId })
-            : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: statusId });
+        const request = this.collectionSrv.updateWorkStatus(item.Tipo, item.Id, { EstadoId: statusId });
 
         request.pipe(
             switchMap(() => this.collectionSrv.getUniverses())
@@ -858,7 +857,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         }).subscribe({
             next: result => {
                 if (result.Estado === 'aprobada' && result.EntidadId && result.EdicionId && this.isBookLikeRequest()) {
-                    const type = this.requestEntityType;
+                    const type = this.requestEntityType as CatalogItemType; // isBookLikeRequest: libro o antología.
                     const workId = result.EntidadId;
                     const editionId = result.EdicionId;
                     this.snackBar.openSnackBar('Petición aprobada. La edición ya está en el catálogo; puedes añadirla a tu biblioteca.', 'successBar', 10000, {
@@ -884,10 +883,8 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         });
     }
 
-    private addApprovedEdition(type: CatalogEntityType, workId: number, editionId: number): void {
-        const getEditions = type === 'libro'
-            ? this.catalogSrv.getBookEditions(workId)
-            : this.catalogSrv.getAnthologyEditions(workId);
+    private addApprovedEdition(type: CatalogItemType, workId: number, editionId: number): void {
+        const getEditions = this.catalogSrv.getWorkEditions(type, workId);
         getEditions.pipe(switchMap(current => {
             const edition = current.Ediciones.find(item => item.Id === editionId);
             if (!edition)
@@ -897,9 +894,7 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
                 return EMPTY;
             }
             const ids = [...ownedEditionIds(current.Ediciones), editionId];
-            return type === 'libro'
-                ? this.collectionSrv.updateBookEditions(workId, ids)
-                : this.collectionSrv.updateAnthologyEditions(workId, ids);
+            return this.collectionSrv.updateWorkEditions(type, workId, ids);
         }), switchMap(() => this.collectionSrv.getUniverses())).subscribe({
             next: universes => {
                 this.universeStore.setUniverses(universes);

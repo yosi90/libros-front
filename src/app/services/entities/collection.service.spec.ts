@@ -119,19 +119,19 @@ describe('CollectionService', () => {
         expect(req.request.params.get('tipo')).toBe('libro');
         req.flush([]);
 
-        service.updateBookStatus(1, { EstadoId: 4, Fecha: '2026-06-26T10:30:00' }).subscribe();
+        service.updateWorkStatus('libro', 1, { EstadoId: 4, Fecha: '2026-06-26T10:30:00' }).subscribe();
         req = httpMock.expectOne(`${apiUrl}/libros/1/estado`);
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual({ EstadoId: 4, Fecha: '2026-06-26T10:30:00' });
         req.flush({ success: true, Estado: { Id: 12, EstadoId: 4, Nombre: 'Quiero leer', Fecha: '2026-06-26T10:30:00' } });
 
-        service.updateAnthologyRating(2, { Puntuacion: 3, Resena: 'Buena selección.' }).subscribe();
+        service.updateWorkRating('antologia', 2, { Puntuacion: 3, Resena: 'Buena selección.' }).subscribe();
         req = httpMock.expectOne(`${apiUrl}/antologias/2/puntuacion`);
         expect(req.request.method).toBe('PATCH');
         expect(req.request.body).toEqual({ Puntuacion: 3, Resena: 'Buena selección.' });
         req.flush({ success: true, Puntuacion: 3, Resena: 'Buena selección.', ResenaOculta: false });
 
-        service.updateBookReview(1, { Resena: null }).subscribe();
+        service.updateWorkReview('libro', 1, { Resena: null }).subscribe();
         req = httpMock.expectOne(`${apiUrl}/libros/1/resena`);
         expect(req.request.method).toBe('PATCH');
         expect(req.request.body).toEqual({ Resena: null });
@@ -139,13 +139,13 @@ describe('CollectionService', () => {
     });
 
     it('updates and deletes personal status history records', () => {
-        service.updateBookStatusHistory(12, { EstadoId: 5 }).subscribe();
+        service.updateWorkStatusHistory('libro', 12, { EstadoId: 5 }).subscribe();
         let req = httpMock.expectOne(`${apiUrl}/historicos/libros/estados/12`);
         expect(req.request.method).toBe('PATCH');
         expect(req.request.body).toEqual({ EstadoId: 5 });
         req.flush({ success: true, Estado: { Id: 12, EstadoId: 5, Nombre: 'Descartado', Fecha: '2026-06-26T10:30:00' } });
 
-        service.deleteAnthologyStatusHistory(22).subscribe();
+        service.deleteWorkStatusHistory('antologia', 22).subscribe();
         req = httpMock.expectOne(`${apiUrl}/historicos/antologias/estados/22`);
         expect(req.request.method).toBe('DELETE');
         req.flush({ success: true });
@@ -181,7 +181,7 @@ describe('CollectionService', () => {
     });
 
     it('replaces the complete set of owned edition IDs, including an empty selection', () => {
-        service.updateBookEditions(7, [201, 312]).subscribe(result => {
+        service.updateWorkEditions('libro', 7, [201, 312]).subscribe(result => {
             expect(result.Ediciones[0].EnMiBiblioteca).toBeTrue();
         });
         let req = httpMock.expectOne(`${apiUrl}/libros/7/ediciones`);
@@ -191,7 +191,7 @@ describe('CollectionService', () => {
             { Id: 201, ISBN: '9788445016763', Portada: 'cover.png', FechaPublicacion: '2024-01-01', EnMiBiblioteca: true }
         ] });
 
-        service.updateAnthologyEditions(9, []).subscribe(result => expect(result.Ediciones).toEqual([]));
+        service.updateWorkEditions('antologia', 9, []).subscribe(result => expect(result.Ediciones).toEqual([]));
         req = httpMock.expectOne(`${apiUrl}/antologias/9/ediciones`);
         expect(req.request.method).toBe('PUT');
         expect(req.request.body).toEqual({ EdicionesIds: [] });

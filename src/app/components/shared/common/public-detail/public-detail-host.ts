@@ -94,9 +94,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
         this.isLoadingPublicDetail = true;
         this.bookTitle.reset();
 
-        const request = item.Tipo === 'libro'
-            ? this.catalogSrv.getBookPublicDetail(item.Id)
-            : this.catalogSrv.getAnthologyPublicDetail(item.Id);
+        const request = this.catalogSrv.getWorkPublicDetail(item.Tipo, item.Id);
 
         this.publicDetailRequest?.unsubscribe();
         this.publicDetailRequest = request.subscribe({
@@ -267,9 +265,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
             return;
 
         this.isSavingEditions = true;
-        const getEditions = item.Tipo === 'libro'
-            ? this.catalogSrv.getBookEditions(item.Id)
-            : this.catalogSrv.getAnthologyEditions(item.Id);
+        const getEditions = this.catalogSrv.getWorkEditions(item.Tipo, item.Id);
         getEditions.pipe(switchMap(current => {
             const selected = current.Ediciones.find(candidate => candidate.Id === edition.Id);
             if (!selected)
@@ -277,9 +273,7 @@ export abstract class PublicDetailHost implements PublicDetailController {
             const ids = ownedEditionIds(current.Ediciones).filter(id => id !== selected.Id);
             if (!selected.EnMiBiblioteca)
                 ids.push(selected.Id);
-            return item.Tipo === 'libro'
-                ? this.collectionSrv.updateBookEditions(item.Id, ids)
-                : this.collectionSrv.updateAnthologyEditions(item.Id, ids);
+            return this.collectionSrv.updateWorkEditions(item.Tipo, item.Id, ids);
         })).subscribe({
             next: response => {
                 this.editionSelectionError = '';

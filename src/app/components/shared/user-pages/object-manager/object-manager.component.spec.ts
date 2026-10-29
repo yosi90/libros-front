@@ -12,8 +12,8 @@ describe('ObjectManagerComponent editions', () => {
     let universeStore: { setUniverses: jasmine.Spy; clear: jasmine.Spy };
 
     beforeEach(() => {
-        catalog = jasmine.createSpyObj<CatalogService>('CatalogService', ['getBookEditions', 'getAnthologyEditions']);
-        collection = jasmine.createSpyObj<CollectionService>('CollectionService', ['updateBookEditions', 'updateAnthologyEditions', 'getUniverses']);
+        catalog = jasmine.createSpyObj<CatalogService>('CatalogService', ['getWorkEditions']);
+        collection = jasmine.createSpyObj<CollectionService>('CollectionService', ['updateWorkEditions', 'getUniverses']);
         universeStore = { setUniverses: jasmine.createSpy('setUniverses'), clear: jasmine.createSpy('clear') };
         collection.getUniverses.and.returnValue(of([]));
         const unused = {} as never;
@@ -39,12 +39,12 @@ describe('ObjectManagerComponent editions', () => {
     it('shows the owned edition and preserves work history when removing the last copy', () => {
         expect(component.selectedEdition()?.Id).toBe(31);
         expect(component.publicDetailCoverName()).toBe('owned.jpg');
-        catalog.getBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 9, Ediciones: component.publicDetailEditions() }));
-        collection.updateBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 9, Ediciones: component.publicDetailEditions().map(edition => ({ ...edition, EnMiBiblioteca: false })) }));
+        catalog.getWorkEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 9, Ediciones: component.publicDetailEditions() }));
+        collection.updateWorkEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 9, Ediciones: component.publicDetailEditions().map(edition => ({ ...edition, EnMiBiblioteca: false })) }));
 
         component.toggleSelectedEditionOwnership();
 
-        expect(collection.updateBookEditions).toHaveBeenCalledWith(9, []);
+        expect(collection.updateWorkEditions).toHaveBeenCalledWith('libro', 9, []);
         expect(component.selectedPublicDetail?.MiColeccion?.EnBiblioteca).toBeTrue();
         expect(component.selectedPublicDetail?.MiColeccion?.Resena).toBe('Mi reseña');
         expect(component.selectedPublicDetail?.MiColeccion?.EdicionesIds).toEqual([]);

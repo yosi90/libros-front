@@ -1,12 +1,13 @@
 # Duplicados pendientes del frontend
 
-**Pausado desde su apertura (24/10/2026):** recoge lo que la auditoría completa de duplicados del frontend (hito 1 de `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, rama `revisor/auditoria-completa-frontend-2026-10-24`, base `5dc3120`) no aplicó porque es grande, cambia una API interna con muchos llamadores o cruza con el backend. Solo puede haber un roadmap activo; se retoma cuando el propietario lo decida, idealmente antes de portar a Kotlin la parte afectada.
+**Activo desde el 29/10/2026** (el propietario lo activó mientras llega la IA1). **Pausado desde su apertura (24/10/2026) hasta entonces:** recoge lo que la auditoría completa de duplicados del frontend (hito 1 de `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, rama `revisor/auditoria-completa-frontend-2026-10-24`, base `5dc3120`) no aplicó porque es grande, cambia una API interna con muchos llamadores o cruza con el backend. Solo puede haber un roadmap activo; se retoma cuando el propietario lo decida, idealmente antes de portar a Kotlin la parte afectada.
 
 Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y menos coste a menos.
 
 ## Frontend
 
-- [ ] **1. Una sola llamada por tipo de obra en los servicios de catálogo y colección**
+- [x] **1. Una sola llamada por tipo de obra en los servicios de catálogo y colección**
+  - **Hecho (29/10/2026):** `CollectionService.updateWork{Status,Rating,Review,Editions,StatusHistory}` y `deleteWorkStatusHistory`, y `CatalogService.getWork{PublicDetail,Editions}`, con el tipo (`CatalogItemType`) delante y la ruta de `workPath` (`interfaces/catalog.ts`). Fuera los catorce pares y sus ternarios (catálogo, ficha pública, colección, lectura flotante); lo que solo trabaja con libros pasa `'libro'`. Las URL no cambian. Karma 691/691.
   - **Descripción:** `CollectionService` y `CatalogService` tienen cada ruta por partida doble (`updateBookStatus`/`updateAnthologyStatus`, `updateBookRating`/`updateAnthologyRating`, `updateBookEditions`/`updateAnthologyEditions`, `getBookEditions`/`getAnthologyEditions`, `getBookPublicDetail`/`getAnthologyPublicDetail`), y cada llamador repite el ternario `item.Tipo === 'libro' ? … : …` (unos diez sitios: `public-detail-host.ts`, `shared/collection-state.ts`, `catalog.component.ts` 839-852, `all-books.component.ts` 249, 332 y 429, `catalog-moderation.component.ts` 111 y 136). Propuesta: métodos por obra (`updateWorkStatus({ Tipo, Id }, payload)`…) que construyan `libros/antologias` en un solo sitio, y retirar los pares.
   - **Por qué se necesita:** es la misma ruta escrita en dos sitios y elegida a mano en cada pantalla; la APK Kotlin portaría los diez ternarios.
   - **Qué se espera lograr:** un solo envoltorio por ruta y llamadores sin ternarios.
@@ -14,6 +15,7 @@ Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y meno
   - **Peligros del cambio:** toca la API pública de dos servicios y sus pruebas; los llamadores que solo trabajan con libros (`book.component`, `floating-reading`, `book-statistics`) tendrían que pasar el tipo.
 
 - [ ] **2. Una base común para los getters de presentación de los containers**
+  - **Se queda (29/10/2026):** ya sin Capacitor, son 23 getters de una línea sobre `PresentationModeService` y sus plantillas los leen con nombres distintos (`isWebView`, `mobileController`, `controller`). Quitarlos pediría tocar 23 contenedores y sus plantillas por una línea cada uno; como dice la propuesta, no compensa.
   - **Descripción:** 25 containers repiten `isMobilePresentation`, `isWebPresentation` y `mobileController` (getters de una línea sobre `PresentationModeService`). Propuesta: exponerlos desde una pieza común (por ejemplo, señales del servicio usadas directamente en las plantillas) y retirar las copias.
   - **Por qué se necesita:** es la misma decisión de presentación repetida en cada ruta.
   - **Qué se espera lograr:** containers más cortos y una sola forma de decidir qué vista se pinta.
@@ -34,7 +36,8 @@ Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y meno
   - **Peligros si se mantiene como estaba:** que el comportamiento del buscador diverja entre pantallas.
   - **Peligros del cambio:** el Catálogo recarga desde el servidor y la Biblioteca filtra en local; mezclarlos sin cuidado cambiaría cuándo se busca.
 
-- [ ] **5. Mensajes de validación de formularios**
+- [x] **5. Mensajes de validación de formularios**
+  - **Resuelto por la adhesión:** la edición de la identidad se fue a la plataforma y `updateNameErrorMessage` solo queda en `chapter.component.ts`.
   - **Descripción:** `chapter.component.ts` (454-461) y `user-profile.component.ts` (651-658) repiten `updateNameErrorMessage` con los mismos textos. La edición de identidad del Perfil se va a `<yosi-perfil>` en el hito 3, así que la copia desaparecerá sola.
   - **Por qué se necesita:** textos de dominio en dos sitios.
   - **Qué se espera lograr:** revisarlo cuando se retire la identidad del Perfil; si aparece un segundo consumidor, un helper de mensajes por error de control.

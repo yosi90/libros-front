@@ -17,13 +17,12 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-Ninguno. Lo que quedó de la adhesión está en `../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`.
+- `common/ROADMAP_ACTIVO_duplicados-frontend.md`: las propuestas de la auditoría de duplicados del frontend, activas desde el 29/10/2026 (el propietario, mientras llega la IA1 del 1 de noviembre). Lo que quedó de la adhesión está en `../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`.
 
 ## Roadmaps pausados
 
 - `common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: implementación cerrada; queda la checklist manual de presentación, navegación y regresión.
 - `ecosistema/ROADMAP_PAUSADO_duplicados-apk-kotlin.md`: propuestas de la auditoría completa de duplicados de la APK Kotlin (26/10/2026).
-- `common/ROADMAP_PAUSADO_duplicados-frontend.md`: propuestas de la auditoría completa de duplicados del frontend (24/10/2026) que no se aplicaron por tamaño o por cruzar con el backend.
 
 ## Roadmaps finalizados
 

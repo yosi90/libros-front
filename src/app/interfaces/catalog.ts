@@ -11,6 +11,11 @@ export type CatalogRequestStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'dev
 export type OwnCatalogRequestStatusFilter = CatalogRequestStatus | 'activas' | 'historial' | 'todas';
 export type CatalogItemType = 'libro' | 'antologia';
 
+/** El tramo de la ruta de cada tipo de obra en la API (`libros/…` o `antologias/…`). */
+export function workPath(kind: CatalogItemType): 'libros' | 'antologias' {
+    return kind === 'libro' ? 'libros' : 'antologias';
+}
+
 export interface Edition {
     Id: number;
     ISBN: string | null;

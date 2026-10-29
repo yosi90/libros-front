@@ -21,9 +21,9 @@ describe('FloatingReadingComponent', () => {
     let sync: jasmine.SpyObj<LibrarySyncService>;
 
     function create() {
-        collection = jasmine.createSpyObj('CollectionService', ['updateBookStatus', 'updateBookRating', 'updateBookReview']);
-        collection.updateBookStatus.and.returnValue(of({}) as never);
-        collection.updateBookRating.and.returnValue(of({}) as never);
+        collection = jasmine.createSpyObj('CollectionService', ['updateWorkStatus', 'updateWorkRating', 'updateWorkReview']);
+        collection.updateWorkStatus.and.returnValue(of({}) as never);
+        collection.updateWorkRating.and.returnValue(of({}) as never);
         notes = jasmine.createSpyObj('NoteService', ['getByBook', 'create']);
         notes.getByBook.and.returnValue(of([]));
         notes.create.and.returnValue(of({ Id: 5, Nombre: 'Guadaña', Descripcion: 'Texto', Fecha: '2026-09-27', LibroId: 73 }));
@@ -35,7 +35,7 @@ describe('FloatingReadingComponent', () => {
                 { provide: BookService, useValue: { getBook: () => of(book) } },
                 { provide: BookStoreService, useValue: { getBook: () => ({ Id: 0 }) } },
                 { provide: StatisticsService, useValue: { getBookStatisticsFromBook: () => ({ Capitulos: [{ Pagina: 1, PaginaFinal: 40 }] }) } },
-                { provide: CatalogService, useValue: { getBookPublicDetail: () => of(detail) } },
+                { provide: CatalogService, useValue: { getWorkPublicDetail: () => of(detail) } },
                 { provide: CollectionService, useValue: collection },
                 { provide: NoteService, useValue: notes },
                 { provide: LibrarySyncService, useValue: sync },
@@ -58,7 +58,7 @@ describe('FloatingReadingComponent', () => {
     it('cambia el estado de lectura y refresca la biblioteca', () => {
         const component = create();
         component.setStatus(2);
-        expect(collection.updateBookStatus).toHaveBeenCalledWith(73, { EstadoId: 2 });
+        expect(collection.updateWorkStatus).toHaveBeenCalledWith('libro', 73, { EstadoId: 2 });
         expect(sync.refreshAfterCatalogChange).toHaveBeenCalled();
     });
 
@@ -67,7 +67,7 @@ describe('FloatingReadingComponent', () => {
         component.rating = 5;
         component.review = 'Imprescindible';
         component.saveReview();
-        expect(collection.updateBookRating).toHaveBeenCalledWith(73, { Puntuacion: 5, Resena: 'Imprescindible' });
+        expect(collection.updateWorkRating).toHaveBeenCalledWith('libro', 73, { Puntuacion: 5, Resena: 'Imprescindible' });
 
         component.noteTitle = 'Guadaña';
         component.noteText = 'Texto';

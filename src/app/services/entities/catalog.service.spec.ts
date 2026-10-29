@@ -83,19 +83,19 @@ describe('CatalogService', () => {
     });
 
     it('requests public book and anthology details', () => {
-        service.getBookPublicDetail(7).subscribe();
+        service.getWorkPublicDetail('libro', 7).subscribe();
         let req = httpMock.expectOne(`${apiUrl}/libros/7/detalle-publico`);
         expect(req.request.method).toBe('GET');
         req.flush({ Id: 7, Tipo: 'libro', Nombre: 'Alas de hierro', Portada: null, Autores: [], Estadisticas: {} });
 
-        service.getAnthologyPublicDetail(9).subscribe();
+        service.getWorkPublicDetail('antologia', 9).subscribe();
         req = httpMock.expectOne(`${apiUrl}/antologias/9/detalle-publico`);
         expect(req.request.method).toBe('GET');
         req.flush({ Id: 9, Tipo: 'antologia', Nombre: 'Relatos', Portada: null, Autores: [], Estadisticas: {} });
     });
 
     it('loads editions by work type without treating ISBN as the work identifier', () => {
-        service.getBookEditions(7).subscribe(result => {
+        service.getWorkEditions('libro', 7).subscribe(result => {
             expect(result.ObraId).toBe(7);
             expect(result.Ediciones.map(edition => edition.Id)).toEqual([312, 201]);
         });
@@ -106,7 +106,7 @@ describe('CatalogService', () => {
             { Id: 201, ISBN: '9788445016763', Portada: 'cover.png', FechaPublicacion: '2024-01-01', EnMiBiblioteca: true }
         ] });
 
-        service.getAnthologyEditions(9).subscribe(result => expect(result.Tipo).toBe('antologia'));
+        service.getWorkEditions('antologia', 9).subscribe(result => expect(result.Tipo).toBe('antologia'));
         req = httpMock.expectOne(`${apiUrl}/antologias/9/ediciones`);
         expect(req.request.method).toBe('GET');
         req.flush({ Tipo: 'antologia', ObraId: 9, Ediciones: [] });

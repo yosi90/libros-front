@@ -561,7 +561,7 @@ export class BookComponent implements OnInit, OnDestroy {
             return;
 
         this.isSavingRunningStatus = true;
-        this.collectionSrv.updateBookStatus(this.book.Id, { EstadoId: 1 }).subscribe({
+        this.collectionSrv.updateWorkStatus('libro', this.book.Id, { EstadoId: 1 }).subscribe({
             next: response => {
                 this.book = {
                     ...this.book,

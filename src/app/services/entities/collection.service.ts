@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import {
+    CatalogItemType,
     CollectionItem,
     CollectionUniverse,
     CollectionWriteResponse,
@@ -12,7 +13,8 @@ import {
     ReviewWrite,
     ReadingStatusUpdateResponse,
     ReadingStatusWrite,
-    WorkEditions
+    WorkEditions,
+    workPath
 } from '../../interfaces/catalog';
 import { Universe } from '../../interfaces/universe';
 import { AnthologySectionCollectionContext, AnthologySectionCollectionUpdated, AnthologySectionCollectionWrite, Antology } from '../../interfaces/antology';
@@ -38,44 +40,29 @@ export class CollectionService {
             .pipe(map(universes => universes.map(universe => this.toUniverse(universe))));
     }
 
-    updateBookEditions(bookId: number, editionIds: number[]): Observable<WorkEditions> {
-        return this.http.put<WorkEditions>(`${this.apiUrl}/libros/${bookId}/ediciones`, { EdicionesIds: editionIds });
+    // Cada operación sobre una obra de la colección, una vez: `kind` elige `libros/` o `antologias/`.
+    updateWorkEditions(kind: CatalogItemType, workId: number, editionIds: number[]): Observable<WorkEditions> {
+        return this.http.put<WorkEditions>(`${this.apiUrl}/${workPath(kind)}/${workId}/ediciones`, { EdicionesIds: editionIds });
     }
 
-    updateAnthologyEditions(anthologyId: number, editionIds: number[]): Observable<WorkEditions> {
-        return this.http.put<WorkEditions>(`${this.apiUrl}/antologias/${anthologyId}/ediciones`, { EdicionesIds: editionIds });
+    updateWorkStatus(kind: CatalogItemType, workId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
+        return this.http.post<ReadingStatusUpdateResponse>(`${this.apiUrl}/${workPath(kind)}/${workId}/estado`, payload);
     }
 
-    updateBookStatus(bookId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
-        return this.http.post<ReadingStatusUpdateResponse>(`${this.apiUrl}/libros/${bookId}/estado`, payload);
+    updateWorkRating(kind: CatalogItemType, workId: number, payload: RatingWrite): Observable<RatingUpdateResponse> {
+        return this.http.patch<RatingUpdateResponse>(`${this.apiUrl}/${workPath(kind)}/${workId}/puntuacion`, payload);
     }
 
-    updateBookRating(bookId: number, payload: RatingWrite): Observable<RatingUpdateResponse> {
-        return this.http.patch<RatingUpdateResponse>(`${this.apiUrl}/libros/${bookId}/puntuacion`, payload);
+    updateWorkReview(kind: CatalogItemType, workId: number, payload: ReviewWrite): Observable<ReviewUpdateResponse> {
+        return this.http.patch<ReviewUpdateResponse>(`${this.apiUrl}/${workPath(kind)}/${workId}/resena`, payload);
     }
 
-    updateBookReview(bookId: number, payload: ReviewWrite): Observable<ReviewUpdateResponse> {
-        return this.http.patch<ReviewUpdateResponse>(`${this.apiUrl}/libros/${bookId}/resena`, payload);
+    updateWorkStatusHistory(kind: CatalogItemType, statusHistoryId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
+        return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/historicos/${workPath(kind)}/estados/${statusHistoryId}`, payload);
     }
 
-    updateBookStatusHistory(statusHistoryId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
-        return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/historicos/libros/estados/${statusHistoryId}`, payload);
-    }
-
-    deleteBookStatusHistory(statusHistoryId: number): Observable<CollectionWriteResponse> {
-        return this.http.delete<CollectionWriteResponse>(`${this.apiUrl}/historicos/libros/estados/${statusHistoryId}`);
-    }
-
-    updateAnthologyStatus(anthologyId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
-        return this.http.post<ReadingStatusUpdateResponse>(`${this.apiUrl}/antologias/${anthologyId}/estado`, payload);
-    }
-
-    updateAnthologyRating(anthologyId: number, payload: RatingWrite): Observable<RatingUpdateResponse> {
-        return this.http.patch<RatingUpdateResponse>(`${this.apiUrl}/antologias/${anthologyId}/puntuacion`, payload);
-    }
-
-    updateAnthologyReview(anthologyId: number, payload: ReviewWrite): Observable<ReviewUpdateResponse> {
-        return this.http.patch<ReviewUpdateResponse>(`${this.apiUrl}/antologias/${anthologyId}/resena`, payload);
+    deleteWorkStatusHistory(kind: CatalogItemType, statusHistoryId: number): Observable<CollectionWriteResponse> {
+        return this.http.delete<CollectionWriteResponse>(`${this.apiUrl}/historicos/${workPath(kind)}/estados/${statusHistoryId}`);
     }
 
     getAnthologySectionContext(anthologyId: number, bookId: number): Observable<AnthologySectionCollectionContext> {
@@ -86,14 +73,6 @@ export class CollectionService {
     updateAnthologySectionContext(anthologyId: number, bookId: number, payload: AnthologySectionCollectionWrite): Observable<AnthologySectionCollectionUpdated> {
         return this.http.patch<AnthologySectionCollectionUpdated>(`${this.apiUrl}/antologias/${anthologyId}/secciones/${bookId}`, payload)
             .pipe(map(response => ({ ...response, Seccion: this.normalizeAnthologySectionContext(response.Seccion) })));
-    }
-
-    updateAnthologyStatusHistory(statusHistoryId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
-        return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/historicos/antologias/estados/${statusHistoryId}`, payload);
-    }
-
-    deleteAnthologyStatusHistory(statusHistoryId: number): Observable<CollectionWriteResponse> {
-        return this.http.delete<CollectionWriteResponse>(`${this.apiUrl}/historicos/antologias/estados/${statusHistoryId}`);
     }
 
     private toUniverse(universe: CollectionUniverse): Universe {

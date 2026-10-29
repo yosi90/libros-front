@@ -7,30 +7,8 @@ import { CatalogItem } from '../../../../interfaces/catalog';
 
 describe('CatalogComponent', () => {
     function createComponent() {
-        const catalogSrv = jasmine.createSpyObj('CatalogService', [
-            'getBookPublicDetail',
-            'getAnthologyPublicDetail',
-            'getBookEditions',
-            'getAnthologyEditions',
-            'getBooks',
-            'getAnthologies',
-            'getLanguages',
-            'getStyles',
-            'getAuthors',
-            'getUniverses',
-            'getSagas'
-        ]);
-        const collectionSrv = jasmine.createSpyObj('CollectionService', [
-            'updateBookStatus',
-            'updateAnthologyStatus',
-            'updateBookRating',
-            'updateAnthologyRating',
-            'updateBookReview',
-            'updateAnthologyReview',
-            'updateBookEditions',
-            'updateAnthologyEditions',
-            'getUniverses'
-        ]);
+        const catalogSrv = jasmine.createSpyObj('CatalogService', ['getWorkPublicDetail', 'getWorkEditions', 'getBooks', 'getAnthologies', 'getLanguages', 'getStyles', 'getAuthors', 'getUniverses', 'getSagas']);
+        const collectionSrv = jasmine.createSpyObj('CollectionService', ['updateWorkStatus', 'updateWorkRating', 'updateWorkReview', 'updateWorkEditions', 'getUniverses']);
         const catalogRequestSrv = jasmine.createSpyObj('CatalogRequestService', ['create', 'listMine']);
         catalogRequestSrv.listMine.and.returnValue(of([]));
         const universeStore = jasmine.createSpyObj('UniverseStoreService', ['setUniverses']);
@@ -183,11 +161,11 @@ describe('CatalogComponent', () => {
         const options = snackBar.openSnackBar.calls.mostRecent().args[3];
         expect(options?.action?.label).toBe('Añadir edición');
         const edition = { Id: 312, ISBN: '9780306406157', Portada: 'book.png', FechaPublicacion: null, EnMiBiblioteca: false };
-        catalogSrv.getBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 73, Ediciones: [edition] }));
-        collectionSrv.updateBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 73, Ediciones: [{ ...edition, EnMiBiblioteca: true }] }));
+        catalogSrv.getWorkEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 73, Ediciones: [edition] }));
+        collectionSrv.updateWorkEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 73, Ediciones: [{ ...edition, EnMiBiblioteca: true }] }));
         collectionSrv.getUniverses.and.returnValue(of([]));
         options?.action?.execute();
-        expect(collectionSrv.updateBookEditions).toHaveBeenCalledWith(73, [312]);
+        expect(collectionSrv.updateWorkEditions).toHaveBeenCalledWith('libro', 73, [312]);
         expect(universeStore.setUniverses).toHaveBeenCalled();
     });
 
@@ -223,12 +201,12 @@ describe('CatalogComponent', () => {
         catalogSrv.getStyles.and.returnValue(of([]));
         catalogSrv.getBooks.and.returnValue(of([]));
         catalogSrv.getAnthologies.and.returnValue(of([]));
-        catalogSrv.getBookPublicDetail.and.returnValue(of({ ...book, MiColeccion: { EnBiblioteca: false, Estados: [] } }));
+        catalogSrv.getWorkPublicDetail.and.returnValue(of({ ...book, MiColeccion: { EnBiblioteca: false, Estados: [] } }));
 
         component.ngOnInit();
         queryParamMap.next(convertToParamMap({ addBook: '7' }));
 
-        expect(catalogSrv.getBookPublicDetail).toHaveBeenCalledWith(7);
+        expect(catalogSrv.getWorkPublicDetail).toHaveBeenCalledWith('libro', 7);
         expect(component.selectedCollectionItem?.Id).toBe(7);
         expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { addBook: null }, replaceUrl: true }));
         component.ngOnDestroy();
@@ -248,7 +226,7 @@ describe('CatalogComponent', () => {
 
     it('offers an action that reveals a newly added book in the library', async () => {
         const { component, collectionSrv, snackBar, router, viewState } = createComponent();
-        collectionSrv.updateBookStatus.and.returnValue(of({ success: true }));
+        collectionSrv.updateWorkStatus.and.returnValue(of({ success: true }));
         collectionSrv.getUniverses.and.returnValue(of([{ Id: 1, Nombre: 'Sin universo', Libros: [book], Antologias: [], Sagas: [] }]));
         router.navigate.and.resolveTo(true);
 
@@ -268,7 +246,7 @@ describe('CatalogComponent', () => {
 
     it('offers the same library action when adding from the reading-state screen', async () => {
         const { component, catalogSrv, collectionSrv, snackBar, router, viewState } = createComponent();
-        collectionSrv.updateAnthologyStatus.and.returnValue(of({ success: true }));
+        collectionSrv.updateWorkStatus.and.returnValue(of({ success: true }));
         collectionSrv.getUniverses.and.returnValue(of([]));
         catalogSrv.getBooks.and.returnValue(of([]));
         catalogSrv.getAnthologies.and.returnValue(of([]));
@@ -289,7 +267,7 @@ describe('CatalogComponent', () => {
 
     it('opens public detail instead of navigating when a catalog book is clicked', () => {
         const { component, catalogSrv, router } = createComponent();
-        catalogSrv.getBookPublicDetail.and.returnValue(of({
+        catalogSrv.getWorkPublicDetail.and.returnValue(of({
             ...book,
             Estadisticas: {
                 UsuariosEnBiblioteca: 4,
@@ -309,7 +287,7 @@ describe('CatalogComponent', () => {
         expect(component.selectedDetailItem).toBe(book);
         expect(component.selectedPublicDetail?.Nombre).toBe('Alas de hierro');
         expect(router.navigate).not.toHaveBeenCalled();
-        expect(catalogSrv.getBookPublicDetail).toHaveBeenCalledWith(7);
+        expect(catalogSrv.getWorkPublicDetail).toHaveBeenCalledWith('libro', 7);
     });
 
     it('enseña el ritmo de los lectores solo cuando la API lo da (tres lectores que comparten)', () => {
@@ -341,7 +319,7 @@ describe('CatalogComponent', () => {
     it('uses EstadoActual from public detail when the personal status history is empty', () => {
         const { component, catalogSrv } = createComponent();
         component.items = [book];
-        catalogSrv.getBookPublicDetail.and.returnValue(of({
+        catalogSrv.getWorkPublicDetail.and.returnValue(of({
             ...book,
             MiColeccion: {
                 EnBiblioteca: false,
@@ -377,7 +355,7 @@ describe('CatalogComponent', () => {
             Resena: 'Una lectura redonda.'
         };
         component.items = [bookWithReview];
-        catalogSrv.getBookPublicDetail.and.returnValue(of({
+        catalogSrv.getWorkPublicDetail.and.returnValue(of({
             ...bookWithReview,
             MiColeccion: {
                 EnBiblioteca: true,
@@ -555,7 +533,7 @@ describe('CatalogComponent', () => {
             { Id: 2, ISBN: '9780306406157', Portada: 'new.png', FechaPublicacion: '2026-01-01', EnMiBiblioteca: false },
             { Id: 1, ISBN: null, Portada: 'mine.png', FechaPublicacion: null, EnMiBiblioteca: true }
         ];
-        catalogSrv.getBookPublicDetail.and.returnValue(of({
+        catalogSrv.getWorkPublicDetail.and.returnValue(of({
             ...book, Ediciones: editions,
             MiColeccion: { EnBiblioteca: true, EdicionesIds: [1], Estados: [] },
             Estadisticas: {} as never
@@ -585,15 +563,15 @@ describe('CatalogComponent', () => {
             Estadisticas: {} as never
         };
         component.selectedEditionId = 2;
-        catalogSrv.getBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: editions }));
-        collectionSrv.updateBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [
+        catalogSrv.getWorkEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: editions }));
+        collectionSrv.updateWorkEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [
             { ...editions[0], EnMiBiblioteca: false }, editions[1]
         ] }));
         collectionSrv.getUniverses.and.returnValue(of([]));
 
         component.toggleSelectedEditionOwnership();
 
-        expect(collectionSrv.updateBookEditions).toHaveBeenCalledOnceWith(7, [1]);
+        expect(collectionSrv.updateWorkEditions).toHaveBeenCalledOnceWith('libro', 7, [1]);
         expect(component.selectedPublicDetail?.MiColeccion?.EnBiblioteca).toBeTrue();
         expect(component.selectedPublicDetail?.MiColeccion?.EdicionesIds).toEqual([1]);
         expect(component.selectedPublicDetail?.MiColeccion?.Estados.length).toBe(1);
@@ -605,8 +583,8 @@ describe('CatalogComponent', () => {
         const edition = { Id: 201, ISBN: null, Portada: 'old.png', FechaPublicacion: null, EnMiBiblioteca: false };
         component.selectedDetailItem = { ...book, Ediciones: [edition] };
         component.selectedEditionId = 201;
-        catalogSrv.getBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [edition] }));
-        collectionSrv.updateBookEditions.and.returnValue(throwError(() => new HttpErrorResponse({
+        catalogSrv.getWorkEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [edition] }));
+        collectionSrv.updateWorkEditions.and.returnValue(throwError(() => new HttpErrorResponse({
             status: 400,
             error: { code: 'edition_selection_invalid', field: 'EdicionesIds', error: 'Selección inválida.' }
         })));
@@ -627,13 +605,13 @@ describe('CatalogComponent', () => {
         ];
         component.selectedDetailItem = component.items[0];
         component.selectedEditionId = 312;
-        catalogSrv.getBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [shared] }));
-        collectionSrv.updateBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [{ ...shared, EnMiBiblioteca: true }] }));
+        catalogSrv.getWorkEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [shared] }));
+        collectionSrv.updateWorkEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [{ ...shared, EnMiBiblioteca: true }] }));
         collectionSrv.getUniverses.and.returnValue(of([]));
 
         component.toggleSelectedEditionOwnership();
 
-        expect(collectionSrv.updateBookEditions).toHaveBeenCalledWith(7, [312]);
+        expect(collectionSrv.updateWorkEditions).toHaveBeenCalledWith('libro', 7, [312]);
         expect(component.items[0].Ediciones?.[0].EnMiBiblioteca).toBeTrue();
         expect(component.items[1].Ediciones?.[0].EnMiBiblioteca).toBeTrue();
     });

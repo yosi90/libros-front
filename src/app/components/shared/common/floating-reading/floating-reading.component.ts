@@ -90,7 +90,7 @@ export class FloatingReadingComponent implements OnInit, OnDestroy {
     setStatus(statusId: ReadingStatusId): void {
         if (this.savingStatus || statusId === this.currentStatusId) return;
         this.savingStatus = true;
-        this.subscription.add(this.collectionSrv.updateBookStatus(this.bookId, { EstadoId: statusId }).subscribe({
+        this.subscription.add(this.collectionSrv.updateWorkStatus('libro', this.bookId, { EstadoId: statusId }).subscribe({
             next: () => {
                 this.savingStatus = false;
                 this.librarySync.refreshAfterCatalogChange();
@@ -109,8 +109,8 @@ export class FloatingReadingComponent implements OnInit, OnDestroy {
         this.savingReview = true;
         const resena = this.review.trim() || null;
         const request: Observable<unknown> = this.rating
-            ? this.collectionSrv.updateBookRating(this.bookId, { Puntuacion: this.rating, Resena: resena })
-            : this.collectionSrv.updateBookReview(this.bookId, { Resena: resena });
+            ? this.collectionSrv.updateWorkRating('libro', this.bookId, { Puntuacion: this.rating, Resena: resena })
+            : this.collectionSrv.updateWorkReview('libro', this.bookId, { Resena: resena });
         this.subscription.add(request.subscribe({
             next: () => {
                 this.savingReview = false;
@@ -154,7 +154,7 @@ export class FloatingReadingComponent implements OnInit, OnDestroy {
         const book$ = stored.Id === parked.bookId ? of(stored) : this.books.getBook(parked.bookId).pipe(catchError(() => of(null)));
         this.subscription.add(forkJoin({
             book: book$,
-            detail: this.catalog.getBookPublicDetail(parked.bookId).pipe(catchError(() => of(null))),
+            detail: this.catalog.getWorkPublicDetail('libro', parked.bookId).pipe(catchError(() => of(null))),
             notes: this.notesSrv.getByBook(parked.bookId).pipe(catchError(() => of([] as BookNote[])))
         }).subscribe(({ book, detail, notes }) => {
             this.applyDetail(detail);
@@ -166,7 +166,7 @@ export class FloatingReadingComponent implements OnInit, OnDestroy {
     }
 
     private reloadCollection(): void {
-        this.subscription.add(this.catalog.getBookPublicDetail(this.bookId).pipe(catchError(() => of(null))).subscribe(detail => {
+        this.subscription.add(this.catalog.getWorkPublicDetail('libro', this.bookId).pipe(catchError(() => of(null))).subscribe(detail => {
             this.applyDetail(detail);
             this.changeDetector.markForCheck();
         }));

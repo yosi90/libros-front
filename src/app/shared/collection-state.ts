@@ -33,17 +33,13 @@ export function collectionStateRequests(
 
     if (draft.status !== null && draft.status !== original.status) {
         const payload = { EstadoId: draft.status, ...activity };
-        requests.push(work.Tipo === 'libro'
-            ? collection.updateBookStatus(work.Id, payload)
-            : collection.updateAnthologyStatus(work.Id, payload));
+        requests.push(collection.updateWorkStatus(work.Tipo, work.Id, payload));
     }
 
     if (draft.rating !== null) {
         if (draft.rating !== original.rating || draft.review.trim() !== original.review.trim()) {
             const payload = { Puntuacion: draft.rating, Resena: review, ...activity };
-            requests.push(work.Tipo === 'libro'
-                ? collection.updateBookRating(work.Id, payload)
-                : collection.updateAnthologyRating(work.Id, payload));
+            requests.push(collection.updateWorkRating(work.Tipo, work.Id, payload));
         }
     } else if (original.rating !== null) {
         return { error: 'La reseña necesita una puntuación' };

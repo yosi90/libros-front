@@ -88,7 +88,7 @@ Solo propuestas y peticiones a la plataforma (`C:\Users\Yosi\Desktop\administrac
 Solo propuestas: no se tocan ni la web ni el backend.
 
 - [ ] **12. Los textos de error por código, tercera copia**
-  - **Descripción:** `datos/MensajesDeError.kt` (21-44) copia 22 frases de `src/app/shared/api-error-message.ts` de la web (punto 6 de `common/ROADMAP_PAUSADO_duplicados-frontend.md`), y el backend ya manda su `error`, con otro texto: `club_owner_limit_reached` es «Solo puedes crear un club» en `controllers/club_controller.py` (284) y «Ya administras un club propio. Solo puedes crear uno.» en las dos apps. La tabla solo se usa si la respuesta llega sin `error` (ERRORES.md).
+  - **Descripción:** `datos/MensajesDeError.kt` (21-44) copia 22 frases de `src/app/shared/api-error-message.ts` de la web (punto 6 de `common/ROADMAP_ACTIVO_duplicados-frontend.md`), y el backend ya manda su `error`, con otro texto: `club_owner_limit_reached` es «Solo puedes crear un club» en `controllers/club_controller.py` (284) y «Ya administras un club propio. Solo puedes crear uno.» en las dos apps. La tabla solo se usa si la respuesta llega sin `error` (ERRORES.md).
   - **Por qué se necesita:** el mismo error, tres textos en tres repositorios.
   - **Qué se espera lograr:** decidir una fuente (la frase del backend) y quitar las tablas de la web y de la APK, o llevar sus frases al backend. Resolverlo junto con el punto 6 de la web.
   - **Peligros si se mantiene como estaba:** textos distintos según por dónde llegue el error.
