@@ -17,7 +17,7 @@ describe('api error helpers', () => {
     });
 
     it('translates club limits into a product state', () => {
-        expect(getProductStateMessage({ code: 'club_membership_limit_reached' })).toBe('Ya participas en tres clubes activos. Sal de uno antes de unirte a otro.');
+        expect(getProductStateMessage({ code: 'club_owner_limit_reached' })).toBe('Ya administras un club propio. Solo puedes crear uno.');
     });
 
     it('explains stale anthology section relationships', () => {

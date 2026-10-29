@@ -31,6 +31,7 @@ Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y meno
   - **Peligros del cambio:** los tipos los distingue el contrato (`Tipo`, `Secciones`, `SeccionesProgreso`); hay que revisarlo contra `docs/backend/openapi.yaml` para no unir lo que el backend separa.
 
 - [ ] **4. Borrador de búsqueda por ámbitos en Biblioteca y Catálogo**
+  - **Se queda (29/10/2026):** `CatalogComponent` ya hereda de `PublicDetailHost`, así que no puede compartir una clase base con la Biblioteca, y unirlas por composición obligaría a tocar las seis vistas (Web, Wood y Mobile de las dos) por unas 25 líneas; además, cada una confirma el borrador a su manera (la Biblioteca en su almacén, el Catálogo recargando del servidor).
   - **Descripción:** `books.component.ts` y `catalog.component.ts` repiten `onDraftQueryInput`, `textFilterChips`, `getScopeLabel`, `onSearchInputBlur` y `toggleFilters` (unas 25 líneas), con estados distintos detrás (`LibrarySearchStateService` frente a `searchTerms` propios).
   - **Por qué se necesita:** el mismo comportamiento de búsqueda vive en dos containers.
   - **Qué se espera lograr:** un pequeño controlador de borrador común que cada container alimente con su almacén.
@@ -50,6 +51,7 @@ Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y meno
 Solo propuestas: no se toca el backend.
 
 - [ ] **6. Catálogo de mensajes de error repetido en el frontend**
+  - **En parte (29/10/2026):** fuera 34 de los 65 textos, los de códigos que ya no emite nadie (ni la API de Libros ni la plataforma: sanciones y moderación propias, chat y grupos propios, normas de uso antiguas, preferencias de notificaciones y la copia de seguridad del panel retirado); `isPolicyAcceptanceBlock` solo mira ya las normas de la plataforma. Los 31 que quedan son códigos vivos de la API, que ya manda su frase: la tabla solo se usa si llega sin ella. Quitarla del todo sigue pendiente de lo mismo que decía la propuesta.
   - **Descripción:** `src/app/shared/api-error-message.ts` (3-81) guarda unos 80 textos por `code` que el backend ya devuelve en `error` (ERRORES.md: «el backend garantiza que `error` es una frase final en español»). Solo se usan en `getProductStateMessage`, para errores que llegan sin frase (tiempo real). Muchos son de áreas que se retiran (sesión, chat, moderación, cuentas).
   - **Por qué se necesita:** el mismo texto vive en dos repositorios y puede divergir.
   - **Qué se espera lograr:** que el tiempo real traiga la frase del backend y el frontend conserve solo el aviso genérico; al retirar sesión, chat y moderación (hitos 2 y 3) desaparece la mayor parte del mapa.
