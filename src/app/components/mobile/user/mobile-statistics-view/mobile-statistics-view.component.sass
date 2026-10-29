@@ -211,35 +211,50 @@
 .m-stats__soon
     border-style: dashed
 
-
-.m-stats__section
-    display: flex
-    align-items: center
-    gap: 8px
-    margin: var(--mobile-space-3) 0 0
-    color: var(--mobile-color-ink)
-    font-size: 1.05rem
-
-    mat-icon
-        color: var(--mobile-color-primary)
-
-.m-stats__section-note
-    margin: 0
-
-// Si las lecturas propias cuentan en «Lectura en la comunidad» (ajuste de Libros).
+// Si las lecturas propias cuentan en las estadísticas de la comunidad (ajuste de Libros): una línea con su interruptor.
 .m-stats__consent
     display: flex
     align-items: center
     gap: var(--mobile-space-3)
     padding: var(--mobile-space-3)
+    cursor: pointer
 
-    div
+    > span
         display: grid
         flex: 1
         gap: 2px
 
-    button
+    input
         flex: none
+        width: 44px
+        height: 24px
+        margin: 0
+        appearance: none
+        border-radius: 999px
+        background: var(--mobile-color-outline)
+        position: relative
+        cursor: pointer
+        transition: background .15s
+
+        &::after
+            content: ''
+            position: absolute
+            top: 3px
+            left: 3px
+            width: 18px
+            height: 18px
+            border-radius: 50%
+            background: var(--mobile-color-surface)
+            transition: transform .15s
+
+        &:checked
+            background: var(--mobile-color-primary)
+
+            &::after
+                transform: translateX(20px)
+
+        &:disabled
+            opacity: .5
 
 // Los libros nuevos llevan al catálogo con el filtro «Nuevos».
 .m-stats__metric-link

@@ -135,8 +135,6 @@ object Estadisticas {
     /** Los meses con dato («11/2025»); un mes sin dato es privacidad, no cero, y no sale (`communityMonthlyRows`). */
     // --- «Estadísticas y altas» (F1 a F3): reading-pace.ts y rating-history.ts. ---
 
-    /** Desde cuándo se mide el ritmo y las puntuaciones en el tiempo (`READING_PACE_SINCE`). */
-    const val DESDE = "25 de octubre de 2026"
     private val diasDeLaSemana = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
     private val franjas = listOf("Madrugada (0–6 h)" to 0..5, "Mañana (6–12 h)" to 6..11, "Tarde (12–18 h)" to 12..17, "Noche (18–24 h)" to 18..23)
     private val meses = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic")
@@ -183,6 +181,7 @@ object Estadisticas {
 
     fun lecturasPorMes(comunidad: EstadisticasDeComunidad): List<FilaDeEstadistica> =
         comunidad.lecturasPorMes.mapNotNull { (anio, mes, cantidad) -> cantidad?.let { FilaDeEstadistica("$mes/$anio", it.toDouble()) } }
+            .takeIf { filas -> filas.any { it.valor > 0 } }.orEmpty()
 
     /** Los rankings de la comunidad con datos, con su título y su icono (`communityRankings`). */
     fun rankings(comunidad: EstadisticasDeComunidad): List<Pair<String, List<FilaDeEstadistica>>> = listOf(

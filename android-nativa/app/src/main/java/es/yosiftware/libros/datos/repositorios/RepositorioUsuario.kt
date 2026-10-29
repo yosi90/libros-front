@@ -11,7 +11,7 @@ class RepositorioUsuario(private val api: ClienteLibros) {
     /** `GET /usuarios/me` → `{ success, user: { Id, Nombre, Role, CompartirEstadisticas } }`. */
     suspend fun miId(): Int? = api.get("usuarios/me").objeto().objeto("user")?.entero("Id")
 
-    /** Si mis lecturas cuentan, anónimas, en «Lectura en la comunidad» (`CompartirEstadisticas`; por defecto, no). */
+    /** Si mis lecturas cuentan, anónimas, en las estadísticas de la comunidad (`CompartirEstadisticas`; por defecto, no). */
     suspend fun comparteEstadisticas(): Boolean = api.get("usuarios/me").objeto().objeto("user")?.booleano("CompartirEstadisticas") == true
 
     /** `PUT /usuarios/me/estadisticas-comunidad` con `{ Compartir }` → `{ CompartirEstadisticas }`. */

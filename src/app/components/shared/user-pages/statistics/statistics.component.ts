@@ -160,8 +160,9 @@ export class StatisticsComponent implements OnInit {
         ].filter(ranking => ranking.rows.length);
     }
 
-    /** Meses con dato, como filas (Mobile/APK y Wood). */
+    /** Meses con dato, como filas (Mobile/APK y Wood); si todos son cero, ninguno. */
     get communityMonthlyRows(): StatRow[] {
+        if (!this.hasCommunityMonthly) return [];
         return this.communityMonthly.filter(month => month.value !== null).map(month => ({ label: month.label, value: month.value as number }));
     }
 

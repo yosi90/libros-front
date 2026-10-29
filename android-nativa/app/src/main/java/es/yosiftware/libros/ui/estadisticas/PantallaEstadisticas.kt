@@ -21,10 +21,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,12 +49,9 @@ import es.yosiftware.libros.datos.modelos.CrecimientoDelCatalogo
 import es.yosiftware.libros.datos.modelos.EstadisticasDeComunidad
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
-import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.componentes.Superficie
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.TextoDeApoyo
-import es.yosiftware.libros.ui.componentes.TextoEyebrow
-import es.yosiftware.libros.ui.componentes.TextoTitulo
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
@@ -81,12 +80,7 @@ fun PantallaEstadisticas(vm: EstadisticasViewModel, alVerNuevos: (String) -> Uni
         // Hasta la primera carga no se pinta nada, como la web (`@if (controller.chartsReady)`).
         if (!vm.listo) return@Box
         val bloques = Bloques().apply {
-            completo {
-                Column {
-                    TextoEyebrow(if (vm.pestana == PestanaDeEstadisticas.PERSONAL) "Tu biblioteca en cifras" else "La comunidad y el catálogo")
-                    TextoTitulo("Estadísticas")
-                }
-            }
+            // Sin antetítulo ni título: la navegación y las pestañas ya dicen dónde estás (el propietario, 2026-10-29).
             mitad { Pestanas(vm) }
             if (vm.pestana == PestanaDeEstadisticas.PERSONAL) personal(vm) else general(vm, alVerNuevos)
         }
@@ -191,10 +185,8 @@ private fun Bloques.personal(vm: EstadisticasViewModel) {
     ritmoYPuntuaciones(datos)
 }
 
-/** «Tu ritmo de lectura» y «Tus puntuaciones en el tiempo» (F2 y F3 de «Estadísticas y altas»). */
+/** Tu ritmo de lectura y tus puntuaciones en el tiempo (F2 y F3 de «Estadísticas y altas»); sin datos, nada. */
 private fun Bloques.ritmoYPuntuaciones(datos: EstadisticasPersonales) {
-    completo { TituloDeSeccion(Iconos.speed, "Tu ritmo de lectura") }
-    completo { TextoDeApoyo("Sale de cuándo registras cada capítulo. Se mide desde el ${Estadisticas.DESDE}.") }
     val ritmo = datos.datos.ritmoLectura
     if (ritmo != null) {
         completo {
@@ -210,15 +202,7 @@ private fun Bloques.ritmoYPuntuaciones(datos: EstadisticasPersonales) {
         mitad { Panel(Iconos.calendarMonth, "Páginas por mes") { FilasDeEstadistica(datos.paginasPorMes, vacio = "Aún no hay meses con lectura registrada.") } }
         mitad { Panel(Iconos.dateRange, "Qué días lees") { FilasDeEstadistica(datos.diasQueLees) } }
         mitad { Panel(Iconos.schedule, "A qué hora lees") { FilasDeEstadistica(datos.horasQueLees) } }
-    } else {
-        mitad {
-            Panel(Iconos.schedule, "Tu ritmo aparecerá en cuanto registres capítulos", discontinuo = true) {
-                TextoDeApoyo("Cada capítulo que anotes desde el ${Estadisticas.DESDE} cuenta: rachas, páginas por día y a qué hora lees.")
-            }
-        }
     }
-    completo { TituloDeSeccion(Iconos.hotelClass, "Tus puntuaciones en el tiempo") }
-    completo { TextoDeApoyo("Cuenta la última vez que puntuaste o reseñaste cada obra. Se mide desde el ${Estadisticas.DESDE}.") }
     val valoraciones = datos.datos.valoraciones
     if (valoraciones != null) {
         completo {
@@ -231,12 +215,6 @@ private fun Bloques.ritmoYPuntuaciones(datos: EstadisticasPersonales) {
         }
         mitad { Panel(Iconos.calendarMonth, "Puntuaciones por mes") { FilasDeEstadistica(datos.puntuacionesPorMes, vacio = "Aún no hay meses con puntuaciones.") } }
         mitad { Panel(Iconos.star, "Tu nota media por mes") { FilasDeEstadistica(datos.notaMediaPorMes) } }
-    } else {
-        mitad {
-            Panel(Iconos.schedule, "Tus puntuaciones aparecerán en cuanto puntúes o reseñes", discontinuo = true) {
-                TextoDeApoyo("Cada puntuación y reseña desde el ${Estadisticas.DESDE} cuenta: por meses y tu nota media en el tiempo.")
-            }
-        }
     }
 }
 
@@ -249,10 +227,6 @@ private fun Bloques.general(vm: EstadisticasViewModel, alVerNuevos: (String) -> 
         }
         vm.errorGeneral -> completo { NoDisponible("No se pudo cargar el catálogo", null, vm::cargarGeneral) }
         vm.generalCargado -> {
-            completo { TituloDeSeccion(Iconos.groups, "Lectura en la comunidad") }
-            // Corregido: en la APK capturada, desde 600 dp, los títulos y esta nota caían en una sola columna, al lado
-            // de lo que no tocaba. Aquí van a lo ancho.
-            completo { TextoDeApoyo("Solo cuentan quienes comparten sus estadísticas; se ocultan los datos de menos de tres personas.") }
             if (vm.compartir != null) completo { Compartir(vm) }
             val comunidad = vm.comunidad
             if (vm.errorComunidad || comunidad == null) {
@@ -287,19 +261,15 @@ private fun Bloques.comunidad(comunidad: EstadisticasDeComunidad) {
     rankings.forEach { (titulo, filas) -> mitad { Panel(iconoDeRanking(titulo), titulo) { FilasDeEstadistica(filas, ordenadas = true) } } }
     if (rankings.isEmpty() && meses.isEmpty()) {
         mitad {
-            Panel(Iconos.lockPerson, "Aún no hay datos suficientes", discontinuo = true) {
-                TextoDeApoyo("Lo más leído aparece cuando al menos tres personas comparten sus lecturas.")
-            }
+            Panel(Iconos.lockPerson, "Aún no hay datos suficientes", discontinuo = true) {}
         }
     }
-    completo { TituloDeSeccion(Iconos.diversity3, "Clubes y actividad") }
     completo { Actividad(comunidad.actividad30Dias) }
     mitad { Panel(Iconos.groups2, "Clubes más amplios") { FilasDeEstadistica(Estadisticas.filasDeClubes(comunidad.clubesMasAmplios), ordenadas = true, vacio = "Todavía no hay clubes abiertos.") } }
     mitad { Panel(Iconos.localFireDepartment, "Clubes más activos") { FilasDeEstadistica(Estadisticas.filasDeClubes(comunidad.clubesMasActivos, porActividad = true), ordenadas = true, vacio = "Ningún club ha tenido actividad este mes.") } }
 }
 
 private fun Bloques.catalogo(catalogo: ResumenDelCatalogo, crecimiento: CrecimientoDelCatalogo?, alVerNuevos: (String) -> Unit) {
-    completo { TituloDeSeccion(Iconos.travelExplore, "El catálogo") }
     completo {
         Cifras(
             listOf(
@@ -481,16 +451,6 @@ private fun Pista(porcentaje: Int, fondo: Color) {
     }
 }
 
-/** `.m-stats__section`: un título de sección con su icono, 12 dp más abajo. */
-@Composable
-private fun TituloDeSeccion(@DrawableRes icono: Int, titulo: String) {
-    val colores = LocalColores.current
-    Row(Modifier.padding(top = Espacios.e3), horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
-        Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
-        Text(titulo, style = Textos.cuerpo.copy(fontSize = rem(1.05), color = colores.tinta))
-    }
-}
-
 /** `.m-stats__activity`: la actividad de 30 días, en tantas columnas de 100 dp como quepan. */
 @Composable
 private fun Actividad(actividad: Map<String, Int?>) {
@@ -557,35 +517,22 @@ private fun NoDisponible(titulo: String, texto: String?, alReintentar: () -> Uni
     }
 }
 
-/**
- * «Tus lecturas cuentan aquí» o «no cuentan», y el botón de compartir o dejar de hacerlo (`.m-stats__consent`, F1 de
- * «Estadísticas y altas»). Siempre de forma anónima.
- */
+/** «Compartir mis lecturas» (`.m-stats__consent`, F1 de «Estadísticas y altas»): una línea con su interruptor. */
 @Composable
 private fun Compartir(vm: EstadisticasViewModel) {
     val colores = LocalColores.current
     val comparto = vm.compartir == true
-    val ancha = LocalVentana.current.anchoDp >= 600
-    val texto: @Composable (Modifier) -> Unit = { m ->
-        Column(m, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(if (comparto) "Tus lecturas cuentan aquí" else "Tus lecturas no cuentan aquí", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta))
-            TextoDeApoyo("Siempre de forma anónima: nadie ve qué lees tú.")
-            if (vm.errorCompartir.isNotEmpty()) Text(vm.errorCompartir, style = Textos.cuerpo.copy(fontSize = rem(0.75), color = colores.error))
-        }
-    }
-    val boton = @Composable { Boton(if (comparto) "Dejar de compartir" else "Compartir", vm::alternarCompartir, variante = VarianteDeBoton.Contorno, habilitado = !vm.guardandoCompartir) }
     Tarjeta(Modifier.fillMaxWidth()) {
-        // En compacto, el botón debajo: al lado, el texto quedaba en una columna estrecha.
-        if (ancha) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e3), verticalAlignment = Alignment.CenterVertically) {
-                texto(Modifier.weight(1f))
-                boton()
+        Row(
+            Modifier.fillMaxWidth().toggleable(value = comparto, enabled = !vm.guardandoCompartir, role = Role.Switch) { vm.alternarCompartir() },
+            horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Compartir mis lecturas, de forma anónima", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta))
+                if (vm.errorCompartir.isNotEmpty()) Text(vm.errorCompartir, style = Textos.cuerpo.copy(fontSize = rem(0.75), color = colores.error))
             }
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-                texto(Modifier)
-                boton()
-            }
+            Switch(checked = comparto, onCheckedChange = null, enabled = !vm.guardandoCompartir)
         }
     }
 }

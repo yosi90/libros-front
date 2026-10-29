@@ -1,7 +1,5 @@
 @if (controller.chartsReady) {
 <main class="m-stats">
-    <header><div><p class="m-eyebrow">{{controller.tab === 'personal' ? 'Tu biblioteca en cifras' : 'La comunidad y el catálogo'}}</p><h1 class="m-title">Estadísticas</h1></div></header>
-
     <nav class="m-stats__tabs" role="tablist" aria-label="Ámbito de las estadísticas">
         <button type="button" role="tab" [class.is-active]="controller.tab === 'personal'" [attr.aria-selected]="controller.tab === 'personal'" (click)="controller.setTab('personal')"><mat-icon>person</mat-icon>Personal</button>
         <button type="button" role="tab" [class.is-active]="controller.tab === 'general'" [attr.aria-selected]="controller.tab === 'general'" (click)="controller.setTab('general')"><mat-icon>public</mat-icon>General</button>
@@ -30,8 +28,6 @@
 
     <section class="m-stats__panel m-card"><h2><mat-icon>shopping_cart</mat-icon>Pendientes de comprar · {{controller.librosPorComprar.length}}</h2>@if (controller.librosPorComprar.length) {<ul>@for (book of controller.librosPorComprar; track book.Id) {<li>{{book.Nombre}}</li>}</ul>} @else {<p class="m-supporting">No tienes libros pendientes.</p>}</section>
 
-    <h2 class="m-stats__section"><mat-icon>speed</mat-icon>Tu ritmo de lectura</h2>
-    <p class="m-supporting m-stats__section-note">Sale de cuándo registras cada capítulo. Se mide desde el {{controller.paceSince}}.</p>
     @if (controller.readingPace; as pace) {
     <section class="m-stats__metrics" aria-label="Resumen de tu ritmo">
         <article class="m-card"><mat-icon>local_fire_department</mat-icon><strong>{{pace.RachaActual}}</strong><span>Días seguidos</span></article>
@@ -42,12 +38,8 @@
     <section class="m-stats__panel m-card"><h2><mat-icon>calendar_month</mat-icon>Páginas por mes</h2><app-stat-rows [rows]="controller.paceMonths" empty="Aún no hay meses con lectura registrada."></app-stat-rows></section>
     <section class="m-stats__panel m-card"><h2><mat-icon>date_range</mat-icon>Qué días lees</h2><app-stat-rows [rows]="controller.paceWeekdays"></app-stat-rows></section>
     <section class="m-stats__panel m-card"><h2><mat-icon>schedule</mat-icon>A qué hora lees</h2><app-stat-rows [rows]="controller.paceHourBands"></app-stat-rows></section>
-    } @else {
-    <section class="m-stats__panel m-card m-stats__soon"><h2><mat-icon>schedule</mat-icon>Tu ritmo aparecerá en cuanto registres capítulos</h2><p class="m-supporting">Cada capítulo que anotes desde el {{controller.paceSince}} cuenta: rachas, páginas por día y a qué hora lees.</p></section>
     }
 
-    <h2 class="m-stats__section"><mat-icon>hotel_class</mat-icon>Tus puntuaciones en el tiempo</h2>
-    <p class="m-supporting m-stats__section-note">Cuenta la última vez que puntuaste o reseñaste cada obra. Se mide desde el {{controller.ratingSince}}.</p>
     @if (controller.ratingHistory; as history) {
     <section class="m-stats__metrics" aria-label="Resumen de tus puntuaciones">
         <article class="m-card"><mat-icon>star_half</mat-icon><strong>{{history.NotaMedia ?? '—'}}</strong><span>Tu nota media</span></article>
@@ -55,8 +47,6 @@
     </section>
     <section class="m-stats__panel m-card"><h2><mat-icon>calendar_month</mat-icon>Puntuaciones por mes</h2><app-stat-rows [rows]="controller.ratingMonths" empty="Aún no hay meses con puntuaciones."></app-stat-rows></section>
     <section class="m-stats__panel m-card"><h2><mat-icon>star</mat-icon>Tu nota media por mes</h2><app-stat-rows [rows]="controller.ratingAverages"></app-stat-rows></section>
-    } @else {
-    <section class="m-stats__panel m-card m-stats__soon"><h2><mat-icon>schedule</mat-icon>Tus puntuaciones aparecerán en cuanto puntúes o reseñes</h2><p class="m-supporting">Cada puntuación y reseña desde el {{controller.ratingSince}} cuenta: por meses y tu nota media en el tiempo.</p></section>
     }
     }
     } @else {
@@ -65,17 +55,14 @@
     } @else if (controller.generalError) {
     <section class="m-card m-stats__unavailable" role="alert"><mat-icon>cloud_off</mat-icon><h2>No se pudo cargar el catálogo</h2><button class="m-button" type="button" (click)="controller.loadGeneral()"><mat-icon>refresh</mat-icon>Reintentar</button></section>
     } @else if (controller.generalLoaded) {
-    <h2 class="m-stats__section"><mat-icon>groups</mat-icon>Lectura en la comunidad</h2>
-    <p class="m-supporting m-stats__section-note">Solo cuentan quienes comparten sus estadísticas; se ocultan los datos de menos de tres personas.</p>
-    <section class="m-stats__consent m-card" aria-label="Tus lecturas en estas estadísticas">
-        <div>
-            <strong>{{controller.shareStatistics ? 'Tus lecturas cuentan aquí' : 'Tus lecturas no cuentan aquí'}}</strong>
-            <span class="m-supporting">Siempre de forma anónima: nadie ve qué lees tú.</span>
+    <label class="m-stats__consent m-card">
+        <span>
+            <strong>Compartir mis lecturas, de forma anónima</strong>
             @if (controller.shareStatisticsError) {<span class="m-stats__error" role="alert">{{controller.shareStatisticsError}}</span>}
-        </div>
-        <button class="m-button m-button--outline" type="button" role="switch" [attr.aria-checked]="controller.shareStatistics"
-            [disabled]="controller.savingShareStatistics" (click)="controller.toggleShareStatistics()">{{controller.shareStatistics ? 'Dejar de compartir' : 'Compartir'}}</button>
-    </section>
+        </span>
+        <input type="checkbox" role="switch" [checked]="controller.shareStatistics"
+            [disabled]="controller.savingShareStatistics" (change)="controller.toggleShareStatistics()">
+    </label>
     @if (controller.communityError) {
     <p class="m-stats__error" role="status"><mat-icon>info</mat-icon>No se pudieron cargar los datos de la comunidad.</p>
     } @else if (controller.community; as community) {
@@ -100,11 +87,10 @@
     <section class="m-stats__panel m-card"><h2><mat-icon>{{ranking.icon}}</mat-icon>{{ranking.title}}</h2><app-stat-rows [rows]="ranking.rows" [ranked]="true"></app-stat-rows></section>
     } @empty {
     @if (!controller.communityMonthlyRows.length) {
-    <section class="m-stats__panel m-card m-stats__soon"><h2><mat-icon>lock_person</mat-icon>Aún no hay datos suficientes</h2><p class="m-supporting">Lo más leído aparece cuando al menos tres personas comparten sus lecturas.</p></section>
+    <section class="m-stats__panel m-card m-stats__soon"><h2><mat-icon>lock_person</mat-icon>Aún no hay datos suficientes</h2></section>
     }
     }
 
-    <h2 class="m-stats__section"><mat-icon>diversity_3</mat-icon>Clubes y actividad</h2>
     <section class="m-stats__activity" aria-label="Actividad de los últimos 30 días">
         @for (item of controller.activityLabels; track item.key) {
         <article class="m-card"><mat-icon>{{item.icon}}</mat-icon><strong>{{community.ActividadComunidad30Dias[item.key] ?? '—'}}</strong><span>{{item.label}}</span></article>
@@ -114,7 +100,6 @@
     <section class="m-stats__panel m-card"><h2><mat-icon>local_fire_department</mat-icon>Clubes más activos</h2><app-stat-rows [rows]="controller.communityActiveClubs" [ranked]="true" empty="Ningún club ha tenido actividad este mes."></app-stat-rows></section>
     }
 
-    <h2 class="m-stats__section"><mat-icon>travel_explore</mat-icon>El catálogo</h2>
     <section class="m-stats__metrics" aria-label="Resumen del catálogo">
         <article class="m-card"><mat-icon>library_books</mat-icon><strong>{{controller.catalogTitles}}</strong><span>Títulos</span></article>
         <article class="m-card"><mat-icon>person</mat-icon><strong>{{controller.catalogAuthorCount}}</strong><span>Autores</span></article>

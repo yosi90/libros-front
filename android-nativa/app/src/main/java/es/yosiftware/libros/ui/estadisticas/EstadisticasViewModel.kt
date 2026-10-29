@@ -116,7 +116,7 @@ class EstadisticasViewModel(
         private set
     var errorComunidad by mutableStateOf(false)
         private set
-    /** Si mis lecturas cuentan en «Lectura en la comunidad»; `null` hasta saberlo. */
+    /** Si mis lecturas cuentan en las estadísticas de la comunidad; `null` hasta saberlo. */
     var compartir by mutableStateOf<Boolean?>(null)
         private set
     var guardandoCompartir by mutableStateOf(false)
