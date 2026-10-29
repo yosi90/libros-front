@@ -128,7 +128,7 @@ private fun Privacidad(alAbrir: () -> Unit) {
     Boton("Privacidad de todas tus webs", alAbrir, Modifier.fillMaxWidth(), variante = VarianteDeBoton.Contorno, icono = Iconos.simboloYosiftware)
 }
 
-/** «Lectura»: la escena del título al abrir un libro (IA2), encendida por defecto. Es del móvil, no de la cuenta. */
+/** «Lectura y escritura»: la escena del título al abrir un libro (IA2), encendida por defecto, y el dictado (IA3). Son del móvil, no de la cuenta. */
 @Composable
 private fun Lectura() {
     val colores = LocalColores.current
@@ -154,6 +154,7 @@ private fun Lectura() {
         }
         Switch(checked = encendida, onCheckedChange = null)
     }
+    DictadoPorVoz()
 }
 
 /** «Permisos del móvil» (`mobile-app-permissions`), solo con las notificaciones, que se vuelven a mirar al volver a la app. */

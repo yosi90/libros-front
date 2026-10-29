@@ -195,6 +195,17 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
         return SpansRtf.leer(editable).todoCumple(minOf(selectionStart, selectionEnd), maxOf(selectionStart, selectionEnd), condicion)
     }
 
+    /** Lo dictado, en el cursor (o en lugar de la selección), con el espacio y la mayúscula que toquen ([UnirDictado]). */
+    fun insertarDictado(dictado: String) {
+        val editable = text ?: return
+        val inicio = minOf(selectionStart, selectionEnd).coerceAtLeast(0)
+        val fin = maxOf(selectionStart, selectionEnd).coerceAtLeast(0)
+        val texto = UnirDictado.texto(editable.subSequence(0, inicio), dictado)
+        if (texto.isEmpty()) return
+        editable.replace(inicio, fin, texto)
+        setSelection(inicio + texto.length)
+    }
+
     fun cambiarParrafos(cambio: (EstiloDeParrafo) -> EstiloDeParrafo) {
         val editable = text ?: return
         val marcado = SpansRtf.leer(editable).cambiarParrafos(minOf(selectionStart, selectionEnd), maxOf(selectionStart, selectionEnd), cambio)

@@ -19,6 +19,7 @@ import es.yosiftware.libros.datos.repositorios.RepositorioClubes
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 import es.yosiftware.libros.datos.repositorios.RepositorioDispositivos
 import es.yosiftware.libros.datos.repositorios.RepositorioEntidades
+import es.yosiftware.libros.datos.repositorios.RepositorioDictado
 import es.yosiftware.libros.datos.repositorios.RepositorioIA
 import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
 import es.yosiftware.libros.datos.repositorios.RepositorioEstadisticas
@@ -80,6 +81,7 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
 
     /** La IA de la persona en la plataforma: si su clave está lista y qué modelos puede elegir. */
     val ia = RepositorioIA(llamadaDePlataforma)
+    val dictado = RepositorioDictado(api)
 
     /** La Actividad de Comunidad: el feed de novedades de Libros en la plataforma. */
     val novedades = RepositorioNovedades(llamadaDePlataforma)

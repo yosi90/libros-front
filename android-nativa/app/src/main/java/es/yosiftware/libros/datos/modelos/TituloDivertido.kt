@@ -33,29 +33,38 @@ data class TituloDivertido(
 /** Los proveedores de texto de la pasarela, con su nombre para la persona. */
 val PROVEEDORES_DE_TEXTO = linkedMapOf("anthropic" to "Anthropic", "openai" to "OpenAI")
 
+/** Los que pasan audio a texto (el dictado, IA3). */
+val PROVEEDORES_DE_TRANSCRIPCION = linkedMapOf("openai" to "OpenAI", "elevenlabs" to "ElevenLabs")
+
+/** Para qué se usa la IA (`usos` de `GET /v1/ia/modelos` y `preferidos` de `GET /v1/ia/estado`), con sus proveedores. */
+enum class UsoDeIA(val clave: String, val proveedores: Map<String, String>) {
+    TEXTO("texto", PROVEEDORES_DE_TEXTO),
+    TRANSCRIPCION("transcripcion", PROVEEDORES_DE_TRANSCRIPCION),
+}
+
 /**
  * Un modelo que la persona puede elegir para generar (`GET /v1/ia/modelos`, CLAVES_DE_IA.md): nunca texto libre. Vale
  * cualquier proveedor de texto de la pasarela (Anthropic u OpenAI) con la clave lista.
  */
 data class ModeloDeIA(val id: String, val nombre: String, val proveedor: String) {
     /** «Claude Haiku 5.5 · Anthropic». */
-    val etiqueta: String get() = "$nombre · ${PROVEEDORES_DE_TEXTO[proveedor] ?: proveedor}"
+    val etiqueta: String get() = "$nombre · ${PROVEEDORES_DE_TEXTO[proveedor] ?: PROVEEDORES_DE_TRANSCRIPCION[proveedor] ?: proveedor}"
 
     companion object {
         /**
          * Los de texto que están en la tabla de precios (sin precio, la pasarela da `modelo_sin_tarifa`), de los
          * proveedores de [listos] (los de clave `lista` en `/v1/ia/estado`).
          */
-        fun deLaPlataforma(json: JSONObject, listos: Set<String>): List<ModeloDeIA> {
+        fun deLaPlataforma(json: JSONObject, listos: Set<String>, uso: UsoDeIA = UsoDeIA.TEXTO): List<ModeloDeIA> {
             val proveedores = json.optJSONArray("proveedores") ?: return emptyList()
             return (0 until proveedores.length()).map(proveedores::getJSONObject)
-                .filter { it.optString("proveedor") in PROVEEDORES_DE_TEXTO && it.optString("proveedor") in listos }
+                .filter { it.optString("proveedor") in uso.proveedores && it.optString("proveedor") in listos }
                 .flatMap { proveedor ->
                     val modelos = proveedor.optJSONArray("modelos") ?: return@flatMap emptyList()
                     (0 until modelos.length()).map(modelos::getJSONObject).filter { modelo ->
                         val usos = modelo.optJSONArray("usos")
-                        val texto = usos != null && (0 until usos.length()).any { usos.optString(it) == "texto" }
-                        texto && !modelo.isNull("precio") && modelo.optJSONObject("precio") != null
+                        val sirve = usos != null && (0 until usos.length()).any { usos.optString(it) == uso.clave }
+                        sirve && !modelo.isNull("precio") && modelo.optJSONObject("precio") != null
                     }.map { ModeloDeIA(it.getString("id"), it.optString("nombre").ifBlank { it.getString("id") }, proveedor.getString("proveedor")) }
                 }
         }
@@ -83,12 +92,12 @@ data class EstadoDeIA(val estados: Map<String, String>, val preferido: String?, 
     val motivo: String get() = preferido?.let { estados[it] } ?: estados.values.firstOrNull() ?: "sin_clave_de_ia"
 
     companion object {
-        fun de(json: JSONObject): EstadoDeIA {
+        fun de(json: JSONObject, uso: UsoDeIA = UsoDeIA.TEXTO): EstadoDeIA {
             val proveedores = json.optJSONArray("proveedores")
             val estados = proveedores?.let { lista -> (0 until lista.length()).map(lista::getJSONObject) }.orEmpty()
-                .filter { it.optString("proveedor") in PROVEEDORES_DE_TEXTO }
+                .filter { it.optString("proveedor") in uso.proveedores }
                 .associate { it.optString("proveedor") to (it.optString("estado").ifBlank { "sin_clave_de_ia" }) }
-            val preferido = json.optJSONObject("preferidos")?.let { if (it.isNull("texto")) null else it.optString("texto").ifBlank { null } }
+            val preferido = json.optJSONObject("preferidos")?.let { if (it.isNull(uso.clave)) null else it.optString(uso.clave).ifBlank { null } }
             return EstadoDeIA(estados, preferido, json.optString("gestion").ifBlank { null })
         }
     }

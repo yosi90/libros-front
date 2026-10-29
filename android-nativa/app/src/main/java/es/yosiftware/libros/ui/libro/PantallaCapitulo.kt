@@ -304,6 +304,7 @@ private fun TarjetaDeEscena(
                 modifier = Modifier.fillMaxWidth(),
                 enlaces = enlaces,
                 alAbrirEnlace = { enlace -> libroVm.ir(VistaDelLibro.DeElemento(elementoDe(enlace.tipo), seleccionado = enlace.id)) },
+                idLibro = libroVm.abierto?.id,
                 descripcion = "Descripción de la escena $numero",
                 seleccionarTodoAlEnfocar = ReglasDelCapitulo.esDescripcionPorDefecto(escena.descripcion),
                 alTerminarDeEditar = vm::guardarAhora,

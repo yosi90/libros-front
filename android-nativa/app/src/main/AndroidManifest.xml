@@ -14,6 +14,7 @@
   - Los App Links (hito 12): la raíz de la web de Libros de cada entorno (para `#yosi-invitacion=`), `/dashboard…` y
     `/book…`, verificados con el `assetlinks.json` que publica su hosting. Y la consulta del navegador por defecto, para
     abrir en él lo de la web de Libros sin volver a la app (cuenta/Enlaces.kt).
+  - El micrófono y el reconocedor de voz del móvil, para el dictado (IA3, ui/editor/Dictado.kt).
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
@@ -24,10 +25,16 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <!-- Los avisos del push (push/ServicioPush.kt); se pide en Preferencias › Permisos del móvil. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- El dictado a los editores de escenas y entradas (IA3): se pide al pulsar el micrófono por primera vez. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove" />
 
     <queries>
+        <!-- El reconocedor de voz del móvil, para el dictado gratuito (SpeechRecognizer, desde Android 11). -->
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.BROWSABLE" />

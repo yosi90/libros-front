@@ -312,6 +312,7 @@ private fun Formulario(libroVm: LibroViewModel, vm: ElementosViewModel, libro: L
                         modifier = Modifier.fillMaxWidth(),
                         enlaces = enlaces,
                         alAbrirEnlace = { enlace -> libroVm.ir(VistaDelLibro.DeElemento(elementoDe(enlace.tipo), seleccionado = enlace.id)) },
+                        idLibro = libroVm.abierto?.id,
                         descripcion = "Descripción de la entrada ${i + 1}",
                         seleccionarTodoAlEnfocar = ReglasDeLaFicha.esDescripcionPorDefecto(tipo, entrada.descripcion),
                     )

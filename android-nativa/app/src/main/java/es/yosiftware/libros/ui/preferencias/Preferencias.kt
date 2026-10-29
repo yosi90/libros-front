@@ -11,7 +11,7 @@ import es.yosiftware.libros.ui.tema.Iconos
  */
 enum class PestanaDePreferencias(val etiqueta: String, @param:DrawableRes val icono: Int) {
     PRIVACIDAD("Privacidad", Iconos.visibility),
-    LECTURA("Lectura", Iconos.autoStories),
+    LECTURA("Lectura y escritura", Iconos.autoStories),
     PERMISOS("Permisos del móvil", Iconos.appSettingsAlt),
 }
 
@@ -24,8 +24,8 @@ enum class EstadoDePermiso(val etiqueta: String) {
 }
 
 /**
- * El permiso de las notificaciones. Fotos, cámara y micrófono, que pedía la APK de Capacitor, no están: la APK no los
- * usa (el avatar se cambia en la web social) y no los declara.
+ * El permiso de las notificaciones. Fotos y cámara, que pedía la APK de Capacitor, no están: la APK no los usa (el avatar
+ * se cambia en la web social) y no los declara. El micrófono, para el dictado, se pide al pulsarlo por primera vez.
  */
 object PermisoDeNotificaciones {
     /** Android 13 (API 33): antes, las notificaciones no se piden; solo se activan o no en los ajustes. */

@@ -74,7 +74,7 @@ private val colores = listOf("#F6E6C9", "#F5DEB3", "#FFFFFF", "#D9A956", "#4F9D8
 private val interlineados = listOf(1.0 to "1", 1.15 to "1,15", 1.5 to "1,5", 2.0 to "2")
 
 /**
- * El editor del texto narrativo (narrative-rtf-editor en la vista móvil de 5dc3120): la barra (fuente, tamaño, negrita,
+ * El editor del texto narrativo (narrative-rtf-editor en la vista móvil de 5dc3120): la barra (el dictado, fuente, tamaño, negrita,
  * cursiva, subrayado, tachado, color, resaltado, alineación, sangría y las opciones de párrafo), desplazable de lado, y
  * debajo el texto. Edita RTF y devuelve RTF ([alCambiar]); si no se toca, el valor no se reescribe.
  *
@@ -93,6 +93,8 @@ fun EditorRtf(
     alTerminarDeEditar: () -> Unit = {},
     /** La barra de formato solo mientras se escribe (las escenas del capítulo, opción A del propietario, 26/10/2026). */
     barraSoloAlEscribir: Boolean = false,
+    /** El libro en el que se escribe: con él, el dictado con IA lleva los nombres del libro como pista ([BotonDeDictado]). */
+    idLibro: Int? = null,
 ) {
     val colores = LocalColores.current
     val contexto = LocalContext.current
@@ -106,7 +108,7 @@ fun EditorRtf(
     val anillo = mezclar(colores.primario, 0.42f)
     Column(modifier, horizontalAlignment = Alignment.End) {
         val conBarra = !barraSoloAlEscribir || enfocado
-        if (conBarra) Barra(barra, campo)
+        if (conBarra) Barra(barra, campo, idLibro)
         // Sin la barra encima, la esquina de arriba a la derecha también va redondeada.
         val forma = RoundedCornerShape(topStart = 7.dp, topEnd = if (conBarra) 0.dp else 7.dp, bottomEnd = 7.dp, bottomStart = 7.dp)
         Box(
@@ -161,7 +163,7 @@ fun EditorRtf(
 
 /** `.rtf-toolbar` en móvil: sobre la superficie contenedora, con borde y sin el de abajo, desplazable de lado. */
 @Composable
-private fun Barra(estado: EstadoDeLaBarra, campo: CampoRtf?) {
+private fun Barra(estado: EstadoDeLaBarra, campo: CampoRtf?, idLibro: Int?) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(topStart = 7.dp, topEnd = 7.dp)
     Row(
@@ -177,6 +179,8 @@ private fun Barra(estado: EstadoDeLaBarra, campo: CampoRtf?) {
         horizontalArrangement = Arrangement.spacedBy(1.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // El dictado, lo primero: se ve sin desplazar la barra.
+        Grupo { BotonDeDictado(campo, idLibro) }
         Grupo {
             SelectorDeFuente(estado.fuente ?: FUENTE_POR_DEFECTO) { fuente -> campo?.cambiarLetra { it.copy(fuente = fuente) } }
             SelectorDeTamano(estado.mediosPuntos) { puntos -> campo?.cambiarLetra { it.copy(tamano = puntos * 2) } }
