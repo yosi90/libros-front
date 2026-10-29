@@ -1,6 +1,7 @@
 package es.yosiftware.libros.ui.libro
 
 import es.yosiftware.libros.datos.conUnDecimal
+import es.yosiftware.libros.datos.fechaCorta
 import es.yosiftware.libros.datos.instanteDe
 import es.yosiftware.libros.datos.modelos.EstadisticaDeCapitulo
 import es.yosiftware.libros.datos.modelos.EstadisticaDePersonaje
@@ -11,7 +12,6 @@ import es.yosiftware.libros.datos.modelos.RitmoDelLibro
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.datos.plegar
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.ceil
@@ -40,7 +40,6 @@ data class Presencia(val capitulos: List<Int>, val filas: List<FilaDePresencia>)
 object ResumenDelLibro {
     private const val PERSONAJES_EN_EL_MAPA = 8
     private val ordenDeGrupos = listOf("Principales", "Recurrentes", "Secundarios", "Desaparecidos", "Muertos", "Antiguos", "Sin grupo")
-    private val formatoDeFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
     fun capitulosEnOrden(resumen: EstadisticasDelLibro): List<EstadisticaDeCapitulo> = resumen.capitulos.sortedBy { it.orden }
 
@@ -122,9 +121,6 @@ object ResumenDelLibro {
     fun hastaUnDecimal(valor: Double): String = decimal(valor).removeSuffix(",0")
 
     private val diaYMes = DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es-ES"))
-
-    /** «dd/MM/yyyy» de una fecha de la API (con hora o sin ella), como el `date` de Angular. */
-    fun fechaCorta(iso: String?): String? = instanteDe(iso)?.atZone(ZoneId.systemDefault())?.toLocalDate()?.format(formatoDeFecha)
 
     /** La fecha que se manda al poner la de compra («2026-10-25T00:00:00»; `toApiDate`). */
     fun fechaParaLaApi(dia: LocalDate): String = "${dia}T00:00:00"

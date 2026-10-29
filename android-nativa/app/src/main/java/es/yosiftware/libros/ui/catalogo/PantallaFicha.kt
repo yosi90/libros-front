@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import es.yosiftware.libros.ui.libro.SitioDelTitulo
 import es.yosiftware.libros.ui.libro.TituloDelLibro
+import es.yosiftware.libros.datos.fechaCorta
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.ResenaPublica
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
@@ -335,10 +336,4 @@ private fun TarjetaDeResena(resena: ResenaPublica, arriba: Dp) {
             Text(it, style = Textos.cuerpo.copy(fontSize = rem(0.7), color = colores.tintaSuave))
         }
     }
-}
-
-/** «dd/MM/yyyy» de una fecha ISO (el `date:'dd/MM/yyyy'` de Angular), o `null`. */
-internal fun fechaCorta(iso: String?): String? {
-    val partes = Regex("^(\\d{4})-(\\d{2})-(\\d{2})").find(iso.orEmpty())?.groupValues ?: return null
-    return "${partes[3]}/${partes[2]}/${partes[1]}"
 }

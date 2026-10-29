@@ -34,6 +34,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -169,10 +170,16 @@ fun DialogoModal(alCerrar: () -> Unit, cerrarFuera: Boolean = true, contenido: @
 fun DialogoDeConfirmacion(texto: String, alCancelar: () -> Unit, alAceptar: () -> Unit) {
     DialogoModal(alCerrar = alCancelar) {
         Text(texto, color = LocalColores.current.tinta, style = Textos.cuerpo)
-        Row(Modifier.fillMaxWidth().padding(top = Espacios.e5), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
-            Boton("Cancelar", alCancelar, variante = VarianteDeBoton.Contorno)
-            Boton("Aceptar", alAceptar)
-        }
+        BotonesDeDialogo("Aceptar", alAceptar, alCancelar)
+    }
+}
+
+/** El pie de `.m-dialog`: «Cancelar» (contorno) y la acción, a la derecha, con [arriba] de margen. */
+@Composable
+fun BotonesDeDialogo(accion: String, alAceptar: () -> Unit, alCancelar: () -> Unit, habilitado: Boolean = true, arriba: Dp = Espacios.e5) {
+    Row(Modifier.fillMaxWidth().padding(top = arriba), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
+        Boton("Cancelar", alCancelar, variante = VarianteDeBoton.Contorno)
+        Boton(accion, alAceptar, habilitado = habilitado)
     }
 }
 

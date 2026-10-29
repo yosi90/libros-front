@@ -7,6 +7,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * Una fecha de la API de Libros o de la plataforma (ISO 8601), en [zona], como la lee la web: con zona (`Z` o
@@ -25,3 +26,8 @@ fun leerFecha(iso: String?, zona: ZoneId = ZoneId.systemDefault(), zonaDelDia: Z
 
 /** El instante de una fecha de la API como lo calcula el `Date` de la web: sin zona, hora local; solo el día, en UTC. */
 fun instanteDe(iso: String?): Instant? = leerFecha(iso, zonaDelDia = ZoneOffset.UTC)?.toInstant()
+
+private val diaMesAnio = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+/** «dd/MM/yyyy» de una fecha de la API (con hora o sin ella), en la zona del móvil, como el `date` de Angular. */
+fun fechaCorta(iso: String?): String? = instanteDe(iso)?.atZone(ZoneId.systemDefault())?.toLocalDate()?.format(diaMesAnio)

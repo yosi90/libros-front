@@ -24,11 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -43,16 +39,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,6 +54,7 @@ import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.ui.adaptable.LocalVentana
+import es.yosiftware.libros.ui.biblioteca.CampoDeBusquedaConAmbitos
 import es.yosiftware.libros.ui.biblioteca.ChipQuitable
 import es.yosiftware.libros.ui.biblioteca.SugerenciasDeAmbito
 import es.yosiftware.libros.ui.biblioteca.iconoDeEstado
@@ -149,35 +143,11 @@ private fun BarraDeBusqueda(vm: CatalogoViewModel, desplazada: Boolean) {
             },
     ) {
         Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-            Row(
-                Modifier.weight(1f).heightIn(min = 56.dp).padding(start = Espacios.e4, end = Espacios.e2),
-                horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(painterResource(Iconos.search), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
-                BasicTextField(
-                    value = vm.borrador,
-                    onValueChange = vm::escribir,
-                    modifier = Modifier.weight(1f).onFocusChanged { enfocada = it.isFocused }
-                        .semantics { contentDescription = "Buscar en catálogo" },
-                    singleLine = true,
-                    textStyle = Textos.cuerpo.copy(color = colores.tinta),
-                    cursorBrush = SolidColor(colores.primario),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { vm.confirmarBorrador() }),
-                    decorationBox = { campo ->
-                        Box {
-                            if (vm.borrador.isEmpty()) Text("Título o autor…", style = Textos.cuerpo.copy(color = colores.tintaSuave), maxLines = 1)
-                            campo()
-                        }
-                    },
-                )
-                if (vm.hayFiltros) {
-                    Box(Modifier.size(44.dp).clip(CircleShape).clickable(onClick = vm::limpiarFiltros), contentAlignment = Alignment.Center) {
-                        Icon(painterResource(Iconos.close), contentDescription = "Limpiar búsqueda", tint = colores.primario, modifier = Modifier.size(24.dp))
-                    }
-                }
-            }
+            CampoDeBusquedaConAmbitos(
+                vm.borrador, vm::escribir, { vm.confirmarBorrador() }, "Título o autor…", "Buscar en catálogo",
+                hayFiltros = vm.hayFiltros, alLimpiar = vm::limpiarFiltros, tintaDeLimpiar = colores.primario,
+                alCambiarFoco = { enfocada = it }, modifier = Modifier.weight(1f),
+            )
             BotonCuadrado(Iconos.tune, "Filtros", vm.filtrosAbiertos, vm::alternarFiltros)
             BotonCuadrado(Iconos.add, "Solicitar un libro nuevo", false) { vm.pedirNuevo() }
         }

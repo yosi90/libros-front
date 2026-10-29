@@ -1,31 +1,35 @@
 # Duplicados pendientes de la APK Kotlin
 
-**Pausado desde su apertura (26/10/2026):** recoge lo que la auditoría completa de duplicados de la APK (hito 14 de `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, rama `revisor/auditoria-completa-apk-2026-10-26`, base `6826083`) no aplicó. Son cambios delicados (el autoguardado), cambios que hay que ver en el móvil o que dependen de la plataforma o del backend. Solo puede haber un roadmap activo: se retoma cuando el propietario lo decida, idealmente junto a las mejoras del hito 15.
+**Pausado desde su apertura (26/10/2026); las propuestas 1 a 4 se hicieron el 29/10/2026, con el roadmap activo de duplicados del frontend:** recoge lo que la auditoría completa de duplicados de la APK (hito 14 de `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, rama `revisor/auditoria-completa-apk-2026-10-26`, base `6826083`) no aplicó. Son cambios delicados (el autoguardado), cambios que hay que ver en el móvil o que dependen de la plataforma o del backend. Solo puede haber un roadmap activo: se retoma cuando el propietario lo decida, idealmente junto a las mejoras del hito 15.
 
 Alcance: `android-nativa/app/`. La librería `android-nativa/yosiftware-sesion/` no se toca nunca; lo que le falta va como petición a la plataforma. Las líneas citadas son las de la base `6826083`, rutas bajo `android-nativa/app/src/main/java/es/yosiftware/libros/`. Orden: de más ganancia y menos coste a menos.
 
 ## Dentro de la APK
 
-- [ ] **1. La fecha corta de las reseñas de la ficha**
+- [x] **1. La fecha corta de las reseñas de la ficha**
+  - **Hecho (29/10/2026):** una sola `fechaCorta` en `datos/Fechas.kt`, en la zona del móvil como el `date:'dd/MM/yyyy'` de la web Mobile (que pinta así las reseñas); la usan la ficha y el resumen del libro. Una reseña de las 23:30 UTC sale ya con el mismo día que en la web.
   - **Descripción:** hay dos `fechaCorta` con el mismo nombre y el mismo formato (`dd/MM/yyyy`): `ui/catalogo/PantallaFicha.kt` (333-336) recorta el texto ISO con una expresión regular, sin zona, y `ui/libro/ResumenDelLibro.kt` (72) pasa la fecha a la zona del móvil, como el `date` de Angular. Una reseña de `2026-10-20T23:30:00Z` sale «20/10/2026» en la ficha y «21/10/2026» con la otra en Madrid.
   - **Por qué se necesita:** el mismo formato con dos resultados según la pantalla.
   - **Qué se espera lograr:** que la ficha use la de ResumenDelLibro (o `leerFecha` con su formato) y quitar la suya, tras comprobar en la web qué día pinta la reseña.
   - **Peligros si se mantiene como estaba:** reseñas de última hora con el día anterior.
   - **Peligros del cambio:** cambia lo que se ve en la ficha (un día en las reseñas cercanas a medianoche): por eso no se aplicó en la auditoría.
 
-- [ ] **2. Los botones de los diálogos**
+- [x] **2. Los botones de los diálogos**
+  - **Hecho (29/10/2026):** `BotonesDeDialogo(accion, alAceptar, alCancelar, habilitado, arriba)` en `ui/componentes/Superficies.kt`, en las cinco copias (también la confirmación y la edición de un mensaje). El margen de cada una se conserva con `arriba`: nada se mueve.
   - **Descripción:** la fila «Cancelar» (contorno) más la acción, a la derecha y con 20 dp encima, se repite en los diálogos: la denuncia y la solicitud de acceso de `ui/comunidad/PantallaClub.kt` (796-799 y 816-819) y la denuncia de `ui/mensajes/PantallaConversacion.kt` (749-752); la confirmación ya es `DialogoDeConfirmacion`. Propuesta: `BotonesDeDialogo(alCancelar, accion, alAceptar, habilitado)` en `ui/componentes/Superficies.kt`.
   - **Por qué se necesita:** el pie de `.m-dialog` escrito en cada diálogo.
   - **Qué se espera lograr:** un pie común; los diálogos nuevos lo heredan.
   - **Peligros si se mantiene como estaba:** poco: tres copias de cuatro líneas.
   - **Peligros del cambio:** la solicitud tiene 12 dp encima, no 20: o el parámetro o se iguala tras verlo en el móvil.
 
-- [ ] **3. El nombre visible de una persona de la plataforma**
+- [x] **3. El nombre visible de una persona de la plataforma**
+  - **Hecho (29/10/2026):** `nombreVisible(nombre, alias)` en `datos/modelos/Espacios.kt`. El de `CentroDeAccesoViewModel` es otra regla (la segunda línea, `@alias` solo si hay nombre) y se queda.
   - **Descripción:** «el nombre o `@alias`» (`clubPersonName`) está en `SolicitudDeEntrada.visible` y `PersonaDeYosiftware.visible` (`datos/modelos/Espacios.kt`, 138 y 154), y `ui/comunidad/CentroDeAccesoViewModel.kt` (138) arma `@alias` a mano. Propuesta: una función `nombreVisible(nombre, alias)` en `datos/modelos/Espacios.kt`.
   - **Por qué se necesita / Qué se espera lograr:** una regla de presentación en un solo sitio.
   - **Peligros:** ninguno relevante; es pequeño.
 
-- [ ] **4. El campo de la búsqueda de la Biblioteca y del Catálogo**
+- [x] **4. El campo de la búsqueda de la Biblioteca y del Catálogo**
+  - **Hecho (29/10/2026):** `CampoDeBusquedaConAmbitos` (`ui/biblioteca/PantallaBiblioteca.kt`), con el marcador, la descripción y el color de la X como parámetros: se conservan tal cual. Visto en el Honor en las dos pantallas (foco, sugerencias por ámbito y X).
   - **Descripción:** `ui/biblioteca/PantallaBiblioteca.kt` (209-238) y `ui/catalogo/PantallaCatalogo.kt` (150-182) pintan el mismo campo (lupa, `BasicTextField` con su marcador, la X de limpiar y los chips). Cambian el marcador, la descripción, el color de la X (tinta en la Biblioteca, primario en el Catálogo) y los márgenes de los chips. Las sugerencias ya son `SugerenciasDeAmbito`.
   - **Por qué se necesita:** el mismo `m-scoped-search` en dos pantallas.
   - **Qué se espera lograr:** un `CampoDeBusquedaConAmbitos` con esos parámetros.

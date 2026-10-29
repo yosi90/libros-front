@@ -133,10 +133,12 @@ data class InvitacionEnviada(
     }
 }
 
+/** Cómo se nombra en los clubes a una persona de la plataforma (`clubPersonName`): su nombre o `@alias`. */
+fun nombreVisible(nombre: String?, alias: String): String = nombre?.takeIf { it.isNotBlank() } ?: "@$alias"
+
 /** Una solicitud para entrar en un espacio, para quien puede invitar (`SolicitudDeEntrada`). */
 data class SolicitudDeEntrada(val id: Long, val cuenta: String, val alias: String, val nombre: String?, val mensaje: String?, val creada: String?) {
-    /** Cómo se nombra en los clubes a una persona de la plataforma (`clubPersonName`): su nombre o `@alias`. */
-    val visible: String get() = nombre?.takeIf { it.isNotBlank() } ?: "@$alias"
+    val visible: String get() = nombreVisible(nombre, alias)
 
     companion object {
         fun de(json: JSONObject) = SolicitudDeEntrada(
@@ -152,7 +154,7 @@ data class SolicitudDeEntrada(val id: Long, val cuenta: String, val alias: Strin
 
 /** Una persona de la plataforma en la búsqueda para invitar (`PlataformaPersona`). [avatar] es la ruta de la miniatura. */
 data class PersonaDeYosiftware(val id: String, val alias: String, val nombre: String?, val avatar: String?, val borrada: Boolean) {
-    val visible: String get() = nombre?.takeIf { it.isNotBlank() } ?: "@$alias"
+    val visible: String get() = nombreVisible(nombre, alias)
 
     companion object {
         fun de(json: JSONObject) = PersonaDeYosiftware(

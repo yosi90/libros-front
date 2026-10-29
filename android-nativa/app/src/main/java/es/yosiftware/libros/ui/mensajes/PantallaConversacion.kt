@@ -80,6 +80,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.BotonesDeDialogo
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
 import es.yosiftware.libros.ui.componentes.DialogoModal
@@ -536,10 +537,7 @@ private fun Cita(texto: String) {
 private fun Edicion(vm: ConversacionViewModel, mensaje: MensajeDelChat) {
     Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
         CampoDeFormulario(vm.textoDeEdicion, { vm.textoDeEdicion = it }, "", Modifier.heightIn(min = 88.dp), lineas = 3, maximo = ConversacionViewModel.MAXIMO)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
-            Boton("Cancelar", vm::cancelarEdicion, variante = VarianteDeBoton.Contorno)
-            Boton("Guardar", { vm.guardarEdicion(mensaje) }, habilitado = vm.textoDeEdicion.isNotBlank() && !vm.guardandoEdicion)
-        }
+        BotonesDeDialogo("Guardar", { vm.guardarEdicion(mensaje) }, vm::cancelarEdicion, habilitado = vm.textoDeEdicion.isNotBlank() && !vm.guardandoEdicion, arriba = 0.dp)
     }
 }
 
@@ -736,9 +734,6 @@ private fun DialogoDeDenuncia(vm: ConversacionViewModel, mensaje: MensajeDelChat
         }
         CampoDeFormulario(vm.textoDeDenuncia, { vm.textoDeDenuncia = it }, "Cuéntalo si quieres (opcional)", Modifier.padding(top = Espacios.e3), lineas = 3, maximo = 500)
         if (vm.errorDeDenuncia.isNotEmpty()) Text(vm.errorDeDenuncia, Modifier.padding(top = Espacios.e2), color = colores.error, style = Textos.cuerpo)
-        Row(Modifier.fillMaxWidth().padding(top = Espacios.e5), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
-            Boton("Cancelar", vm::cancelarDenuncia, variante = VarianteDeBoton.Contorno)
-            Boton(if (vm.enviandoDenuncia) "Enviando…" else "Enviar", vm::enviarDenuncia, habilitado = vm.motivoElegido != null && !vm.enviandoDenuncia)
-        }
+        BotonesDeDialogo(if (vm.enviandoDenuncia) "Enviando…" else "Enviar", vm::enviarDenuncia, vm::cancelarDenuncia, habilitado = vm.motivoElegido != null && !vm.enviandoDenuncia)
     }
 }

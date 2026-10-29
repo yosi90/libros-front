@@ -56,6 +56,7 @@ import es.yosiftware.libros.datos.modelos.DetalleDeClub
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.BotonesDeDialogo
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
 import es.yosiftware.libros.ui.componentes.DialogoModal
@@ -786,10 +787,7 @@ private fun DialogoDeDenuncia(vm: ClubViewModel) {
     DialogoModal(alCerrar = vm::cancelarDenuncia) {
         Text("Describe brevemente el motivo de la denuncia (máximo 1.000 caracteres).", color = LocalColores.current.tinta, style = Textos.cuerpo)
         CampoDeFormulario(motivo, { motivo = it }, "Motivo", Modifier.padding(top = Espacios.e3), lineas = 4, maximo = 1000)
-        Row(Modifier.fillMaxWidth().padding(top = Espacios.e5), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
-            Boton("Cancelar", vm::cancelarDenuncia, variante = VarianteDeBoton.Contorno)
-            Boton("Enviar", { vm.enviarDenuncia(motivo) }, habilitado = motivo.isNotBlank())
-        }
+        BotonesDeDialogo("Enviar", { vm.enviarDenuncia(motivo) }, vm::cancelarDenuncia, habilitado = motivo.isNotBlank())
     }
 }
 
@@ -806,9 +804,6 @@ private fun DialogoDeSolicitud(vm: ClubViewModel) {
         Text("Puedes añadir un mensaje para presentarte a quienes moderan el club.", Modifier.padding(top = Espacios.e3), color = colores.tintaSuave, style = Textos.apoyo)
         CampoDeFormulario(vm.mensajeDeSolicitud, vm::escribirMensajeDeSolicitud, "Mensaje opcional", Modifier.padding(top = Espacios.e3), lineas = 5, maximo = 500)
         Text("${vm.mensajeDeSolicitud.length} / 500", Modifier.fillMaxWidth().padding(top = Espacios.e1), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)), textAlign = TextAlign.End)
-        Row(Modifier.fillMaxWidth().padding(top = Espacios.e3), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) {
-            Boton("Cancelar", vm::cerrarHojaDeSolicitud, variante = VarianteDeBoton.Contorno)
-            Boton(if (vm.uniendose) "Enviando…" else "Enviar solicitud", vm::enviarSolicitud, habilitado = !vm.uniendose)
-        }
+        BotonesDeDialogo(if (vm.uniendose) "Enviando…" else "Enviar solicitud", vm::enviarSolicitud, vm::cerrarHojaDeSolicitud, habilitado = !vm.uniendose, arriba = Espacios.e3)
     }
 }

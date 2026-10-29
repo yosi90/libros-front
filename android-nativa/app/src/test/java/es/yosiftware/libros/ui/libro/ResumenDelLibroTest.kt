@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.datos.fechaCorta
 import es.yosiftware.libros.datos.modelos.EstadisticasDelLibro
 import es.yosiftware.libros.datos.modelos.Libro
 import org.json.JSONObject
@@ -40,8 +41,8 @@ class ResumenDelLibroTest {
     fun lasFechasYLoQueSeLeeSinEllas() {
         val enMarcha = libro(null, """[{"Id": 1, "EstadoId": 3, "Nombre": "Por comprar", "Fecha": "2025-09-11T00:00:00"},
                                      {"Id": 2, "EstadoId": 1, "Nombre": "En marcha", "Fecha": "2026-07-12T10:00:00"}]""")
-        assertEquals("11/09/2025", ResumenDelLibro.fechaCorta(ResumenDelLibro.comprado(enMarcha)))
-        assertEquals("12/07/2026", ResumenDelLibro.fechaCorta(ResumenDelLibro.comenzado(enMarcha)))
+        assertEquals("11/09/2025", fechaCorta(ResumenDelLibro.comprado(enMarcha)))
+        assertEquals("12/07/2026", fechaCorta(ResumenDelLibro.comenzado(enMarcha)))
         assertEquals("Lectura actual", ResumenDelLibro.etiquetaDeLeido(enMarcha))
         val enEspera = libro(null, """[{"Id": 1, "EstadoId": 0, "Nombre": "En espera", "Fecha": "2026-01-02"}]""")
         assertEquals("En espera", ResumenDelLibro.etiquetaDeComenzado(enEspera))

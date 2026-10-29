@@ -208,35 +208,11 @@ private fun BarraDeBusqueda(vm: BibliotecaViewModel, desplazada: Boolean) {
             },
     ) {
         Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-            Row(
-                Modifier.weight(1f).heightIn(min = 56.dp).padding(start = Espacios.e4, end = Espacios.e2),
-                horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(painterResource(Iconos.search), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
-                BasicTextField(
-                    value = vm.borrador,
-                    onValueChange = vm::escribir,
-                    modifier = Modifier.weight(1f).onFocusChanged { enfocada = it.isFocused }
-                        .semantics { contentDescription = "Buscar en tu colección" },
-                    singleLine = true,
-                    textStyle = Textos.cuerpo.copy(color = colores.tinta),
-                    cursorBrush = SolidColor(colores.primario),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { vm.confirmarBorrador() }),
-                    decorationBox = { campo ->
-                        Box {
-                            if (vm.borrador.isEmpty()) Text("Título, autor, universo…", style = Textos.cuerpo.copy(color = colores.tintaSuave), maxLines = 1)
-                            campo()
-                        }
-                    },
-                )
-                if (vm.hayFiltros) {
-                    Box(Modifier.size(44.dp).clip(CircleShape).clickable(onClick = vm::limpiarFiltros), contentAlignment = Alignment.Center) {
-                        Icon(painterResource(Iconos.close), contentDescription = "Limpiar búsqueda", tint = colores.tinta, modifier = Modifier.size(24.dp))
-                    }
-                }
-            }
+            CampoDeBusquedaConAmbitos(
+                vm.borrador, vm::escribir, { vm.confirmarBorrador() }, "Título, autor, universo…", "Buscar en tu colección",
+                hayFiltros = vm.hayFiltros, alLimpiar = vm::limpiarFiltros, tintaDeLimpiar = colores.tinta,
+                alCambiarFoco = { enfocada = it }, modifier = Modifier.weight(1f),
+            )
             // El botón de los filtros: 56 dp, cuadrado en la APK, en el primario; abierto, sobre el contenedor primario.
             Box(
                 Modifier.size(56.dp)
@@ -267,6 +243,55 @@ private fun BarraDeBusqueda(vm: BibliotecaViewModel, desplazada: Boolean) {
  * `m-scoped-search__suggestions`: con algo escrito y el foco, un botón por ámbito con el [borrador] (la Biblioteca y el
  * Catálogo). [modifier] va entre el ancho completo y el resto, para los márgenes de cada pantalla.
  */
+/**
+ * El campo de `m-scoped-search` de la Biblioteca y del Catálogo: la lupa, el texto con su marcador y, con filtros, la
+ * X de limpiar. Cada pantalla pone sus botones al lado y sus sugerencias y chips debajo.
+ */
+@Composable
+internal fun CampoDeBusquedaConAmbitos(
+    borrador: String,
+    alEscribir: (String) -> Unit,
+    alConfirmar: () -> Unit,
+    marcador: String,
+    descripcion: String,
+    hayFiltros: Boolean,
+    alLimpiar: () -> Unit,
+    tintaDeLimpiar: Color,
+    alCambiarFoco: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colores = LocalColores.current
+    Row(
+        modifier.heightIn(min = 56.dp).padding(start = Espacios.e4, end = Espacios.e2),
+        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(painterResource(Iconos.search), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
+        BasicTextField(
+            value = borrador,
+            onValueChange = alEscribir,
+            modifier = Modifier.weight(1f).onFocusChanged { alCambiarFoco(it.isFocused) }
+                .semantics { contentDescription = descripcion },
+            singleLine = true,
+            textStyle = Textos.cuerpo.copy(color = colores.tinta),
+            cursorBrush = SolidColor(colores.primario),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { alConfirmar() }),
+            decorationBox = { campo ->
+                Box {
+                    if (borrador.isEmpty()) Text(marcador, style = Textos.cuerpo.copy(color = colores.tintaSuave), maxLines = 1)
+                    campo()
+                }
+            },
+        )
+        if (hayFiltros) {
+            Box(Modifier.size(44.dp).clip(CircleShape).clickable(onClick = alLimpiar), contentAlignment = Alignment.Center) {
+                Icon(painterResource(Iconos.close), contentDescription = "Limpiar búsqueda", tint = tintaDeLimpiar, modifier = Modifier.size(24.dp))
+            }
+        }
+    }
+}
+
 @Composable
 internal fun SugerenciasDeAmbito(ambitos: List<Ambito>, borrador: String, alElegir: (Ambito) -> Unit, modifier: Modifier = Modifier) {
     val colores = LocalColores.current
