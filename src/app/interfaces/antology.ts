@@ -1,7 +1,6 @@
-import { Author } from "./author";
 import { BookSimple } from "./book";
-import type { Edition } from "./catalog";
-import { ReadingState, ReadingStatusId, ReadStatus } from "./read-status";
+import { ReadingState, ReadingStatusId } from "./read-status";
+import type { CollectionWorkFields } from "./work";
 
 export interface AnthologySection extends BookSimple {
     PaginaInicio?: number | null;
@@ -39,30 +38,9 @@ export interface AnthologySectionProgress {
     PorcentajeCompletado?: number | null;
 }
 
-export interface Antology {
-    Id: number;
-    Nombre: string;
-    Estados: ReadStatus[];
-    Autores: Author[];
-    Orden: number;
+export interface Antology extends CollectionWorkFields {
     Secciones?: AnthologySection[];
     Libros?: AnthologySection[];
     SeccionesProgreso?: AnthologySectionProgress[];
-    Portada: string;
     Tipo?: 'antologia';
-    ISBN?: string | null;
-    Ediciones?: Edition[];
-    Sinopsis?: string | null;
-    Paginas?: number | null;
-    FechaPublicacion?: string | null;
-    IdiomasDisponibles?: Array<{ Id: number; Codigo?: string | null; Nombre: string }> | string[] | null;
-    Estilos?: Array<{ Id: number; Nombre: string }> | null;
-    Estilo?: string | null;
-    Puntuacion?: number | null;
-    Resena?: string | null;
-    ResenaOculta?: boolean;
-    FechaAgregado?: string | null;
-    FechaActualizacion?: string | null;
-    PuedeAbrirNarrativa?: boolean;
-    NarrativaPersonalDisponible?: boolean;
 }

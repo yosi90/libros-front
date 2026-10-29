@@ -15,7 +15,7 @@ import { PlataformaPersona } from '../../../../interfaces/platform-person';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { ClubChannelReconciler, ClubChannelSection, FEED_RETRY_DELAYS_MS, SOCIAL_SECURITY_VIEW, SPACE_ERROR_MESSAGES, clubPersonName, spaceErrorMessage } from '../../../../shared/club-spaces';
-import { PlatformSessionService } from '../../../../services/auth/platform-session.service';
+import { PlatformSessionService, whileCurrent } from '../../../../services/auth/platform-session.service';
 import { PlatformSpacesService, SpaceChannelHandle } from '../../../../services/platform/platform-spaces.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -189,17 +189,17 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
 
     private fetchClub(withSections: boolean): void {
         const version = ++this.loadVersion;
-        const generation = this.session.generation;
+        const isCurrent = whileCurrent(this.session);
         this.community.club(this.clubId).subscribe({
             next: club => {
-                if (version !== this.loadVersion || !this.session.isCurrentGeneration(generation)) return;
+                if (version !== this.loadVersion || !isCurrent()) return;
                 const firstLoad = this.club === null;
                 this.club = club;
                 this.isLoading = false;
                 this.afterClubLoaded(withSections || firstLoad);
             },
             error: error => {
-                if (version !== this.loadVersion || !this.session.isCurrentGeneration(generation)) return;
+                if (version !== this.loadVersion || !isCurrent()) return;
                 if (getApiErrorCode(error) === 'club_access_unavailable') {
                     // Recién entrado: el feed aún no se lo ha dicho a Libros. Se espera antes de darlo por inaccesible.
                     if (this.spaces.isRecentEntry(this.clubId)) {
@@ -419,10 +419,10 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
             return;
         }
         const delay = FEED_RETRY_DELAYS_MS[this.syncAttempt++];
-        const generation = this.session.generation;
+        const isCurrent = whileCurrent(this.session);
         this.syncTimer = setTimeout(() => {
             this.syncTimer = null;
-            if (this.destroyed || !this.session.isCurrentGeneration(generation)) return;
+            if (this.destroyed || !isCurrent()) return;
             this.community.myClubs().subscribe({
                 next: page => {
                     if (this.destroyed || this.membershipSync !== 'waiting') return;

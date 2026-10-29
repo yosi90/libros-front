@@ -52,6 +52,15 @@ interface LocalUserResponse {
     user: { Id: number; Nombre: string | null; Role: Role | null; CompartirEstadisticas?: boolean };
 }
 
+/**
+ * «¿Sigue siendo la misma cuenta?» para lo que llega después (CAMBIO_DE_CUENTA.md, obligación 2): guarda la
+ * generación de ahora y responde si la sesión sigue en ella. Se llama al empezar; el resultado, al aplicar.
+ */
+export function whileCurrent(session: Pick<PlatformSessionService, 'generation' | 'isCurrentGeneration'>): () => boolean {
+    const generation = session.generation;
+    return () => session.isCurrentGeneration(generation);
+}
+
 @Injectable({ providedIn: 'root' })
 export class PlatformSessionService implements OnDestroy {
     private readonly estadoSubject = new BehaviorSubject<EstadoPlataforma>({ tipo: 'comprobando' });

@@ -23,6 +23,7 @@ import { Saga } from '../../interfaces/saga';
 import { toReadStatus } from '../../shared/reading-status';
 import { ReadingStatusId } from '../../interfaces/read-status';
 import { orderSagasByReading } from '../../shared/saga-chain';
+import { CollectionWorkFields } from '../../interfaces/work';
 
 @Injectable({ providedIn: 'root' })
 export class CollectionService {
@@ -96,9 +97,9 @@ export class CollectionService {
         };
     }
 
-    private toBook(item: CollectionItem): BookSimple {
+    /** Lo común de una obra de la colección, sea libro o antología. */
+    private toWork(item: CollectionItem): CollectionWorkFields {
         return {
-            Tipo: 'libro',
             Id: item.Id,
             Nombre: item.Nombre,
             Autores: item.Autores ?? [],
@@ -114,39 +115,19 @@ export class CollectionService {
             Puntuacion: item.Puntuacion,
             Resena: item.Resena,
             ResenaOculta: item.ResenaOculta,
-            PorcentajeCompletado: item.PorcentajeCompletado,
             FechaAgregado: item.FechaAgregado,
             FechaActualizacion: item.FechaActualizacion,
             PuedeAbrirNarrativa: item.PuedeAbrirNarrativa,
-            NarrativaPersonalDisponible: item.NarrativaPersonalDisponible,
-            TituloPropio: item.TituloPropio ?? null
+            NarrativaPersonalDisponible: item.NarrativaPersonalDisponible
         };
     }
 
+    private toBook(item: CollectionItem): BookSimple {
+        return { Tipo: 'libro', ...this.toWork(item), PorcentajeCompletado: item.PorcentajeCompletado, TituloPropio: item.TituloPropio ?? null };
+    }
+
     private toAntology(item: CollectionItem): Antology {
-        return {
-            Tipo: 'antologia',
-            Id: item.Id,
-            Nombre: item.Nombre,
-            Autores: item.Autores ?? [],
-            Estados: (item.Estados ?? []).map(status => toReadStatus(status)),
-            Orden: item.Orden ?? -1,
-            Portada: item.Portada ?? '',
-            ISBN: item.ISBN,
-            Ediciones: item.Ediciones,
-            FechaPublicacion: item.FechaPublicacion,
-            IdiomasDisponibles: item.IdiomasDisponibles,
-            Estilos: item.Estilos,
-            Estilo: item.Estilo,
-            Puntuacion: item.Puntuacion,
-            Resena: item.Resena,
-            ResenaOculta: item.ResenaOculta,
-            FechaAgregado: item.FechaAgregado,
-            FechaActualizacion: item.FechaActualizacion,
-            PuedeAbrirNarrativa: item.PuedeAbrirNarrativa,
-            NarrativaPersonalDisponible: item.NarrativaPersonalDisponible,
-            SeccionesProgreso: item.SeccionesProgreso
-        };
+        return { Tipo: 'antologia', ...this.toWork(item), SeccionesProgreso: item.SeccionesProgreso };
     }
 
     private normalizeAnthologySectionContext(context: AnthologySectionCollectionContext): AnthologySectionCollectionContext {

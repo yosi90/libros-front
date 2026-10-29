@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { PlatformSessionService } from '../auth/platform-session.service';
+import { PlatformSessionService, whileCurrent } from '../auth/platform-session.service';
 import { requestWithToken } from '../auth/token-request';
 import { PLATFORM_API_URL, SIN_SESION_PLATAFORMA } from '../../shared/platform';
 
@@ -29,7 +29,7 @@ export class PlatformApiService {
     delete<T>(path: string): Observable<T> { return this.request<T>('DELETE', path); }
 
     request<T>(method: Metodo, path: string, body?: unknown, params?: Parametros): Observable<T> {
-        const generation = this.session.generation;
+        const isCurrent = whileCurrent(this.session);
         const url = `${PLATFORM_API_URL}${path.startsWith('/') ? path : `/${path}`}`;
         return requestWithToken<T>({
             token: () => this.session.platformToken(),
@@ -43,7 +43,7 @@ export class PlatformApiService {
                 params: toHttpParams(params),
                 headers: { Authorization: `Bearer ${token}` }
             }),
-            isCurrent: () => this.session.isCurrentGeneration(generation),
+            isCurrent,
             withoutToken: () => throwError(() => SIN_SESION_PLATAFORMA)
         });
     }

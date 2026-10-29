@@ -11,7 +11,7 @@ import {
 } from '../../interfaces/platform-spaces';
 import { PlataformaPersona } from '../../interfaces/platform-person';
 import { RECENT_ENTRY_MS } from '../../shared/club-spaces';
-import { PlatformSessionService } from '../auth/platform-session.service';
+import { PlatformSessionService, whileCurrent } from '../auth/platform-session.service';
 import { ModerationAccessService } from '../stores/moderation-access.service';
 import { PlatformApiService } from './platform-api.service';
 
@@ -160,7 +160,7 @@ export class PlatformSpacesService {
      * al cambiar de cuenta se cierra (`clear()`).
      */
     openChannel(spaceId: number, listener: (message: MensajeDelCanal) => void): SpaceChannelHandle {
-        const generation = this.session.generation;
+        const isCurrent = whileCurrent(this.session);
         let channel: CanalDeEspacio | null = null;
         let closed = false;
         const close = () => {
@@ -171,9 +171,9 @@ export class PlatformSpacesService {
             channel = null;
         };
         void this.session.platformSdk().then(sdk => {
-            if (closed || !this.session.isCurrentGeneration(generation)) return;
+            if (closed || !isCurrent()) return;
             channel = sdk.espacios.canal(spaceId, message => {
-                if (closed || !this.session.isCurrentGeneration(generation)) return;
+                if (closed || !isCurrent()) return;
                 this.zone.run(() => listener(message));
             });
             this.channels.add(channel);

@@ -8,18 +8,13 @@ import { Location } from "./location";
 import { Organization } from "./organization";
 import { Part } from "./part";
 import { Quote } from "./quote";
-import { ReadStatus } from "./read-status";
 import { SagaSimple } from "./saga";
 import { UniverseSimple } from "./universe";
-import type { Edition } from "./catalog";
 import type { ReadingPaceBook } from "../shared/reading-pace";
 import type { RatingOwn } from "../shared/rating-history";
+import type { CollectionWorkFields, WorkFields } from "./work";
 
-export interface Book {
-    Id: number;
-    Nombre: string;
-    Estados: ReadStatus[];
-    Autores: Author[];
+export interface Book extends WorkFields {
     Capitulos: Chapter[];
     Partes: Part[];
     Interludios: Interlude[];
@@ -36,20 +31,7 @@ export interface Book {
     Saga: SagaSimple;
     LibrosPrevios?: PreviousBook[];
     SagasPrevias?: PreviousSaga[];
-    Orden: number;
-    Portada: string;
     Wiki?: string | null;
-    ISBN?: string | null;
-    Ediciones?: Edition[];
-    Sinopsis?: string | null;
-    Paginas?: number | null;
-    FechaPublicacion?: string | null;
-    IdiomasDisponibles?: Array<{ Id: number; Codigo?: string | null; Nombre: string }> | string[] | null;
-    Estilos?: Array<{ Id: number; Nombre: string }> | null;
-    Estilo?: string | null;
-    Puntuacion?: number | null;
-    Resena?: string | null;
-    ResenaOculta?: boolean;
 }
 
 export interface PreviousBook {
@@ -66,31 +48,10 @@ export interface PreviousSaga {
     LibrosPrevios?: PreviousBook[];
     SagasPrevias?: PreviousSaga[];
 }
-export interface BookSimple {
-    Id: number;
-    Nombre: string;
-    Estados: ReadStatus[];
-    Autores: Author[];
-    Orden: number;
-    Portada: string;
+export interface BookSimple extends CollectionWorkFields {
     Wiki?: string | null;
     Tipo?: 'libro' | 'antologia';
-    ISBN?: string | null;
-    Ediciones?: Edition[];
-    Sinopsis?: string | null;
-    Paginas?: number | null;
-    FechaPublicacion?: string | null;
-    IdiomasDisponibles?: Array<{ Id: number; Codigo?: string | null; Nombre: string }> | string[] | null;
-    Estilos?: Array<{ Id: number; Nombre: string }> | null;
-    Estilo?: string | null;
-    Puntuacion?: number | null;
-    Resena?: string | null;
-    ResenaOculta?: boolean;
     PorcentajeCompletado?: number | null;
-    FechaAgregado?: string | null;
-    FechaActualizacion?: string | null;
-    PuedeAbrirNarrativa?: boolean;
-    NarrativaPersonalDisponible?: boolean;
     /** El título divertido de la persona (`GET /coleccion/universos`); solo la frase, sin la cabecera. */
     TituloPropio?: string | null;
 }

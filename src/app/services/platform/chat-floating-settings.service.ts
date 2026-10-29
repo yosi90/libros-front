@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, defer, from } from 'rxjs';
 import { ChatFloatingPreferences, ChatFloatingPreferencesPatch, ChatFloatWindow } from '../../interfaces/chat';
-import { PlatformSessionService } from '../auth/platform-session.service';
+import { PlatformSessionService, whileCurrent } from '../auth/platform-session.service';
 import { AjustesPlataforma } from '../auth/yosiftware-sdk';
 import { getApiErrorCode } from '../../shared/api-error-message';
 import { SIN_SESION_PLATAFORMA } from '../../shared/platform';
@@ -93,26 +93,26 @@ export class ChatFloatingSettingsService {
     }
 
     private async read(): Promise<ChatFloatingPreferences> {
-        const generation = this.session.generation;
+        const isCurrent = whileCurrent(this.session);
         const sdk = await this.session.platformSdk();
         const block = await sdk.ajustes.leer();
-        this.assertGeneration(generation);
+        this.assertCurrent(isCurrent);
         return this.fromBlock(block);
     }
 
     private async write(patch: ChatFloatingPreferencesPatch, retries: number): Promise<ChatFloatingPreferences> {
-        const generation = this.session.generation;
+        const isCurrent = whileCurrent(this.session);
         const sdk = await this.session.platformSdk();
         const block = await sdk.ajustes.leer();
-        this.assertGeneration(generation);
+        this.assertCurrent(isCurrent);
         const current = this.fromBlock(block);
         const next: ChatFloatingPreferences = { ...current, ...patch, FechaActualizacion: new Date().toISOString() };
         try {
             const saved = await sdk.ajustes.guardar({ [CHAT_FLOATING_SETTINGS_KEY]: persisted(next) }, block?.version ?? 0);
-            this.assertGeneration(generation);
+            this.assertCurrent(isCurrent);
             return this.fromBlock(saved);
         } catch (error) {
-            this.assertGeneration(generation);
+            this.assertCurrent(isCurrent);
             if (retries > 0 && isSettingsConflict(error)) return this.write(patch, retries - 1);
             throw error;
         }
@@ -123,7 +123,7 @@ export class ChatFloatingSettingsService {
         return normalizeChatFloatingPreferences(block.documento?.[CHAT_FLOATING_SETTINGS_KEY], block.version ?? 0);
     }
 
-    private assertGeneration(generation: number): void {
-        if (!this.session.isCurrentGeneration(generation)) throw { code: 'cambio_de_cuenta' };
+    private assertCurrent(isCurrent: () => boolean): void {
+        if (!isCurrent()) throw { code: 'cambio_de_cuenta' };
     }
 }

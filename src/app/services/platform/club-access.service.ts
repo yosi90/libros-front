@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable, catchError, forkJoin, from, map, mergeMap,
 import { ClubAccessInboxCounters } from '../../interfaces/community';
 import { EspacioPlataforma, InvitacionEnviada, InvitacionRecibida, SolicitudDeEntrada } from '../../interfaces/platform-spaces';
 import { clubIdFromSpace } from '../../shared/club-spaces';
-import { PlatformSessionService } from '../auth/platform-session.service';
+import { PlatformSessionService, whileCurrent } from '../auth/platform-session.service';
 import { PlatformSpacesService } from './platform-spaces.service';
 
 /** Un club tal como lo cuenta la plataforma: su espacio y, si se sabe, el club de Libros. */
@@ -44,7 +44,7 @@ export class ClubAccessService {
 
     /** Vuelve a componer las bandejas. Emite la nueva (y la deja en `inbox$`). */
     refresh(): Observable<ClubAccessInbox> {
-        const generation = this.session.generation;
+        const isCurrent = whileCurrent(this.session);
         return forkJoin({
             received: this.spaces.myInvitations(),
             mine: this.spaces.mine().pipe(catchError(() => of(null)))
@@ -66,7 +66,7 @@ export class ClubAccessService {
                 );
             }),
             map(inbox => {
-                if (this.session.isCurrentGeneration(generation)) this.inboxSubject.next(inbox);
+                if (isCurrent()) this.inboxSubject.next(inbox);
                 return inbox;
             })
         );

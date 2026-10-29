@@ -5,7 +5,7 @@ import { getApiErrorCode } from '../../shared/api-error-message';
 import { AppToastService } from '../../shared/toast/app-toast.service';
 import { CollectionService } from '../entities/collection.service';
 import { UniverseStoreService } from '../stores/universe-store.service';
-import { PlatformSessionService } from './platform-session.service';
+import { PlatformSessionService, whileCurrent } from './platform-session.service';
 import { isLibrosApiRequest } from './platform-token.interceptor';
 
 /**
@@ -43,10 +43,10 @@ export class ErrorInterceptorService implements HttpInterceptor {
     private reconcileCollection(): void {
         if (this.refreshingCollection || !this.session.userIsLogged) return;
         this.refreshingCollection = true;
-        const generation = this.session.generation;
+        const isCurrent = whileCurrent(this.session);
         queueMicrotask(() => this.injector.get(CollectionService).getUniverses().subscribe({
             next: universes => {
-                if (this.session.isCurrentGeneration(generation))
+                if (isCurrent())
                     this.injector.get(UniverseStoreService).setUniverses(universes);
             },
             error: () => { this.refreshingCollection = false; },

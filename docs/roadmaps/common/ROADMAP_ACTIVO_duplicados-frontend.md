@@ -22,7 +22,8 @@ Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y meno
   - **Peligros si se mantiene como estaba:** poco: son una línea cada uno; crecerán con cada ruta nueva.
   - **Peligros del cambio:** toca 25 containers y sus plantillas; una herencia forzada por esto no compensa. Conviene hacerlo al retirar Capacitor (hito 4), cuando `native-mobile` deje de existir en la web.
 
-- [ ] **3. Base común de `Book`, `BookSimple` y `Antology`**
+- [x] **3. Base común de `Book`, `BookSimple` y `Antology`**
+  - **Hecho (29/10/2026):** `interfaces/work.ts` (`WorkFields`, lo de la obra y lo que dice la persona; `CollectionWorkFields`, lo que añade la colección); `Book` extiende la primera y `BookSimple` y `Antology` la segunda, con lo suyo aparte (capítulos y entidades, `Wiki`, `TituloPropio`, las secciones). `CollectionService.toWork` hace el mapeo común. Contrastado con OpenAPI: no se une nada que el backend separe (`Tipo`, `Secciones`, `SeccionesProgreso` siguen en cada una).
   - **Descripción:** `interfaces/book.ts` (16-50 y 65-91) y `interfaces/antology.ts` (42-60) repiten casi los mismos campos de obra (portada, ISBN, ediciones, idiomas, estilos, puntuación, reseña, fechas, permisos de narrativa), y `CollectionService.toBook`/`toAntology` copian el mismo mapeo campo a campo.
   - **Por qué se necesita:** cada campo nuevo del contrato se añade en tres sitios.
   - **Qué se espera lograr:** una interfaz `CollectionWork` de la que extiendan las tres y un mapeo común.
@@ -73,7 +74,8 @@ Solo propuestas: no se toca el backend.
 
 Revisor en modo `corregir` sobre lo que la adhesión añade a la web (`478fc8e..33989c0`, sin lo que trae `main` ni `android-nativa/`). Lo seguro se aplicó en la rama (commits `e2a3316` a `af0c459`); esto queda como propuesta. Las líneas citadas son las de `af0c459`.
 
-- [ ] **9. Una sola guardia de generación para lo que no pasa por `HttpClient`**
+- [x] **9. Una sola guardia de generación para lo que no pasa por `HttpClient`**
+  - **Hecho (29/10/2026):** `whileCurrent(session)` (`services/auth/platform-session.service.ts`) en el club, el interceptor de errores, el acceso a clubes, la API y los espacios de la plataforma y los ajustes del chat flotante. Es una función y no un método para que los dobles de sesión de las pruebas sigan valiendo. Se quedan aparte el tiempo real (lleva su propia generación además de la de la sesión), el interceptor del token (la generación puede venir en la petición) y la carga inicial de `app.component` (compara además la generación de la restauración de la biblioteca).
   - **Descripción:** lo que habla con el SDK sin pasar por `PlatformTokenInterceptor` ni `PlatformApiService` repite a mano «guardar `session.generation` y comprobar `isCurrentGeneration` antes de aplicar»: `ChatFloatingSettingsService` (`assertGeneration`), `ClubAccessService.refresh`, `PlatformSpacesService.openChannel`, `PlatformRealtimeService.start` (con su propia generación además de la de la sesión), `club-detail.component.ts` (dos veces) y `app.component.ts` (la carga inicial). Propuesta: `PlatformSessionService.whileCurrent(): () => boolean` (o un operador `takeWhileCurrentAccount()`) que cada uno use en lugar de las dos líneas.
   - **Por qué se necesita:** es la obligación 2 de `CAMBIO_DE_CUENTA.md` escrita siete veces; la APK Kotlin la portaría igual.
   - **Qué se espera lograr:** una sola forma de descartar lo que llega de otra cuenta, fácil de buscar y de probar.
