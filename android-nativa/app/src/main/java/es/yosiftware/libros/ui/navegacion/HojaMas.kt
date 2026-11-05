@@ -72,7 +72,7 @@ private val textoTemaElegido = Textos.cuerpo.copy(fontSize = (0.74 * 16).sp)
  * La hoja «Más»: la foto y el nombre, los accesos a Perfil, Cuenta, Preferencias, Estadísticas y Mensajes, lo de la
  * cuenta en la web social (hito 6) y el interruptor sol/luna del tema. La capa, el velo, el asa y el movimiento son los
  * de [HojaInferior] (entra desde abajo en 220 ms sobre el velo y sale en 240; se cierra con la X, con Atrás, tocando
- * fuera o arrastrando el asa). «Cuenta» ya no es «Cuenta y seguridad», que se retira con la adhesión: abre el panel de
+ * fuera o arrastrando la hoja hacia abajo). «Cuenta» ya no es «Cuenta y seguridad», que se retira con la adhesión: abre el panel de
  * cuentas ([alAbrirCuentas]).
  */
 @Composable

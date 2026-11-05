@@ -29,6 +29,7 @@ export class YosiftwareSdkDouble implements YosiftwareSdk {
     readonly reportar = jasmine.createSpy('reportar').and.resolveTo(false);
     readonly denunciar = jasmine.createSpy('denunciar').and.resolveTo(true);
     readonly privacidad = jasmine.createSpy('privacidad').and.resolveTo();
+    readonly confirmarCorreo = jasmine.createSpy('confirmarCorreo').and.resolveTo(true);
     readonly fetch = jasmine.createSpy('fetch').and.callFake(async () => { this.tokens.shift(); return new Response(null, { status: 200 }); });
     readonly token = jasmine.createSpy('token').and.callFake(async () => this.tokens[0] ?? null);
     readonly tokenPlataforma = jasmine.createSpy('tokenPlataforma').and.callFake(async () => this.tokensPlataforma.length > 1 ? this.tokensPlataforma.shift() ?? null : this.tokensPlataforma[0] ?? null);

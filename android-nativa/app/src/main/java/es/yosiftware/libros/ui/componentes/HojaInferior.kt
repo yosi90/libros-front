@@ -43,10 +43,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -56,7 +66,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.unit.min
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.tema.Alturas
@@ -69,10 +78,13 @@ import kotlin.math.roundToInt
 /** Arrastrar el asa más de esto hacia abajo cierra la hoja (`finishMoreSheetDrag`). */
 private val ArrastreParaCerrar = 72.dp
 
+/** Un gesto hacia abajo más rápido que esto (px/s) cierra la hoja aunque haya bajado poco. */
+private const val VelocidadParaCerrar = 1500f
+
 /**
  * Una hoja inferior modal con el aspecto y el movimiento de la hoja «Más» (`.m-more-backdrop` y `.m-more-sheet` de
  * src/app/components/mobile/user/mobile-dashboard-chrome/): entra desde abajo (220 ms) sobre el velo (180 ms) y sale en
- * 240 ms. Se cierra con Atrás, tocando fuera o arrastrando el asa (la X la pone el contenido). En la ventana compacta
+ * 240 ms. Se cierra con Atrás, tocando fuera o arrastrándola hacia abajo desde cualquier punto (la X la pone el contenido). En la ventana compacta
  * ocupa todo el ancho y hasta el 82 % del alto; desde 600 dp, hasta 620 dp, centrada a la derecha del rail y con las
  * cuatro esquinas redondeadas. El contenido se desplaza si no cabe. La usan la hoja «Más» y el panel de cuentas.
  */
@@ -96,6 +108,7 @@ fun HojaInferior(
     val ancha = ventana.clase.conRail
 
     BackHandler(enabled = abierta, onBack = alCerrar)
+    val cerrar by rememberUpdatedState(alCerrar)
 
     var arrastre by remember { mutableFloatStateOf(0f) }
     var arrastrando by remember { mutableStateOf(false) }
@@ -149,11 +162,48 @@ fun HojaInferior(
                 exit = slideOutVertically(tween(Movimiento.largo, easing = Movimiento.salida)) { it + salida },
             ) {
                 val forma = if (ancha) RoundedCornerShape(Radios.xl) else RoundedCornerShape(topStart = Radios.xl, topEnd = Radios.xl)
-                // Desde 600 dp, `max-height: 100%`: lo que deje el margen.
-                val altoMaximo = if (ancha) Dp.Infinity else min((ventana.altoDp * 0.82f).dp, ventana.altoDp.dp - Alturas.barraSuperior)
+                // Desde 600 dp, `max-height: 100%`: lo que deje el margen. En la compacta, todo el alto salvo la zona
+                // segura de arriba y un margen: con el 82 % de la web, la hoja «Más» ya no cabía en el móvil y salía un
+                // desplazamiento que cortaba el interruptor del tema.
+                val altoMaximo = if (ancha) Dp.Infinity else ventana.altoDp.dp - zona.calculateTopPadding() - Espacios.e4
+                // Arrastrar hacia abajo desde cualquier punto de la hoja la baja (no solo el asa): lo que el contenido
+                // no desplaza (ya está arriba del todo, o no tiene desplazamiento) mueve la hoja, y al soltar se cierra
+                // si ha bajado bastante o con un gesto rápido; si no, vuelve a su sitio.
+                val conexion = remember(densidad) {
+                    object : NestedScrollConnection {
+                        fun soltar(velocidad: Float) {
+                            arrastrando = false
+                            val bajada = with(densidad) { arrastre.toDp() }
+                            if (bajada >= ArrastreParaCerrar || (velocidad > VelocidadParaCerrar && bajada > 0.dp)) cerrar() else arrastre = 0f
+                        }
+
+                        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                            // Hacia arriba con la hoja bajada: primero vuelve la hoja, luego se desplaza el contenido.
+                            if (available.y >= 0f || arrastre <= 0f) return Offset.Zero
+                            val usado = maxOf(available.y, -arrastre)
+                            arrastrando = true
+                            arrastre += usado
+                            return Offset(0f, usado)
+                        }
+
+                        override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                            if (source != NestedScrollSource.UserInput || available.y <= 0f) return Offset.Zero
+                            arrastrando = true
+                            arrastre += available.y
+                            return Offset(0f, available.y)
+                        }
+
+                        override suspend fun onPreFling(available: Velocity): Velocity {
+                            if (!arrastrando && arrastre <= 0f) return Velocity.Zero
+                            soltar(available.y)
+                            return available
+                        }
+                    }
+                }
                 Hoja(
                     Modifier
                         .offset { IntOffset(0, desplazamiento.roundToInt()) }
+                        .nestedScroll(conexion)
                         .then(if (ancha) Modifier.widthIn(max = 620.dp) else Modifier)
                         .fillMaxWidth()
                         .heightIn(max = altoMaximo)
@@ -215,4 +265,16 @@ private fun Asa(alArrastrar: (Float) -> Unit, alSoltar: () -> Unit) {
         }
     }
     Spacer(Modifier.height(Espacios.e2))
+}
+
+/**
+ * Una ventana a pantalla completa por encima de todo, sin el oscurecido del diálogo (la hoja trae su velo), para una
+ * [HojaInferior] abierta desde dentro de una pantalla que no cubre la app entera (el título del libro, las Preferencias).
+ */
+@Composable
+fun EncimaDeTodo(alCerrar: () -> Unit, contenido: @Composable () -> Unit) {
+    Dialog(onDismissRequest = alCerrar, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        (LocalView.current.parent as? DialogWindowProvider)?.window?.setDimAmount(0f)
+        Box(Modifier.fillMaxSize()) { contenido() }
+    }
 }

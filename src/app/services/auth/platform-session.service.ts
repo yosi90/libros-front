@@ -247,6 +247,21 @@ export class PlatformSessionService implements OnDestroy {
         return (await this.loadSdk()).denunciar(objeto);
     }
 
+    /**
+     * Lo social propio de Libros (publicar una reseña o denunciar una) con el correo sin confirmar (kit 1.80, ACCESO.md,
+     * «El correo sin confirmar»): antes se pide confirmarlo ([confirmEmail]). Sin el SDK cargado o sin sesión no hace
+     * falta: la API responde por su cuenta.
+     */
+    needsEmailConfirmation(): boolean {
+        const estado = this.sdk?.estado;
+        return !!this.sdk && estado?.tipo === 'con_sesion' && estado.cuenta.correoVerificado === false;
+    }
+
+    /** Pide el código del correo (`true` si se confirma). */
+    confirmEmail(): Promise<boolean> {
+        return this.sdk ? this.sdk.confirmarCorreo() : Promise.resolve(true);
+    }
+
     /** La privacidad de Yosiftware para Libros, en un diálogo (`<yosi-privacidad>` hace lo mismo). */
     async privacidad(): Promise<void> {
         await (await this.loadSdk()).privacidad();

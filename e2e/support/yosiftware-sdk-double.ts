@@ -72,6 +72,7 @@ const sdk = {
     reportar: async () => false,
     denunciar: async () => false,
     privacidad: async () => undefined,
+    confirmarCorreo: async () => true,
     ajustes: {
         leer: async () => conSesion() ? JSON.parse(JSON.stringify(ajustes)) : null,
         guardar: async (cambios) => {

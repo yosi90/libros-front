@@ -10,6 +10,7 @@ import es.yosiftware.sesion.EstadoSesion
 import es.yosiftware.sesion.Normas
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 
 fun cuenta(id: String) = Cuenta(id, "alias-$id", "$id@correo.es", true, "activa", false)
 
@@ -71,6 +72,13 @@ class SesionFalsa : AccesoALaSesion {
     override suspend fun olvidarCuenta(id: String) = hacer("olvidar:$id")
     override suspend fun salir() = hacer("salir")
     override suspend fun salirDeTodas() = hacer("salirDeTodas")
+    override suspend fun confirmarCorreo(codigo: String) = hacer("confirmarCorreo:$codigo")
+    override suspend fun enviarCodigoDelCorreo() = hacer("enviarCodigoDelCorreo")
+    var recordados = 0
+    override fun correoRecordado() {
+        recordados++
+        estado.update { if (it is EstadoSesion.ConSesion) it.copy(recordarCorreo = false) else it }
+    }
     override fun direccionCrearCuenta() = "https://acceso/?vista=registro"
     override fun direccionPaginaDeAcceso() = "https://acceso/"
     override fun direccionWebSocial(vista: String?) = "https://social/" + (vista?.let { "?vista=$it" } ?: "")

@@ -12,6 +12,8 @@ export interface CuentaPlataforma {
     alias: string;
     correo: string;
     correoVerificado?: boolean;
+    /** Con el correo sin confirmar (SDK 1.32, kit 1.80): hasta cuándo hay para confirmarlo (ISO 8601) antes de que la cuenta se borre. */
+    confirmarCorreoAntesDe?: string | null;
     estado?: 'pendiente_verificacion' | 'activa' | 'suspendida' | 'cerrada';
     propietario?: boolean;
 }
@@ -98,6 +100,8 @@ export interface YosiftwareSdk {
     reportar(opciones?: { tipo?: 'error' | 'propuesta' }): Promise<boolean>;
     denunciar(objeto: ObjetoDenunciaPlataforma): Promise<boolean>;
     privacidad(opciones?: { recorrido?: boolean }): Promise<void>;
+    /** Pide el código del correo sin confirmar (SDK 1.32): `true` si se confirma, con la sesión ya renovada. */
+    confirmarCorreo(): Promise<boolean>;
     readonly ajustes: {
         leer(): Promise<AjustesPlataforma | null>;
         guardar(cambios: Record<string, unknown>, version?: number): Promise<AjustesPlataforma | null>;

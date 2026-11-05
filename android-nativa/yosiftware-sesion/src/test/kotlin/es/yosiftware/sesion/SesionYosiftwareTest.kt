@@ -225,14 +225,287 @@ class SesionYosiftwareTest {
     }
 
     @Test
-    fun `verificar el correo o vincular se hace en la pagina de acceso`() = runTest {
-        firebaseContrasena()
-        red.responder("/v1/sesion/nativa", 200, """{"estado":"verificacion_requerida","cuenta":$cuenta,"ticket":null}""")
+    fun `vincular una forma de acceso se hace en la pagina de acceso`() = runTest {
+        red.responder("accounts:signInWithIdp", 200, """{"idToken":"idg"}""")
+        red.responder("/v1/sesion/nativa", 200, """{"estado":"vinculacion_requerida","cuenta":null,"ticket":"t-v","caducaEn":600}""")
         sesion.iniciar()
-        sesion.entrarConContrasena("yosi@ejemplo.es", "secreta")
-        assertEquals(EstadoSesion.AbrirEnNavegador("verificacion", "https://acceso.prueba/"), sesion.estado.value)
+        sesion.entrarConCredencialDeGoogle("g")
+        assertEquals(EstadoSesion.AbrirEnNavegador("vinculacion", "https://acceso.prueba/"), sesion.estado.value)
         assertNull(almacen.valor)
         sesion.cancelar()
+        assertEquals(EstadoSesion.SinSesion(), sesion.estado.value)
+    }
+
+    // --- Crear la cuenta dentro de la app (1.8.0) y el correo sin confirmar, con la sesión abierta (1.9.0) ----------
+
+    private val cuentaSinConfirmar =
+        """{"id":"7a2d","alias":"nueva","correo":"nueva@ejemplo.es","correoVerificado":false,"estado":"activa","confirmarCorreoAntesDe":"2026-11-12T20:03:36Z","propietario":false}"""
+
+    private val cuentaConfirmada =
+        """{"id":"7a2d","alias":"nueva","correo":"nueva@ejemplo.es","correoVerificado":true,"estado":"activa","confirmarCorreoAntesDe":null,"propietario":false}"""
+
+    private fun sinConfirmar(n: Int, recordar: Boolean) =
+        """{"estado":"autenticada","web":"renotas","cuenta":$cuentaSinConfirmar,"tokens":${tokens(n)},"refresh":"r$n","normasPendientes":null,"normasDeUsoPendientes":null,"recordarCorreo":$recordar}"""
+
+    private fun renovadaCon(cuenta: String, n: Int, recordar: Boolean) =
+        """{"web":"renotas","cuenta":$cuenta,"tokens":${tokens(n)},"refresh":null,"normasPendientes":null,"normasDeUsoPendientes":null,"recordarCorreo":$recordar}"""
+
+    private fun renovadaSinConfirmar(n: Int, recordar: Boolean) = renovadaCon(cuentaSinConfirmar, n, recordar)
+
+    private fun renovadaConfirmada(n: Int) = renovadaCon(cuentaConfirmada, n, recordar = false)
+
+    private val altaRequerida =
+        """{"estado":"alta_requerida","cuenta":null,"ticket":"t-alta","caducaEn":600,"normasUso":{"id":4,"version":2,"titulo":"Normas de uso"}}"""
+
+    /** Entra con una contraseña cuyo correo está sin confirmar: la sesión queda abierta. */
+    private suspend fun entrarSinConfirmar(recordar: Boolean = true) {
+        red.responder("accounts:signInWithPassword", 200, """{"idToken":"idf"}""")
+        red.responder("/v1/sesion/nativa", 200, sinConfirmar(1, recordar))
+        sesion.iniciar()
+        sesion.entrarConContrasena(" nueva@ejemplo.es ", "Secreta-1")
+    }
+
+    private fun conSesionAhora() = sesion.estado.value as EstadoSesion.ConSesion
+
+    @Test
+    fun `crea la cuenta con contrasena, el alias y las normas, y entra con el correo sin confirmar y el recordatorio (1_9_0)`() = runTest {
+        red.responder("accounts:signUp", 200, """{"idToken":"idn"}""")
+        red.responder("/v1/sesion/nativa", 200, altaRequerida)
+        // La plataforma no lo marca justo después del alta: quien crea la cuenta enseña ya el código.
+        red.responder("/v1/sesion/nativa/alta", 201, sinConfirmar(1, recordar = false))
+        sesion.iniciar()
+
+        sesion.crearCuentaConContrasena(" nueva@ejemplo.es ", "Secreta-1")
+        val alta = red.cuerpo("accounts:signUp")
+        assertEquals("nueva@ejemplo.es", alta.getString("email"))
+        assertEquals("Secreta-1", alta.getString("password"))
+        assertEquals("idn", red.cuerpo("/v1/sesion/nativa").getString("tokenFirebase"))
+        assertEquals(EstadoSesion.AltaRequerida(ResumenNormas(4, 2, "Normas de uso")), sesion.estado.value)
+
+        sesion.completarAlta("nueva")
+        val estado = conSesionAhora()
+        assertFalse(estado.cuenta.correoVerificado)
+        assertEquals("2026-11-12T20:03:36Z", estado.cuenta.confirmarCorreoAntesDe)
+        assertTrue(estado.recordarCorreo)
+        assertEquals("r1", almacen.valor)
+        assertEquals("ta1", sesion.tokens().api!!.valor)
+        // Ni pedir el código ni volver a entrar: la plataforma ya lo ha enviado al crearla.
+        assertTrue(red.a("/correos/verificacion").isEmpty())
+        assertTrue(red.a("accounts:signInWithPassword").isEmpty())
+        assertTrue(red.llegadas.none { p -> p.cabeceras.keys.any { it.equals("Origin", ignoreCase = true) } })
+
+        // Al enseñarlo, la app lo quita del estado; repetirlo no cambia nada.
+        sesion.correoRecordado()
+        assertEquals(estado.copy(recordarCorreo = false), sesion.estado.value)
+        sesion.correoRecordado()
+        assertEquals(estado.copy(recordarCorreo = false), sesion.estado.value)
+    }
+
+    @Test
+    fun `entrar con el correo sin confirmar abre la sesion, y el recordatorio sigue hasta que la app lo ensena (1_9_0)`() = runTest {
+        entrarSinConfirmar()
+        assertTrue(conSesionAhora().recordarCorreo)
+        assertEquals("r1", almacen.valor)
+        assertTrue(red.a("/correos/verificacion").isEmpty())
+
+        // Una renovación que ya no lo trae no lo borra mientras la app no lo haya enseñado.
+        red.responder("/v1/sesion/nativa/renovacion", 200, renovadaSinConfirmar(2, recordar = false))
+        red.responder("/v1/sesion/nativa/renovacion", 200, renovadaSinConfirmar(3, recordar = false))
+        red.responder("/v1/sesion/nativa/renovacion", 200, renovadaSinConfirmar(4, recordar = true))
+        sesion.tokensTrasRechazo("tp1")
+        assertTrue(conSesionAhora().recordarCorreo)
+
+        sesion.correoRecordado()
+        sesion.tokensTrasRechazo("tp2")
+        assertFalse(conSesionAhora().recordarCorreo)
+        // Al día siguiente, la plataforma lo vuelve a pedir.
+        sesion.tokensTrasRechazo("tp3")
+        assertTrue(conSesionAhora().recordarCorreo)
+    }
+
+    @Test
+    fun `sin que toque recordarlo, o con el correo confirmado, no lo recuerda (1_9_0)`() = runTest {
+        entrarSinConfirmar(recordar = false)
+        assertFalse(conSesionAhora().recordarCorreo)
+        // Con el correo ya confirmado no hay nada que recordar, diga lo que diga la respuesta.
+        red.responder("/v1/sesion/nativa/renovacion", 200, renovadaCon(cuentaConfirmada, 2, recordar = true))
+        sesion.tokensTrasRechazo("tp1")
+        assertFalse(conSesionAhora().recordarCorreo)
+        assertNull(conSesionAhora().cuenta.confirmarCorreoAntesDe)
+    }
+
+    @Test
+    fun `confirma el correo con la sesion abierta, con el token de la plataforma, y renueva (1_9_0)`() = runTest {
+        entrarSinConfirmar()
+        red.alLlegar("/v1/cuenta/correo/confirmacion") {
+            Respuesta(400, """{"error":"El código no es correcto.","code":"codigo_no_valido","field":"codigo"}""")
+        }
+        red.alLlegar("/v1/cuenta/correo/confirmacion") { error(401, "token_no_valido") }
+        red.responder("/v1/cuenta/correo/confirmacion", 204, "")
+        red.responder("/v1/sesion/nativa/renovacion", 200, renovadaSinConfirmar(2, recordar = false))
+        red.responder("/v1/sesion/nativa/renovacion", 200, renovadaConfirmada(3))
+
+        val corto = fallo { sesion.confirmarCorreo("12a456") }
+        assertEquals("codigo_no_valido", corto.codigo)
+        assertEquals("codigo", corto.campo)
+        assertTrue(red.a("/v1/cuenta/correo/confirmacion").isEmpty())
+
+        val malo = fallo { sesion.confirmarCorreo("111111") }
+        assertEquals("codigo_no_valido", malo.codigo)
+        assertEquals("codigo", malo.campo)
+        assertEquals("El código no es correcto.", malo.mensaje)
+        assertFalse(conSesionAhora().cuenta.correoVerificado)
+        assertTrue(conSesionAhora().recordarCorreo)
+
+        // Un 401 del token: renueva y repite una vez; al acertar, renueva otra vez para que la cuenta lo diga.
+        sesion.confirmarCorreo(" 123 456 ")
+        val llamadas = red.a("/v1/cuenta/correo/confirmacion")
+        assertEquals(listOf("Bearer tp1", "Bearer tp1", "Bearer tp2"), llamadas.map { it.cabeceras["Authorization"] })
+        assertEquals("123456", JSONObject(llamadas.last().cuerpo!!).getString("codigo"))
+        assertEquals(2, red.a("/v1/sesion/nativa/renovacion").size)
+        val estado = conSesionAhora()
+        assertTrue(estado.cuenta.correoVerificado)
+        assertNull(estado.cuenta.confirmarCorreoAntesDe)
+        assertFalse(estado.recordarCorreo)
+        assertEquals("ta3", sesion.tokens().api!!.valor)
+        assertTrue(red.llegadas.none { p -> p.cabeceras.keys.any { it.equals("Origin", ignoreCase = true) } })
+    }
+
+    @Test
+    fun `si el correo ya estaba confirmado queda confirmado, aunque no se pueda renovar (1_9_0)`() = runTest {
+        entrarSinConfirmar()
+        red.alLlegar("/v1/cuenta/correo/confirmacion") { error(409, "correo_ya_confirmado") }
+        red.sinRed("/v1/sesion/nativa/renovacion")
+
+        sesion.confirmarCorreo("123456")
+        val estado = conSesionAhora()
+        assertTrue(estado.cuenta.correoVerificado)
+        assertNull(estado.cuenta.confirmarCorreoAntesDe)
+        assertFalse(estado.recordarCorreo)
+        assertEquals("r1", almacen.valor)
+    }
+
+    @Test
+    fun `envia otro codigo con el token de la plataforma, y sus errores llegan con su code (1_9_0)`() = runTest {
+        entrarSinConfirmar()
+        red.responder("/v1/cuenta/correo/codigo", 202, "")
+        red.alLlegar("/v1/cuenta/correo/codigo") { error(429, "demasiadas_peticiones") }
+        red.alLlegar("/v1/cuenta/correo/codigo") { error(409, "sin_contrasena") }
+        red.alLlegar("/v1/cuenta/correo/codigo") { error(409, "correo_ya_confirmado") }
+        red.responder("/v1/sesion/nativa/renovacion", 200, renovadaConfirmada(2))
+
+        sesion.enviarCodigoDelCorreo()
+        val llamada = red.a("/v1/cuenta/correo/codigo").single()
+        assertEquals("POST", llamada.metodo)
+        assertEquals("Bearer tp1", llamada.cabeceras["Authorization"])
+        assertEquals("demasiadas_peticiones", fallo { sesion.enviarCodigoDelCorreo() }.codigo)
+        assertEquals("sin_contrasena", fallo { sesion.enviarCodigoDelCorreo() }.codigo)
+        assertTrue(conSesionAhora().recordarCorreo)
+
+        // Ya confirmado (desde otra web): lo dice, y la sesión también.
+        assertEquals("correo_ya_confirmado", fallo { sesion.enviarCodigoDelCorreo() }.codigo)
+        assertTrue(conSesionAhora().cuenta.correoVerificado)
+        assertFalse(conSesionAhora().recordarCorreo)
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun `sin sesion no se confirma ni se pide el codigo, y reenviarCodigo de la 1_8_0 pide otro (1_9_0)`() = runTest {
+        sesion.iniciar()
+        assertEquals("estado_no_valido", fallo { sesion.confirmarCorreo("123456") }.codigo)
+        assertEquals("estado_no_valido", fallo { sesion.enviarCodigoDelCorreo() }.codigo)
+        assertEquals("estado_no_valido", fallo { sesion.reenviarCodigo() }.codigo)
+        sesion.correoRecordado()
+        assertEquals(EstadoSesion.SinSesion(), sesion.estado.value)
+        assertTrue(red.llegadas.isEmpty())
+
+        entrarSinConfirmar()
+        red.responder("/v1/cuenta/correo/codigo", 202, "")
+        sesion.reenviarCodigo()
+        assertEquals(1, red.a("/v1/cuenta/correo/codigo").size)
+    }
+
+    @Test
+    fun `una accion social con el correo sin confirmar llega a la app con su code, sin cerrar la sesion (1_9_0)`() = runTest {
+        entrarSinConfirmar()
+        val cuerpo = """{"error":"Confirma tu correo para usar la parte social (amistades, chat, publicar, comentar y espacios). Te hemos enviado un código.","code":"correo_sin_confirmar","field":null}"""
+        // Con el cliente de la app (deLaPlataforma) y con el de la librería, el 403 llega con su code y su frase.
+        val error = ErrorSesion.deLaPlataforma(403, cuerpo)
+        assertEquals("correo_sin_confirmar", error.codigo)
+        assertEquals(403, error.estadoHttp)
+        assertTrue(error.mensaje.startsWith("Confirma tu correo para usar la parte social"))
+        red.responder("/aceptar", 403, cuerpo)
+        val aceptar = fallo { sesion.espacios.aceptar(5) }
+        assertEquals("correo_sin_confirmar", aceptar.codigo)
+        assertEquals(error.mensaje, aceptar.mensaje)
+        // No se repite ni se renueva: no es un problema del token.
+        assertEquals(1, red.a("/v1/espacios/invitaciones/5/aceptar").size)
+        assertTrue(red.a("/renovacion").isEmpty())
+        assertTrue(sesion.estado.value is EstadoSesion.ConSesion)
+        assertEquals("r1", almacen.valor)
+    }
+
+    @Test
+    fun `correo_no_valido trae siempre el campo, lo detecte la libreria o Firebase (1_9_0)`() = runTest {
+        red.responder("accounts:signUp", 400, """{"error":{"code":400,"message":"INVALID_EMAIL"}}""")
+        sesion.iniciar()
+        val libreria = fallo { sesion.crearCuentaConContrasena("yosi", "Secreta-1") }
+        assertTrue(red.a("accounts:signUp").isEmpty())
+        val firebase = fallo { sesion.crearCuentaConContrasena("yosi@ejemplo.es", "Secreta-1") }
+        assertEquals(1, red.a("accounts:signUp").size)
+        for (error in listOf(libreria, firebase)) {
+            assertEquals("correo_no_valido", error.codigo)
+            assertEquals("correo", error.campo)
+            assertEquals("Escribe un correo válido.", error.mensaje)
+        }
+    }
+
+    @Test
+    fun `crear la cuenta con un correo que ya tiene contrasena o que no lo parece da el error claro (1_8_0)`() = runTest {
+        red.responder("accounts:signUp", 400, """{"error":{"code":400,"message":"EMAIL_EXISTS"}}""")
+        sesion.iniciar()
+
+        val existe = fallo { sesion.crearCuentaConContrasena("yosi@ejemplo.es", "Secreta-1") }
+        assertEquals("correo_ya_registrado", existe.codigo)
+        assertEquals("correo", existe.campo)
+        assertEquals("Ya hay una cuenta con ese correo. Entra con tu contraseña o recupérala.", existe.mensaje)
+        assertEquals("correo_no_valido", fallo { sesion.crearCuentaConContrasena("yosi", "Secreta-1") }.codigo)
+        assertEquals(1, red.a("accounts:signUp").size)
+        assertEquals(EstadoSesion.SinSesion(), sesion.estado.value)
+        assertTrue(red.a("/v1/sesion/nativa").isEmpty())
+
+        red.responder("accounts:signUp", 400, """{"error":{"code":400,"message":"PASSWORD_DOES_NOT_MEET_REQUIREMENTS : Missing password requirements: [Password must contain a numeric character]"}}""")
+        assertEquals("contrasena_debil", fallo { sesion.crearCuentaConContrasena("nueva@ejemplo.es", "Secreta") }.codigo)
+    }
+
+    @Test
+    fun `si el correo ya es de otra cuenta o se cancela en el alias, borra el usuario de Firebase recien creado (1_8_0)`() = runTest {
+        red.responder("accounts:signUp", 200, """{"idToken":"idn"}""")
+        red.alLlegar("/v1/sesion/nativa") { error(409, "correo_ya_registrado") }
+        red.responder("/v1/sesion/nativa", 200, altaRequerida)
+        red.responder("accounts:delete", 200, "{}")
+        sesion.iniciar()
+
+        assertEquals("correo_ya_registrado", fallo { sesion.crearCuentaConContrasena("yosi@ejemplo.es", "Secreta-1") }.codigo)
+        assertEquals("idn", red.cuerpo("accounts:delete").getString("idToken"))
+        assertEquals(EstadoSesion.SinSesion(), sesion.estado.value)
+
+        sesion.crearCuentaConContrasena("nueva@ejemplo.es", "Secreta-1")
+        assertTrue(sesion.estado.value is EstadoSesion.AltaRequerida)
+        sesion.cancelar()
+        assertEquals(2, red.a("accounts:delete").size)
+        assertEquals(EstadoSesion.SinSesion(), sesion.estado.value)
+    }
+
+    @Test
+    fun `con Google nada cambia al cancelar el alias (1_8_0)`() = runTest {
+        red.responder("accounts:signInWithIdp", 200, """{"idToken":"idg","isNewUser":true}""")
+        red.responder("/v1/sesion/nativa", 200, altaRequerida)
+        sesion.iniciar()
+
+        sesion.entrarConCredencialDeGoogle("g")
+        sesion.cancelar()
+        assertTrue(red.a("accounts:delete").isEmpty())
         assertEquals(EstadoSesion.SinSesion(), sesion.estado.value)
     }
 

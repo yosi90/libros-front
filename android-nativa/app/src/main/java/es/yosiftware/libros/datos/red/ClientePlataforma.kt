@@ -1,5 +1,6 @@
 package es.yosiftware.libros.datos.red
 
+import es.yosiftware.libros.cuenta.CorreoSinConfirmar
 import es.yosiftware.libros.datos.cuenta.Generacion
 import es.yosiftware.libros.datos.cuenta.exigir
 import es.yosiftware.sesion.ErrorSesion
@@ -66,6 +67,8 @@ class ClientePlataforma(
     /** El error de la plataforma; en `cuenta_restringida`, con lo limitado y hasta cuándo ([Restricciones]). */
     private fun errorDe(respuesta: RespuestaHttp): ErrorSesion {
         val error = ErrorSesion.deLaPlataforma(respuesta.estado, respuesta.cuerpo)
+        // Lo social con el correo sin confirmar (kit 1.80): la app abre la hoja del código.
+        if (CorreoSinConfirmar.loPide(error.codigo, error.estadoHttp)) CorreoSinConfirmar.pedir()
         val restriccion = Restricciones.deLaRespuesta(respuesta.cuerpo) ?: return error
         return ErrorSesion(error.codigo, restriccion, error.campo, error.estadoHttp)
     }

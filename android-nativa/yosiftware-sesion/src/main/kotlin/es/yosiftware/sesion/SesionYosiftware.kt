@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -37,6 +38,10 @@ import org.json.JSONObject
  *
  * Desde la 1.4.0 guarda hasta cinco cuentas y cambia de una a otra sin salir ([cuentas], [anadirCuenta],
  * [elegirCuenta], [salirDeTodas]). Una app que no lo use funciona igual que con la 1.3.
+ *
+ * Desde la 1.8.0 crea la cuenta con correo y contraseña ([crearCuentaConContrasena]) sin salir de la app. Desde la 1.9.0
+ * la cuenta entra sin confirmar el correo: [EstadoSesion.ConSesion.recordarCorreo] dice cuándo recordarlo, y se
+ * confirma con la sesión abierta ([confirmarCorreo], [enviarCodigoDelCorreo], [correoRecordado]).
  */
 class SesionYosiftware internal constructor(
     val configuracion: ConfiguracionSesion,
@@ -81,6 +86,12 @@ class SesionYosiftware internal constructor(
     private var usuarioFirebaseNuevo: String? = null
     /** Tras cambiar la contraseña con la verificación en dos pasos: cerrar las demás sesiones al enviar el código. */
     private var cerrarOtrasAlEntrar = false
+    /**
+     * Al entrar o crear la cuenta con contraseña, hasta abrir la sesión: si el alta no sigue, el usuario de Firebase
+     * recién creado se borra. Desde la 1.9.0 la contraseña ya no se guarda en memoria: no hace falta para confirmar el
+     * correo.
+     */
+    private var conContrasena = false
     private var ultimaComprobacion = Long.MIN_VALUE / 2
 
     // Las cuentas guardadas (1.4.0). El índice se lee la primera vez que hace falta.
@@ -251,11 +262,97 @@ class SesionYosiftware internal constructor(
         }
     }
 
-    /** Entra con el correo y la contraseña de la cuenta de Yosiftware. */
+    /**
+     * Entra con el correo y la contraseña de la cuenta de Yosiftware. Desde la 1.9.0, aunque el correo aún no esté
+     * confirmado: la sesión queda abierta y [EstadoSesion.ConSesion.recordarCorreo] dice si toca recordarlo.
+     */
     suspend fun entrarConContrasena(correo: String, contrasena: String) {
         cerrojo.withLock {
             exigirSinSesionGuardada()
-            canjear(firebase.entrarConContrasena(correo, contrasena))
+            canjearConContrasena(firebase.entrarConContrasena(correo.trim(), contrasena))
+        }
+    }
+
+    /**
+     * Crea la cuenta con correo y contraseña, sin salir de la app (desde la 1.8.0): crea el usuario en Firebase y lo
+     * canjea como al entrar, así que el estado pasa a [EstadoSesion.AltaRequerida] (el alias y las normas, con
+     * [completarAlta]). Desde la 1.9.0, al completar el alta la sesión queda abierta ([EstadoSesion.ConSesion]) con el
+     * correo sin confirmar y [EstadoSesion.ConSesion.recordarCorreo]: la plataforma ya ha enviado el código. Los
+     * requisitos de la contraseña los enseña la app (los de la página de acceso); Firebase los aplica. Errores:
+     * `correo_no_valido`, `contrasena_debil`, `correo_ya_registrado` (ese correo ya tiene cuenta: que entre o recupere la
+     * contraseña) y los de entrar. Si no se puede seguir (el correo es de otra cuenta, el registro está cerrado o la app
+     * está en pruebas privadas) o se cancela en el alias, el usuario de Firebase recién creado se borra.
+     */
+    suspend fun crearCuentaConContrasena(correo: String, contrasena: String) {
+        cerrojo.withLock {
+            exigirSinSesionGuardada()
+            val limpio = correo.trim()
+            if (!PARECE_CORREO.matches(limpio)) throw correoNoValido()
+            canjearConContrasena(firebase.crearUsuario(limpio, contrasena))
+        }
+    }
+
+    /**
+     * Con sesión ([EstadoSesion.ConSesion], desde la 1.9.0): confirma el correo de la cuenta con el código de 6 cifras
+     * que le ha llegado (`POST /v1/cuenta/correo/confirmacion`). Al acertar, renueva la sesión y la deja con
+     * `cuenta.correoVerificado = true` y sin [EstadoSesion.ConSesion.recordarCorreo]. Si el correo ya estaba confirmado
+     * (desde otra web, o con un intento cuya respuesta se perdió), queda igual. Errores: `codigo_no_valido`, con
+     * `campo = "codigo"` (no es el bueno, ha caducado o se ha fallado cinco veces: que pida otro), y los de cualquier
+     * llamada con sesión (`sin_conexion`…).
+     */
+    suspend fun confirmarCorreo(codigo: String) {
+        val cuenta = (estadoActual.value as? EstadoSesion.ConSesion)?.cuenta?.id ?: throw estadoNoValido()
+        val limpio = codigo.filterNot(Char::isWhitespace)
+        if (limpio.length != 6 || !limpio.all { it in '0'..'9' }) {
+            throw ErrorSesion("codigo_no_valido", "Escribe las 6 cifras del código.", campo = "codigo")
+        }
+        val respuesta = llamarConToken("POST", "/v1/cuenta/correo/confirmacion", JSONObject().put("codigo", limpio))
+        if (!respuesta.correcta && respuesta.codigo != "correo_ya_confirmado") throw respuesta.error()
+        quedaConfirmado(cuenta)
+    }
+
+    /**
+     * Con sesión (desde la 1.9.0): «Enviar otro código» al correo de la cuenta (`POST /v1/cuenta/correo/codigo`). Anula
+     * el anterior; cada código caduca a los 15 minutos. Errores: `demasiadas_peticiones` (se han pedido muchos),
+     * `correo_ya_confirmado` (y la sesión ya lo dice: [EstadoSesion.ConSesion] sin [EstadoSesion.ConSesion.recordarCorreo]),
+     * `sin_contrasena` (la cuenta no entra con contraseña) y los de cualquier llamada con sesión.
+     */
+    suspend fun enviarCodigoDelCorreo() {
+        val cuenta = (estadoActual.value as? EstadoSesion.ConSesion)?.cuenta?.id ?: throw estadoNoValido()
+        val respuesta = llamarConToken("POST", "/v1/cuenta/correo/codigo")
+        if (respuesta.correcta) return
+        if (respuesta.codigo == "correo_ya_confirmado") quedaConfirmado(cuenta)
+        throw respuesta.error()
+    }
+
+    /**
+     * La app ya ha enseñado el recordatorio de [EstadoSesion.ConSesion.recordarCorreo] (desde la 1.9.0): lo quita del
+     * estado, para que no vuelva a salir al recomponer. La plataforma lo vuelve a pedir al día siguiente o al entrar.
+     */
+    fun correoRecordado() {
+        estadoActual.update { if (it is EstadoSesion.ConSesion && it.recordarCorreo) it.copy(recordarCorreo = false) else it }
+    }
+
+    /** Solo en la 1.8.0, desde [EstadoSesion.CorreoPorConfirmar], al que la librería ya no llega. */
+    @Deprecated("Desde la 1.9.0 el correo se confirma con la sesión abierta.", ReplaceWith("enviarCodigoDelCorreo()"))
+    suspend fun reenviarCodigo() = enviarCodigoDelCorreo()
+
+    /**
+     * El correo de la cuenta [id] ya está confirmado: renueva para que la cuenta lo diga, y deja de recordarlo aunque no
+     * se pueda. Si entretanto se ha cambiado de cuenta, la otra no se toca.
+     */
+    private suspend fun quedaConfirmado(id: String) {
+        cerrojo.withLock {
+            if ((estadoActual.value as? EstadoSesion.ConSesion)?.cuenta?.id != id) return
+            try {
+                renovar()
+            } catch (_: ErrorSesion) {
+                // Sin red, la cuenta lo dirá en la siguiente renovación; si la sesión se ha cerrado, el estado ya lo dice.
+            }
+            estadoActual.update {
+                if (it !is EstadoSesion.ConSesion || it.cuenta.id != id) return@update it
+                it.copy(cuenta = it.cuenta.copy(correoVerificado = true, confirmarCorreoAntesDe = null), recordarCorreo = false)
+            }
         }
     }
 
@@ -274,11 +371,16 @@ class SesionYosiftware internal constructor(
     internal suspend fun entrarConCredencialDeGoogle(idTokenGoogle: String) {
         cerrojo.withLock {
             exigirSinSesionGuardada()
+            conContrasena = false
             canjear(firebase.entrarConGoogle(idTokenGoogle))
         }
     }
 
-    /** Desde [EstadoSesion.AltaRequerida]: crea la cuenta con el alias y la aceptación de las normas de uso. */
+    /**
+     * Desde [EstadoSesion.AltaRequerida]: crea la cuenta con el alias y la aceptación de las normas de uso. Desde la
+     * 1.9.0, una cuenta nueva con el correo sin confirmar queda con [EstadoSesion.ConSesion.recordarCorreo]: la
+     * plataforma no lo marca, porque espera que quien crea la cuenta enseñe ya el código.
+     */
     suspend fun completarAlta(alias: String) {
         cerrojo.withLock {
             val alta = estadoActual.value as? EstadoSesion.AltaRequerida ?: throw estadoNoValido()
@@ -288,6 +390,7 @@ class SesionYosiftware internal constructor(
                 .put("idNormasUso", alta.normasUso.id)
                 .put("web", configuracion.web)
             tratarApertura(api("POST", "/v1/sesion/nativa/alta", cuerpo))
+            estadoActual.update { if (it is EstadoSesion.ConSesion && !it.cuenta.correoVerificado) it.copy(recordarCorreo = true) else it }
         }
     }
 
@@ -357,6 +460,7 @@ class SesionYosiftware internal constructor(
         val huellas = withContext(Dispatchers.IO) { vecinas.huellas(otra.paquete) }
         cerrojo.withLock {
             exigirSinSesionGuardada()
+            conContrasena = false
             val de = JSONObject().put("paquete", otra.paquete).put("huellas", JSONArray(huellas))
             val cuerpo = JSONObject()
                 .put("ticket", ticket)
@@ -429,14 +533,22 @@ class SesionYosiftware internal constructor(
         condicionParaDarSesion = condicion
     }
 
-    /** Vuelve a la pantalla de entrar desde un paso a medias (alta, código, borrado programado o navegador). */
+    /**
+     * Vuelve a la pantalla de entrar desde un paso a medias (alta, código, borrado programado o navegador). En el alias
+     * de una cuenta creada con [crearCuentaConContrasena], borra el usuario de Firebase que se acababa de crear, para que
+     * pueda volver a crearla.
+     */
     suspend fun cancelar() {
         cerrojo.withLock {
             when (estadoActual.value) {
-                is EstadoSesion.AltaRequerida, EstadoSesion.SegundoFactorRequerido,
-                is EstadoSesion.BorradoProgramado, is EstadoSesion.AbrirEnNavegador -> {
+                is EstadoSesion.AltaRequerida, EstadoSesion.SegundoFactorRequerido, is EstadoSesion.BorradoProgramado,
+                is EstadoSesion.AbrirEnNavegador -> {
+                    if (estadoActual.value is EstadoSesion.AltaRequerida && conContrasena) {
+                        usuarioFirebaseNuevo?.let { firebase.borrar(it) }
+                    }
                     ticket = null
                     usuarioFirebaseNuevo = null
+                    conContrasena = false
                     cerrarOtrasAlEntrar = false
                     cambiar(EstadoSesion.SinSesion())
                 }
@@ -679,7 +791,10 @@ class SesionYosiftware internal constructor(
         return llamada(tokensTrasRechazo(token).plataforma.valor)
     }
 
-    /** Crear una cuenta con contraseña se hace en la página de acceso, en el navegador del sistema. */
+    /**
+     * Crear una cuenta en la página de acceso, en el navegador del sistema. Desde la 1.8.0 se puede crear dentro de la
+     * app ([crearCuentaConContrasena]); esta dirección sigue valiendo.
+     */
     fun direccionCrearCuenta(): String = "${configuracion.paginaDeAcceso.trimEnd('/')}/?vista=registro"
 
     /** La página de acceso: recuperar la contraseña y cambiar el correo o las formas de acceso. */
@@ -700,6 +815,19 @@ class SesionYosiftware internal constructor(
         tratarApertura(api("POST", "/v1/sesion/nativa", cuerpo))
     }
 
+    /** Como [canjear], recordando que es con contraseña mientras dure el alta: si no sigue, se borra el usuario nuevo. */
+    private suspend fun canjearConContrasena(credencial: CredencialFirebase) {
+        conContrasena = true
+        try {
+            canjear(credencial)
+        } finally {
+            when (estadoActual.value) {
+                is EstadoSesion.AltaRequerida, EstadoSesion.SegundoFactorRequerido, is EstadoSesion.BorradoProgramado -> Unit
+                else -> conContrasena = false
+            }
+        }
+    }
+
     /** La respuesta de entrar, del alta, del segundo factor o de conservar la cuenta. */
     private suspend fun tratarApertura(respuesta: RespuestaApi) {
         if (!respuesta.correcta) {
@@ -710,10 +838,14 @@ class SesionYosiftware internal constructor(
                     cambiar(EstadoSesion.BorradoProgramado(detalle?.cadena("pedido"), detalle?.cadena("borrarDesde")))
                     return
                 }
-                "registro_cerrado" -> {
-                    usuarioFirebaseNuevo?.let { firebase.borrar(it) }
-                    olvidarPaso()
-                }
+                // Una cuenta nueva que no puede seguir: el usuario de Firebase recién creado no sirve. Con el registro
+                // cerrado, siempre; con el correo de otra cuenta o la app en pruebas privadas, solo con contraseña (con
+                // Google, como hasta la 1.7).
+                "registro_cerrado", "correo_ya_registrado", "acceso_restringido" ->
+                    if (respuesta.codigo == "registro_cerrado" || conContrasena) {
+                        usuarioFirebaseNuevo?.let { firebase.borrar(it) }
+                        olvidarPaso()
+                    }
                 "ticket_no_valido", "segundo_factor_no_activado" -> olvidarPaso()
             }
             throw respuesta.error()
@@ -723,6 +855,7 @@ class SesionYosiftware internal constructor(
             "autenticada" -> {
                 ticket = null
                 usuarioFirebaseNuevo = null
+                conContrasena = false
                 tratarSesion(json)
             }
             "alta_requerida" -> {
@@ -734,11 +867,13 @@ class SesionYosiftware internal constructor(
                 ticket = json.cadena("ticket")
                 cambiar(EstadoSesion.SegundoFactorRequerido)
             }
+            // Desde el 2026-11-05 la plataforma ya no pide confirmar el correo para entrar: `verificacion_requerida` solo
+            // podría llegar de una versión anterior, y entonces se confirma en la página de acceso, como hasta la 1.7.
             "verificacion_requerida", "vinculacion_requerida" -> {
-                val motivo = json.getString("estado").removeSuffix("_requerida")
                 ticket = null
                 usuarioFirebaseNuevo = null
-                cambiar(EstadoSesion.AbrirEnNavegador(motivo, direccionPaginaDeAcceso()))
+                conContrasena = false
+                cambiar(EstadoSesion.AbrirEnNavegador(json.getString("estado").removeSuffix("_requerida"), direccionPaginaDeAcceso()))
             }
             else -> throw respuestaNoValida()
         }
@@ -758,7 +893,15 @@ class SesionYosiftware internal constructor(
             return
         }
         tokensActuales = tokens?.let(::tokens) ?: throw respuestaNoValida()
-        cambiar(EstadoSesion.ConSesion(cuenta ?: throw respuestaNoValida(), json.optJSONObject("normasPendientes")?.let(::resumen)))
+        val conSesion = cuenta ?: throw respuestaNoValida()
+        val normasDeLaWeb = json.optJSONObject("normasPendientes")?.let(::resumen)
+        val recordar = json.optBoolean("recordarCorreo", false)
+        estadoActual.update { antes ->
+            // La plataforma lo dice una sola vez: si la app aún no lo ha enseñado ([correoRecordado]), la siguiente
+            // renovación no lo borra. Con el correo ya confirmado, no hay nada que recordar.
+            val sinEnsenar = antes is EstadoSesion.ConSesion && antes.recordarCorreo && antes.cuenta.id == conSesion.id
+            EstadoSesion.ConSesion(conSesion, normasDeLaWeb, recordarCorreo = !conSesion.correoVerificado && (recordar || sinEnsenar))
+        }
     }
 
     private suspend fun vigentes(): Tokens {
@@ -830,6 +973,7 @@ class SesionYosiftware internal constructor(
     private fun olvidarPaso() {
         ticket = null
         usuarioFirebaseNuevo = null
+        conContrasena = false
         cambiar(EstadoSesion.SinSesion())
     }
 
@@ -875,6 +1019,7 @@ class SesionYosiftware internal constructor(
         tokensActuales = null
         ticket = null
         usuarioFirebaseNuevo = null
+        conContrasena = false
         cerrarOtrasAlEntrar = false
     }
 
@@ -1035,6 +1180,7 @@ class SesionYosiftware internal constructor(
             correoVerificado = json.optBoolean("correoVerificado", false),
             estado = json.optString("estado", "activa"),
             propietario = json.optBoolean("propietario", false),
+            confirmarCorreoAntesDe = json.cadena("confirmarCorreoAntesDe"),
         )
 
         fun resumen(json: JSONObject) = ResumenNormas(json.getLong("id"), json.optInt("version"), json.optString("titulo"))
@@ -1046,13 +1192,18 @@ class SesionYosiftware internal constructor(
         }
 
         fun estadoNoValido() = ErrorSesion("estado_no_valido", "Eso no se puede hacer ahora.")
-        fun correoNoValido() = ErrorSesion("correo_no_valido", "Escribe un correo válido.")
         fun sinSesion() = ErrorSesion("sin_sesion", "No has iniciado sesión.")
         fun respuestaNoValida() = ErrorSesion("respuesta_no_valida", "Algo ha fallado. Inténtalo de nuevo.")
         fun normasDeUsoPendientes() =
             ErrorSesion("normas_de_uso_pendientes", "Tienes que aceptar las normas de uso para seguir.")
     }
 }
+
+/**
+ * Un correo que no lo parece, lo detecte la librería o Firebase: siempre con `campo = "correo"`, como la plataforma
+ * (desde la 1.9.0; antes, el de la librería iba sin campo).
+ */
+internal fun correoNoValido() = ErrorSesion("correo_no_valido", "Escribe un correo válido.", campo = "correo")
 
 internal class RespuestaApi(val estado: Int, val json: JSONObject) {
     val correcta get() = estado in 200..299

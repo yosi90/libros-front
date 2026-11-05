@@ -1,5 +1,6 @@
 package es.yosiftware.libros.datos.repositorios
 
+import es.yosiftware.libros.cuenta.CorreoSinConfirmar
 import es.yosiftware.libros.datos.json.json
 import es.yosiftware.libros.datos.json.texto
 import es.yosiftware.libros.datos.modelos.GrupoDeReportes
@@ -16,10 +17,10 @@ data class ReporteResuelto(val id: Int, val estado: String)
 class RepositorioReportes(private val api: ClienteLibros) {
     /** Reportar la reseña de [usuarioFuenteId] en un libro o una antología (`ReportCreate`, `TipoFuente: resena`). */
     suspend fun reportarResena(entidadTipo: String, entidadId: Int, usuarioFuenteId: Int, motivo: String): ReporteCreado =
-        api.post(
+        CorreoSinConfirmar.exigirConfirmado().let { api.post(
             "reportes",
             json("TipoFuente" to "resena", "EntidadTipo" to entidadTipo, "EntidadId" to entidadId, "UsuarioFuenteId" to usuarioFuenteId, "Motivo" to motivo),
-        ).objeto(ReporteCreado::de)
+        ).objeto(ReporteCreado::de) }
 
     /** La cola de quien modera (`pendiente`, `aceptado`, `rechazado` o `todos`). */
     suspend fun cola(estado: String = "pendiente"): List<GrupoDeReportes> = api.get("moderacion/reportes", mapOf("estado" to estado)).lista(GrupoDeReportes::de)

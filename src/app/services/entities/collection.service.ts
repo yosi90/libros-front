@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environment/environment';
@@ -24,10 +24,13 @@ import { toReadStatus } from '../../shared/reading-status';
 import { ReadingStatusId } from '../../interfaces/read-status';
 import { orderSagasByReading } from '../../shared/saga-chain';
 import { CollectionWorkFields } from '../../interfaces/work';
+import { PlatformSessionService } from '../auth/platform-session.service';
+import { afterEmailConfirmed } from '../../shared/email-gate';
 
 @Injectable({ providedIn: 'root' })
 export class CollectionService {
     private readonly apiUrl = environment.apiUrl + 'coleccion';
+    private readonly session = inject(PlatformSessionService);
 
     constructor(private http: HttpClient) { }
 
@@ -50,12 +53,15 @@ export class CollectionService {
         return this.http.post<ReadingStatusUpdateResponse>(`${this.apiUrl}/${workPath(kind)}/${workId}/estado`, payload);
     }
 
+    // Una reseña con texto es pública: con el correo sin confirmar, primero se confirma (kit 1.80).
     updateWorkRating(kind: CatalogItemType, workId: number, payload: RatingWrite): Observable<RatingUpdateResponse> {
-        return this.http.patch<RatingUpdateResponse>(`${this.apiUrl}/${workPath(kind)}/${workId}/puntuacion`, payload);
+        const request = () => this.http.patch<RatingUpdateResponse>(`${this.apiUrl}/${workPath(kind)}/${workId}/puntuacion`, payload);
+        return payload.Resena?.trim() ? afterEmailConfirmed(this.session, request) : request();
     }
 
     updateWorkReview(kind: CatalogItemType, workId: number, payload: ReviewWrite): Observable<ReviewUpdateResponse> {
-        return this.http.patch<ReviewUpdateResponse>(`${this.apiUrl}/${workPath(kind)}/${workId}/resena`, payload);
+        const request = () => this.http.patch<ReviewUpdateResponse>(`${this.apiUrl}/${workPath(kind)}/${workId}/resena`, payload);
+        return payload.Resena?.trim() ? afterEmailConfirmed(this.session, request) : request();
     }
 
     updateWorkStatusHistory(kind: CatalogItemType, statusHistoryId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {

@@ -1,5 +1,7 @@
 package es.yosiftware.libros.datos
 
+import es.yosiftware.sesion.EstadoSesion
+import es.yosiftware.libros.cuenta.CorreoSinConfirmar
 import android.content.Context
 import es.yosiftware.libros.BuildConfig
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
@@ -47,6 +49,11 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
         padre = alcance,
         cuentaActivaGuardada = { sesion?.cuentas?.value?.firstOrNull { it.activa }?.id },
     ).also { ambito -> sesion?.let { ambito.escuchar(it.estado) } }
+
+    init {
+        // Lo social propio de Libros (reseñas y denuncias) se limita con el correo sin confirmar (kit 1.80).
+        CorreoSinConfirmar.sinConfirmar = { (sesion?.estado?.value as? EstadoSesion.ConSesion)?.cuenta?.correoVerificado == false }
+    }
 
     val api = ClienteLibros(BuildConfig.API_LIBROS, TokensDeLaSesion(sesion), ambito)
     val plataforma: ClientePlataforma? = sesion?.let { ClientePlataforma(it, ambito) }

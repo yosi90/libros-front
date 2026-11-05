@@ -89,6 +89,8 @@ import es.yosiftware.libros.ui.perfil.IdentidadDelPerfil
 import es.yosiftware.libros.ui.perfil.PantallaPerfil
 import es.yosiftware.libros.ui.perfil.Perfil
 import es.yosiftware.libros.ui.perfil.PerfilViewModel
+import es.yosiftware.libros.ui.preferencias.AvisoDeGratuidad
+import es.yosiftware.libros.ui.preferencias.HojaDeGratuidad
 import es.yosiftware.libros.ui.preferencias.PantallaPreferencias
 import es.yosiftware.libros.cuenta.Enlaces
 import androidx.compose.ui.platform.LocalContext
@@ -107,6 +109,7 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.rememberVentana
 import es.yosiftware.libros.ui.cuenta.AvisoSinConexion
 import es.yosiftware.libros.ui.cuenta.CuentaViewModel
+import es.yosiftware.libros.ui.cuenta.HojaDelCorreo
 import es.yosiftware.libros.ui.cuenta.LectorDeNormas
 import es.yosiftware.libros.ui.cuenta.LocalCuenta
 import es.yosiftware.libros.ui.cuenta.PanelDeCuentas
@@ -351,6 +354,11 @@ fun AppLibros(app: LibrosApp) {
             // Solo para revisar la navegación en depuración en una compilación sin la configuración de la plataforma.
             var verSinCuenta by rememberSaveable { mutableStateOf(false) }
             var panelAbierto by rememberSaveable { mutableStateOf(false) }
+            // «Gratis, por ahora» (kit 1.77): sola, una vez al instalar y con cada versión nueva, con o sin sesión.
+            val contextoDeLaApp = LocalContext.current
+            var gratuidad by rememberSaveable {
+                mutableStateOf(AvisoDeGratuidad.pendiente(AvisoDeGratuidad.vistoCon(contextoDeLaApp), BuildConfig.VERSION_CODE))
+            }
             val conShell = estado is EstadoSesion.ConSesion || estado is EstadoSesion.SinConexion
             LaunchedEffect(conShell) { if (!conShell) panelAbierto = false }
 
@@ -600,6 +608,16 @@ fun AppLibros(app: LibrosApp) {
                     )
                 }
                 AnfitrionDeAvisos(avisos, Modifier.align(Alignment.BottomCenter))
+
+                // El correo sin confirmar (kit 1.80), cuando la librería pide recordarlo o lo social lo exige; después
+                // del aviso de gratuidad, si los dos tocan a la vez.
+                if (estado is EstadoSesion.ConSesion && estado.normasPendientes == null && !gratuidad) {
+                    HojaDelCorreo(cuenta, estado.cuenta.correo, estado.cuenta.confirmarCorreoAntesDe)
+                }
+                HojaDeGratuidad(gratuidad) {
+                    AvisoDeGratuidad.marcarVisto(contextoDeLaApp, BuildConfig.VERSION_CODE)
+                    gratuidad = false
+                }
 
                 // Las normas que se están leyendo, a pantalla completa, encima de su pantalla.
                 cuenta.normas?.let { normas ->

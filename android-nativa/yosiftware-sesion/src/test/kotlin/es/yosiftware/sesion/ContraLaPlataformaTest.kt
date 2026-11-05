@@ -97,7 +97,7 @@ class ContraLaPlataformaTest {
     }
 
     @Test
-    fun `en desarrollo una cuenta nueva con Google se da de alta, y un correo sin confirmar va al navegador`() = runBlocking {
+    fun `en desarrollo una cuenta nueva con Google se da de alta, y una con contrasena se crea, entra sin confirmar y pide el codigo en la app`() = runBlocking {
         val api = System.getenv("YOSI_SESION_DESARROLLO")
         assumeTrue("Sin YOSI_SESION_DESARROLLO", api != null)
         val configuracion = ConfiguracionSesion(
@@ -124,19 +124,46 @@ class ContraLaPlataformaTest {
         sesion.salir()
         assertEquals(EstadoSesion.SinSesion(), sesion.estado.value)
 
-        // Una contraseña con el correo sin confirmar: se confirma en la página de acceso.
-        val alta = TransporteHttp(configuracion.agente).enviar(
-            Peticion(
-                "POST",
-                "${configuracion.firebaseAuth}/v1/accounts:signUp?key=clave-del-emulador",
-                JSONObject().put("email", "kotlin-c-$sufijo@ejemplo.es").put("password", "Contrasena-$sufijo-1").put("returnSecureToken", true).toString(),
-            ),
-        )
-        assertEquals(200, alta.estado)
-        sesion.entrarConContrasena("kotlin-c-$sufijo@ejemplo.es", "Contrasena-$sufijo-1")
-        assertTrue(sesion.estado.value is EstadoSesion.AltaRequerida)
-        sesion.completarAlta("kotlin-c-$sufijo")
-        assertEquals(EstadoSesion.AbrirEnNavegador("verificacion", "http://localhost:5310/"), sesion.estado.value)
+        // Una cuenta con contraseña, creada en la app (1.8.0): el alias y, desde la 1.9.0, la sesión abierta con el correo
+        // sin confirmar y el recordatorio; el código se pide y se comprueba con el token de la plataforma.
+        val correo = "kotlin-c-$sufijo@ejemplo.es"
+        val red = Contado(configuracion.agente)
+        val otra = sesion(configuracion, AlmacenEnMemoria(), red)
+        otra.iniciar()
+        otra.crearCuentaConContrasena(correo, "Contrasena-$sufijo-1")
+        assertTrue(otra.estado.value is EstadoSesion.AltaRequerida)
+        otra.completarAlta("kotlin-c-$sufijo")
+        val creada = otra.estado.value as EstadoSesion.ConSesion
+        assertEquals(false, creada.cuenta.correoVerificado)
+        assertTrue(creada.cuenta.confirmarCorreoAntesDe != null)
+        assertTrue(creada.recordarCorreo)
+        otra.correoRecordado()
+        assertTrue(otra.tokens().plataforma.valor.isNotEmpty())
+        otra.enviarCodigoDelCorreo()
+        assertEquals(1, red.rutas.count { it == "/v1/cuenta/correo/codigo" })
+        val malo = try {
+            otra.confirmarCorreo("000000")
+            null
+        } catch (error: ErrorSesion) {
+            error
+        }
+        // Puede acertar por casualidad una vez entre un millón: entonces ya está confirmado.
+        if (malo != null) {
+            assertEquals("codigo_no_valido", malo.codigo)
+            assertEquals("codigo", malo.campo)
+            assertEquals(false, (otra.estado.value as EstadoSesion.ConSesion).cuenta.correoVerificado)
+            // Con YOSI_SESION_CODIGO, un archivo donde quien prueba deja el código del correo (en desarrollo, el de
+            // `dbo.correos_salida`), se confirma con la sesión abierta.
+            val archivoCodigo = System.getenv("YOSI_SESION_CODIGO")?.let(::File)
+            if (archivoCodigo != null) {
+                val limite = System.currentTimeMillis() + 60_000
+                while (!archivoCodigo.exists() && System.currentTimeMillis() < limite) delay(500)
+                otra.confirmarCorreo(archivoCodigo.readText().trim())
+                assertTrue((otra.estado.value as EstadoSesion.ConSesion).cuenta.correoVerificado)
+            }
+        }
+        otra.salir()
+        assertEquals(EstadoSesion.SinSesion(), otra.estado.value)
         assertNull(almacen.valor)
     }
 }

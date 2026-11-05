@@ -1,5 +1,6 @@
 package es.yosiftware.libros.datos.repositorios
 
+import es.yosiftware.libros.cuenta.CorreoSinConfirmar
 import es.yosiftware.libros.datos.json.json
 import es.yosiftware.libros.datos.json.nulo
 import es.yosiftware.libros.datos.json.objeto
@@ -56,11 +57,16 @@ class RepositorioColeccion(private val api: ClienteLibros) {
         estadoGuardado(api.post("coleccion/libros/$id/estado", estado.comoJson()).objeto())
 
     suspend fun puntuarLibro(id: Int, puntuacion: Int, resena: String? = null, publicarActividad: Boolean? = null): Valoracion =
-        api.patch("coleccion/libros/$id/puntuacion", json("Puntuacion" to puntuacion, "Resena" to resena, "PublicarActividad" to publicarActividad)).objeto(Valoracion::de)
+        conResenaPublica(resena).let { api.patch("coleccion/libros/$id/puntuacion", json("Puntuacion" to puntuacion, "Resena" to resena, "PublicarActividad" to publicarActividad)).objeto(Valoracion::de) }
+
+    /** Una reseña con texto es pública: con el correo sin confirmar no se envía (kit 1.80, [CorreoSinConfirmar]). */
+    private fun conResenaPublica(resena: String?) {
+        if (!resena.isNullOrBlank()) CorreoSinConfirmar.exigirConfirmado()
+    }
 
     /** La reseña del libro; `null` la borra. */
     suspend fun cambiarResenaDeLibro(id: Int, resena: String?, publicarActividad: Boolean? = null): Valoracion =
-        api.patch("coleccion/libros/$id/resena", json("Resena" to nulo(resena), "PublicarActividad" to publicarActividad)).objeto(Valoracion::de)
+        conResenaPublica(resena).let { api.patch("coleccion/libros/$id/resena", json("Resena" to nulo(resena), "PublicarActividad" to publicarActividad)).objeto(Valoracion::de) }
 
     // El título divertido de la persona (IA2): suyo, solo de libros de su colección.
     suspend fun tituloDeLibro(id: Int): TituloDivertido = api.get("coleccion/libros/$id/titulo").objeto(TituloDivertido::de)
@@ -85,10 +91,10 @@ class RepositorioColeccion(private val api: ClienteLibros) {
         estadoGuardado(api.post("coleccion/antologias/$id/estado", estado.comoJson()).objeto())
 
     suspend fun puntuarAntologia(id: Int, puntuacion: Int, resena: String? = null, publicarActividad: Boolean? = null): Valoracion =
-        api.patch("coleccion/antologias/$id/puntuacion", json("Puntuacion" to puntuacion, "Resena" to resena, "PublicarActividad" to publicarActividad)).objeto(Valoracion::de)
+        conResenaPublica(resena).let { api.patch("coleccion/antologias/$id/puntuacion", json("Puntuacion" to puntuacion, "Resena" to resena, "PublicarActividad" to publicarActividad)).objeto(Valoracion::de) }
 
     suspend fun cambiarResenaDeAntologia(id: Int, resena: String?, publicarActividad: Boolean? = null): Valoracion =
-        api.patch("coleccion/antologias/$id/resena", json("Resena" to nulo(resena), "PublicarActividad" to publicarActividad)).objeto(Valoracion::de)
+        conResenaPublica(resena).let { api.patch("coleccion/antologias/$id/resena", json("Resena" to nulo(resena), "PublicarActividad" to publicarActividad)).objeto(Valoracion::de) }
 
     suspend fun corregirEstadoDeAntologia(idHistorico: Int, estado: EstadoAGuardar): EstadoDeLectura =
         estadoGuardado(api.patch("coleccion/historicos/antologias/estados/$idHistorico", estado.comoJson()).objeto())

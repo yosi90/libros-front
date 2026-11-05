@@ -75,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.min
 import es.yosiftware.libros.datos.modelos.Capitulo
@@ -195,7 +196,8 @@ private fun Barra(vm: LibroViewModel, nombre: String, portada: String?) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (!portada.isNullOrEmpty()) Portada(portada, null, Modifier.width(30.dp).height(42.dp).clip(RoundedCornerShape(3.dp)))
-            Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(0.94), fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // Hasta dos líneas: la barra tiene alto de sobra, y un título largo no se corta a la primera.
+            Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(0.94), fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             // `.m-book-bar__saved`: 3 s tras guardar, la nube en un círculo del primario con su halo.

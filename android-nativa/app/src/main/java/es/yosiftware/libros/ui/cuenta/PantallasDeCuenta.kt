@@ -84,6 +84,7 @@ fun EstadoSesion.esUnPaso() = this is EstadoSesion.AltaRequerida || this is Esta
  * La pantalla de un estado sin el shell: entrar, los pasos de entrar y el arranque. [cuentas] son las guardadas en la
  * app (para volver a una al salir de otra).
  */
+@Suppress("DEPRECATION") // EstadoSesion.CorreoPorConfirmar, que la librería 1.9.0 ya no emite.
 @Composable
 fun PantallaDeLaSesion(estado: EstadoSesion, vm: CuentaViewModel, perfiles: PerfilesViewModel, cuentas: List<CuentaGuardada>) {
     when (estado) {
@@ -96,6 +97,8 @@ fun PantallaDeLaSesion(estado: EstadoSesion, vm: CuentaViewModel, perfiles: Perf
         is EstadoSesion.NormasDeUsoPendientes -> PantallaDeNormasDeUso(vm, estado.normas)
         // Las dos con el shell: AppLibros no llega aquí con ellas.
         is EstadoSesion.ConSesion, is EstadoSesion.SinConexion -> PantallaDeArranque()
+        // Solo de la librería 1.8.0: la 1.9.0 entra sin confirmar el correo y nunca llega a este estado.
+        is EstadoSesion.CorreoPorConfirmar -> PantallaDeArranque()
     }
 }
 

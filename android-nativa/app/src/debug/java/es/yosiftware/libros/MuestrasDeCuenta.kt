@@ -195,6 +195,9 @@ private class SesionDeMuestra : AccesoALaSesion {
     override suspend fun olvidarCuenta(id: String) = Unit
     override suspend fun salir() = Unit
     override suspend fun salirDeTodas() = Unit
+    override suspend fun confirmarCorreo(codigo: String) = Unit
+    override suspend fun enviarCodigoDelCorreo() = Unit
+    override fun correoRecordado() = Unit
     override fun direccionCrearCuenta() = "https://qa-cuentas.yosiftware.es/?vista=registro"
     override fun direccionPaginaDeAcceso() = "https://qa-cuentas.yosiftware.es/"
     override fun direccionWebSocial(vista: String?) = "https://qa-social.yosiftware.es/" + (vista?.let { "?vista=$it" } ?: "")

@@ -8,6 +8,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import es.yosiftware.libros.cuenta.AccesoALaSesion
+import es.yosiftware.libros.cuenta.CorreoSinConfirmar
 import es.yosiftware.libros.cuenta.OtraApp
 import es.yosiftware.sesion.ErrorSesion
 import es.yosiftware.sesion.EstadoSesion
@@ -67,6 +68,17 @@ class CuentaViewModel(
     var enElNavegador by mutableStateOf(false)
         private set
 
+    /**
+     * La hoja del correo sin confirmar (kit 1.80): se abre cuando la librería pide recordarlo
+     * (`ConSesion.recordarCorreo`) y cuando lo social de la plataforma responde `correo_sin_confirmar`.
+     */
+    var correoAbierto by mutableStateOf(false)
+        private set
+
+    /** Lo que ha salido bien en la hoja del correo («Te hemos enviado otro código»). */
+    var avisoDelCorreo by mutableStateOf<String?>(null)
+        private set
+
     private var busqueda: Job? = null
 
     init {
@@ -83,6 +95,20 @@ class CuentaViewModel(
                         otrasApps = emptyList()
                     }
                     if (estado !is EstadoSesion.SinSesion) busqueda?.cancel()
+                    when {
+                        estado !is EstadoSesion.ConSesion -> if (estado !is EstadoSesion.SinConexion) cerrarCorreo()
+                        estado.cuenta.correoVerificado -> cerrarCorreo()
+                        estado.recordarCorreo -> {
+                            abrirCorreo()
+                            s.correoRecordado()
+                        }
+                    }
+                }
+            }
+            viewModelScope.launch {
+                CorreoSinConfirmar.pedido.collect {
+                    val estado = s.estado.value
+                    if (estado is EstadoSesion.ConSesion && !estado.cuenta.correoVerificado) abrirCorreo()
                 }
             }
         }
@@ -185,6 +211,32 @@ class CuentaViewModel(
     fun salirDeTodas() = accion {
         anadiendo = false
         salirDeTodas()
+    }
+
+    fun abrirCorreo() {
+        if (!correoAbierto) error = null
+        correoAbierto = true
+        avisoDelCorreo = null
+    }
+
+    fun cerrarCorreo() {
+        if (correoAbierto) error = null
+        correoAbierto = false
+        avisoDelCorreo = null
+    }
+
+    /** El código de 6 cifras: al acertar, la librería deja el correo confirmado y la hoja se cierra sola. */
+    fun confirmarCorreo(codigo: String) {
+        avisoDelCorreo = null
+        accion { confirmarCorreo(codigo.trim()) }
+    }
+
+    fun enviarOtroCodigoDelCorreo() {
+        avisoDelCorreo = null
+        accion {
+            enviarCodigoDelCorreo()
+            avisoDelCorreo = CorreoSinConfirmar.OTRO_ENVIADO
+        }
     }
 
     private fun accion(alTerminar: () -> Unit = {}, bloque: suspend AccesoALaSesion.() -> Unit) {

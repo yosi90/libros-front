@@ -61,6 +61,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.EncimaDeTodo
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
@@ -126,6 +127,10 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Un
 private fun Privacidad(alAbrir: () -> Unit) {
     Pista("Tu privacidad en Libros es la de tu cuenta de Yosiftware: si ocultas que usas Libros y qué te llega al móvil. Tu perfil y quién puede escribirte se deciden en ella.")
     Boton("Privacidad de todas tus webs", alAbrir, Modifier.fillMaxWidth(), variante = VarianteDeBoton.Contorno, icono = Iconos.simboloYosiftware)
+    // «Gratis, por ahora» siempre a mano (kit 1.77): el mismo aviso que sale solo al instalar o actualizar.
+    var gratuidad by rememberSaveable { mutableStateOf(false) }
+    Boton(AvisoDeGratuidad.TITULO, { gratuidad = true }, Modifier.fillMaxWidth(), variante = VarianteDeBoton.Contorno, icono = Iconos.info)
+    if (gratuidad) EncimaDeTodo(alCerrar = { gratuidad = false }) { HojaDeGratuidad(abierta = true, alCerrar = { gratuidad = false }) }
 }
 
 /** «Lectura y escritura»: la escena del título al abrir un libro (IA2), encendida por defecto, y el dictado (IA3). Son del móvil, no de la cuenta. */

@@ -5,7 +5,7 @@ import android.os.Build
 import android.provider.Settings
 
 /** Versión de la librería; va en el `User-Agent` de cada llamada. Sube con cada cambio del módulo. */
-const val VERSION_LIBRERIA = "1.7.1"
+const val VERSION_LIBRERIA = "1.9.0"
 
 /**
  * Dónde está la plataforma y quién es la app. Lo normal es crearla con [qa] o [produccion]:
@@ -26,7 +26,7 @@ data class ConfiguracionSesion(
     val web: String,
     /** La API de la plataforma, sin barra final. */
     val api: String,
-    /** La página de acceso, donde se crea una cuenta con contraseña y se recupera la contraseña. */
+    /** La página de acceso, donde se recupera la contraseña (y se puede crear una cuenta, también en la app desde la 1.8.0). */
     val paginaDeAcceso: String,
     /** La web social, donde se gestiona la cuenta. */
     val webSocial: String,

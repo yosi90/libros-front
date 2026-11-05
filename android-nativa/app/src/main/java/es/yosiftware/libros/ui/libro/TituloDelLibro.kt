@@ -1,8 +1,7 @@
 package es.yosiftware.libros.ui.libro
 
-import androidx.compose.ui.window.DialogWindowProvider
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.foundation.layout.heightIn
+import es.yosiftware.libros.ui.componentes.EncimaDeTodo
 import es.yosiftware.libros.ui.componentes.HojaInferior
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import android.annotation.SuppressLint
@@ -295,18 +294,6 @@ fun TituloDelLibro(idLibro: Int, sitio: SitioDelTitulo, modifier: Modifier = Mod
     }
     if (enGrande && html != null) {
         PantallaCompletaDelTitulo(titulo.titulo.orEmpty(), html, titulo.estilos, alCerrar = { enGrande = false })
-    }
-}
-
-/**
- * Una ventana a pantalla completa por encima de todo, sin el oscurecido del diálogo (la hoja trae su velo): el título va
- * dentro de pantallas que se desplazan, y la hoja tiene que cubrirlas.
- */
-@Composable
-private fun EncimaDeTodo(alCerrar: () -> Unit, contenido: @Composable () -> Unit) {
-    Dialog(onDismissRequest = alCerrar, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
-        (LocalView.current.parent as? DialogWindowProvider)?.window?.setDimAmount(0f)
-        Box(Modifier.fillMaxSize()) { contenido() }
     }
 }
 

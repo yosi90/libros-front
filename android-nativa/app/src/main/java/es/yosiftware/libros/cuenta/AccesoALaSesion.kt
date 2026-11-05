@@ -18,7 +18,7 @@ class OtraApp(val alias: String, val app: String?, internal val deLaLibreria: Se
 }
 
 /**
- * Lo que la interfaz usa de `SesionYosiftware` (librería 1.7.0, sin cambios): el estado, las cuentas guardadas, las
+ * Lo que la interfaz usa de `SesionYosiftware` (librería 1.9.0, sin cambios): el estado, las cuentas guardadas, las
  * acciones de cada estado y las direcciones del navegador. La app usa [DeLaLibreria]; las pruebas de la JVM, una falsa
  * (la sesión de verdad no se puede crear fuera de Android). No añade nada: cada función es la de la librería.
  */
@@ -45,6 +45,11 @@ interface AccesoALaSesion {
     suspend fun olvidarCuenta(id: String)
     suspend fun salir()
     suspend fun salirDeTodas()
+
+    /** El correo sin confirmar (librería 1.9.0): el código de 6 cifras, pedir otro y que ya se ha recordado. */
+    suspend fun confirmarCorreo(codigo: String)
+    suspend fun enviarCodigoDelCorreo()
+    fun correoRecordado()
 
     /** Crear una cuenta con contraseña: en la página de acceso, en el navegador del sistema. */
     fun direccionCrearCuenta(): String
@@ -83,6 +88,9 @@ interface AccesoALaSesion {
         override suspend fun olvidarCuenta(id: String) = sesion.olvidarCuenta(id)
         override suspend fun salir() = sesion.salir()
         override suspend fun salirDeTodas() = sesion.salirDeTodas()
+        override suspend fun confirmarCorreo(codigo: String) = sesion.confirmarCorreo(codigo)
+        override suspend fun enviarCodigoDelCorreo() = sesion.enviarCodigoDelCorreo()
+        override fun correoRecordado() = sesion.correoRecordado()
         override fun direccionCrearCuenta() = sesion.direccionCrearCuenta()
         override fun direccionPaginaDeAcceso() = sesion.direccionPaginaDeAcceso()
         override fun direccionWebSocial(vista: String?) = sesion.direccionWebSocial(vista)

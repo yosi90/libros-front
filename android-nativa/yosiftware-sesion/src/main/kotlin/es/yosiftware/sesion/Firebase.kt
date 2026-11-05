@@ -23,6 +23,19 @@ internal class FirebaseRest(private val configuracion: ConfiguracionSesion, priv
         return CredencialFirebase(respuesta.getString("idToken"), nuevo = false)
     }
 
+    /**
+     * Crea el usuario de contraseña (1.8.0). Firebase aplica su política de contraseñas; un correo que ya tiene
+     * contraseña da `correo_ya_registrado`, como la plataforma.
+     */
+    suspend fun crearUsuario(correo: String, contrasena: String): CredencialFirebase {
+        val cuerpo = JSONObject()
+            .put("email", correo.trim())
+            .put("password", contrasena)
+            .put("returnSecureToken", true)
+        val respuesta = llamar("accounts:signUp", cuerpo, CUENTA_NUEVA)
+        return CredencialFirebase(respuesta.getString("idToken"), nuevo = true)
+    }
+
     /** Cambia la credencial de Google (de Credential Manager) por una de Firebase. */
     suspend fun entrarConGoogle(idTokenGoogle: String): CredencialFirebase {
         val cuerpo = JSONObject()
@@ -77,9 +90,26 @@ internal class FirebaseRest(private val configuracion: ConfiguracionSesion, priv
     }
 
     private companion object {
+        /** Falta la contraseña de la cuenta nueva o no cumple la política de Firebase. */
+        val CONTRASENA_DEBIL = { ErrorSesion("contrasena_debil", "La contraseña no cumple los requisitos.", campo = "contrasena") }
+
         val CONTRASENA_NUEVA = mapOf(
             "WEAK_PASSWORD" to { ErrorSesion("contrasena_debil", "La contraseña nueva no cumple los requisitos.") },
             "CREDENTIAL_TOO_OLD_LOGIN_AGAIN" to { ErrorSesion("reautenticacion_requerida", "Vuelve a escribir tu contraseña actual.") },
+        )
+        val CUENTA_NUEVA = mapOf(
+            "EMAIL_EXISTS" to {
+                ErrorSesion(
+                    "correo_ya_registrado",
+                    "Ya hay una cuenta con ese correo. Entra con tu contraseña o recupérala.",
+                    campo = "correo",
+                )
+            },
+            "INVALID_EMAIL" to ::correoNoValido,
+            "MISSING_PASSWORD" to CONTRASENA_DEBIL,
+            "WEAK_PASSWORD" to CONTRASENA_DEBIL,
+            "PASSWORD_DOES_NOT_MEET_REQUIREMENTS" to CONTRASENA_DEBIL,
+            "OPERATION_NOT_ALLOWED" to { ErrorSesion("firebase_no_disponible", "Ahora mismo no se pueden crear cuentas con correo.") },
         )
     }
 }

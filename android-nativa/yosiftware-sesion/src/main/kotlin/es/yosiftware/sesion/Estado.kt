@@ -23,9 +23,20 @@ sealed interface EstadoSesion {
     data object SegundoFactorRequerido : EstadoSesion
 
     /**
-     * Falta confirmar el correo ([motivo] `verificacion`) o vincular una forma de acceso nueva a una cuenta que ya
-     * existe (`vinculacion`). La app no lo hace: abre [direccion] en el navegador del sistema y, al volver, la persona
-     * entra otra vez.
+     * Solo en la 1.8.0: faltaba confirmar el [correo] de la contraseña antes de abrir la sesión. Desde la 1.9.0 la cuenta
+     * entra sin confirmarlo ([ConSesion], con [Cuenta.confirmarCorreoAntesDe]) y la librería no llega nunca a este
+     * estado: el correo se confirma con la sesión abierta, cuando [ConSesion.recordarCorreo] lo pide.
+     */
+    @Deprecated(
+        "Desde la 1.9.0 se entra sin confirmar el correo: la sesión queda abierta y ConSesion.recordarCorreo dice cuándo recordarlo.",
+        ReplaceWith("EstadoSesion.ConSesion"),
+    )
+    data class CorreoPorConfirmar(val correo: String) : EstadoSesion
+
+    /**
+     * Falta vincular una forma de acceso nueva a una cuenta que ya existe ([motivo] `vinculacion`). La app no lo hace:
+     * abre [direccion] en el navegador del sistema y, al volver, la persona entra otra vez. (Hasta la 1.8.0, también
+     * confirmar el correo, con [motivo] `verificacion`; desde la 1.9.0 la plataforma ya no lo pide para entrar.)
      */
     data class AbrirEnNavegador(val motivo: String, val direccion: String) : EstadoSesion
 
@@ -38,8 +49,18 @@ sealed interface EstadoSesion {
     /**
      * Con sesión. Si [normasPendientes] no es `null`, faltan las normas propias de la web: enséñalas
      * ([SesionYosiftware.leerNormasDeLaWeb]) y acéptalas ([SesionYosiftware.aceptarNormasDeLaWeb]) antes de seguir.
+     *
+     * Desde la 1.9.0, con [recordarCorreo] toca recordar a la persona que confirme su correo antes de
+     * [Cuenta.confirmarCorreoAntesDe], o la cuenta se borra: al entrar, como mínimo una vez al día y justo después de
+     * crear la cuenta con contraseña. Enseña un aviso que se pueda cerrar, con el código de 6 cifras
+     * ([SesionYosiftware.confirmarCorreo]) y «Enviar otro código» ([SesionYosiftware.enviarCodigoDelCorreo]), y llama a
+     * [SesionYosiftware.correoRecordado] al enseñarlo. Nada queda limitado por no confirmarlo.
      */
-    data class ConSesion(val cuenta: Cuenta, val normasPendientes: ResumenNormas?) : EstadoSesion
+    data class ConSesion(
+        val cuenta: Cuenta,
+        val normasPendientes: ResumenNormas?,
+        val recordarCorreo: Boolean = false,
+    ) : EstadoSesion
 }
 
 /** Por qué se cerró la sesión o no se pudo comprobar: el `code` y la frase para la persona. */
@@ -53,6 +74,11 @@ data class Cuenta(
     val estado: String,
     /** Cuenta del propietario del ecosistema (`ecosistema-kit/APK.md`, Yosiftadísticas). */
     val propietario: Boolean,
+    /**
+     * Con el correo sin confirmar (desde la 1.9.0): hasta cuándo hay para confirmarlo, en ISO 8601 y UTC (7 días desde
+     * el alta). Después, la cuenta se borra. `null` si el correo ya está confirmado.
+     */
+    val confirmarCorreoAntesDe: String? = null,
 )
 
 /**
@@ -112,6 +138,12 @@ data class Tokens(
  *   desde la 1.7.0, el enlace lo manda la plataforma, que también puede responder `inicio_de_sesion_antiguo` y
  *   `demasiadas_peticiones`;
  * - `reautenticacion_requerida`: Firebase pide volver a escribir la contraseña (al cambiarla);
+ * - `correo_ya_registrado`, `correo_no_valido` y `contrasena_debil`: al crear la cuenta con contraseña (1.8.0); desde
+ *   la 1.9.0, `correo_no_valido` trae siempre `campo = "correo"`, también al cambiar el correo;
+ * - `codigo_no_valido` (`campo = "codigo"`) y `correo_ya_confirmado` al confirmar el correo con la sesión abierta
+ *   (1.9.0), y `demasiadas_peticiones`, `correo_ya_confirmado` y `sin_contrasena` al pedir otro código;
+ * - `correo_sin_confirmar` (403): una acción social (amistades, chat, comentar, espacios, denunciar) con el correo aún
+ *   sin confirmar; la sesión sigue. Ofrece confirmarlo ([SesionYosiftware.confirmarCorreo]);
  * - `respuesta_no_valida`: la respuesta no tiene el formato esperado.
  */
 class ErrorSesion(
