@@ -27,6 +27,7 @@
             "inlineStyleLanguage": "sass",
             "assets": [
               "src/favicon.ico",
+              "src/tema-inicial.js",
               "src/manifest.webmanifest",
               "src/assets"
             ],
@@ -40,10 +41,16 @@
             "production": {
               "assets": [
                 "src/favicon.ico",
+                "src/tema-inicial.js",
                 "src/manifest.webmanifest",
                 "src/assets",
                 { "glob": "assetlinks.json", "input": "src/hosting/production/.well-known", "output": "/.well-known" }
               ],
+              "optimization": {
+                "scripts": true,
+                "styles": { "minify": true, "inlineCritical": false },
+                "fonts": true
+              },
               "serviceWorker": "ngsw-config.json",
               "budgets": [
                 {
@@ -67,6 +74,7 @@
             "qa": {
               "assets": [
                 "src/favicon.ico",
+                "src/tema-inicial.js",
                 "src/manifest.webmanifest",
                 "src/assets",
                 { "glob": "assetlinks.json", "input": "src/hosting/qa/.well-known", "output": "/.well-known" }
@@ -77,7 +85,11 @@
                   "with": "src/environment/environment.qa.ts"
                 }
               ],
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": { "minify": true, "inlineCritical": false },
+                "fonts": true
+              },
               "extractLicenses": true,
               "sourceMap": true,
               "outputHashing": "all",
@@ -119,7 +131,7 @@
                 "libros.dev.yosiftware.es"
               ],
               "headers": {
-                "Content-Security-Policy": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://qa-cuentas.yosiftware.es https://estadisticas.yosiftware.es; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https://qa-cuentas-api.yosiftware.es https:; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; connect-src 'self' https://qa-cuentas-api.yosiftware.es wss://qa-cuentas-ws.yosiftware.es https://estadisticas.yosiftware.es; frame-src https://qa-cuentas.yosiftware.es; worker-src 'self' blob:; manifest-src 'self'",
+                "Content-Security-Policy": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' https://qa-cuentas.yosiftware.es https://estadisticas.yosiftware.es; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https://qa-cuentas-api.yosiftware.es https:; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; connect-src 'self' https://qa-cuentas-api.yosiftware.es wss://qa-cuentas-ws.yosiftware.es https://estadisticas.yosiftware.es; frame-src https://qa-cuentas.yosiftware.es; worker-src 'self' blob:; manifest-src 'self'",
                 "Cross-Origin-Opener-Policy": "same-origin-allow-popups"
               }
             }
@@ -143,6 +155,7 @@
             "inlineStyleLanguage": "sass",
             "assets": [
               "src/favicon.ico",
+              "src/tema-inicial.js",
               "src/manifest.webmanifest",
               "src/assets"
             ],

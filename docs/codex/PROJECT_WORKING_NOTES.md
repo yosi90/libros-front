@@ -97,6 +97,15 @@ Desde el hito 4 de la adhesión (rama `adhesion/web`, sale en el corte) **la web
 - La cuenta del propietario en QA está enlazada al usuario 1 de `libros_qa`; una cuenta nueva empieza vacía.
 - Playwright local en este servidor: Playwright 1.62.1 pide Chromium 1234 y solo está el 1228; para una pasada local, una configuración temporal e ignorada (`.runtime/`) con `launchOptions.executablePath` al Chromium 1228. Las pruebas locales usan un doble del SDK (`e2e/support/yosiftware-sdk-double.ts`).
 
+## CSP
+
+La CSP vive en `firebase.json` (producción; QA la deriva con `scripts/qa/prepare-hosting-config.mjs`, que solo cambia los orígenes) y en `angular.json`, cabeceras de `serve` › `dev-plataforma` (la de QA). No hay `<meta>` de CSP en `index.html`; el `<iframe srcdoc>` del título divertido lleva la suya, que se suma a la heredada.
+
+- Desde el 2026-11-05, `script-src` va **sin `'unsafe-inline'`** (revisión de la plataforma en `docs/peticiones/respondidas/ACEPTADA_migrar-libros-a-la-plataforma.md`): un HTML inyectado no ejecuta nada. Para eso, `production` y `qa` llevan `optimization.styles.inlineCritical: false` (el CSS crítico se cargaba con un `onload="this.media='all'"` en línea, que la CSP bloquearía y dejaría la web sin estilos), y el tema previo a Angular está en `src/tema-inicial.js` (asset en la raíz, en el grupo `app-shell` del service worker y con `Cache-Control: no-cache` en Hosting), no en un `<script>` en línea.
+- No metas scripts ni manejadores en línea (`<script>` sin `src`, `on…=`, `javascript:`) en `index.html`: `final-contracts.test.mjs` lo comprueba en la fuente y `scripts/qa/verify-pwa-artifact.mjs`, en el `dist` (forma parte de `qa:ci`, que corre antes de desplegar producción).
+- El SDK de la plataforma y `s.js` de Yosiftadísticas no inyectan scripts en línea (`ecosistema-kit/ACCESO.md`, «Cabeceras de la web»; comprobado con Playwright sobre el build servido con la CSP de producción y sobre `dev-plataforma` con el SDK real de QA).
+- `style-src` conserva `'unsafe-inline'`: los estilos de componentes de Angular van en `<style>` y el título divertido los necesita.
+
 ## Verticales ya saneadas parcialmente
 
 - Ninguna registrada todavia.
