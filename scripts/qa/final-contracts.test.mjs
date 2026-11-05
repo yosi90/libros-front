@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
+import { inlineScriptsIn } from './verify-pwa-artifact.mjs';
 
 const root = process.cwd();
 
@@ -167,6 +168,36 @@ test('Hosting publica la CSP del kit de Yosiftware y cabeceras defensivas sin bl
     assert.equal(headers['referrer-policy'], 'strict-origin-when-cross-origin');
     assert.equal(headers['cross-origin-opener-policy'], 'same-origin-allow-popups');
     assert.equal(headers['x-frame-options'], 'SAMEORIGIN');
+});
+
+test('la CSP no deja ejecutar scripts en línea y la web no los necesita', async () => {
+    // Revisión de la plataforma (docs/peticiones/respondidas/ACEPTADA_migrar-libros-a-la-plataforma.md): sin
+    // 'unsafe-inline' en script-src, un HTML inyectado no puede ejecutar nada. Pedía dos cosas: el `onload` del CSS
+    // crítico de Angular y el script del tema en index.html.
+    const [firebase, angular, index] = await Promise.all([
+        readFile(path.join(root, 'firebase.json'), 'utf8').then(JSON.parse),
+        readFile(path.join(root, 'angular.json'), 'utf8').then(JSON.parse),
+        readFile(path.join(root, 'src', 'index.html'), 'utf8')
+    ]);
+    const build = angular.projects['book-front'].architect.build;
+    const policies = {
+        'firebase.json': firebase.hosting.headers.find(rule => rule.source === '**').headers
+            .find(header => header.key === 'Content-Security-Policy').value,
+        'dev-plataforma': angular.projects['book-front'].architect.serve.configurations['dev-plataforma'].headers['Content-Security-Policy']
+    };
+
+    for (const [origin, csp] of Object.entries(policies)) {
+        const scriptSrc = csp.split(';').map(part => part.trim()).find(part => part.startsWith('script-src '));
+        assert.ok(scriptSrc, `${origin} define script-src.`);
+        assert.doesNotMatch(scriptSrc, /'unsafe-inline'|'unsafe-eval'/, `${origin} no admite scripts en línea.`);
+    }
+    for (const configuration of ['production', 'qa'])
+        assert.equal(build.configurations[configuration].optimization?.styles?.inlineCritical, false,
+            `${configuration} no carga el CSS crítico con un onload en línea.`);
+    assert.deepEqual(inlineScriptsIn(index), []);
+    assert.match(index, /<script src="tema-inicial\.js"><\/script>/);
+    for (const assets of [build.options.assets, build.configurations.production.assets, build.configurations.qa.assets])
+        assert.ok(assets.includes('src/tema-inicial.js'));
 });
 
 test('la campaña de integración evalúa el flag después de cargar el environment QA', async () => {
