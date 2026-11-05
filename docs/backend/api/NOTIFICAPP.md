@@ -1,5 +1,9 @@
 # Integración de Libros con Notificapp
 
+## Versión 1.2.0 (estética nueva de Notificapp, 2026-11-05): publicada
+
+Sin cambios de contrato: mismas acciones, rutas, `eventKinds`, `onSuccess`, `eventExternalId` y textos. El panel usa el bloque «Estética de Notificapp» del kit (variables de Terminal, Claro y Bento y el script que fija `data-style` con `Notificapp.getStyle()`, con respaldo a `getTheme()` y al tema del sistema) y trae `ui/icon.png` (el icono de la app, 192 × 192). Publicada por actualización remota con `pack.py` y `publish.py` del kit vigente (`docs/notificapp-plugin-kit/`); SHA-256 del ZIP `f31e7d177eb62c73de3094d9618887c1ebc2540d80337916d7b07b65aaf7eddc`.
+
 ## Versión 1.1.0 (adhesión a Yosiftware, 2026-10-24): pendiente de instalar en el corte
 
 Decisión 12 de la petición de migración. El plugin `libros-api` pasa de la 1.0.8 a la **1.1.0**:
