@@ -1,9 +1,5 @@
 package es.yosiftware.libros.ui.libro
 
-import es.yosiftware.libros.datos.modelos.RitmoDelLibro
-import androidx.compose.ui.semantics.Role
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,30 +26,33 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import es.yosiftware.libros.datos.modelos.EstadisticasDelLibro
 import es.yosiftware.libros.datos.modelos.Libro
+import es.yosiftware.libros.datos.modelos.RitmoDelLibro
 import es.yosiftware.libros.ui.adaptable.LocalVentana
-import es.yosiftware.libros.ui.biblioteca.degradadoCss
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
@@ -65,9 +63,10 @@ import es.yosiftware.libros.ui.tema.mezclar
 import es.yosiftware.libros.ui.tema.rem
 import java.time.LocalDate
 
-// El resumen del libro, la primera pantalla al abrirlo: src/app/components/mobile/book/mobile-book-statistics-view/ en
-// su versión de la APK de Capacitor (5dc3120). «Tu lectura» (compacta desde el 26/10/2026: el progreso, las fechas con
-// dato y tu ritmo), las cifras, los personajes destacados y los cuatro gráficos.
+// El resumen del libro, la primera pantalla al abrirlo. Desde el 6/11/2026, «Tu lectura» es un panel denso (opción B del
+// propietario, con las fechas de la C): casillas en dos columnas, cada una con su dato y un gráfico mini, sin repetir
+// cifras: el progreso, el ritmo, los capítulos, los últimos días, las fechas, el reparto y quién aparece. Lo que no cabe
+// (el reparto por capítulo y los personajes por grupo) queda tras «Ver gráficos».
 
 @Composable
 fun PantallaResumenDelLibro(vm: LibroViewModel) {
@@ -87,124 +86,212 @@ fun PantallaResumenDelLibro(vm: LibroViewModel) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(
             Modifier.widthIn(max = 920.dp).fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(start = if (ancha) Espacios.e6 else 0.dp, end = if (ancha) Espacios.e6 else 0.dp, top = if (ancha) Espacios.e5 else 0.dp, bottom = Espacios.e8),
+                .padding(start = if (ancha) Espacios.e6 else Espacios.e3, end = if (ancha) Espacios.e6 else Espacios.e3, top = if (ancha) Espacios.e5 else Espacios.e3, bottom = Espacios.e8),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Tu título divertido (IA2), solo de los libros: la portada viva, arriba del todo.
-            if (!libro.obra.esAntologia) TituloDelLibro(libro.obra.id, SitioDelTitulo.CABECERA, Modifier.padding(bottom = Espacios.e4))
-            TuLectura(vm, libro, resumen, ancha)
-            Cifras(resumen, ancha)
-            Destacados(resumen, ancha)
-            Graficos(libro, resumen, ancha, muyAncha)
+            if (!libro.obra.esAntologia) TituloDelLibro(libro.obra.id, SitioDelTitulo.CABECERA)
+            Panel(vm, libro, resumen)
+            MasGraficos(libro, resumen, ancha, muyAncha)
         }
     }
 }
 
-/** `.m-book-stats__summary`: el degradado del contenedor primario, el progreso, las fechas con dato y tu ritmo. */
-@OptIn(ExperimentalLayoutApi::class)
+/** Las casillas del panel, en dos columnas: las de dato corto van de dos en dos y las anchas, a lo ancho. */
 @Composable
-private fun TuLectura(vm: LibroViewModel, libro: Libro, resumen: EstadisticasDelLibro, ancha: Boolean) {
-    val colores = LocalColores.current
-    val forma = if (ancha) RoundedCornerShape(topStart = Radios.xl, topEnd = Radios.xl) else RoundedCornerShape(0.dp)
+private fun Panel(vm: LibroViewModel, libro: Libro, resumen: EstadisticasDelLibro) {
+    val hoy = remember { LocalDate.now() }
     val terminado = ResumenDelLibro.leido(libro) != null
     val progreso = ResumenDelLibro.progreso(libro, resumen, terminado)
+    val ritmo = libro.metricas?.ritmo
+    val comenzado = PanelDeLectura.diaDe(ResumenDelLibro.comenzado(libro))
+    val leido = PanelDeLectura.diaDe(ResumenDelLibro.leido(libro))
+    val fin = PanelDeLectura.finEstimado(progreso, ritmo, hoy, terminado)
+    CasillaDeProgreso(progreso, comenzado, leido, fin, ResumenDelLibro.estadoSinFecha(libro), hoy)
+    Pareja(
+        ritmo?.let { r -> @Composable { m: Modifier -> CasillaDeRitmo(r, m) } },
+        resumen.capitulos.takeIf { it.isNotEmpty() }?.let { @Composable { m: Modifier -> CasillaDeCapitulos(resumen, m) } },
+    )
+    val dias = remember(ritmo) { ritmo?.let { PanelDeLectura.ultimosDias(it) }.orEmpty() }
+    val hitos = PanelDeLectura.hitos(libro, sinRepetir = setOfNotNull("Comenzado".takeIf { comenzado != null }, "Leído".takeIf { leido != null }))
+    val sinCompra = ResumenDelLibro.comprado(libro) == null
+    Pareja(
+        dias.takeIf { it.isNotEmpty() }?.let { @Composable { m: Modifier -> CasillaDeDias(dias, m) } },
+        if (hitos.isNotEmpty() || sinCompra) @Composable { m: Modifier -> CasillaDeFechas(vm, hitos, sinCompra, hoy, m) } else null,
+    )
+    CasillaDeReparto(resumen)
+    val presencia = remember(libro, resumen) { ResumenDelLibro.presencia(libro, resumen) }
+    if (presencia != null) {
+        Casilla(Modifier.fillMaxWidth()) {
+            Rotulo("Quién aparece, capítulo a capítulo")
+            MapaDePresencia(presencia)
+        }
+    }
+}
+
+/** Dos casillas en una fila, a la misma altura; si solo hay una, a lo ancho. */
+@Composable
+private fun Pareja(primera: (@Composable (Modifier) -> Unit)?, segunda: (@Composable (Modifier) -> Unit)?) {
+    when {
+        primera != null && segunda != null -> Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            primera(Modifier.weight(1f).fillMaxHeight())
+            segunda(Modifier.weight(1f).fillMaxHeight())
+        }
+        primera != null -> primera(Modifier.fillMaxWidth())
+        segunda != null -> segunda(Modifier.fillMaxWidth())
+    }
+}
+
+/** Una casilla del panel: la superficie con su borde y un radio de 18 dp. */
+@Composable
+private fun Casilla(modifier: Modifier, contenido: @Composable ColumnScope.() -> Unit) {
+    val colores = LocalColores.current
+    val forma = RoundedCornerShape(Radios.md)
     Column(
-        Modifier.fillMaxWidth().clip(forma)
-            .degradadoCss(145f, 0f to mezclar(colores.contenedorPrimario, 0.52f), 0.72f to Color.Transparent)
-            .then(if (ancha) Modifier.border(1.dp, colores.contorno, forma) else Modifier.drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) })
-            .padding(start = Espacios.e4, end = Espacios.e4, top = Espacios.e5, bottom = Espacios.e5),
-    ) {
-        Row(Modifier.heightIn(min = 44.dp).padding(bottom = Espacios.e4), horizontalArrangement = Arrangement.spacedBy(Espacios.e3), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(36.dp).clip(CircleShape).background(colores.contenedorPrimario), contentAlignment = Alignment.Center) {
-                Icon(painterResource(Iconos.insights), contentDescription = null, tint = colores.primario, modifier = Modifier.size(20.dp))
+        modifier.clip(forma).background(colores.superficie).border(1.dp, colores.contorno, forma).padding(horizontal = 14.dp, vertical = Espacios.e3),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        content = contenido,
+    )
+}
+
+/** La etiqueta de una casilla: 12 sp, seminegrita, en la tinta suave; con algo a la derecha si se da. */
+@Composable
+private fun Rotulo(texto: String, derecha: String? = null) {
+    val colores = LocalColores.current
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(texto, style = Textos.cuerpo.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, lineHeight = 1.2.em, color = colores.tintaSuave), modifier = Modifier.weight(1f))
+        if (derecha != null) Text(derecha, style = Textos.cuerpo.copy(fontSize = 12.sp, lineHeight = 1.2.em, color = colores.tintaSuave))
+    }
+}
+
+/** La cifra grande de una casilla (22 sp, 800) y su unidad detrás. */
+@Composable
+private fun Cifra(valor: String, unidad: String) {
+    val colores = LocalColores.current
+    Text(
+        buildAnnotatedString {
+            append(valor)
+            withStyle(SpanStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium, color = colores.tintaSuave)) { append(" $unidad") }
+        },
+        style = Textos.cuerpo.copy(fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 1.15.em, color = colores.tinta),
+        maxLines = 1, overflow = TextOverflow.Ellipsis,
+    )
+}
+
+/** El progreso: la página frente al total y el %, su barra, cuándo empezó y cuándo acabaría al ritmo actual (o acabó). */
+@Composable
+private fun CasillaDeProgreso(progreso: Progreso, comenzado: LocalDate?, leido: LocalDate?, fin: LocalDate?, estado: String, hoy: LocalDate) {
+    val colores = LocalColores.current
+    val izquierda = comenzado?.let { "Comenzado ${PanelDeLectura.fecha(it, hoy)}" } ?: estado.takeIf { it.isNotEmpty() }
+    val derecha = leido?.let { "Leído ${PanelDeLectura.fecha(it, hoy)}" } ?: fin?.let { "Al ritmo actual, ${PanelDeLectura.fecha(it, hoy)}" }
+    if (progreso.pagina <= 0 && izquierda == null && derecha == null) return
+    Casilla(Modifier.fillMaxWidth()) {
+        if (progreso.pagina > 0 || progreso.total != null) {
+            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+                Text(progreso.pagina.toString(), style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = 24.sp, fontWeight = FontWeight.Bold, lineHeight = 1.1.em, color = colores.tinta))
+                Text(progreso.total?.let { "de $it págs." } ?: "págs.", style = Textos.cuerpo.copy(fontSize = 14.sp, lineHeight = 1.6.em, color = colores.tintaSuave), modifier = Modifier.weight(1f))
+                progreso.porcentaje?.let { Text("$it %", style = Textos.cuerpo.copy(fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 1.5.em, color = colores.primario)) }
             }
-            Text("Tu lectura", style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.08), color = colores.tinta))
+            progreso.porcentaje?.let { porcentaje ->
+                Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(50)).background(colores.superficieContenedor)) {
+                    Box(Modifier.fillMaxWidth(porcentaje.coerceIn(0, 100) / 100f).fillMaxHeight().clip(RoundedCornerShape(50)).background(colores.primario))
+                }
+            }
         }
-        // Compacta (opción A del propietario, 26/10/2026): lo que no tiene dato no ocupa sitio.
-        if (progreso.pagina > 0) {
-            val conTotal = progreso.porcentaje != null && progreso.total != null
-            val fuerte = SpanStyle(fontWeight = FontWeight.Bold, color = colores.tinta)
-            Text(
-                buildAnnotatedString {
-                    if (conTotal) {
-                        append("Pág. ")
-                        withStyle(fuerte) { append(progreso.pagina.toString()) }
-                        append(" de ${progreso.total} · ")
-                        withStyle(fuerte) { append("${progreso.porcentaje} %") }
-                    } else {
-                        append("Vas por la página ")
-                        withStyle(fuerte) { append(progreso.pagina.toString()) }
-                    }
-                },
-                style = Textos.cuerpo.copy(fontSize = rem(0.86), color = colores.tintaSuave),
-            )
-            if (conTotal) BarraDeProgreso(progreso.porcentaje ?: 0, Modifier.padding(top = Espacios.e2))
+        if (izquierda != null || derecha != null) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+                Text(izquierda.orEmpty(), style = Textos.cuerpo.copy(fontSize = 12.sp, lineHeight = 1.3.em, color = colores.tintaSuave), modifier = Modifier.weight(1f))
+                if (derecha != null) Text(derecha, style = Textos.cuerpo.copy(fontSize = 12.sp, lineHeight = 1.3.em, color = colores.tintaSuave, textAlign = TextAlign.End))
+            }
         }
-        val hitos = ResumenDelLibro.hitos(libro)
-        val estado = ResumenDelLibro.estadoSinFecha(libro)
-        if (hitos.isNotEmpty() || estado.isNotEmpty()) {
-            FlowRow(
-                Modifier.fillMaxWidth().padding(top = Espacios.e3),
-                horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-                verticalArrangement = Arrangement.spacedBy(Espacios.e1),
-            ) {
-                hitos.forEach { hito ->
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(SpanStyle(color = colores.tintaSuave)) { append(hito.nombre) }
-                            append(" ${hito.fecha}")
-                            if (hito.detalle.isNotEmpty()) append(" · ${hito.detalle}")
-                        },
-                        style = Textos.cuerpo.copy(fontSize = rem(0.8), color = colores.tinta),
+    }
+}
+
+/** El ritmo: páginas por día con lectura, su línea día a día y frente a tu media. */
+@Composable
+private fun CasillaDeRitmo(ritmo: RitmoDelLibro, modifier: Modifier) {
+    val colores = LocalColores.current
+    val valores = remember(ritmo) { PanelDeLectura.paginasPorDia(ritmo).takeLast(14).map { it.second } }
+    val frente = PanelDeLectura.frenteATuMedia(ritmo)
+    Casilla(modifier) {
+        Rotulo("Ritmo")
+        Cifra(ResumenDelLibro.hastaUnDecimal(ritmo.paginasPorDia), "págs./día")
+        LineaMini(valores, 44.dp)
+        if (frente != null) Text(frente, style = Textos.cuerpo.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, lineHeight = 1.3.em, color = if (frente.startsWith("+")) colores.exito else colores.tintaSuave))
+    }
+}
+
+/** Los capítulos y las escenas, las barras de las páginas de cada capítulo y su media. */
+@Composable
+private fun CasillaDeCapitulos(resumen: EstadisticasDelLibro, modifier: Modifier) {
+    val colores = LocalColores.current
+    val paginas = remember(resumen) { PanelDeLectura.paginasPorCapitulo(resumen) }
+    val media = ResumenDelLibro.paginasPorCapitulo(resumen)
+    val escenas = ResumenDelLibro.escenas(resumen)
+    Casilla(modifier) {
+        Rotulo("Capítulos")
+        Cifra(resumen.capitulos.size.toString(), "· $escenas ${if (escenas == 1) "escena" else "escenas"}")
+        if (paginas.isNotEmpty()) BarrasMini(paginas, 44.dp)
+        if (media != null) Text("${ResumenDelLibro.hastaUnDecimal(media)} págs. de media", style = Textos.cuerpo.copy(fontSize = 12.sp, lineHeight = 1.3.em, color = colores.tintaSuave))
+    }
+}
+
+/** Los últimos días hasta el último con lectura: una barra por día con sus páginas; el mejor, destacado. */
+@Composable
+private fun CasillaDeDias(dias: List<DiaDeLectura>, modifier: Modifier) {
+    val colores = LocalColores.current
+    val mejor = PanelDeLectura.mejor(dias)
+    val tope = dias.maxOf { it.paginas ?: 0 }.coerceAtLeast(1)
+    Casilla(modifier) {
+        Rotulo("Últimos días")
+        dias.forEach { dia ->
+            val destacado = dia.fecha == mejor
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(PanelDeLectura.diaCorto(dia.fecha), style = Textos.cuerpo.copy(fontSize = 12.sp, lineHeight = 1.3.em, color = colores.tintaSuave), modifier = Modifier.width(44.dp), maxLines = 1)
+                Box(Modifier.weight(1f).height(12.dp)) {
+                    val paginas = dia.paginas ?: 0
+                    val fraccion = if (paginas > 0) paginas.toFloat() / tope else 0f
+                    Box(
+                        Modifier.then(if (paginas > 0) Modifier.fillMaxWidth(fraccion) else Modifier.width(6.dp)).fillMaxHeight().clip(RoundedCornerShape(50))
+                            .background(when {
+                                paginas <= 0 -> colores.contorno
+                                destacado -> colores.primario
+                                else -> mezclar(colores.primario, 0.42f, colores.superficie)
+                            }),
                     )
                 }
-                if (estado.isNotEmpty()) Text(estado, style = Textos.cuerpo.copy(fontSize = rem(0.8), fontWeight = FontWeight.Bold, color = colores.primario))
-            }
-        }
-        if (ResumenDelLibro.comprado(libro) == null) FechaDeCompra(vm)
-        libro.metricas?.ritmo?.let { ritmo ->
-            CifrasDelRitmo(ritmo)
-            ResumenDelLibro.comparacionDeRitmo(ritmo).takeIf { it.isNotEmpty() }?.let {
-                Text(it, style = Textos.cuerpo.copy(fontSize = rem(0.72), color = colores.tintaSuave), modifier = Modifier.padding(top = Espacios.e2))
+                Text(
+                    dia.paginas?.takeIf { it > 0 }?.toString() ?: "—",
+                    style = Textos.cuerpo.copy(fontSize = 12.5.sp, lineHeight = 1.3.em, fontWeight = if (destacado) FontWeight.Bold else FontWeight.Normal, color = if (dia.paginas != null && dia.paginas > 0) colores.tinta else colores.tintaSuave, textAlign = TextAlign.End),
+                    modifier = Modifier.width(26.dp), maxLines = 1,
+                )
             }
         }
     }
 }
 
-/** `.m-book-stats__bar`: lo leído, en una barra de 8 dp. */
+/** Las fechas de la lectura que no salen ya en el progreso, de la más reciente a la más antigua; y añadir la de compra. */
 @Composable
-private fun BarraDeProgreso(porcentaje: Int, modifier: Modifier = Modifier) {
+private fun CasillaDeFechas(vm: LibroViewModel, hitos: List<HitoConFecha>, sinCompra: Boolean, hoy: LocalDate, modifier: Modifier) {
     val colores = LocalColores.current
-    Box(modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(50)).background(colores.superficieAlta)) {
-        Box(Modifier.fillMaxWidth(porcentaje.coerceIn(0, 100) / 100f).fillMaxHeight().clip(RoundedCornerShape(50)).background(colores.primario))
-    }
-}
-
-/** `.m-book-stats__pace`: las cuatro cifras de tu ritmo en este libro, en una fila (dos por debajo de 360 dp). */
-@Composable
-private fun CifrasDelRitmo(ritmo: RitmoDelLibro) {
-    val colores = LocalColores.current
-    val cifras = listOf(
-        "Págs./día" to ResumenDelLibro.hastaUnDecimal(ritmo.paginasPorDia),
-        "Días" to ritmo.diasActivos.toString(),
-        "Mejor día" to ResumenDelLibro.mejorDia(ritmo),
-        "Tu media" to (ritmo.mediaPersonalPorDia?.let(ResumenDelLibro::hastaUnDecimal) ?: "—"),
-    )
-    Column(
-        Modifier.fillMaxWidth().padding(top = Espacios.e3)
-            .drawBehind { drawRect(colores.contorno, Offset.Zero, Size(size.width, 1.dp.toPx())) }
-            .padding(top = Espacios.e3),
-        verticalArrangement = Arrangement.spacedBy(Espacios.e2),
-    ) {
-        cifras.chunked(if (LocalVentana.current.anchoDp < 360) 2 else 4).forEach { fila ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                fila.forEach { (nombre, valor) ->
-                    Column(Modifier.weight(1f)) {
-                        Text(nombre.uppercase(), style = Textos.cuerpo.copy(fontSize = rem(0.67), fontWeight = FontWeight.Bold, color = colores.tintaSuave))
-                        Text(valor, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(0.95), color = colores.tinta), modifier = Modifier.padding(top = 2.dp))
-                    }
+    Casilla(modifier) {
+        Rotulo("Fechas")
+        hitos.forEachIndexed { i, hito ->
+            Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(10.dp).clip(CircleShape).background(colores.superficie)
+                        .border(2.dp, if (i == 0) colores.primario else colores.contornoFuerte, CircleShape),
+                )
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (hito.detalle.isEmpty()) hito.nombre else "${hito.nombre} · ${hito.detalle}",
+                        style = Textos.cuerpo.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold, lineHeight = 1.3.em, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(PanelDeLectura.fecha(hito.fecha, hoy), style = Textos.cuerpo.copy(fontSize = 12.sp, lineHeight = 1.3.em, color = colores.tintaSuave))
                 }
             }
         }
+        if (sinCompra) FechaDeCompra(vm)
     }
 }
 
@@ -214,177 +301,87 @@ private fun FechaDeCompra(vm: LibroViewModel) {
     val colores = LocalColores.current
     val contexto = LocalContext.current
     Row(
-        Modifier.padding(top = Espacios.e2).heightIn(min = 44.dp).clip(RoundedCornerShape(Radios.sm))
+        Modifier.heightIn(min = 44.dp).clip(RoundedCornerShape(Radios.sm))
             .clickable(enabled = !vm.guardandoCompra, role = Role.Button) {
                 val hoy = LocalDate.now()
                 DatePickerDialog(contexto, { _, anio, mes, dia -> vm.ponerFechaDeCompra(LocalDate.of(anio, mes + 1, dia)) }, hoy.year, hoy.monthValue - 1, hoy.dayOfMonth).show()
-            }
-            .padding(horizontal = Espacios.e1),
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
+            },
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(painterResource(Iconos.calendarToday), contentDescription = null, tint = colores.primario, modifier = Modifier.size(18.dp))
-        Text("Añadir fecha de compra", style = Textos.cuerpo.copy(fontSize = rem(0.76), fontWeight = FontWeight.Bold, color = colores.primario))
+        Icon(painterResource(Iconos.calendarToday), contentDescription = null, tint = colores.primario, modifier = Modifier.size(16.dp))
+        Text("Fecha de compra", style = Textos.cuerpo.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold, lineHeight = 1.2.em, color = colores.primario))
     }
 }
 
-/** `.m-book-stats__metrics`: seis cifras en tres columnas (seis desde 600 dp), separadas por rayas de 1 dp. */
+/** El reparto: los principales con su barra de apariciones y de solo nombrado, y el total de personajes. */
 @Composable
-private fun Cifras(resumen: EstadisticasDelLibro, ancha: Boolean) {
+private fun CasillaDeReparto(resumen: EstadisticasDelLibro) {
     val colores = LocalColores.current
-    val media = ResumenDelLibro.paginasPorCapitulo(resumen)
-    val cifras = listOf(
-        Triple(Iconos.menuBook, resumen.capitulos.size.toString(), "Capítulos"),
-        Triple(Iconos.movieFilter, ResumenDelLibro.escenas(resumen).toString(), "Escenas"),
-        Triple(Iconos.autoStories, media?.let(ResumenDelLibro::decimal) ?: "—", "Págs. por capítulo"),
-        Triple(Iconos.theaterComedy, resumen.personajes.size.toString(), "Personajes"),
-        Triple(Iconos.groups, ResumenDelLibro.apariciones(resumen).toString(), "Apariciones"),
-        Triple(Iconos.recordVoiceOver, ResumenDelLibro.menciones(resumen).toString(), "Menciones"),
-    )
-    val forma = RoundedCornerShape(Radios.lg)
-    Column(
-        Modifier.padding(start = if (ancha) 0.dp else Espacios.e4, end = if (ancha) 0.dp else Espacios.e4, top = Espacios.e4)
-            .fillMaxWidth().clip(forma).background(colores.contorno).border(1.dp, colores.contorno, forma).padding(1.dp),
-        verticalArrangement = Arrangement.spacedBy(1.dp),
-    ) {
-        cifras.chunked(if (ancha) 6 else 3).forEach { fila ->
-            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(1.dp)) {
-                fila.forEach { (icono, valor, nombre) ->
-                    Column(
-                        Modifier.weight(1f).fillMaxHeight().heightIn(min = 104.dp).background(mezclar(colores.superficie, 0.94f, colores.contorno)).padding(Espacios.e2),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
-                    ) {
-                        Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.padding(bottom = 2.dp).size(20.dp))
-                        Text(valor, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.24), fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(nombre, style = Textos.cuerpo.copy(fontSize = rem(0.64), lineHeight = 1.2.em, color = colores.tintaSuave, textAlign = TextAlign.Center))
-                    }
+    val principales = remember(resumen) { PanelDeLectura.principales(resumen) }
+    if (principales.isEmpty()) return
+    val tope = principales.maxOf { it.total }.coerceAtLeast(1)
+    val nombrado = mezclar(colores.atencion, 0.7f, colores.superficie)
+    Casilla(Modifier.fillMaxWidth()) {
+        Rotulo("Reparto", "${resumen.personajes.size} personajes")
+        principales.forEach { personaje ->
+            Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
+                Text(personaje.nombre, style = Textos.cuerpo.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold, lineHeight = 1.3.em, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(92.dp))
+                Row(Modifier.weight(1f).height(10.dp).clip(RoundedCornerShape(50)).background(colores.superficieContenedor)) {
+                    if (personaje.apariciones > 0) Box(Modifier.weight(personaje.apariciones.toFloat()).fillMaxHeight().background(colores.primario))
+                    if (personaje.nombramientos > 0) Box(Modifier.weight(personaje.nombramientos.toFloat()).fillMaxHeight().background(nombrado))
+                    if (personaje.total < tope) Box(Modifier.weight((tope - personaje.total).toFloat()).fillMaxHeight())
+                }
+                Text(personaje.total.toString(), style = Textos.cuerpo.copy(fontSize = 13.sp, lineHeight = 1.3.em, color = colores.tintaSuave, textAlign = TextAlign.End), modifier = Modifier.width(28.dp))
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            listOf("Aparece" to colores.primario, "Nombrado" to nombrado).forEach { (nombre, color) ->
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(10.dp).clip(RoundedCornerShape(3.dp)).background(color))
+                    Text(nombre, style = Textos.cuerpo.copy(fontSize = 12.sp, lineHeight = 1.2.em, color = colores.tintaSuave))
                 }
             }
         }
     }
 }
 
-/** `.m-book-stats__highlights`: el más presente y el más nombrado, si los hay. */
+/** «Ver gráficos»: lo que no cabe en el panel (el reparto por capítulo y los personajes por grupo), plegado. */
 @Composable
-private fun Destacados(resumen: EstadisticasDelLibro, ancha: Boolean) {
+private fun MasGraficos(libro: Libro, resumen: EstadisticasDelLibro, ancha: Boolean, muyAncha: Boolean) {
     val colores = LocalColores.current
-    val presente = ResumenDelLibro.masPresente(resumen)
-    val nombrado = ResumenDelLibro.masNombrado(resumen)
-    if (presente == null && nombrado == null) return
-    val piezas = listOfNotNull(
-        presente?.let { Triple("Más presente", it.nombre, "${it.apariciones} apariciones") },
-        nombrado?.let { Triple("Más nombrado", it.nombre, "${it.nombramientos} menciones") },
-    )
-    val forma = RoundedCornerShape(Radios.lg)
-    val contenido: @Composable (Triple<String, String, String>, Modifier) -> Unit = { (rotulo, nombre, cifra), m ->
-        Column(m.heightIn(min = 74.dp).background(colores.superficieContenedor).padding(Espacios.e3), verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)) {
-            Text(rotulo.uppercase(), style = Textos.cuerpo.copy(fontSize = rem(0.67), fontWeight = FontWeight.Bold, color = colores.tintaSuave))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-                Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                Text(cifra, style = Textos.cuerpo.copy(fontSize = rem(0.69), color = colores.primario))
-            }
-        }
-    }
-    val marco = Modifier.padding(start = if (ancha) 0.dp else Espacios.e4, end = if (ancha) 0.dp else Espacios.e4, top = Espacios.e4).fillMaxWidth().clip(forma).background(colores.contorno)
-    if (ancha) {
-        Row(marco.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(1.dp)) { piezas.forEach { contenido(it, Modifier.weight(1f).fillMaxHeight()) } }
-    } else {
-        Column(marco, verticalArrangement = Arrangement.spacedBy(1.dp)) { piezas.forEach { contenido(it, Modifier.fillMaxWidth()) } }
-    }
-}
-
-/** `.m-book-stats__charts`: los cuatro gráficos, uno debajo de otro (dos columnas desde 900 dp). */
-@Composable
-private fun Graficos(libro: Libro, resumen: EstadisticasDelLibro, ancha: Boolean, muyAncha: Boolean) {
-    val colores = LocalColores.current
-    val ritmo = remember(resumen) { ResumenDelLibro.ritmo(resumen) }
-    val presencia = remember(libro, resumen) { ResumenDelLibro.presencia(libro, resumen) }
     val reparto = remember(resumen) { ResumenDelLibro.reparto(resumen) }
     val grupos = remember(libro) { ResumenDelLibro.grupos(libro) }
-    // Tu ritmo en este libro (F2): sus cifras van en «Tu lectura»; aquí, solo la curva, y nada si no hay ritmo.
-    val curva = libro.metricas?.ritmo?.curva.orEmpty()
-    val tarjetas: List<@Composable (Modifier) -> Unit> = listOfNotNull<@Composable (Modifier) -> Unit>(
-        if (curva.isEmpty()) null else { m ->
-            TarjetaDeGrafico("Tu ritmo en este libro", "Hasta qué página llegaste cada día", ancha, m) {
-                Box(Modifier.padding(horizontal = Espacios.e2)) { CurvaDeRitmo(curva, 200.dp) }
-            }
-        },
-    ) + listOf(
-        { m ->
-            TarjetaDeGrafico("Ritmo del libro", "Páginas de cada capítulo", ancha, m) {
-                if (ritmo == null) TextoVacio("Añade páginas a los capítulos para ver el ritmo.", Modifier.padding(horizontal = Espacios.e4, vertical = Espacios.e4))
-                else Box(Modifier.padding(horizontal = Espacios.e2)) {
-                    BarrasPorCapitulo(ritmo.first.map { it.first.toString() }, listOf(SerieDeBarras("Páginas", ritmo.first.map { it.second }, colores.primario)), 220.dp, media = ritmo.second, tituloX = "Capítulo")
-                }
-            }
-        },
-        { m ->
-            TarjetaDeGrafico("Quién aparece", "Los personajes más presentes, capítulo a capítulo", ancha, m) {
-                if (presencia == null) TextoVacio("Las escenas aún no tienen personajes registrados.", Modifier.padding(horizontal = Espacios.e4, vertical = Espacios.e4))
-                else Box(Modifier.padding(horizontal = Espacios.e2)) { MapaDePresencia(presencia) }
-            }
-        },
-        { m ->
-            TarjetaDeGrafico("Reparto por capítulo", "Aparecen y solo nombrados", ancha, m) {
-                if (reparto == null) TextoVacio("Las escenas aún no tienen personajes registrados.", Modifier.padding(horizontal = Espacios.e4, vertical = Espacios.e4))
-                else Box(Modifier.padding(horizontal = Espacios.e2)) {
+    if (reparto == null && grupos == null) return
+    var abiertos by rememberSaveable(libro.id) { mutableStateOf(false) }
+    Row(
+        Modifier.heightIn(min = 44.dp).clip(Radios.pildora).border(1.dp, colores.contorno, Radios.pildora)
+            .clickable(role = Role.Button) { abiertos = !abiertos }.padding(horizontal = Espacios.e4),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(if (abiertos) "Ocultar gráficos" else "Ver gráficos", style = Textos.cuerpo.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold, lineHeight = 1.2.em, color = colores.primario))
+        Icon(painterResource(if (abiertos) Iconos.expandLess else Iconos.expandMore), contentDescription = null, tint = colores.primario, modifier = Modifier.size(18.dp))
+    }
+    if (!abiertos) return
+    val tarjetas: List<@Composable (Modifier) -> Unit> = listOfNotNull(
+        reparto?.let { datos ->
+            @Composable { m: Modifier ->
+                Casilla(m) {
+                    Rotulo("Reparto por capítulo")
                     BarrasPorCapitulo(
-                        reparto.map { it.first.toString() },
-                        listOf(SerieDeBarras("Aparecen", reparto.map { it.second }, colores.primario), SerieDeBarras("Solo nombrados", reparto.map { it.third }, colores.atencion)),
+                        datos.map { it.first.toString() },
+                        listOf(SerieDeBarras("Aparecen", datos.map { it.second }, colores.primario), SerieDeBarras("Solo nombrados", datos.map { it.third }, colores.atencion)),
                         220.dp,
                     )
                 }
             }
         },
-        { m ->
-            TarjetaDeGrafico("Personajes por grupo", null, ancha, m) {
-                if (grupos == null) TextoVacio("Todavía no hay personajes.", Modifier.padding(horizontal = Espacios.e4, vertical = Espacios.e4))
-                else Box(Modifier.padding(horizontal = Espacios.e2)) { RoscoDeGrupos(grupos) }
-            }
-        },
+        grupos?.let { datos -> @Composable { m: Modifier -> Casilla(m) { Rotulo("Personajes por grupo"); RoscoDeGrupos(datos) } } },
     )
-    Column(Modifier.fillMaxWidth().padding(top = Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-        if (muyAncha) {
-            tarjetas.chunked(2).forEach { fila ->
-                Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espacios.e3)) { fila.forEach { it(Modifier.weight(1f).fillMaxHeight()) } }
-            }
-        } else {
-            tarjetas.forEach { it(Modifier.fillMaxWidth()) }
-        }
+    if (muyAncha || ancha) {
+        Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) { tarjetas.forEach { it(Modifier.weight(1f).fillMaxHeight()) } }
+    } else {
+        tarjetas.forEach { it(Modifier.fillMaxWidth()) }
     }
-}
-
-/** `.m-book-stats__chart`: rayas arriba y abajo en el móvil; una tarjeta con borde desde 600 dp. */
-@Composable
-private fun TarjetaDeGrafico(titulo: String, subtitulo: String?, ancha: Boolean, modifier: Modifier, contenido: @Composable ColumnScope.() -> Unit) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.lg)
-    Column(
-        modifier
-            .then(if (ancha) Modifier.clip(forma).border(1.dp, colores.contorno, forma) else Modifier.drawBehind {
-                drawRect(colores.contorno, Offset.Zero, Size(size.width, 1.dp.toPx()))
-                drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx()))
-            })
-            .background(colores.superficie)
-            .padding(top = Espacios.e4, bottom = Espacios.e2),
-    ) {
-        Column(Modifier.padding(start = Espacios.e4, end = Espacios.e4, bottom = Espacios.e2)) {
-            Text(titulo, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.06), color = colores.tinta))
-            if (subtitulo != null) Text(subtitulo, style = Textos.cuerpo.copy(fontSize = rem(0.72), color = colores.tintaSuave), modifier = Modifier.padding(top = 3.dp))
-        }
-        contenido()
-    }
-}
-
-@Composable
-private fun TextoVacio(texto: String, modifier: Modifier = Modifier) {
-    Text(texto, style = Textos.cuerpo.copy(fontSize = rem(0.78), lineHeight = 1.5.em, color = LocalColores.current.tintaSuave), modifier = modifier)
-}
-
-/** Sube la pieza [cuanto] y descuenta ese hueco del diseño (lo que hace un `margin-top` negativo en CSS; `offset` no lo descuenta). */
-private fun Modifier.subir(cuanto: Dp) = layout { medible, restricciones ->
-    val pieza = medible.measure(restricciones)
-    val px = cuanto.roundToPx()
-    layout(pieza.width, (pieza.height - px).coerceAtLeast(0)) { pieza.place(0, -px) }
 }

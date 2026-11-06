@@ -124,46 +124,49 @@ fun BarrasPorCapitulo(categorias: List<String>, series: List<SerieDeBarras>, alt
 }
 
 /**
- * Tu ritmo en este libro (`paceCurveChart`): la página más alta a la que llegaste cada día con lectura, en una línea con
- * su relleno suave, la escala del eje como en las barras y el primer y el último día abajo.
+ * La línea mini de «Ritmo» en el panel de «Tu lectura» (rediseño del 6/11/2026): las páginas de cada día con lectura,
+ * sin ejes, de lado a lado, en el primario.
  */
 @Composable
-fun CurvaDeRitmo(puntos: List<Pair<String, Int>>, alto: Dp) {
+fun LineaMini(valores: List<Int>, alto: Dp, modifier: Modifier = Modifier) {
     val colores = LocalColores.current
-    val medidor = rememberTextMeasurer()
-    Canvas(Modifier.fillMaxWidth().height(alto)) {
-        if (puntos.isEmpty()) return@Canvas
-        val (tope, paso) = ResumenDelLibro.escala(puntos.maxOf { it.second }.toDouble())
-        val izquierda = 34.dp.toPx()
-        val abajo = 24.dp.toPx()
-        val arriba = 10.dp.toPx()
-        val derecha = 12.dp.toPx()
-        val alturaUtil = size.height - abajo - arriba
-        val anchoUtil = size.width - izquierda - derecha
-        fun y(valor: Double) = arriba + alturaUtil * (1 - valor / tope).toFloat()
-        fun x(i: Int) = izquierda + if (puntos.size == 1) anchoUtil / 2 else anchoUtil * i / (puntos.size - 1)
-        var marca = 0.0
-        while (marca <= tope + 0.001) {
-            val linea = y(marca)
-            drawLine(colores.contorno, Offset(izquierda, linea), Offset(size.width - derecha, linea), 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx())))
-            texto(medidor, marca.roundToInt().toString(), letraDeEje.copy(color = colores.tintaSuave), Offset(izquierda - 8.dp.toPx(), linea), derecha = true)
-            marca += paso
+    Canvas(modifier.fillMaxWidth().height(alto)) {
+        if (valores.isEmpty()) return@Canvas
+        val tope = max(1, valores.max()).toFloat()
+        val margen = 3.dp.toPx()
+        fun x(i: Int) = if (valores.size == 1) size.width / 2 else size.width * i / (valores.size - 1)
+        fun y(valor: Int) = margen + (size.height - 2 * margen) * (1 - valor / tope)
+        if (valores.size == 1) {
+            drawCircle(colores.primario, 3.dp.toPx(), Offset(x(0), y(valores[0])))
+            return@Canvas
         }
-        val linea = Path().apply {
-            puntos.forEachIndexed { i, (_, pagina) -> if (i == 0) moveTo(x(i), y(pagina.toDouble())) else lineTo(x(i), y(pagina.toDouble())) }
+        val linea = Path().apply { valores.forEachIndexed { i, v -> if (i == 0) moveTo(x(i), y(v)) else lineTo(x(i), y(v)) } }
+        drawPath(linea, colores.primario, style = Stroke(2.2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
+}
+
+/**
+ * Las barras mini de «Capítulos» en el panel de «Tu lectura»: las páginas de cada capítulo, en el primario suave y el
+ * último en el primario. Si no caben a 4 dp, solo las últimas que caben.
+ */
+@Composable
+fun BarrasMini(valores: List<Int>, alto: Dp, modifier: Modifier = Modifier) {
+    val colores = LocalColores.current
+    val suave = mezclar(colores.primario, 0.42f, colores.superficie)
+    Canvas(modifier.fillMaxWidth().height(alto)) {
+        if (valores.isEmpty()) return@Canvas
+        val separacion = 3.dp.toPx()
+        val caben = max(1, ((size.width + separacion) / (4.dp.toPx() + separacion)).toInt())
+        val vistos = valores.takeLast(caben)
+        val tope = max(1, vistos.max()).toFloat()
+        val ancho = min(12.dp.toPx(), (size.width - separacion * (vistos.size - 1)) / vistos.size)
+        vistos.forEachIndexed { i, valor ->
+            val altoBarra = max(2.dp.toPx(), size.height * valor / tope)
+            drawRoundRect(
+                if (i == vistos.lastIndex) colores.primario else suave,
+                Offset(i * (ancho + separacion), size.height - altoBarra), Size(ancho, altoBarra), CornerRadius(2.dp.toPx()),
+            )
         }
-        val relleno = Path().apply {
-            addPath(linea)
-            lineTo(x(puntos.lastIndex), y(0.0))
-            lineTo(x(0), y(0.0))
-            close()
-        }
-        drawPath(relleno, colores.primario.copy(alpha = 0.16f))
-        drawPath(linea, colores.primario, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-        puntos.indices.forEach { i -> drawCircle(colores.primario, 3.dp.toPx(), Offset(x(i), y(puntos[i].second.toDouble()))) }
-        val base = size.height - abajo + 14.dp.toPx()
-        texto(medidor, ResumenDelLibro.diaCorto(puntos.first().first), letraDeEje.copy(color = colores.tintaSuave), Offset(x(0), base), centrado = puntos.size == 1)
-        if (puntos.size > 1) texto(medidor, ResumenDelLibro.diaCorto(puntos.last().first), letraDeEje.copy(color = colores.tintaSuave), Offset(x(puntos.lastIndex), base), derecha = true)
     }
 }
 
