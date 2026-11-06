@@ -60,6 +60,24 @@ describe('ClubInvitationLinkService (#yosi-invitacion y #yosi-invitaciones)', ()
         history.replaceState(history.state, '', `${location.pathname}${location.search}`);
     });
 
+    it('con la sesión aún cargando espera a que quede lista, aunque ya sepa que hay persona (el orden de la sesión)', fakeAsync(() => {
+        const { service, spaces, access, userIsLogged$, current } = create('#yosi-invitacion=ABC', false);
+        access.next('cargando');
+
+        service.start();
+        // Como `PlatformSessionService`: primero `userIsLogged` y después `lista`.
+        userIsLogged$.next(true);
+        flushMicrotasks();
+        expect(spaces.invitationByCode).not.toHaveBeenCalled();
+
+        access.next('lista');
+        flushMicrotasks();
+        tick();
+
+        expect(spaces.invitationByCode).toHaveBeenCalledOnceWith('ABC');
+        expect(current()?.title).toContain('Club de Dune');
+    }));
+
     it('lee los dos fragmentos como el SDK', () => {
         expect(parseInvitationFragment('#yosi-invitacion=ABC%2B1')).toEqual({ tipo: 'codigo', codigo: 'ABC+1' });
         expect(parseInvitationFragment('yosi-invitacion=XYZ')).toEqual({ tipo: 'codigo', codigo: 'XYZ' });

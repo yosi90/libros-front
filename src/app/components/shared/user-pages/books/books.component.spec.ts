@@ -12,7 +12,7 @@ describe('BooksComponent reader opening', () => {
         const component = Object.create(BooksComponent.prototype) as any;
         component.loader = jasmine.createSpyObj('loader', ['activateLoader', 'deactivateLoader']);
         component.router = jasmine.createSpyObj('router', ['navigate']);
-        component.fullscreenReturn = jasmine.createSpyObj('fullscreenReturn', ['rememberLibrary', 'rememberAnthology', 'consumeAnthology']);
+        component.fullscreenReturn = jasmine.createSpyObj('fullscreenReturn', ['rememberLibrary', 'rememberAnthology', 'consumeAnthology', 'consumeLibraryPanels']);
         component.fullscreenReturn.consumeAnthology.and.returnValue(null);
         component.presentation = { snapshot: { isMobilePresentationActive: true } };
         component.openingAnthologySectionId = null;
@@ -144,11 +144,14 @@ describe('BooksComponent reader opening', () => {
         it(`opens ${kind} editions preserving their IDs without opening the reader`, () => {
             const component = create();
             component.catalogViewState = jasmine.createSpyObj('catalogViewState', ['setPendingDetail']);
+            component.expandedUniverseIds = new Set([3]);
+            component.expandedSagaIds = new Set([31]);
             const event = jasmine.createSpyObj('event', ['stopPropagation']);
             const item = { ...book, Ediciones: [{ Id: 91, ISBN: null, EnMiBiblioteca: true }] };
             component.openWorkEditions(kind, item, event);
             expect(event.stopPropagation).toHaveBeenCalled();
-            expect(component.fullscreenReturn.rememberLibrary).toHaveBeenCalledOnceWith();
+            // Recuerda los paneles abiertos para volver a ellos al cerrar la ficha.
+            expect(component.fullscreenReturn.rememberLibrary).toHaveBeenCalledOnceWith({ universes: [3], sagas: [31] });
             expect(component.catalogViewState.setPendingDetail).toHaveBeenCalledWith(jasmine.objectContaining({
                 Id: 11, Tipo: kind === 'book' ? 'libro' : 'antologia', Ediciones: item.Ediciones
             }));
@@ -249,6 +252,31 @@ describe('BooksComponent panel expansion', () => {
         const component = create();
         component.onUniversePanelOpened(1);
         expect(component.panelExpansionMode).toBe('running');
+    });
+
+    it('al volver de la ficha que abrió («Ver ediciones») recupera los paneles abiertos y no los cierra al recalcular', () => {
+        const component = create();
+        component.panelExpansionMode = 'closed';
+        component.expandedUniverseIds = new Set<number>();
+        component.expandedSagaIds = new Set<number>();
+
+        component.restoreLibraryPanels({ universes: [1, 99], sagas: [13] });
+        component.applyExpansionMode();
+
+        expect([...component.expandedUniverseIds]).toEqual([1]);
+        expect([...component.expandedSagaIds]).toEqual([13]);
+        expect(component.panelExpansionMode).toBe('manual');
+    });
+
+    it('sin regreso desde una ficha no toca los paneles (la Biblioteca entra cerrada)', () => {
+        const component = create();
+        component.panelExpansionMode = 'closed';
+        component.expandedUniverseIds = new Set<number>();
+
+        component.restoreLibraryPanels(null);
+
+        expect(component.panelExpansionMode).toBe('closed');
+        expect(component.expandedUniverseIds.size).toBe(0);
     });
 });
 

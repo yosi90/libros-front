@@ -53,7 +53,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileLibraryViewComponent } from '../../../mobile/user/mobile-library-view/mobile-library-view.component';
 import { AntologyService } from '../../../../services/entities/antology.service';
 import { getProductStateMessage } from '../../../../shared/api-error-message';
-import { MobileFullscreenReturnService } from '../../../../services/navigation/mobile-fullscreen-return.service';
+import { LibraryPanels, MobileFullscreenReturnService } from '../../../../services/navigation/mobile-fullscreen-return.service';
 import { anthologySectionPageLabel, anthologySectionProgress } from '../../../../shared/library-view-helpers';
 import { sagaChainCaption } from '../../../../shared/saga-chain';
 import { collectionStateRequests } from '../../../../shared/collection-state';
@@ -270,6 +270,7 @@ export class BooksComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.restoreLibraryPanels(this.fullscreenReturn.consumeLibraryPanels());
         this.pendingAnthologyRestoreId = this.fullscreenReturn.consumeAnthology();
         this.restorePendingAnthology();
         if (!this.isLoadingUniverses)
@@ -386,7 +387,7 @@ export class BooksComponent implements OnInit {
 
     openWorkEditions(kind: 'book' | 'antology', item: BookSimple | Antology, event: Event): void {
         event.stopPropagation();
-        this.fullscreenReturn.rememberLibrary();
+        this.fullscreenReturn.rememberLibrary({ universes: [...this.expandedUniverseIds], sagas: [...this.expandedSagaIds] });
         this.catalogViewState.setPendingDetail({
             ...item,
             Tipo: kind === 'book' ? 'libro' : 'antologia',
@@ -1311,6 +1312,18 @@ export class BooksComponent implements OnInit {
     rememberScrollPosition(): void {
         if (!this.pendingScrollRestore)
             this.librarySearchState.setScrollTop(this.host.nativeElement.scrollTop);
+    }
+
+    /**
+     * Al volver de la ficha que se abrió desde aquí («Ver ediciones»), los paneles que estaban abiertos: la Biblioteca
+     * entra cerrada (`627d3e46`) y, sin ellos, la persona volvía a una lista plegada lejos de la obra.
+     */
+    private restoreLibraryPanels(panels: LibraryPanels | null): void {
+        if (!panels)
+            return;
+        this.panelExpansionMode = 'manual';
+        this.expandedUniverseIds = new Set(panels.universes);
+        this.expandedSagaIds = new Set(panels.sagas);
     }
 
     private restoreScrollPosition(): void {

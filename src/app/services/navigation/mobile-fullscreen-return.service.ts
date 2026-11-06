@@ -8,10 +8,17 @@ interface AnthologyReturnFrame {
     restoreFromForwardedOverlay: boolean;
 }
 
+/** Los paneles de la Biblioteca (universos y sagas) que estaban abiertos al salir de ella. */
+export interface LibraryPanels {
+    universes: number[];
+    sagas: number[];
+}
+
 interface LibraryReturnFrame {
     kind: 'library';
     route: '/dashboard/books';
     restoreFromForwardedOverlay: true;
+    panels: LibraryPanels;
 }
 
 type MobileFullscreenReturnFrame = AnthologyReturnFrame | LibraryReturnFrame;
@@ -28,8 +35,21 @@ export class MobileFullscreenReturnService {
 
     constructor(private router: Router) { }
 
-    rememberLibrary(): void {
-        this.frame = { kind: 'library', route: '/dashboard/books', restoreFromForwardedOverlay: true };
+    rememberLibrary(panels: LibraryPanels = { universes: [], sagas: [] }): void {
+        this.frame = { kind: 'library', route: '/dashboard/books', restoreFromForwardedOverlay: true, panels };
+    }
+
+    /**
+     * Books, al construirse: si vuelve de la ficha que abrió la Biblioteca (`restoreForwardedOverlay`), los paneles que
+     * tenía abiertos; si no (se entra por otro camino), `null`. El marco de la Biblioteca se consume igual.
+     */
+    consumeLibraryPanels(): LibraryPanels | null {
+        if (this.frame?.kind !== 'library')
+            return null;
+        const panels = this.restoring ? this.frame.panels : null;
+        this.frame = null;
+        this.restoring = false;
+        return panels;
     }
 
     rememberAnthology(anthologyId: number, restoreFromForwardedOverlay = false): void {
