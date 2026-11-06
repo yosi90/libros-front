@@ -1220,4 +1220,96 @@ class SesionYosiftwareTest {
         sesion.cambiarCorreo("nuevo@ejemplo.es", "secreta")
         assertEquals(listOf("Bearer tp1", "Bearer tp2"), red.a("/v1/sesion/correos/cambio").map { it.cabeceras["Authorization"] })
     }
+
+    @Test
+    fun `el error conserva el detalle y, con cuenta_restringida, lo da leido (1_10_0)`() = runTest {
+        val cuerpo = """{"error":"Tienes limitado escribir en el chat hasta el 02/11/2026 a las 18:30. Lo tienes explicado en Tu cuenta › Moderación.","code":"cuenta_restringida","field":null,"detalle":{"alcance":"chat","hasta":"2026-11-02T17:30:00Z"}}"""
+        val error = ErrorSesion.deLaPlataforma(403, cuerpo)
+        assertEquals(RestriccionDeCuenta("chat", "2026-11-02T17:30:00Z"), error.restriccion)
+        assertEquals("chat", error.detalle!!.getString("alcance"))
+        assertTrue(error.mensaje.startsWith("Tienes limitado escribir en el chat hasta el 02/11/2026"))
+        // Permanente: `hasta` es null. Y con el cliente de la librería llega igual.
+        entrar()
+        red.responder("/v1/espacios/5/solicitudes", 403, cuerpo.replace("\"2026-11-02T17:30:00Z\"", "null"))
+        val permanente = fallo { sesion.espacios.pedirEntrar(5) }
+        assertEquals(RestriccionDeCuenta("chat", null), permanente.restriccion)
+        // Sin detalle, o con otro code, nada.
+        assertNull(ErrorSesion.deLaPlataforma(404, """{"error":"No","code":"espacio_no_encontrado"}""").detalle)
+        assertNull(ErrorSesion.deLaPlataforma(409, """{"error":"No","code":"otro","detalle":{"alcance":"chat"}}""").restriccion)
+    }
+
+    @Test
+    fun `las solicitudes de entrar y las invitaciones enviadas de un espacio (1_10_0)`() = runTest {
+        entrar()
+        val solicitud = """{"id":3,"cuenta":"c-ana","alias":"ana","nombre":null,"mensaje":"Hola","creada":"2026-11-06T10:00:00Z"}"""
+        red.responder("/v1/espacios/5/solicitudes", 201, solicitud)
+        val mia = sesion.espacios.pedirEntrar(5, "  Hola  ")
+        assertEquals(SolicitudDeEntrada(3, "c-ana", "ana", null, "Hola", "2026-11-06T10:00:00Z"), mia)
+        assertEquals("Hola", red.cuerpo("/v1/espacios/5/solicitudes").getString("mensaje"))
+        red.responder("/v1/espacios/6/solicitudes", 201, solicitud)
+        sesion.espacios.pedirEntrar(6)
+        assertTrue(red.cuerpo("/v1/espacios/6/solicitudes").isNull("mensaje"))
+
+        red.responder("/v1/espacios/5/solicitudes/mia", 204, "")
+        sesion.espacios.retirarSolicitud(5)
+        assertEquals("DELETE", red.a("/v1/espacios/5/solicitudes/mia").single().metodo)
+
+        red.responder("/v1/espacios/7/solicitudes", 200, """{"solicitudes":[$solicitud]}""")
+        assertEquals(listOf("ana"), sesion.espacios.solicitudes(7).map { it.alias })
+        red.responder("/v1/espacios/7/solicitudes/3/aprobar", 204, "")
+        red.responder("/v1/espacios/7/solicitudes/4/rechazar", 204, "")
+        sesion.espacios.aprobarSolicitud(7, 3)
+        sesion.espacios.rechazarSolicitud(7, 4)
+        assertEquals("POST", red.a("/v1/espacios/7/solicitudes/3/aprobar").single().metodo)
+        assertEquals("POST", red.a("/v1/espacios/7/solicitudes/4/rechazar").single().metodo)
+
+        val aPersona = """{"id":10,"cuenta":"c-beto","alias":"beto","correo":null,"rol":"miembro","de":"6f1c","creada":"2026-11-06T10:00:00Z","caduca":"2026-11-20T10:00:00Z"}"""
+        val aCorreo = """{"id":11,"cuenta":null,"alias":null,"correo":"a•••@gmail.com","rol":null,"de":"6f1c","creada":"2026-11-06T10:00:00Z","caduca":"2026-11-20T10:00:00Z"}"""
+        red.responder("/v1/espacios/7/invitaciones", 200, """{"invitaciones":[$aPersona,$aCorreo]}""")
+        val enviadas = sesion.espacios.invitacionesEnviadas(7)
+        assertEquals(listOf("beto", null), enviadas.map { it.alias })
+        assertEquals("a•••@gmail.com", enviadas[1].correo)
+        assertNull(enviadas[1].cuenta)
+        red.responder("/v1/espacios/7/invitaciones/11", 204, "")
+        sesion.espacios.retirarInvitacion(7, 11)
+        assertEquals("DELETE", red.a("/v1/espacios/7/invitaciones/11").single().metodo)
+    }
+
+    @Test
+    fun `buscar personas y el resumen social, con el avatar en direcciones completas (1_10_0)`() = runTest {
+        entrar()
+        val persona = """{"id":"c-ana","alias":"ana","nombre":"Ana García","privado":false,"avatar":{"version":3,"url":"/v1/perfiles/c-ana/avatar?v=3","miniatura":"/v1/perfiles/c-ana/avatar/miniatura?v=3"},"biografia":null,"pronombres":"ella","borrada":false}"""
+        val privada = """{"id":"c-beto","alias":"beto","nombre":null,"privado":true,"avatar":null}"""
+        red.responder("/v1/personas", 200, """{"personas":[$persona,$privada]}""")
+        val personas = sesion.social.buscarPersonas(" ana garcía ")
+        assertEquals("https://api.prueba/v1/personas?q=ana+garc%C3%ADa", red.a("/v1/personas").single().url)
+        assertEquals(listOf("ana", "beto"), personas.map { it.alias })
+        assertEquals(AvatarDePersona(3, "https://api.prueba/v1/perfiles/c-ana/avatar?v=3", "https://api.prueba/v1/perfiles/c-ana/avatar/miniatura?v=3"), personas[0].avatar)
+        assertEquals("ella", personas[0].pronombres)
+        assertTrue(personas[1].privado)
+        assertNull(personas[1].nombre)
+        assertFalse(personas[1].borrada)
+
+        red.alLlegar("/v1/personas") { error(400, "busqueda_no_valida") }
+        assertEquals("busqueda_no_valida", fallo { sesion.social.buscarPersonas("a") }.codigo)
+
+        red.responder("/v1/social/resumen", 200, """{"solicitudesRecibidas":2,"solicitudesEnviadas":1,"amistades":5,"seguidos":4,"seguidores":3,"bloqueos":0}""")
+        assertEquals(ResumenSocial(2, 1, 5, 4, 3, 0), sesion.social.resumen())
+    }
+
+    @Test
+    fun `si la cuenta cambia mientras llega la respuesta, se descarta con cuenta_cambiada (1_10_0)`() = runTest {
+        entrar()
+        red.responder("/v1/sesion/nativa/cierre", 204, "")
+        red.alLlegar("/v1/espacios/5/solicitudes") {
+            sesion.salir()
+            Respuesta(200, """{"solicitudes":[{"id":3,"cuenta":"c-ana","alias":"ana","nombre":null,"mensaje":null,"creada":"x"}]}""")
+        }
+        val error = fallo { sesion.espacios.solicitudes(5) }
+        assertEquals("cuenta_cambiada", error.codigo)
+        // Igual en lo social; y sin sesión, ni siquiera se llama.
+        red.responder("/v1/social/resumen", 200, "{}")
+        assertEquals("sin_sesion", fallo { sesion.social.resumen() }.codigo)
+        assertTrue(red.a("/v1/social/resumen").isEmpty())
+    }
 }

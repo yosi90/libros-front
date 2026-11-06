@@ -1,10 +1,11 @@
 package es.yosiftware.libros.ui.comunidad
 
 import androidx.annotation.DrawableRes
-import es.yosiftware.libros.datos.modelos.InvitacionRecibida
 import es.yosiftware.libros.datos.modelos.ResumenDeComunidad
-import es.yosiftware.libros.datos.modelos.ResumenSocial
+import es.yosiftware.libros.datos.modelos.clubId
 import es.yosiftware.libros.ui.tema.Iconos
+import es.yosiftware.sesion.InvitacionAEspacio
+import es.yosiftware.sesion.ResumenSocial
 
 /** Las secciones propias de la pestaña Comunidad (`SocialShellComponent.items`). Mensajes es el chat de la plataforma. */
 enum class SeccionDeComunidad(val etiqueta: String, @param:DrawableRes val icono: Int) {
@@ -40,7 +41,7 @@ object ResumenSocialDeComunidad {
     const val ERROR = "No se ha podido cargar el resumen social."
 
     /** Solo las invitaciones a espacios de clubes cuentan. */
-    fun invitacionesAClubes(invitaciones: List<InvitacionRecibida>): Int = invitaciones.count { it.clubId != null }
+    fun invitacionesAClubes(invitaciones: List<InvitacionAEspacio>): Int = invitaciones.count { it.clubId != null }
 
     /**
      * Las tarjetas, en su orden: las cuatro de la plataforma si llegó su resumen; «Clubes activos» si llegó el de Libros;

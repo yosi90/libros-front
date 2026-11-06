@@ -84,8 +84,8 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
         plataforma?.llamar(metodo, ruta, cuerpo) ?: throw ErrorDeLibros.sinSesion()
     }
 
-    /** La pertenencia a los clubes (los espacios) y el resumen social, en la plataforma. */
-    val espacios = RepositorioEspacios(llamadaDePlataforma)
+    /** La pertenencia a los clubes (los espacios) y el resumen social, con `sesion.espacios` y `sesion.social`. */
+    val espacios = RepositorioEspacios(sesion)
 
     /** La IA de la persona en la plataforma: si su clave está lista y qué modelos puede elegir. */
     val ia = RepositorioIA(llamadaDePlataforma)

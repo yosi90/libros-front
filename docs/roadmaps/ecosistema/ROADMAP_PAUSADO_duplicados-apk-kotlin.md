@@ -72,16 +72,18 @@ Alcance: `android-nativa/app/`. La librería `android-nativa/yosiftware-sesion/`
 
 Solo propuestas y peticiones a la plataforma (`C:\Users\Yosi\Desktop\administracion yosiftware\docs\peticiones\`): la librería no se edita.
 
-- [ ] **9. Los espacios: las rutas y los modelos de la librería**
+- [x] **9. Los espacios: las rutas y los modelos de la librería**
   - Petición a la plataforma del 06/11/2026, junto con los puntos 9, 10 y 13: `administracion yosiftware/docs/peticiones/que-la-libreria-de-la-sesion-cubra-lo-que-las-apps-nativas-aun-rehacen.md`.
+  - **Hecho (06/11/2026), con la librería 1.10.0 (kit 1.83, rama `apk/libreria-1-10`):** `RepositorioEspacios` ya no escribe ninguna ruta: todo va por `sesion.espacios` y `sesion.social` (también las solicitudes, las invitaciones enviadas, la búsqueda de personas y el resumen social), detrás de `EspaciosDeLaPlataforma` para probarlo sin la sesión (`EspaciosFalsos` en las pruebas). Los modelos son los de la librería; de `datos/modelos/Espacios.kt` solo quedan `clubDeEspacio`, `nombreVisible` y las extensiones `clubId` y `visible`. La `PersonaDeYosiftware` de Libros (chat, avisos y novedades, que leen otras rutas) pasa a `datos/modelos/Personas.kt` sin cambios; la búsqueda del club usa la de la librería, cuya miniatura ya es la dirección completa (el club deja de pasarla por `imagenDeLaPlataforma`). Cada llamada es de la cuenta activa al empezar: `cuenta_cambiada` se convierte en `RespuestaDeOtraCuenta` (`errorDeLaPlataforma`, en `ClientePlataforma.kt`) y no se enseña nunca. Con `correo_sin_confirmar` se abre la hoja del código, como con el resto de la plataforma. Pruebas: `RepositorioEspaciosTest` (también `cuenta_cambiada`, el correo y sin sesión) y `CentroDeAccesoViewModelTest.loDeOtraCuentaNoSeEnsena`.
   - **Descripción:** `datos/repositorios/RepositorioEspacios.kt` (40-49 y 91-104) rehace rutas que `sesion.espacios` (`EspaciosYosiftware`, librería 1.7.1) ya da: `mios`, `espacio`, `entrar`, `salir`, `invitaciones`, `aceptar`, `rechazar`, `porCodigo`, `aceptarPorCodigo`; y `datos/modelos/Espacios.kt` (20-108) tiene sus propias `Espacio`, `YoEnEspacio` e `InvitacionRecibida`, que son `EspacioDeYosiftware`, `YoEnElEspacio` e `InvitacionAEspacio` (la 1.7.0 los hizo públicos «para que una app que llama a otras rutas de los espacios con su propio cliente no los vuelva a escribir»). Las propias se quedaron porque la librería no tiene las solicitudes (`pedirEntrar`, `retirarMiSolicitud`, `solicitudes`, `resolverSolicitud`), las invitaciones enviadas y su retirada, la búsqueda de personas ni el resumen social, y porque así todo pasa por `ClientePlataforma` con la generación de la cuenta.
   - **Por qué se necesita:** es lo que la plataforma pide no rehacer (decisión 4 del propietario).
   - **Qué se espera lograr:** primero, leer con los modelos de la librería (`EspacioDeYosiftware.de`…) y añadir `clubId` como extensión; después, pedir a la plataforma las rutas que faltan y que `EspaciosYosiftware` respete una generación (o un `Job`) para descartar lo de otra cuenta, y retirar las copias.
   - **Peligros si se mantiene como estaba:** dos lecturas del mismo JSON que divergen cuando la plataforma cambie un campo.
   - **Peligros del cambio:** la lectura de la librería exige campos (`getString`) que la de Libros toma por defecto: un JSON incompleto que hoy se pinta fallaría. Pruebas de `RepositorioEspaciosTest` y de Comunidad delante.
 
-- [ ] **10. El `detalle` de los errores de la plataforma**
+- [x] **10. El `detalle` de los errores de la plataforma**
   - Petición a la plataforma del 06/11/2026, junto con los puntos 9, 10 y 13: `administracion yosiftware/docs/peticiones/que-la-libreria-de-la-sesion-cubra-lo-que-las-apps-nativas-aun-rehacen.md`.
+  - **Hecho (06/11/2026), con la librería 1.10.0:** la plataforma ya redacta la frase de `cuenta_restringida` (qué, hasta cuándo en hora de Madrid y dónde verlo), y la librería trae el `detalle` (`ErrorSesion.detalle` y `restriccion`). `Restricciones.kt` y su prueba se retiraron; `ClientePlataforma.errorDe` devuelve el error de la plataforma con su `mensaje` tal cual.
   - **Descripción:** `datos/red/Restricciones.kt` (15-50) vuelve a leer el cuerpo de la respuesta para componer la frase de `403 cuenta_restringida` (`detalle: { alcance, hasta }`), porque `ErrorSesion` no conserva el `detalle`; `ClientePlataforma.errorDe` rehace el error con esa frase.
   - **Por qué se necesita:** cada app nativa del ecosistema escribiría lo mismo.
   - **Qué se espera lograr:** petición a la plataforma: `ErrorSesion.detalle` (el JSON) o, mejor, la frase de la restricción hecha por la librería como `describePlatformRestriction` del SDK web.
@@ -104,8 +106,9 @@ Solo propuestas: no se tocan ni la web ni el backend.
   - **Peligros si se mantiene como estaba:** textos distintos según por dónde llegue el error.
   - **Peligros del cambio:** los errores sin `error` (el tiempo real) necesitan que el backend lo añada antes.
 
-- [ ] **13. Los textos de los errores de los espacios**
+- [x] **13. Los textos de los errores de los espacios**
   - Petición a la plataforma del 06/11/2026, junto con los puntos 9, 10 y 13: `administracion yosiftware/docs/peticiones/que-la-libreria-de-la-sesion-cubra-lo-que-las-apps-nativas-aun-rehacen.md`.
+  - **Hecho en la APK (06/11/2026), kit 1.83:** el backend declara que los espacios de Libros se llaman «clubes» (`ESPACIOS.md`, «Cómo los llamas») y la plataforma ya redacta así sus errores. `MensajesDeEspacios` pierde la tabla de frases y enseña el `mensaje` de la plataforma (y, si no llega, el texto de la pantalla); se quedan los códigos que deciden qué hacer (`dos_pasos_necesarios`, `correo_de_otra_cuenta`, `ya_es_miembro`, `solicitud_no_encontrada`, `invitacion_no_encontrada`) y el texto propio de `sin_sesion`, que no es de la plataforma. La tabla de la web la retira su propia rama.
   - **Descripción:** `ui/comunidad/MensajesDeEspacios.kt` (19-40) copia `SPACE_ERROR_MESSAGES` de `src/app/shared/club-spaces.ts` (33) para códigos de la plataforma (`dos_pasos_necesarios`, `espacio_lleno`…), y los pone por delante de la frase que manda la plataforma.
   - **Por qué se necesita:** los textos de errores de la plataforma deberían salir de la plataforma (o del kit), no de cada web y cada app.
   - **Qué se espera lograr:** petición a la plataforma para que su `mensaje` diga lo que hoy dice la tabla (en clave de club, si la marca de la web lo pide), y retirar las dos tablas.
@@ -123,5 +126,5 @@ Solo propuestas: no se tocan ni la web ni el backend.
 - `TextosDelChat.instante` lee las fechas sin zona como UTC (para ordenar y para la ventana de edición), y `instanteDe` como hora local: así lo hacen la web del chat y la de Libros. Comparten `leerFecha`.
 - Las barras de arriba: la del libro (`.m-book-bar`), la del editor de estado, la de las páginas públicas y la del shell son clases distintas de la web; solo la de la ficha y la de la antología eran la misma (`MarcoDeBarraDePantallaCompleta`).
 - `FichaEditable` y `CapituloEditable` leen su JSON con `getString`/`getInt` estrictos: es el borrador propio, no la API, y uno roto se descarta.
-- Las tablas de etiquetas (`Perfil`, `EtiquetasDeClubes`, `MensajesDeError`, `Restricciones`) se parecen en la forma (un `mapOf`), pero son de dominios distintos.
+- Las tablas de etiquetas (`Perfil`, `EtiquetasDeClubes`, `MensajesDeError`) se parecen en la forma (un `mapOf`), pero son de dominios distintos.
 - La librería `yosiftware-sesion/` y la APK de Capacitor (`android/`, retirada): fuera de alcance.

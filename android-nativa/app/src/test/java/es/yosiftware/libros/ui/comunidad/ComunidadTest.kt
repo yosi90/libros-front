@@ -1,8 +1,8 @@
 package es.yosiftware.libros.ui.comunidad
 
 import es.yosiftware.libros.datos.modelos.ResumenDeComunidad
-import es.yosiftware.libros.datos.modelos.ResumenSocial
 import es.yosiftware.libros.datos.modelos.Universo
+import es.yosiftware.sesion.ResumenSocial
 import java.time.LocalDateTime
 import java.time.ZoneId
 import org.json.JSONObject

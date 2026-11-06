@@ -480,7 +480,6 @@ fun AppLibros(app: LibrosApp) {
                                                             volver = comunidad::cerrarClub,
                                                             abrirWebSocial = { vista -> acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial(vista)) } },
                                                             abrirChat = { id -> abrirMensajes(id) },
-                                                            avatar = app.datos::imagenDeLaPlataforma,
                                                         ),
                                                     )
                                                 },

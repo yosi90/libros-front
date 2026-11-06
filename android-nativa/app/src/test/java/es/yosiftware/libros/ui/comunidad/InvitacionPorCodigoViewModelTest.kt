@@ -1,7 +1,7 @@
 package es.yosiftware.libros.ui.comunidad
 
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
-import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
+import es.yosiftware.libros.datos.repositorios.espaciosFalsos
 import es.yosiftware.libros.ui.componentes.Avisador
 import es.yosiftware.libros.ui.cuenta.SesionFalsa
 import es.yosiftware.libros.ui.cuenta.conSesion
@@ -31,7 +31,7 @@ class InvitacionPorCodigoViewModelTest {
 
     private class Montaje(val sesion: SesionFalsa, val llamadas: MutableList<String>, var deOtroCorreo: Boolean, val vm: InvitacionPorCodigoViewModel)
 
-    private val invitacion = """{"id": 7, "espacio": {"id": 41, "idExterno": "club-8", "nombre": "Lectoras", "dosPasos": false}, "miembros": 3}"""
+    private val invitacion = """{"id": 7, "espacio": {"id": 41, "idExterno": "club-8", "nombre": "Lectoras", "dosPasos": false}, "web": {"clave": "libros", "nombre": "Libros"}, "miembros": 3}"""
 
     private fun TestScope.montar(): Montaje {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
@@ -43,7 +43,7 @@ class InvitacionPorCodigoViewModelTest {
         runCurrent()
         val llamadas = mutableListOf<String>()
         var montaje: Montaje? = null
-        val espacios = RepositorioEspacios { metodo, ruta, _ ->
+        val espacios = espaciosFalsos { metodo, ruta, _ ->
             llamadas += "$metodo $ruta"
             if (montaje!!.deOtroCorreo) throw ErrorSesion.deLaPlataforma(403, """{"error": "Es para otro correo", "code": "correo_de_otra_cuenta"}""")
             invitacion
@@ -66,7 +66,7 @@ class InvitacionPorCodigoViewModelTest {
         runCurrent()
 
         val viendo = m.vm.paso as PasoDeInvitacion.Viendo
-        assertEquals("Lectoras", viendo.invitacion.espacio)
+        assertEquals("Lectoras", viendo.invitacion.nombre)
         assertEquals(2, m.llamadas.count { it == "POST /v1/espacios/invitaciones/por-codigo" })
     }
 

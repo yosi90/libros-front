@@ -763,6 +763,23 @@ class SesionYosiftware internal constructor(
     /** Los espacios de la persona en esta app (`ecosistema-kit/ESPACIOS.md`). */
     val espacios: EspaciosYosiftware by lazy { EspaciosYosiftware(this) }
 
+    /** Buscar personas y el resumen de sus relaciones (1.10.0). */
+    val social: SocialYosiftware by lazy { SocialYosiftware(this) }
+
+    /**
+     * Una llamada JSON con el token, atada a la cuenta activa al empezar (1.10.0): si al terminar la activa es otra (o
+     * ninguna), descarta la respuesta y lanza `cuenta_cambiada`. Para lo que la app enseña de una cuenta concreta.
+     */
+    internal suspend fun leerDeLaCuenta(metodo: String, ruta: String, cuerpo: JSONObject? = null): JSONObject {
+        val cuenta = idCuentaActiva()
+        val respuesta = llamarConToken(metodo, ruta, cuerpo)
+        if (cuenta == null || idCuentaActiva() != cuenta) throw ErrorSesion.cuentaCambiada()
+        if (!respuesta.correcta) throw respuesta.error()
+        return respuesta.json
+    }
+
+    private fun idCuentaActiva(): String? = (estadoActual.value as? EstadoSesion.ConSesion)?.cuenta?.id
+
     /**
      * Una llamada a la API de la plataforma con el token de la cuenta activa, hecha con el cliente HTTP de la app (desde
      * la 1.7.0): [llamada] recibe el token (para `Authorization: Bearer`, sin `Origin`) y devuelve su respuesta. Si

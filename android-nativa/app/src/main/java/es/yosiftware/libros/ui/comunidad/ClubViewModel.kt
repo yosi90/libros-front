@@ -17,18 +17,15 @@ import es.yosiftware.libros.datos.modelos.DebateDeClub
 import es.yosiftware.libros.datos.modelos.DetalleDeClub
 import es.yosiftware.libros.datos.modelos.DetalleDeDebate
 import es.yosiftware.libros.datos.modelos.EncuestaDeClub
-import es.yosiftware.libros.datos.modelos.Espacio
 import es.yosiftware.libros.datos.modelos.EventoDeClub
 import es.yosiftware.libros.datos.modelos.HitoDeClub
-import es.yosiftware.libros.datos.modelos.InvitacionEnviada
 import es.yosiftware.libros.datos.modelos.LecturaDeClub
 import es.yosiftware.libros.datos.modelos.MiembroDeClub
-import es.yosiftware.libros.datos.modelos.PersonaDeYosiftware
 import es.yosiftware.libros.datos.modelos.ProgresoEnClub
 import es.yosiftware.libros.datos.modelos.PublicacionDeClub
-import es.yosiftware.libros.datos.modelos.SolicitudDeEntrada
 import es.yosiftware.libros.datos.modelos.SpoilerDeClub
 import es.yosiftware.libros.datos.modelos.Universo
+import es.yosiftware.libros.datos.modelos.visible
 import es.yosiftware.libros.datos.red.CanalesDeEspacios
 import es.yosiftware.libros.datos.red.Llegada
 import es.yosiftware.libros.datos.repositorios.RepositorioClubes
@@ -37,6 +34,10 @@ import es.yosiftware.libros.datos.repositorios.RepositorioEstadisticas
 import es.yosiftware.libros.ui.estadisticas.Estadisticas
 import es.yosiftware.libros.ui.estadisticas.FilaDeEstadistica
 import es.yosiftware.libros.ui.estadisticas.numero
+import es.yosiftware.sesion.EspacioDeYosiftware
+import es.yosiftware.sesion.InvitacionEnviada
+import es.yosiftware.sesion.PersonaDeYosiftware
+import es.yosiftware.sesion.SolicitudDeEntrada
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -102,7 +103,7 @@ class ClubViewModel(
     /** Si el mensaje ofrece activar los dos pasos. */
     var ayudaDosPasos by mutableStateOf(false)
         private set
-    var espacio by mutableStateOf<Espacio?>(null)
+    var espacio by mutableStateOf<EspacioDeYosiftware?>(null)
         private set
     var espera by mutableStateOf(EsperaAlFeed.NADA)
         private set
@@ -624,7 +625,7 @@ class ClubViewModel(
             empezarEspera()
             return
         }
-        mensajeDeAccion = MensajesDeEspacios.deEspacioOProducto(fallo, porDefecto)
+        mensajeDeAccion = MensajesDeEspacios.de(fallo, porDefecto)
         ayudaDosPasos = fallo.codigo == MensajesDeEspacios.DOS_PASOS
     }
 
@@ -651,7 +652,7 @@ class ClubViewModel(
             errorDeMiembros = ""
             cargar({ espacios.salir(espacioId) }, alFallar = { fallo ->
                 saliendo = false
-                errorDeMiembros = MensajesDeEspacios.deEspacioOProducto(fallo, "No se ha podido abandonar el club.")
+                errorDeMiembros = MensajesDeEspacios.de(fallo, "No se ha podido abandonar el club.")
             }) {
                 saliendo = false
                 alSalir(null)

@@ -1,7 +1,8 @@
 package es.yosiftware.libros.datos
 
-import es.yosiftware.libros.datos.modelos.InvitacionRecibida
 import es.yosiftware.libros.ui.comunidad.InvitacionPorCodigoViewModel
+import es.yosiftware.sesion.InvitacionAEspacio
+import es.yosiftware.sesion.WebDelEspacio
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -44,14 +45,15 @@ class VersionNuevaTest {
 
     @Test
     fun elTextoDeLaInvitacion() {
-        val invitacion = InvitacionRecibida(5, 41, "club-8", "Lectoras", dosPasos = true, de = "Eva", rol = "moderacion", nombreRol = "Moderación", miembros = 3, caduca = "2026-11-01T10:00:00Z")
+        val invitacion = InvitacionAEspacio(5, 41, "club-8", "Lectoras", dosPasos = true, web = WebDelEspacio("libros", "Libros"), deCuenta = "c9", deNombre = "Eva",
+            rol = "moderacion", nombreRol = "Moderación", miembros = 3, caduca = "2026-11-01T10:00:00Z")
         assertEquals(
             "Eva te invita a unirte al club como moderación. Tiene 3 miembros. Exige la verificación en dos pasos. Caduca el 01/11/2026.",
             InvitacionPorCodigoViewModel.descripcion(invitacion),
         )
         assertEquals(
             "Te invitan a unirte al club. Tiene 1 miembro.",
-            InvitacionPorCodigoViewModel.descripcion(invitacion.copy(de = null, nombreRol = null, miembros = 1, dosPasos = false, caduca = null)),
+            InvitacionPorCodigoViewModel.descripcion(invitacion.copy(deNombre = "", nombreRol = null, miembros = 1, dosPasos = false, caduca = "")),
         )
     }
 }

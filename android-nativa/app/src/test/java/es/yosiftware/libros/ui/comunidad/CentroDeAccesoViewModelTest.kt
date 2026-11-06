@@ -1,7 +1,7 @@
 package es.yosiftware.libros.ui.comunidad
 
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
-import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
+import es.yosiftware.libros.datos.repositorios.espaciosFalsos
 import es.yosiftware.libros.ui.cuenta.SesionFalsa
 import es.yosiftware.libros.ui.cuenta.conSesion
 import es.yosiftware.libros.ui.cuenta.guardada
@@ -35,7 +35,7 @@ class CentroDeAccesoViewModelTest {
         val fallos = mutableMapOf<String, ErrorSesion>()
         val llamadas = mutableListOf<String>()
 
-        val espacios = RepositorioEspacios { metodo, ruta, _ ->
+        val espacios = espaciosFalsos { metodo, ruta, _ ->
             val clave = "$metodo $ruta"
             llamadas += clave
             fallos[clave]?.let { throw it }
@@ -62,11 +62,11 @@ class CentroDeAccesoViewModelTest {
 
     private fun Plataforma.conBandejas() {
         respuestas["GET /v1/espacios/invitaciones"] = """{"invitaciones": [
-            {"id": 5, "espacio": {"id": 41, "idExterno": "club-8", "nombre": "Club A", "dosPasos": false}, "de": {"cuenta": "c9", "nombre": "Eva"}, "rol": "miembro", "nombreRol": "Miembro", "caduca": "2026-11-01T00:00:00Z"},
-            {"id": 6, "espacio": {"id": 90, "idExterno": "mazo-3", "nombre": "Otra web", "dosPasos": false}, "de": {"cuenta": "c9", "nombre": "Eva"}, "caduca": "2026-11-01T00:00:00Z"}]}"""
+            {"id": 5, "espacio": {"id": 41, "idExterno": "club-8", "nombre": "Club A", "dosPasos": false}, "web": {"clave": "libros", "nombre": "Libros"}, "de": {"cuenta": "c9", "nombre": "Eva"}, "rol": "miembro", "nombreRol": "Miembro", "caduca": "2026-11-01T00:00:00Z"},
+            {"id": 6, "espacio": {"id": 90, "idExterno": "mazo-3", "nombre": "Otra web", "dosPasos": false}, "web": {"clave": "libros", "nombre": "Libros"}, "de": {"cuenta": "c9", "nombre": "Eva"}, "caduca": "2026-11-01T00:00:00Z"}]}"""
         respuestas["GET /v1/espacios"] = """{"espacios": [
-            {"id": 42, "idExterno": "club-9", "nombre": "Club B", "entrada": "solicitud", "dosPasos": true, "miembros": 3, "yo": {"estado": "activo", "capacidades": {"invitar": true, "chat": "escribir"}}},
-            {"id": 43, "idExterno": "club-10", "nombre": "Club C", "entrada": "abierto", "dosPasos": false, "miembros": 3, "yo": {"estado": "activo", "capacidades": {"invitar": false, "chat": "leer"}}}]}"""
+            {"id": 42, "idExterno": "club-9", "web": {"clave": "libros", "nombre": "Libros"}, "nombre": "Club B", "entrada": "solicitud", "dosPasos": true, "miembros": 3, "yo": {"estado": "activo", "capacidades": {"invitar": true, "chat": "escribir"}}},
+            {"id": 43, "idExterno": "club-10", "web": {"clave": "libros", "nombre": "Libros"}, "nombre": "Club C", "entrada": "abierto", "dosPasos": false, "miembros": 3, "yo": {"estado": "activo", "capacidades": {"invitar": false, "chat": "leer"}}}]}"""
         respuestas["GET /v1/espacios/42/invitaciones"] = """{"invitaciones": [{"id": 7, "cuenta": "c2", "alias": "ana", "correo": "a***@b.es", "creada": "2026-10-24T05:32:00Z", "caduca": "2026-10-31T00:00:00Z"}]}"""
         respuestas["GET /v1/espacios/42/solicitudes"] = """{"solicitudes": [{"id": 3, "cuenta": "c3", "alias": "luis", "nombre": "Luis", "mensaje": "Hola", "creada": "2026-10-24T05:32:00Z"}]}"""
     }
@@ -117,7 +117,7 @@ class CentroDeAccesoViewModelTest {
     fun aceptarUnaInvitacionLaQuitaMarcaLaEntradaYAvisaALaLista() = runTest {
         val m = montar()
         m.plataforma.conBandejas()
-        m.plataforma.respuestas["POST /v1/espacios/invitaciones/5/aceptar"] = """{"id": 41, "idExterno": "club-8", "nombre": "Club A", "entrada": "abierto"}"""
+        m.plataforma.respuestas["POST /v1/espacios/invitaciones/5/aceptar"] = """{"id": 41, "idExterno": "club-8", "web": {"clave": "libros", "nombre": "Libros"}, "nombre": "Club A", "entrada": "abierto"}"""
         var cambios = 0
         m.vm.alCambiarElAcceso = { cambios++ }
         m.vm.recargar()
@@ -137,16 +137,41 @@ class CentroDeAccesoViewModelTest {
     fun unErrorDeDosPasosOfreceActivarlosSinRecargar() = runTest {
         val m = montar()
         m.plataforma.conBandejas()
-        m.plataforma.fallos["POST /v1/espacios/invitaciones/5/aceptar"] = ErrorSesion.deLaPlataforma(403, """{"error": "Hacen falta los dos pasos", "code": "dos_pasos_necesarios"}""")
+        m.plataforma.fallos["POST /v1/espacios/invitaciones/5/aceptar"] = ErrorSesion.deLaPlataforma(403, """{"error": "Este club exige la verificación en dos pasos.", "code": "dos_pasos_necesarios"}""")
         m.vm.recargar()
         runCurrent()
         val antes = m.plataforma.llamadas.size
         m.vm.aceptar(m.vm.filas.single())
         runCurrent()
         assertEquals(CentroDeAccesoViewModel.AccionDeError.DOS_PASOS, m.vm.accionDelError)
-        assertTrue(m.vm.error.startsWith("Este club exige la verificación en dos pasos"))
+        // La frase es la de la plataforma, tal cual; el `code` decide el botón.
+        assertEquals("Este club exige la verificación en dos pasos.", m.vm.error)
         assertEquals(antes + 1, m.plataforma.llamadas.size)
         assertEquals(1, m.vm.invitacionesRecibidas)
+    }
+
+    @Test
+    fun loDeOtraCuentaNoSeEnsena() = runTest {
+        val m = montar()
+        m.plataforma.conBandejas()
+        m.vm.recargar()
+        runCurrent()
+        // La librería descarta la respuesta si la cuenta activa cambió durante la llamada (1.10.0).
+        m.plataforma.fallos["POST /v1/espacios/invitaciones/5/aceptar"] = ErrorSesion("cuenta_cambiada", "Has cambiado de cuenta mientras se cargaba. Vuelve a intentarlo.")
+        val antes = m.plataforma.llamadas.size
+        m.vm.aceptar(m.vm.filas.single())
+        runCurrent()
+        assertEquals("", m.vm.error)
+        assertEquals("", m.vm.aviso)
+        assertNull(m.vm.accionDelError)
+        // Ni se recarga la bandeja ni se quita la invitación: lo que toca lo hace el cambio de cuenta.
+        assertEquals(antes + 1, m.plataforma.llamadas.size)
+        assertEquals(1, m.vm.invitacionesRecibidas)
+
+        m.plataforma.fallos["GET /v1/espacios/invitaciones"] = ErrorSesion("cuenta_cambiada", "Has cambiado de cuenta mientras se cargaba. Vuelve a intentarlo.")
+        m.vm.recargar()
+        runCurrent()
+        assertEquals("", m.vm.error)
     }
 
     @Test

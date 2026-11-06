@@ -16,7 +16,7 @@ import es.yosiftware.libros.datos.ErrorDeLibros
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
-import es.yosiftware.libros.datos.modelos.InvitacionRecibida
+import es.yosiftware.libros.datos.modelos.clubId
 import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
 import es.yosiftware.libros.ui.componentes.Avisador
 import es.yosiftware.libros.ui.componentes.Boton
@@ -26,6 +26,7 @@ import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Textos
+import es.yosiftware.sesion.InvitacionAEspacio
 
 /** Por qué no se puede abrir una invitación: cada caso tiene su texto y sus botones. */
 enum class FalloDeInvitacion { OTRO_CORREO, DOS_PASOS, YA_NO_VALE, OTRO }
@@ -33,7 +34,7 @@ enum class FalloDeInvitacion { OTRO_CORREO, DOS_PASOS, YA_NO_VALE, OTRO }
 /** Lo que enseña el diálogo de la invitación. */
 sealed interface PasoDeInvitacion {
     data object Cargando : PasoDeInvitacion
-    data class Viendo(val invitacion: InvitacionRecibida, val ocupada: Boolean = false) : PasoDeInvitacion
+    data class Viendo(val invitacion: InvitacionAEspacio, val ocupada: Boolean = false) : PasoDeInvitacion
     data class Fallo(val fallo: FalloDeInvitacion, val texto: String) : PasoDeInvitacion
 }
 
@@ -97,7 +98,7 @@ class InvitacionPorCodigoViewModel(
             avisos.error("No se ha podido rechazar la invitación.")
         }) {
             cerrar()
-            avisos.informar("Has rechazado la invitación a ${viendo.invitacion.espacio}.", "Invitación rechazada")
+            avisos.informar("Has rechazado la invitación a ${viendo.invitacion.nombre}.", "Invitación rechazada")
         }
     }
 
@@ -108,9 +109,9 @@ class InvitacionPorCodigoViewModel(
     }
 
     private fun fallo(error: ErrorDeLibros): PasoDeInvitacion.Fallo = when (error.codigo) {
-        "correo_de_otra_cuenta" -> PasoDeInvitacion.Fallo(FalloDeInvitacion.OTRO_CORREO, "")
-        "dos_pasos_necesarios" -> PasoDeInvitacion.Fallo(FalloDeInvitacion.DOS_PASOS, "")
-        "invitacion_no_encontrada" -> PasoDeInvitacion.Fallo(FalloDeInvitacion.YA_NO_VALE, "")
+        MensajesDeEspacios.CORREO_DE_OTRA_CUENTA -> PasoDeInvitacion.Fallo(FalloDeInvitacion.OTRO_CORREO, "")
+        MensajesDeEspacios.DOS_PASOS -> PasoDeInvitacion.Fallo(FalloDeInvitacion.DOS_PASOS, "")
+        MensajesDeEspacios.INVITACION_NO_ENCONTRADA -> PasoDeInvitacion.Fallo(FalloDeInvitacion.YA_NO_VALE, "")
         else -> PasoDeInvitacion.Fallo(FalloDeInvitacion.OTRO, MensajesDeEspacios.de(error, "Vuelve a intentarlo dentro de un momento."))
     }
 
@@ -128,11 +129,12 @@ class InvitacionPorCodigoViewModel(
 
     companion object {
         /** «{de} te invita a unirte al club como {rol}. Tiene N miembros. Exige la verificación en dos pasos. Caduca el …». */
-        fun descripcion(invitacion: InvitacionRecibida): String = buildList {
-            val quien = invitacion.de?.takeIf { it.isNotBlank() } ?: "Te invitan"
+        fun descripcion(invitacion: InvitacionAEspacio): String = buildList {
+            val de = invitacion.deNombre.takeIf { it.isNotBlank() }
             val rol = invitacion.nombreRol?.takeIf { it.isNotBlank() }?.let { " como ${it.lowercase()}" }.orEmpty()
-            add(if (invitacion.de.isNullOrBlank()) "$quien a unirte al club$rol." else "$quien te invita a unirte al club$rol.")
-            invitacion.miembros?.let { add(if (it == 1) "Tiene 1 miembro." else "Tiene $it miembros.") }
+            add(if (de == null) "Te invitan a unirte al club$rol." else "$de te invita a unirte al club$rol.")
+            // La librería pone 0 si no llega: entonces no se dice.
+            invitacion.miembros.takeIf { it > 0 }?.let { add(if (it == 1) "Tiene 1 miembro." else "Tiene $it miembros.") }
             if (invitacion.dosPasos) add("Exige la verificación en dos pasos.")
             FechasDeClubes.dia(invitacion.caduca).takeIf { it.isNotEmpty() }?.let { add("Caduca el $it.") }
         }.joinToString(" ")
@@ -154,7 +156,7 @@ fun DialogoDeInvitacion(vm: InvitacionPorCodigoViewModel, acciones: AccionesDeIn
     DialogoModal(alCerrar = vm::cerrar) {
         val (titulo, texto) = when (paso) {
             PasoDeInvitacion.Cargando -> "Tu invitación a un club" to "Cargando…"
-            is PasoDeInvitacion.Viendo -> "Invitación a «${paso.invitacion.espacio}»" to InvitacionPorCodigoViewModel.descripcion(paso.invitacion)
+            is PasoDeInvitacion.Viendo -> "Invitación a «${paso.invitacion.nombre}»" to InvitacionPorCodigoViewModel.descripcion(paso.invitacion)
             is PasoDeInvitacion.Fallo -> when (paso.fallo) {
                 FalloDeInvitacion.OTRO_CORREO -> "La invitación es para otro correo" to
                     "Esta cuenta no tiene confirmado el correo al que llegó la invitación. Entra con la cuenta de ese correo para verla."
