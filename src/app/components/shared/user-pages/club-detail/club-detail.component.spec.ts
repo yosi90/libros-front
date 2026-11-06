@@ -127,7 +127,7 @@ describe('ClubDetailComponent (club en un espacio de la plataforma)', () => {
 
     it('expulsado del espacio: lo explica y no espera al feed', () => {
         const { component, spaces } = create();
-        spaces.enter.and.returnValue(throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'expulsado_del_espacio' } })));
+        spaces.enter.and.returnValue(throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'expulsado_del_espacio', error: 'Te sacaron de este club: solo puedes volver con una invitación.' } })));
         component.ngOnInit();
 
         component.joinOrRequest();

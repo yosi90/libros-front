@@ -1,5 +1,5 @@
 import { MensajeDelCanal } from '../interfaces/platform-spaces';
-import { getApiErrorCode } from './api-error-message';
+import { getApiErrorCode, getBackendErrorText } from './api-error-message';
 import { SIN_SESION_PLATAFORMA } from './platform';
 
 // Lo común de los clubes en los espacios de la plataforma (ADHESION_YOSIFTWARE.md, «Los clubes»; ESPACIOS.md).
@@ -29,34 +29,19 @@ export function clubPersonName(person: { nombre: string | null; alias: string })
 /** La web social, para lo que la plataforma pide arreglar allí (la verificación en dos pasos). */
 export const SOCIAL_SECURITY_VIEW = 'seguridad';
 
-/** Texto para la persona de cada error de los espacios (`docs/publica/ERRORES.md` y ESPACIOS.md, «Los errores»). */
-export const SPACE_ERROR_MESSAGES: ReadonlyMap<string, string> = new Map([
-    ['expulsado_del_espacio', 'Te sacaron de este club: solo puedes volver con una invitación.'],
-    ['espacio_no_abierto', 'Este club ya no admite entrar sin más: pide entrar o espera una invitación.'],
-    ['espacio_sin_solicitudes', 'Este club solo admite invitaciones.'],
-    ['espacio_lleno', 'El club está lleno (2000 miembros).'],
-    ['dos_pasos_necesarios', 'Este club exige la verificación en dos pasos. Actívala en tu cuenta de Yosiftware y vuelve a intentarlo.'],
-    ['ya_es_miembro', 'Ya eres miembro de este club.'],
-    ['propietario_no_puede_salir', 'Quien tiene la propiedad del club no puede salir: traspásalo antes.'],
-    ['correo_de_otra_cuenta', 'La invitación es para un correo que esta cuenta no tiene confirmado. Entra con la cuenta de ese correo.'],
-    ['acepta_en_la_web', 'Esta invitación se acepta desde la web de su espacio.'],
-    ['invitacion_no_encontrada', 'Esta invitación ya no vale: caducó, la retiraron o ya se usó.'],
-    ['solicitud_no_encontrada', 'Esa solicitud ya no está pendiente.'],
-    ['persona_no_encontrada', 'No hemos encontrado a esa persona.'],
-    ['correo_no_valido', 'Escribe un correo válido.'],
-    ['invitacion_no_valida', 'La invitación no es válida.'],
-    ['demasiadas_invitaciones', 'Se han enviado demasiadas invitaciones. Prueba más tarde.'],
-    ['demasiadas_peticiones', 'Demasiadas peticiones seguidas. Espera un momento.'],
-    ['sin_permiso_en_el_espacio', 'Tu papel en el club no te deja hacer esto.'],
-    ['espacio_no_encontrado', 'Este club ya no está disponible para tu cuenta.'],
-    ['busqueda_no_valida', 'Escribe entre 2 y 60 caracteres para buscar.'],
-    ['sin_sesion', SIN_SESION_PLATAFORMA.error.error]
-]);
+/** Las comprobaciones de la pantalla antes de llamar a la plataforma. */
+export const SEARCH_TEXT_INVALID = 'Escribe entre 2 y 60 caracteres para buscar.';
+export const EMAIL_INVALID = 'Escribe un correo válido.';
 
-/** Texto para la persona de un error de los espacios; si no es uno de ellos, el de la pantalla. */
+/**
+ * Lo que se le dice a la persona de un error de los espacios: la frase de la plataforma tal cual, que ya habla de
+ * «club» porque el backend de Libros declara así sus espacios (ESPACIOS.md, «Cómo los llamas», kit 1.83). Por el
+ * `code` se decide qué hacer, no qué decir. Sin frase (sin red, un 5xx), la de la pantalla.
+ */
 export function spaceErrorMessage(error: unknown, fallback: string): string {
-    const code = getApiErrorCode(error);
-    return (code && SPACE_ERROR_MESSAGES.get(code)) || fallback;
+    if (getApiErrorCode(error) === 'sin_sesion')
+        return SIN_SESION_PLATAFORMA.error.error;
+    return getBackendErrorText(error) || fallback;
 }
 
 export type ClubChannelSection = 'club' | 'readings' | 'milestones' | 'calendar' | 'all';
