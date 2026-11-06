@@ -17,7 +17,8 @@ const universes = [
 ];
 
 // Regresión del 25/9: al hacer scroll, la Biblioteca reaplicaba la expansión automática
-// del libro en marcha y deshacía lo que el usuario había abierto o cerrado.
+// del libro en marcha y deshacía lo que el usuario había abierto o cerrado. Desde el 25/10
+// (`627d3e46`) entra cerrada: los libros en marcha se abren con su herramienta.
 test('Wood conserva la expansión manual al hacer scroll', async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'El gesto de rueda se valida en Chromium.');
     await installLocalVisualSession(page);
@@ -26,6 +27,8 @@ test('Wood conserva la expansión manual al hacer scroll', async ({ page, browse
     await page.goto('/dashboard/books'); await page.waitForTimeout(2500);
     const panel = (name: string) => page.locator(`mat-expansion-panel:has(> mat-expansion-panel-header:has-text("${name}"))`).last();
 
+    await expect(panel('El arco de la guadaña')).not.toHaveClass(/mat-expanded/);
+    await page.getByRole('button', { name: 'Abrir solo libros en marcha' }).click();
     await expect(panel('El arco de la guadaña')).toHaveClass(/mat-expanded/);
     await panel('El arco de la guadaña').locator('> mat-expansion-panel-header').click();
     await panel('Sin universo').locator('> mat-expansion-panel-header').click();
@@ -52,7 +55,9 @@ for (const webPresentation of [false, true]) {
         await page.route('**/coleccion/universos', route => route.fulfill(json(universes)));
         await page.setViewportSize({ width: 1440, height: 800 });
         await page.goto('/dashboard/books');
-        await expect(page.getByText('Saga 14', { exact: true })).toBeVisible();
+        // La Biblioteca entra cerrada (25/10, `627d3e46`): revelar el libro abre su universo y su saga.
+        await expect(page.getByText('El cosmere').first()).toBeVisible();
+        await expect(page.locator('[data-library-item="book-115"]')).not.toBeVisible();
         await page.evaluate(() => {
             const host = document.querySelector('app-books');
             const component = (window as typeof window & { ng: { getComponent: (element: Element) => { catalogViewState: { setPendingLibraryReveal: (target: { type: string; id: number }) => void } } } }).ng.getComponent(host!);

@@ -1,5 +1,6 @@
 import { expect, test } from './fixtures/test';
-import { installLocalVisualSession } from './support/local-visual-session';
+import { environment } from '../src/environment/environment';
+import { installLocalVisualSession, localAccount } from './support/local-visual-session';
 
 const firstEdition = { Id: 312, ISBN: '9780306406157', Portada: 'first.png', FechaPublicacion: '2026-01-01', EnMiBiblioteca: false };
 const ownedEdition = { Id: 201, ISBN: '9788445016763', Portada: 'owned.png', FechaPublicacion: '2024-01-01', EnMiBiblioteca: true };
@@ -93,6 +94,8 @@ for (const mode of [
 ]) {
     test(`ediciones desde Biblioteca y conservación de obra en ${mode.name}`, async ({ page }, testInfo) => {
         await installLocalVisualSession(page, { webPresentation: mode.web });
+        // La cuenta ya pasó por la bienvenida de estilo (`ThemeWelcomeService`): si no, su diálogo tapa la Biblioteca Web.
+        await page.addInitScript(key => localStorage.setItem(key, '1'), `libros:theme-onboarded:${environment.environmentName}:${localAccount.id}`);
         await page.setViewportSize({ width: mode.width, height: mode.height });
         let ownedIds = [312, 201];
         let submitted: number[] | null = null;
@@ -122,6 +125,8 @@ for (const mode of [
             return route.fulfill({ status: 200, json: { Tipo: 'libro', ObraId: 73, Ediciones: editions() } });
         });
         await page.goto('/dashboard/books');
+        // La Biblioteca entra cerrada (25/10, `627d3e46`): se abre el universo de las obras.
+        await page.getByRole('button', { name: /Universo de prueba/ }).first().click();
         const access = page.getByRole('button', { name: `Ver ediciones de ${book.Nombre}` });
         await expect(access).toBeVisible();
         await expect(page.getByRole('button', { name: 'Ver ediciones de Solo una edición' })).toHaveCount(0);

@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { NavigationEnd, NavigationStart, Router } from '@angular/router';
-import { Subscription, filter, take } from 'rxjs';
+import { Subscription, combineLatest, distinctUntilChanged, filter, map, take } from 'rxjs';
 import { DecisionNotice } from '../../interfaces/session-notification';
 import { InvitacionRecibida } from '../../interfaces/platform-spaces';
 import { getApiErrorCode } from '../../shared/api-error-message';
@@ -83,8 +83,14 @@ export class ClubInvitationLinkService implements OnDestroy {
             if (this.seenAccount !== null && !this.keepAcrossIdentity) this.forget();
             if (change.accountId) this.seenAccount = change.accountId;
         }));
-        this.subscriptions.add(this.session.userIsLogged$.pipe(filter(Boolean)).subscribe(() => this.process()));
-        this.subscriptions.add(this.session.access$.subscribe(access => { if (access === 'sin_sesion') this.process(); }));
+        // Se retoma cuando la sesión se decide: con la persona dentro y `lista`, o `sin_sesion`. La sesión avisa de
+        // `userIsLogged` justo antes de quedar `lista` (`973d0c16`): con solo ese aviso, `process()` aún veía `cargando`,
+        // esperaba y nada lo retomaba.
+        this.subscriptions.add(combineLatest([this.session.userIsLogged$, this.session.access$]).pipe(
+            map(([logged, access]) => logged && access === 'lista' ? 'lista' : access === 'sin_sesion' ? 'sin_sesion' : null),
+            distinctUntilChanged(),
+            filter(Boolean)
+        ).subscribe(() => this.process()));
     }
 
     ngOnDestroy(): void {
