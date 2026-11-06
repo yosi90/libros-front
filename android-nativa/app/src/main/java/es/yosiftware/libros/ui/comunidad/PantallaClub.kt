@@ -56,6 +56,7 @@ import es.yosiftware.libros.datos.modelos.DetalleDeClub
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.FilaDeLista
 import es.yosiftware.libros.ui.componentes.BotonesDeDialogo
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
@@ -228,10 +229,11 @@ private fun Cabecera(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesD
                     BotonDePeligro(if (vm.denunciandoClub) "Enviando…" else "Denunciar", vm::denunciarClub, ancho, icono = Iconos.flag, habilitado = !vm.denunciandoClub)
                 }
             }
+            // En el móvil, en una fila repartida (no un botón por línea: petición del propietario, 06/11/2026).
             if (ancha) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End)) { botones(Modifier) }
             } else {
-                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) { botones(Modifier.fillMaxWidth()) }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) { botones(Modifier.weight(1f)) }
             }
         }
     }
@@ -366,17 +368,17 @@ private fun Formulario(contenido: @Composable ColumnScope.() -> Unit) {
     )
 }
 
-/** `.m-club-form__columns`: dos columnas desde 600 dp; una en el móvil. */
+/**
+ * `.m-club-form__columns`: dos campos cortos (inicio y final, página y capítulo…) en dos columnas, también en el móvil
+ * (petición del propietario, 06/11/2026: no gastar una línea por campo).
+ */
 @Composable
-private fun Columnas(ancha: Boolean, contenido: @Composable (Modifier) -> Unit) {
-    if (ancha) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) { contenido(Modifier.weight(1f)) }
-    } else {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Espacios.e3)) { contenido(Modifier.fillMaxWidth()) }
-    }
+private fun Columnas(contenido: @Composable (Modifier) -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) { contenido(Modifier.weight(1f)) }
 }
 
-private val formatoDeFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+// Con el año en dos cifras: cabe en media anchura, con el inicio y el final en la misma fila.
+private val formatoDeFecha = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm")
 
 /**
  * El `datetime-local` de la web: el campo con la fecha y la hora, que abre los selectores del sistema (los mismos que
@@ -402,7 +404,7 @@ private fun CampoDeFechaYHora(etiqueta: String, valor: LocalDateTime?, alCambiar
                 .padding(start = Espacios.e3),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(valor?.format(formatoDeFecha) ?: "dd/mm/aaaa, --:--", Modifier.weight(1f), color = if (valor == null) colores.tintaSuave else colores.tinta, style = Textos.cuerpo)
+            Text(valor?.format(formatoDeFecha) ?: "Fecha y hora", Modifier.weight(1f), color = if (valor == null) colores.tintaSuave else colores.tinta, style = Textos.cuerpo.copy(fontSize = rem(0.9)), maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
             if (valor != null) BotonDeIcono(Iconos.close, "Quitar $etiqueta", { alCambiar(null) }, color = colores.tintaSuave)
             else Icon(painterResource(Iconos.calendarToday), contentDescription = null, tint = colores.tintaSuave, modifier = Modifier.padding(end = Espacios.e3))
         }
@@ -429,7 +431,7 @@ private fun Lecturas(vm: ClubViewModel, ancha: Boolean) {
             val obras = vm.obrasDelTipo
             SelectorConNinguno("Elige una obra de tu colección", obras, vm.objetivoId, vm::elegirObjetivo)
             CampoDeFormulario(vm.notaDeLectura, vm::escribirNota, "Nota visible opcional", maximo = 1000)
-            Columnas(ancha) { modifier ->
+            Columnas { modifier ->
                 CampoDeFechaYHora("Inicio", vm.inicioDeLectura, vm::elegirInicioDeLectura, modifier)
                 CampoDeFechaYHora("Final", vm.finDeLectura, vm::elegirFinDeLectura, modifier)
             }
@@ -447,7 +449,7 @@ private fun Lecturas(vm: ClubViewModel, ancha: Boolean) {
 private fun MiProgreso(vm: ClubViewModel, ancha: Boolean) {
     val colores = LocalColores.current
     SelectorConNinguno("Selecciona una lectura", vm.lecturas.map { it.id to vm.etiquetaDeLectura(it) }, vm.lecturaDelProgreso, vm::elegirLecturaDelProgreso)
-    Columnas(ancha) { modifier ->
+    Columnas { modifier ->
         CampoDeFormulario(vm.pagina, vm::escribirPagina, "Página actual", modifier, numerico = true)
         CampoDeFormulario(vm.capitulo, vm::escribirCapitulo, "Capítulo actual", modifier)
     }
@@ -476,11 +478,11 @@ private fun Hitos(vm: ClubViewModel, ancha: Boolean) {
     if (vm.puedeGestionar) {
         Formulario {
             CampoDeFormulario(vm.tituloDeHito, vm::escribirTituloDeHito, "Título del hito", maximo = 200)
-            Columnas(ancha) { modifier ->
+            Columnas { modifier ->
                 SelectorDeFormulario(listOf("pagina" to "Página", "capitulo" to "Capítulo", "evento" to "Evento"), vm.tipoDeHito, vm::elegirTipoDeHito, modifier)
                 SelectorConNinguno("Sin lectura vinculada", vm.lecturas.map { it.id to vm.etiquetaDeLectura(it) }, vm.lecturaDelHito, vm::elegirLecturaDelHito, modifier)
             }
-            Columnas(ancha) { modifier ->
+            Columnas { modifier ->
                 CampoDeFormulario(vm.referenciaInicio, vm::escribirReferenciaInicio, "Referencia inicial", modifier, numerico = true)
                 CampoDeFormulario(vm.referenciaFin, vm::escribirReferenciaFin, "Referencia final", modifier, numerico = true)
             }
@@ -503,7 +505,7 @@ private fun Calendario(vm: ClubViewModel, ancha: Boolean) {
     if (vm.puedeGestionar) {
         Formulario {
             CampoDeFormulario(vm.tituloDeEvento, vm::escribirTituloDeEvento, "Título del evento", maximo = 200)
-            Columnas(ancha) { modifier ->
+            Columnas { modifier ->
                 CampoDeFechaYHora("Inicio", vm.inicioDeEvento, vm::elegirInicioDeEvento, modifier)
                 CampoDeFechaYHora("Final", vm.finDeEvento, vm::elegirFinDeEvento, modifier)
             }
@@ -564,7 +566,7 @@ private fun ColumnScope.Debates(vm: ClubViewModel, ancha: Boolean) {
             CampoDeFormulario(vm.tituloDeDebate, vm::escribirTituloDeDebate, "Título", maximo = 200)
             CampoDeFormulario(vm.contenidoDeDebate, vm::escribirContenidoDeDebate, "Contenido", lineas = 5, maximo = 20000)
             SelectorConNinguno("Sin lectura vinculada", vm.lecturas.map { it.id to vm.etiquetaDeLectura(it) }, vm.lecturaDelDebate, vm::elegirLecturaDelDebate)
-            Columnas(ancha) { modifier ->
+            Columnas { modifier ->
                 CampoDeFormulario(vm.spoilerInicio, vm::escribirSpoilerInicio, "Spoiler inicial", modifier, numerico = true)
                 CampoDeFormulario(vm.spoilerFin, vm::escribirSpoilerFin, "Spoiler final", modifier, numerico = true)
             }
@@ -646,17 +648,17 @@ private fun ColumnScope.Encuestas(vm: ClubViewModel) {
 @Composable
 private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesDelClub, ancha: Boolean) {
     val colores = LocalColores.current
-    if (vm.esMiembro && !vm.esPropietario) BotonDePeligro(if (vm.saliendo) "Saliendo…" else "Abandonar club", vm::salir, habilitado = !vm.saliendo)
-    if (vm.esPropietario) BotonDePeligro(if (vm.eliminando) "Eliminando…" else "Eliminar club", vm::eliminar, habilitado = !vm.eliminando)
     if (vm.puedeInvitar) {
-        FilaConBoton(ancha) { modifier ->
+        FilaConBoton { modifier ->
             CampoDeFormulario(vm.busquedaDePersonas, vm::escribirBusquedaDePersonas, "Buscar una persona de Yosiftware", modifier, maximo = 60, alEnviar = vm::buscarPersonas)
             Boton(if (vm.buscandoPersonas) "Buscando…" else "Buscar", vm::buscarPersonas, habilitado = !vm.buscandoPersonas)
         }
         if (vm.puedeElegirRol) {
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                 Text("Invitar como", color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.75), fontWeight = FontWeight.ExtraBold))
-                SelectorDeFormulario(listOf("miembro" to "Miembro", "moderacion" to "Moderación"), vm.rolDeInvitacion, vm::elegirRolDeInvitacion)
+                Box(Modifier.weight(1f)) {
+                    SelectorDeFormulario(listOf("miembro" to "Miembro", "moderacion" to "Moderación"), vm.rolDeInvitacion, vm::elegirRolDeInvitacion)
+                }
             }
         }
         vm.personas.forEach { persona ->
@@ -666,14 +668,14 @@ private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, accione
             }
         }
         if (vm.personasBuscadas && !vm.buscandoPersonas && vm.personas.isEmpty()) Vacio("No hay personas con ese nombre o alias.")
-        FilaConBoton(ancha) { modifier ->
+        FilaConBoton { modifier ->
             CampoDeFormulario(vm.correo, vm::escribirCorreo, "O invita a un correo", modifier, correo = true, maximo = 254, alEnviar = vm::invitarCorreo)
             Boton("Invitar", vm::invitarCorreo, variante = VarianteDeBoton.Tonal, habilitado = vm.invitando.isEmpty())
         }
         if (vm.invitacionesEnviadas.isNotEmpty()) {
             BloqueDePendientes("Invitaciones pendientes") {
                 vm.invitacionesEnviadas.forEach { invitacion ->
-                    Pendiente(vm.destinoDe(invitacion), invitacion.caduca?.let { "Caduca el ${FechasDeClubes.dia(it)}" }, ancha) {
+                    Pendiente(vm.destinoDe(invitacion), invitacion.caduca?.let { "Caduca el ${FechasDeClubes.dia(it)}" }) {
                         Boton("Retirar", { vm.retirarInvitacion(invitacion) }, variante = VarianteDeBoton.Contorno, habilitado = invitacion.id !in vm.retirandoInvitaciones)
                     }
                 }
@@ -684,7 +686,7 @@ private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, accione
         BloqueDePendientes("Solicitudes pendientes") {
             vm.solicitudes.forEach { solicitud ->
                 val ocupada = solicitud.id in vm.resolviendoSolicitudes
-                Pendiente(solicitud.visible, solicitud.mensaje, ancha) {
+                Pendiente(solicitud.visible, solicitud.mensaje) {
                     Boton("Aprobar", { vm.resolverSolicitud(solicitud, aprobar = true) }, variante = VarianteDeBoton.Tonal, habilitado = !ocupada)
                     Boton("Rechazar", { vm.resolverSolicitud(solicitud, aprobar = false) }, variante = VarianteDeBoton.Contorno, habilitado = !ocupada)
                 }
@@ -706,41 +708,30 @@ private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, accione
         }
     }
     if (club.miembros.isEmpty()) Vacio("El listado de miembros todavía está vacío.")
+    // Lo que no tiene vuelta atrás, al final de la sección.
+    if (vm.esMiembro && !vm.esPropietario) BotonDePeligro(if (vm.saliendo) "Saliendo…" else "Abandonar club", vm::salir, habilitado = !vm.saliendo)
+    if (vm.esPropietario) BotonDePeligro(if (vm.eliminando) "Eliminando…" else "Eliminar club", vm::eliminar, habilitado = !vm.eliminando)
 }
 
-/** `.m-club-invite`: el campo y su botón, en fila desde 600 dp. */
+/**
+ * `.m-club-invite`: el campo y su botón, siempre en una fila (también en el móvil: petición del propietario,
+ * 06/11/2026, que no se gaste una línea por botón).
+ */
 @Composable
-private fun FilaConBoton(ancha: Boolean, contenido: @Composable (Modifier) -> Unit) {
-    if (ancha) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e3)) { contenido(Modifier.weight(1f)) }
-    } else {
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Espacios.e3)) { contenido(Modifier.fillMaxWidth()) }
+private fun FilaConBoton(contenido: @Composable (Modifier) -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+        contenido(Modifier.weight(1f))
     }
 }
 
 /** Una persona en `.m-list-item` (con su foto si la tiene) y sus acciones. */
 @Composable
 private fun FilaDePersona(nombre: String, apoyo: String, avatar: String?, acciones: @Composable RowScope.() -> Unit) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 64.dp).clip(forma).background(colores.superficie).border(1.dp, colores.contorno, forma).padding(Espacios.e3),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-    ) {
-        if (avatar != null) {
-            Avatar(42.dp, url = avatar, nombre = nombre, conBorde = false)
-        } else {
-            Box(Modifier.size(42.dp).clip(CircleShape).background(colores.contenedorPrimario), contentAlignment = Alignment.Center) {
-                Icon(painterResource(Iconos.person), contentDescription = null, tint = colores.primario)
-            }
-        }
-        Column(Modifier.weight(1f)) {
-            Text(nombre, color = colores.tinta, style = Textos.filaPrincipal, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(apoyo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        acciones()
-    }
+    FilaDeLista(
+        nombre, Modifier.fillMaxWidth(), secundario = apoyo, icono = Iconos.person,
+        inicio = avatar?.let { { Avatar(42.dp, url = it, nombre = nombre, conBorde = false) } },
+        borde = true, lineasDelTitulo = 1, alFinal = acciones,
+    )
 }
 
 /** `.m-club-requests`: el bloque con su título y sus filas. */
@@ -757,7 +748,7 @@ private fun BloqueDePendientes(titulo: String, contenido: @Composable ColumnScop
 }
 
 @Composable
-private fun Pendiente(titulo: String, pequena: String?, ancha: Boolean, botones: @Composable RowScope.() -> Unit) {
+private fun Pendiente(titulo: String, pequena: String?, botones: @Composable RowScope.() -> Unit) {
     val colores = LocalColores.current
     val texto: @Composable (Modifier) -> Unit = { modifier ->
         Column(modifier) {
@@ -765,16 +756,10 @@ private fun Pendiente(titulo: String, pequena: String?, ancha: Boolean, botones:
             if (!pequena.isNullOrEmpty()) Text(pequena, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria)
         }
     }
-    if (ancha) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-            texto(Modifier.weight(1f))
-            Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e1), content = botones)
-        }
-    } else {
-        Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-            texto(Modifier)
-            Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e1), content = botones)
-        }
+    // El nombre y sus botones a la derecha, también en el móvil (petición del propietario, 06/11/2026).
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e3)) {
+        texto(Modifier.weight(1f))
+        Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e1), content = botones)
     }
 }
 

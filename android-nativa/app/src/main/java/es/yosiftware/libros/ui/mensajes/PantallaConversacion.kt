@@ -80,6 +80,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.FilaDeLista
 import es.yosiftware.libros.ui.componentes.BotonesDeDialogo
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
@@ -685,24 +686,10 @@ private fun FilaDeParticipante(
     alPulsar: (() -> Unit)? = null,
     acciones: @Composable () -> Unit = {},
 ) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 64.dp).clip(forma).background(colores.superficie).border(1.dp, colores.contorno, forma)
-            .then(if (alPulsar != null) Modifier.clickable(role = Role.Button, onClick = alPulsar) else Modifier)
-            .padding(Espacios.e3),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-    ) {
-        Box(Modifier.size(42.dp).clip(CircleShape).background(colores.contenedorPrimario), contentAlignment = Alignment.Center) {
-            Icon(painterResource(icono), contentDescription = null, tint = colores.primario)
-        }
-        Column(Modifier.weight(1f)) {
-            Text(nombre, color = colores.tinta, style = Textos.filaPrincipal, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(apoyo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Row { acciones() }
-    }
+    FilaDeLista(
+        nombre, Modifier.fillMaxWidth(), secundario = apoyo, icono = icono, borde = true, lineasDelTitulo = 2,
+        alPulsar = alPulsar, alFinal = { Row { acciones() } },
+    )
 }
 
 /**
