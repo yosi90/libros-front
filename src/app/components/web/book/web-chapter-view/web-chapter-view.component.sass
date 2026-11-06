@@ -7,18 +7,16 @@
 .icon-button
     @include web.icon-button
 
-.eyebrow
-    @include web.eyebrow
-
-.state
-    @include web.state
+    &.is-active
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
 
 .field-error
     margin: var(--web-space-1) 0 0
     color: var(--web-color-danger)
     font-size: 13px
 
-// Columna de lectura y, en escritorio amplio, panel de personajes a la derecha.
+// Columna de lectura y, en escritorio con ratón, panel de personajes a la derecha.
 .chapter
     display: grid
     grid-template-columns: minmax(0, 1fr) 272px
@@ -30,78 +28,64 @@
     width: 100%
     padding: var(--web-space-5) var(--web-space-6) var(--web-space-7)
 
-// ---------- Cabecera del capítulo ----------
+// ---------- Cabecera: el título con sus páginas y el lápiz ----------
 
 .chapter__head
-    margin-bottom: var(--web-space-5)
+    margin-bottom: var(--web-space-4)
 
-.chapter__title
-    box-sizing: border-box
-    width: 100%
-    margin: var(--web-space-1) 0 0
-    padding: 2px var(--web-space-1)
-    margin-left: calc(var(--web-space-1) * -1)
-    color: var(--web-color-ink)
-    font: 600 34px/1.2 var(--web-font-reading)
-    background: transparent
-    border: 1px solid transparent
-    border-radius: var(--web-radius-sm)
-    caret-color: var(--web-color-primary)
-
-    &:hover
-        border-color: var(--web-color-outline)
-
-    &:focus
-        border-color: var(--web-color-primary)
-        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
-        outline: 0
-
-.chapter__meta
+.chapter__heading
     display: flex
-    flex-wrap: wrap
-    align-items: center
-    gap: var(--web-space-2) var(--web-space-4)
-    margin-top: var(--web-space-3)
-
-// Los datos del capítulo guardado, plegados en una línea (opción A del propietario, 26/10/2026).
-.chapter__meta--summary
-    margin-top: 0
-
-.chapter__summary
-    display: inline-flex
-    flex: 1 1 auto
     align-items: center
     gap: var(--web-space-2)
     min-width: 0
-    min-height: 40px
-    padding: 0 var(--web-space-2)
-    margin-left: calc(var(--web-space-2) * -1)
-    color: var(--web-color-ink)
-    font: 600 18px/1.3 var(--web-font-reading)
-    text-align: left
-    background: transparent
-    border: 1px solid transparent
-    border-radius: var(--web-radius-sm)
-    cursor: pointer
-    @include web.focus-ring
 
-    &:hover
-        border-color: var(--web-color-outline)
+.chapter__identity
+    flex: 1 1 auto
+    min-width: 0
 
-    // Hasta dos líneas, como en la APK.
-    span
-        display: -webkit-box
-        min-width: 0
-        overflow: hidden
-        -webkit-line-clamp: 2
-        -webkit-box-orient: vertical
+.chapter__name
+    margin: 0
+    overflow: hidden
+    font: 600 26px/1.25 var(--web-font-reading)
+    white-space: nowrap
+    text-overflow: ellipsis
 
-    mat-icon
-        flex: none
-        width: 20px
-        height: 20px
-        color: var(--web-color-primary)
-        font-size: 20px
+.chapter__sub
+    margin: 2px 0 0
+    color: var(--web-color-ink-muted)
+    font-size: 13px
+    font-variant-numeric: tabular-nums
+
+// Los datos del capítulo, desplegados con el lápiz (y solos en uno nuevo o con algún dato mal).
+.chapter__fields
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
+    gap: var(--web-space-2) var(--web-space-3)
+    margin-top: var(--web-space-3)
+    padding-bottom: var(--web-space-3)
+    border-bottom: 1px solid var(--web-color-outline)
+
+.inline-field
+    display: grid
+    gap: 4px
+    color: var(--web-color-ink-muted)
+    font: 600 12px/1.3 var(--web-font-ui)
+
+    input
+        @include web.field
+        width: 6.5em
+        min-height: 36px
+        padding: 4px var(--web-space-2)
+        text-align: center
+        font-variant-numeric: tabular-nums
+
+.inline-field--wide
+    flex: 1 1 260px
+
+    input
+        width: 100%
+        text-align: left
 
 // El contador del título, solo cerca del límite.
 .chapter__counter
@@ -109,23 +93,9 @@
     color: var(--web-color-ink-muted)
     font-size: 13px
 
-.inline-field
-    display: inline-flex
-    align-items: center
-    gap: var(--web-space-2)
-    color: var(--web-color-ink-muted)
-    font-size: 13px
-
-    input
-        @include web.field
-        width: 5.5em
-        min-height: 32px
-        padding: 4px var(--web-space-2)
-        text-align: center
-        font-variant-numeric: tabular-nums
-
 .autosave
     display: inline-flex
+    flex: none
     align-items: center
     gap: 4px
     color: var(--web-color-ink-muted)
@@ -147,42 +117,97 @@
 
 @include web.spinner-keyframes
 
-// Solo visible cuando el panel de personajes no cabe al lado.
-.characters-toggle
-    display: none
-    margin-left: auto
-
-    span
-        color: var(--web-color-ink-muted)
-        font-weight: 500
-
-// ---------- Escenas ----------
+// ---------- Escenas: plegadas, salvo la que se edita ----------
 
 .scenes
     display: grid
     grid-template-columns: minmax(0, 1fr)
-    gap: var(--web-space-4)
-
-.scenes__head
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: var(--web-space-3)
-    padding-top: var(--web-space-4)
-    border-top: 1px solid var(--web-color-outline)
-
-    h2
-        margin: 0
-        font: 600 20px/1.3 var(--web-font-reading)
+    gap: var(--web-space-2)
 
 .scene
+    min-width: 0
+    @include web.card
+    scroll-margin-top: var(--web-space-4)
+
+.scene--open
     display: grid
     grid-template-columns: minmax(0, 1fr)
     gap: var(--web-space-3)
+    padding: var(--web-space-3) var(--web-space-4) var(--web-space-4)
+    border: 2px solid var(--web-color-primary)
+
+.scene--folded
+    &.has-error
+        border-color: var(--web-color-danger)
+
+    &.cdk-drop-list-receiving
+        outline: 1px dashed var(--web-color-primary)
+        outline-offset: 2px
+
+.scene__open
+    display: grid
+    gap: 6px
+    box-sizing: border-box
+    width: 100%
+    padding: var(--web-space-3) 14px
+    color: var(--web-color-ink)
+    font: 14px/1.4 var(--web-font-ui)
+    text-align: left
+    background: transparent
+    border: 0
+    border-radius: inherit
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+.scene__row
+    display: flex
+    align-items: baseline
+    gap: var(--web-space-2)
     min-width: 0
-    padding: var(--web-space-4)
-    @include web.card
-    scroll-margin-top: var(--web-space-4)
+
+    strong
+        flex: 1 1 auto
+        min-width: 0
+        overflow: hidden
+        font: 600 15px/1.25 var(--web-font-reading)
+        white-space: nowrap
+        text-overflow: ellipsis
+
+.scene__number
+    flex: none
+    color: var(--web-color-primary)
+    font: 800 12px/1.2 var(--web-font-ui)
+
+.scene__place
+    flex: 0 1 auto
+    max-width: 40%
+    overflow: hidden
+    color: var(--web-color-ink-muted)
+    font-size: 12px
+    white-space: nowrap
+    text-overflow: ellipsis
+
+// Dos líneas del texto de la escena.
+.scene__excerpt
+    display: -webkit-box
+    overflow: hidden
+    color: var(--web-color-ink-muted)
+    font: 14px/1.45 var(--web-font-reading)
+    -webkit-line-clamp: 2
+    -webkit-box-orient: vertical
+
+.scene__cast
+    overflow: hidden
+    color: var(--web-color-accent)
+    font-size: 12.5px
+    white-space: nowrap
+    text-overflow: ellipsis
+
+    .is-named
+        font-style: italic
 
 .scene__head
     display: flex
@@ -191,15 +216,9 @@
     min-width: 0
 
 .scene__index
-    display: inline-grid
     flex: none
-    place-items: center
-    width: 28px
-    height: 28px
     color: var(--web-color-primary)
-    font: 700 13px/1 var(--web-font-ui)
-    background: var(--web-color-primary-soft)
-    border-radius: 50%
+    font: 800 12px/1.2 var(--web-font-ui)
 
 .scene__title
     flex: 1 1 auto
@@ -226,21 +245,24 @@
     align-items: center
     gap: 4px
     min-width: 140px
-    min-height: 34px
+    min-height: 32px
     padding: 0 var(--web-space-2)
     color: var(--web-color-ink-muted)
-    background: var(--web-color-surface-muted)
-    border: 1px solid transparent
+    background: var(--web-color-canvas)
+    border: 1px solid var(--web-color-outline)
     border-radius: 999px
 
     &:focus-within
         border-color: var(--web-color-primary)
 
+    &.has-error
+        border-color: var(--web-color-danger)
+
     mat-icon
         flex: none
-        width: 20px
-        height: 20px
-        font-size: 20px
+        width: 16px
+        height: 16px
+        font-size: 16px
 
     input
         flex: 1
@@ -251,24 +273,42 @@
         border: 0
         outline: 0
 
-// Los personajes de la escena en una sola fila de fichas estrechas.
-.scene__people
-    display: grid
-    grid-template-columns: minmax(0, 1fr)
-    gap: var(--web-space-1)
-    min-width: 0
-
 .scene__warning
     margin: 0
     color: var(--web-color-warning)
     font-size: 13px
+
+// «+ Escena» al final: borde discontinuo, en el primario.
+.scenes__add
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: var(--web-space-2)
+    min-height: 48px
+    color: var(--web-color-primary)
+    font: 600 15px/1 var(--web-font-ui)
+    background: transparent
+    border: 1px dashed var(--web-color-outline-strong)
+    border-radius: var(--web-radius-md)
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover
+        background: var(--web-color-primary-soft)
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+// ---------- Los personajes de la escena ----------
 
 .chips
     display: flex
     flex-wrap: wrap
     align-items: center
     gap: 6px
-    min-height: 34px
+    min-height: 36px
     border-radius: var(--web-radius-md)
 
     // Al arrastrar un personaje desde el panel (un contorno que no ocupa sitio).
@@ -276,131 +316,307 @@
         outline: 1px dashed var(--web-color-primary)
         outline-offset: 2px
 
+// Presente: relleno del primario suave; solo nombrado: «@ Nombre» en cursiva con borde.
 .chip
     display: inline-flex
     align-items: center
-    gap: 2px
-    min-height: 30px
-    padding: 0 2px 0 var(--web-space-3)
+    max-width: 100%
+    min-height: 32px
+    padding: 0 var(--web-space-3)
     color: var(--web-color-primary)
-    font: 500 13px/1 var(--web-font-ui)
+    font: 600 13px/1.2 var(--web-font-ui)
     background: var(--web-color-primary-soft)
+    border: 1px solid transparent
     border-radius: 999px
-    cursor: grab
-
-    button
-        display: inline-grid
-        place-items: center
-        width: 24px
-        height: 24px
-        padding: 0
-        color: inherit
-        background: transparent
-        border: 0
-        border-radius: 50%
-        cursor: pointer
-        opacity: .75
-        @include web.focus-ring
-
-        &:hover
-            opacity: 1
-            background: color-mix(in srgb, currentColor 14%, transparent)
-
-        mat-icon
-            width: 16px
-            height: 16px
-            font-size: 16px
-
-// Solo nombrado: en cursiva, en tinta suave y con «·» delante.
-.chip--named
-    color: var(--web-color-ink-muted)
-    font-style: italic
-    background: var(--web-color-surface-high)
-
-.chip--add
-    gap: 4px
-    padding: 0 var(--web-space-2)
-    color: var(--web-color-primary)
-    font-weight: 600
-    background: transparent
-    border: 0
     cursor: pointer
     @include web.focus-ring
 
-    &:hover:not(:disabled)
+    &:hover
+        border-color: var(--web-color-primary)
+
+.chip__name
+    overflow: hidden
+    white-space: nowrap
+    text-overflow: ellipsis
+
+.chip--named
+    color: var(--web-color-ink-muted)
+    font-weight: 400
+    font-style: italic
+    background: transparent
+    border-color: var(--web-color-outline-strong)
+
+.chip-add
+    display: inline-grid
+    place-items: center
+    width: 36px
+    height: 36px
+    padding: 0
+    color: var(--web-color-primary)
+    background: var(--web-color-surface-muted)
+    border: 0
+    border-radius: 50%
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover
         background: var(--web-color-primary-soft)
 
-    &:disabled
-        color: var(--web-color-ink-subtle)
-        cursor: default
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+.is-danger
+    color: var(--web-color-danger)
 
     mat-icon
-        width: 16px
-        height: 16px
-        font-size: 16px
+        color: inherit
 
-// El desplegable de «+ Personaje»: buscador, la pista y los nombres, con la @ para «solo nombrado».
-.character-menu
+// ---------- El reparto: buscador, personajes con sus dos iconos y «Crear «…»» ----------
+
+.search
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    min-height: 36px
+    padding: 0 var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline-strong)
+    border-radius: var(--web-radius-md)
+
+    &:focus-within
+        border-color: var(--web-color-primary)
+        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+    mat-icon
+        flex: none
+        width: 20px
+        height: 20px
+        font-size: 20px
+        color: var(--web-color-primary)
+
+    input
+        flex: 1
+        min-width: 0
+        color: var(--web-color-ink)
+        font: 14px/1 var(--web-font-ui)
+        background: transparent
+        border: 0
+        outline: 0
+
+.cast
     box-sizing: border-box
     display: grid
-    grid-template-rows: auto auto minmax(0, 1fr)
+    grid-template-rows: auto minmax(0, 1fr)
     gap: var(--web-space-2)
-    width: min(320px, calc(100vw - 24px))
-    max-height: min(380px, 60dvh)
-    padding: var(--web-space-2)
+    width: min(340px, calc(100vw - 24px))
+    max-height: min(460px, 70dvh)
+    padding: var(--web-space-2) var(--web-space-2) var(--web-space-2) var(--web-space-3)
     color: var(--web-color-ink)
     background: var(--web-color-surface)
     border: 1px solid var(--web-color-outline)
     border-radius: var(--web-radius-md)
     box-shadow: var(--web-shadow-float)
 
-    ul
-        min-height: 0
-        margin: 0
-        padding: 0
-        overflow-y: auto
-        list-style: none
+.cast__top
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto
+    align-items: center
+    gap: var(--web-space-1)
 
-    li
-        display: grid
-        grid-template-columns: minmax(0, 1fr) 36px
-        align-items: center
-
-.character-menu__hint
+.cast__list
+    min-height: 0
     margin: 0
-    padding: 0 var(--web-space-1)
-    color: var(--web-color-ink-muted)
-    font-size: 12px
+    padding: 0 var(--web-space-1) 0 0
+    overflow-y: auto
+    overscroll-behavior: contain
+    list-style: none
 
-.character-menu__name
-    min-height: 36px
-    padding: 0 var(--web-space-2)
+// Filas compactas: solo el nombre y los dos iconos pequeños (28 px a la vista, 36 de objetivo).
+.cast__row
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 36px 36px
+    align-items: center
+    min-height: 40px
+    border-bottom: 1px solid var(--web-color-surface-high)
+
+.cast__name
     overflow: hidden
-    color: var(--web-color-ink)
-    font: 500 14px/1.2 var(--web-font-ui)
-    text-align: left
-    text-overflow: ellipsis
+    font: 600 14px/1.3 var(--web-font-ui)
     white-space: nowrap
+    text-overflow: ellipsis
+
+.cast__icon
+    position: relative
+    display: grid
+    place-items: center
+    width: 36px
+    height: 36px
+    padding: 0
+    color: var(--web-color-ink-muted)
+    background: transparent
+    border: 0
+    border-radius: 50%
+    cursor: pointer
+    @include web.focus-ring
+
+    &::before
+        content: ''
+        position: absolute
+        inset: 4px
+        border: 1px solid var(--web-color-outline-strong)
+        border-radius: 50%
+        transition: background var(--web-motion), border-color var(--web-motion)
+
+    mat-icon
+        position: relative
+        width: 16px
+        height: 16px
+        font-size: 16px
+
+    &:hover::before
+        border-color: var(--web-color-primary)
+
+    &.is-on
+        color: var(--web-color-on-primary)
+
+        &::before
+            background: var(--web-color-primary)
+            border-color: var(--web-color-primary)
+
+// «Crear «…»» del reparto y de la @: el «+» en un círculo discontinuo y el nombre en el primario.
+.cast-create
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    box-sizing: border-box
+    width: 100%
+    min-height: 44px
+    padding: 0 var(--web-space-1)
+    overflow: hidden
+    color: var(--web-color-primary)
+    font: 700 14px/1.2 var(--web-font-ui)
+    text-align: left
+    white-space: nowrap
+    text-overflow: ellipsis
     background: transparent
     border: 0
     border-radius: var(--web-radius-sm)
     cursor: pointer
     @include web.focus-ring
 
+    &:hover, &.is-active
+        background: var(--web-color-primary-soft)
+
+    &:disabled
+        cursor: progress
+        opacity: .5
+
+.cast-create__plus
+    display: grid
+    flex: none
+    place-items: center
+    width: 28px
+    height: 28px
+    border: 2px dashed var(--web-color-primary)
+    border-radius: 50%
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
+
+// En el móvil, el reparto es una hoja desde abajo con su velo.
+.cast-scrim
+    position: fixed
+    inset: 0
+    z-index: 39
+    padding: 0
+    background: var(--web-color-scrim)
+    border: 0
+
+.cast-sheet
+    position: fixed
+    inset: auto 0 0
+    z-index: 40
+
+    .cast
+        width: 100%
+        max-height: 72dvh
+        padding: var(--web-space-3) var(--web-space-3) calc(var(--web-space-3) + env(safe-area-inset-bottom))
+        border-width: 1px 0 0
+        border-radius: var(--web-radius-lg) var(--web-radius-lg) 0 0
+
+    .cast__row
+        min-height: 44px
+
+// ---------- La tarjeta de la @ ----------
+
+.mention
+    box-sizing: border-box
+    display: grid
+    width: min(260px, calc(100vw - 24px))
+    padding: 6px
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+    box-shadow: var(--web-shadow-float)
+
+.mention__row
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 40px
+    align-items: center
+    border-radius: var(--web-radius-sm)
+
+    &.is-active
+        background: var(--web-color-primary-soft)
+
+.mention__name
+    min-height: 40px
+    padding: 0 10px
+    overflow: hidden
+    color: var(--web-color-ink)
+    font: 600 14px/1.2 var(--web-font-ui)
+    text-align: left
+    white-space: nowrap
+    text-overflow: ellipsis
+    background: transparent
+    border: 0
+    border-radius: var(--web-radius-sm)
+    cursor: pointer
+
     &:hover
         background: var(--web-color-surface-muted)
 
-.character-menu__empty
-    padding: var(--web-space-2)
+.mention__named
+    display: grid
+    place-items: center
+    width: 40px
+    height: 40px
+    padding: 0
     color: var(--web-color-ink-muted)
-    font-size: 13px
+    background: transparent
+    border: 0
+    border-radius: 50%
+    cursor: pointer
+
+    &:hover
+        color: var(--web-color-primary)
+        background: var(--web-color-surface-muted)
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
 
 .chapter__save
     display: flex
     justify-content: flex-end
     margin-top: var(--web-space-5)
 
-// ---------- Personajes ----------
+// ---------- Panel de personajes (escritorio con ratón) ----------
 
 .characters
     position: sticky
@@ -426,39 +642,6 @@
     span
         color: var(--web-color-ink-muted)
         font-size: 13px
-
-.characters__close
-    display: none
-    margin-left: auto
-
-.search
-    display: flex
-    align-items: center
-    gap: var(--web-space-2)
-    min-height: 36px
-    padding: 0 var(--web-space-3)
-    color: var(--web-color-ink-muted)
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline-strong)
-    border-radius: var(--web-radius-md)
-
-    &:focus-within
-        border-color: var(--web-color-primary)
-        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
-
-    mat-icon
-        width: 20px
-        height: 20px
-        font-size: 20px
-
-    input
-        flex: 1
-        min-width: 0
-        color: var(--web-color-ink)
-        font: 14px/1 var(--web-font-ui)
-        background: transparent
-        border: 0
-        outline: 0
 
 .characters__refresh
     display: flex
@@ -552,64 +735,29 @@
         color: var(--web-color-accent)
 
 // Vista previa al arrastrar (el CDK la mueve al body, fuera del host).
-.character.cdk-drag-preview, .chip.cdk-drag-preview
+.character.cdk-drag-preview
     box-shadow: var(--web-shadow-float)
 
 .cdk-drag-placeholder
     opacity: .4
 
-.characters-scrim
-    display: none
-
-// Escritorio con ratón: panel fijo y asignación solo arrastrando. En pantallas
-// pequeñas o táctiles el panel se abre como lateral y se añade con «Añadir».
+// Sin ratón o sin sitio al lado, los personajes se añaden con el «+» de cada escena y la @ del texto.
 @media (max-width: 1050px), (pointer: coarse)
     .chapter
         grid-template-columns: minmax(0, 1fr)
 
-    .characters-toggle
-        display: inline-flex
-
     .characters
-        position: fixed
-        inset: 0 0 0 auto
-        z-index: 40
-        width: min(320px, 88vw)
-        height: auto
-        padding-top: var(--web-space-4)
-        box-shadow: var(--web-shadow-float)
-        transform: translateX(100%)
-        visibility: hidden
-        transition: transform var(--web-motion), visibility var(--web-motion)
-
-        &.is-open
-            transform: none
-            visibility: visible
-
-    .characters__close
-        display: inline-grid
-
-    .characters__hint
         display: none
-
-    .characters-scrim
-        position: fixed
-        inset: 0
-        z-index: 39
-        display: block
-        padding: 0
-        background: var(--web-color-scrim)
-        border: 0
 
 @media (max-width: 720px)
     .chapter__main
-        padding: var(--web-space-4) var(--web-space-4) var(--web-space-6)
+        padding: var(--web-space-3) var(--web-space-3) var(--web-space-6)
 
-    .chapter__title
-        font-size: 26px
+    .chapter__name
+        font-size: 20px
 
-    .scene
-        padding: var(--web-space-3)
+    .scene--open
+        padding: var(--web-space-2) var(--web-space-3) var(--web-space-3)
 
     .scene__head
         flex-wrap: wrap
@@ -620,22 +768,3 @@
     .scene__location
         flex: 1 1 100%
         order: 3
-
-    .chip:not(.chip--add)
-        width: max-content
-        max-width: 100%
-        display: grid
-        grid-template-columns: minmax(0, 1fr) 24px 24px
-        padding-left: 6px
-        min-height: 26px
-        font-size: 11px
-
-        .chip__name
-            overflow: hidden
-            text-overflow: ellipsis
-            white-space: nowrap
-
-        mat-icon
-            width: 12px
-            height: 12px
-            font-size: 12px

@@ -91,17 +91,47 @@ describe('WebBookStatisticsViewComponent', () => {
     });
 
     it('shows the current page, without a bar, when the book has no page total', () => {
-        expect(fixture.nativeElement.querySelector('.reading__line strong').textContent).toBe('24');
-        expect(fixture.nativeElement.querySelector('.reading__bar')).toBeNull();
+        expect(fixture.nativeElement.querySelector('.reading-progress__line strong').textContent).toBe('24');
+        expect(fixture.nativeElement.querySelector('.reading-progress__bar')).toBeNull();
     });
 
-    it('lists only the reading dates it has, the rating and the state, and no empty pace', () => {
-        const dates = [...fixture.nativeElement.querySelectorAll('.reading__dates li')] as HTMLElement[];
+    it('puts the start in the progress and does not repeat it in the dates; without pace there is no pace tile', () => {
+        const text = (selector: string) => [...fixture.nativeElement.querySelectorAll(selector)].map((item: HTMLElement) => item.textContent!.replace(/\s+/g, ' ').trim());
 
-        expect(dates.map(date => date.textContent!.trim().split(' ')[0])).toEqual(['Comenzado', 'Puntuado', 'Lectura']);
-        expect(dates[1].textContent).toContain('4 ★');
+        expect(text('.reading-progress__dates')[0]).toContain('Comenzado 20 ago');
+        expect(text('.dates li strong')).toEqual(['Puntuado · 4 ★']);
         expect(fixture.nativeElement.textContent).not.toContain('Sin dato');
-        expect(fixture.nativeElement.querySelector('.pace')).toBeNull();
+        expect(fixture.nativeElement.querySelector('#web-tile-pace')).toBeNull();
+        expect(text('.tile__figure')[0]).toMatch(/^2 ?· 3 escenas$/);
+        expect(text('.cast li .cast__name')).toEqual(['Iria']);
+    });
+
+    it('shows the pace against your average and the last days, with the best one highlighted', () => {
+        controller['readingPace'] = {
+            Desde: '2026-11-01', DiasActivos: 2, PaginasPorDia: 30, MejorDia: { Fecha: '2026-11-02', Paginas: 40 }, MediaPersonalPorDia: 20,
+            Curva: [{ Fecha: '2026-11-01', Pagina: 20 }, { Fecha: '2026-11-02', Pagina: 60 }]
+        };
+        controller['snapshot'] = { ...snapshot };
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('.note.is-up').textContent).toBe('+10 sobre tu media');
+        expect(fixture.nativeElement.querySelector('.mini-line polyline')).not.toBeNull();
+        const days = [...fixture.nativeElement.querySelectorAll('.days li')] as HTMLElement[];
+        expect(days.length).toBe(7);
+        expect(days[0].classList).toContain('is-best');
+        expect(days[0].querySelector('.days__value')!.textContent).toBe('40');
+    });
+
+    it('keeps the big charts behind «Ver gráficos»', () => {
+        const button = fixture.nativeElement.querySelector('.more') as HTMLButtonElement;
+        expect(button.textContent).toContain('Ver gráficos');
+        expect(fixture.nativeElement.querySelector('#web-book-charts')).toBeNull();
+
+        button.click();
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('#web-book-charts')).not.toBeNull();
+        expect(button.textContent).toContain('Ocultar gráficos');
     });
 
     it('shows «Tu título» only for a book of the collection, as text', () => {
@@ -119,7 +149,7 @@ describe('WebBookStatisticsViewComponent', () => {
     });
 
     it('saves a purchase date picked in the card', () => {
-        const input = fixture.nativeElement.querySelector('.reading__add-date input') as HTMLInputElement;
+        const input = fixture.nativeElement.querySelector('.add-date input') as HTMLInputElement;
         input.value = '2026-07-01';
         input.dispatchEvent(new Event('change'));
 

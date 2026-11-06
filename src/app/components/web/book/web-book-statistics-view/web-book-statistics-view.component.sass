@@ -4,214 +4,314 @@
     display: block
     color: var(--web-color-ink)
 
-.eyebrow
-    @include web.eyebrow
-
 .state
     @include web.state
 
-.muted
-    margin: 0
-    color: var(--web-color-ink-muted)
-    font-size: 14px
-
 .stats
     display: grid
-    gap: var(--web-space-4)
+    gap: 10px
     box-sizing: border-box
+    width: 100%
+    max-width: 960px
+    margin: 0 auto
     padding: var(--web-space-5) var(--web-space-6) var(--web-space-7)
-
-.stats__head h1
-    margin: var(--web-space-1) 0 0
-    font: 600 30px/1.2 var(--web-font-reading)
 
 apx-chart
     display: block
     min-width: 0
 
-.panel
+// ---------- «Tu lectura»: casillas en dos columnas; las de dato corto, de dos en dos ----------
+
+.tiles, .charts
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 10px
+
+.tile
+    display: grid
+    align-content: start
+    gap: 6px
     min-width: 0
-    padding: var(--web-space-4) var(--web-space-5)
+    padding: var(--web-space-3) 14px
     @include web.card
 
     h2
         margin: 0
-        color: var(--web-color-ink)
-        font: 600 18px/1.3 var(--web-font-reading)
+        color: var(--web-color-ink-muted)
+        font: 600 12px/1.2 var(--web-font-ui)
 
     > header
         display: flex
-        flex-wrap: wrap
         align-items: baseline
         justify-content: space-between
-        gap: 2px var(--web-space-3)
-        margin-bottom: var(--web-space-2)
+        gap: var(--web-space-2)
 
-        small
-            color: var(--web-color-ink-subtle)
+        span
+            color: var(--web-color-ink-muted)
             font-size: 12px
 
-// ---------- Progreso y cifras ----------
+.tile--wide
+    grid-column: 1 / -1
 
-.hero
-    display: grid
-    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr)
-    gap: var(--web-space-4)
+// La cifra grande y su unidad.
+.tile__figure
+    margin: 0
+    overflow: hidden
+    font: 800 22px/1.15 var(--web-font-ui)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+    text-overflow: ellipsis
 
-.reading
-    display: grid
-    align-content: start
-    gap: var(--web-space-2)
+    small
+        margin-left: 4px
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+        font-weight: 500
 
-.reading__line
+.note
     margin: 0
     color: var(--web-color-ink-muted)
-    font-size: 15px
+    font-size: 12px
+
+    &.is-up
+        color: var(--web-color-success)
+        font-weight: 600
+
+// ---------- Progreso ----------
+
+.reading-progress__line
+    display: flex
+    align-items: baseline
+    gap: var(--web-space-2)
+    margin: 0
 
     strong
-        color: var(--web-color-ink)
+        font: 700 24px/1.1 var(--web-font-reading)
         font-variant-numeric: tabular-nums
 
-.reading__bar
-    height: 8px
-    overflow: hidden
-    border-radius: 999px
-    background: var(--web-color-surface-high)
+    span
+        flex: 1
+        color: var(--web-color-ink-muted)
+        font-size: 14px
+
+    b
+        color: var(--web-color-primary)
+        font: 800 16px/1.2 var(--web-font-ui)
+
+.reading-progress__bar
+    @include web.progress-track(10px)
+
+.reading-progress__dates
+    display: flex
+    justify-content: space-between
+    gap: var(--web-space-2)
+    margin: 0
+    color: var(--web-color-ink-muted)
+    font-size: 12px
+
+    span:last-child:not(:first-child)
+        text-align: right
+
+// ---------- Gráficos mini ----------
+
+.mini-line
+    display: block
+    width: 100%
+    height: 44px
+
+    polyline
+        fill: none
+        stroke: var(--web-color-primary)
+        stroke-width: 2px
+        stroke-linecap: round
+        stroke-linejoin: round
+
+.mini-bars
+    display: flex
+    align-items: flex-end
+    gap: 3px
+    height: 44px
+
+    span
+        flex: 1 1 0
+        min-width: 3px
+        max-width: 12px
+        border-radius: 2px 2px 0 0
+        background: color-mix(in srgb, var(--web-color-primary) 42%, var(--web-color-surface))
+
+        &.is-last
+            background: var(--web-color-primary)
+
+// Últimos días: una barra por día; el mejor, destacado.
+.days, .cast, .dates
+    display: grid
+    gap: 6px
+    margin: 0
+    padding: 0
+    list-style: none
+
+.days li
+    display: grid
+    grid-template-columns: 44px minmax(0, 1fr) 28px
+    align-items: center
+    gap: 6px
+    font-size: 12px
+
+    &.is-best
+        .days__track span
+            background: var(--web-color-primary)
+
+        .days__value
+            font-weight: 700
+
+.days__label
+    color: var(--web-color-ink-muted)
+    white-space: nowrap
+
+.days__track
+    height: 12px
 
     span
         display: block
         height: 100%
-        border-radius: inherit
-        background: var(--web-color-primary)
+        border-radius: 999px
+        background: color-mix(in srgb, var(--web-color-primary) 42%, var(--web-color-surface))
 
-.reading__dates
-    display: flex
-    flex-wrap: wrap
-    gap: var(--web-space-1) var(--web-space-3)
-    margin: var(--web-space-1) 0 0
-    padding: 0
-    list-style: none
-    font-size: 14px
+        &.is-empty
+            width: 6px
+            background: var(--web-color-outline)
+
+.days__value, .cast__value
+    color: var(--web-color-ink)
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+// Fechas: un punto por fecha; la más reciente, en el primario.
+.dates li
+    display: grid
+    grid-template-columns: 10px minmax(0, 1fr)
+    column-gap: var(--web-space-2)
+    align-items: center
+
+    &::before
+        content: ''
+        grid-row: span 2
+        box-sizing: border-box
+        width: 10px
+        height: 10px
+        border: 2px solid var(--web-color-outline-strong)
+        border-radius: 50%
+
+    &.is-first::before
+        border-color: var(--web-color-primary)
+
+    strong
+        overflow: hidden
+        font: 600 13px/1.3 var(--web-font-ui)
+        white-space: nowrap
+        text-overflow: ellipsis
 
     span
         color: var(--web-color-ink-muted)
+        font-size: 12px
 
-    .is-state
-        color: var(--web-color-primary)
-        font-weight: 600
-
-.reading__add-date
-    display: flex
-    flex-wrap: wrap
+.add-date
+    position: relative
+    display: inline-flex
     align-items: center
-    gap: var(--web-space-2)
+    gap: 6px
+    min-height: 36px
     color: var(--web-color-primary)
-    font-size: 13px
-    font-weight: 600
+    font: 700 13px/1.2 var(--web-font-ui)
+    cursor: pointer
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
 
     input
         @include web.field
+        width: auto
         min-height: 30px
         padding: 2px 6px
         font-size: 12px
 
-.reading__note
-    margin: 0
-
-.metrics
+// Reparto: los principales con lo que aparecen y lo que solo se les nombra.
+.cast li
     display: grid
-    grid-template-columns: repeat(4, minmax(0, 1fr))
-    grid-auto-rows: minmax(92px, auto)
-    gap: var(--web-space-3)
+    grid-template-columns: minmax(64px, 120px) minmax(0, 1fr) 28px
+    align-items: center
+    gap: var(--web-space-2)
+    font-size: 13px
 
-    article
-        display: grid
-        grid-template-columns: auto minmax(0, 1fr)
-        grid-template-rows: auto auto
-        column-gap: var(--web-space-3)
-        align-content: center
-        padding: var(--web-space-3) var(--web-space-4)
-        @include web.card
+.cast__name
+    overflow: hidden
+    font-weight: 600
+    white-space: nowrap
+    text-overflow: ellipsis
 
-        > strong
-            font: 600 26px/1.15 var(--web-font-reading)
-            font-variant-numeric: tabular-nums
-
-        > span:last-child
-            grid-column: 2
-            color: var(--web-color-ink-muted)
-            font-size: 13px
-
-.metrics__icon
-    display: inline-grid
-    grid-row: span 2
-    place-items: center
-    width: 40px
-    height: 40px
-    color: var(--web-color-primary)
-    background: var(--web-color-primary-soft)
-    border-radius: var(--web-radius-md)
-
-.metrics article.metrics__highlight
-    grid-template-columns: minmax(0, 1fr)
-    grid-template-rows: auto
+.cast__track
+    display: flex
     gap: 2px
+    height: 10px
+    overflow: hidden
+    border-radius: 999px
+    background: var(--web-color-surface-high)
 
-    span, small
-        color: var(--web-color-ink-muted)
-        font-size: 13px
+.is-present
+    background: var(--web-color-primary)
 
-    strong
-        overflow: hidden
-        font: 600 20px/1.25 var(--web-font-reading)
-        white-space: nowrap
-        text-overflow: ellipsis
+.is-named
+    background: color-mix(in srgb, var(--web-color-accent) 70%, var(--web-color-surface))
 
-.pace
-    display: grid
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr))
-    gap: var(--web-space-3)
-    margin: var(--web-space-2) 0 0
-    padding-top: var(--web-space-3)
-    border-top: 1px solid var(--web-color-outline)
+.legend
+    display: flex
+    gap: 14px
+    margin: 0
+    color: var(--web-color-ink-muted)
+    font-size: 12px
 
-    dt
-        color: var(--web-color-ink-muted)
-        font-size: 13px
+    span
+        display: inline-flex
+        align-items: center
+        gap: 6px
 
-    dd
-        margin: 2px 0 0
-        font: 600 20px/1.25 var(--web-font-reading)
-        font-variant-numeric: tabular-nums
+    i
+        width: 10px
+        height: 10px
+        border-radius: 3px
 
-.pair
-    display: grid
-    grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr)
-    gap: var(--web-space-4)
+// «Ver gráficos»
+.more
+    display: inline-flex
+    justify-self: start
+    align-items: center
+    gap: 6px
+    min-height: 40px
+    padding: 0 var(--web-space-4)
+    color: var(--web-color-primary)
+    font: 700 13px/1 var(--web-font-ui)
+    background: transparent
+    border: 1px solid var(--web-color-outline)
+    border-radius: 999px
+    cursor: pointer
+    @include web.focus-ring
 
-@media (max-width: 1100px)
-    .hero, .pair
-        grid-template-columns: minmax(0, 1fr)
+    &:hover
+        background: var(--web-color-primary-soft)
 
-    .metrics
-        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr))
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
 
 @media (max-width: 720px)
     .stats
-        padding: var(--web-space-4) var(--web-space-4) var(--web-space-6)
+        padding: var(--web-space-3) var(--web-space-3) var(--web-space-6)
 
-    .stats__head h1
-        font-size: 24px
+    .charts
+        grid-template-columns: minmax(0, 1fr)
 
-    .panel
-        padding: var(--web-space-4)
-
-    .metrics
-        grid-template-columns: repeat(2, minmax(0, 1fr))
-
-        article
-            padding: var(--web-space-3)
-
-    .metrics__icon
-        width: 32px
-        height: 32px
+        .tile
+            grid-column: 1

@@ -22,19 +22,20 @@ for (const webPresentation of [false, true]) {
             await page.setViewportSize({ width, height: 900 });
             await page.goto('/book/73/chapter/11');
             const list = page.locator(webPresentation ? '.chips' : '.m-scene__chips').first();
-            const chips = list.locator(webPresentation ? '.chip:not(.chip--add)' : ':scope > div');
+            const chips = list.locator(webPresentation ? '.chip' : ':scope > div');
             await expect(chips).toHaveCount(3);
             const geometry = await list.evaluate((listElement, web) => {
-                const chips = [...listElement.querySelectorAll<HTMLElement>(web ? '.chip:not(.chip--add)' : ':scope > div')];
+                const chips = [...listElement.querySelectorAll<HTMLElement>(web ? '.chip' : ':scope > div')];
                 return {
                     available: listElement.getBoundingClientRect().width,
                     items: chips.map(chip => {
                         const box = chip.getBoundingClientRect();
                         const label = chip.querySelector('span')!;
+                        // En Web (escenas plegadas, 6/11/2026) la ficha es solo el nombre: tocarla abre su menú.
                         const icons = [...chip.querySelectorAll('mat-icon')].map(icon => icon.getBoundingClientRect());
                         return { width: box.width, top: box.top, textWidth: label.clientWidth, textScroll: label.scrollWidth,
-                            ellipsis: getComputedStyle(label).textOverflow, rightInset: box.right - icons[1].right,
-                            iconGap: icons[1].left - icons[0].right };
+                            ellipsis: getComputedStyle(label).textOverflow, rightInset: icons[1] ? box.right - icons[1].right : 0,
+                            iconGap: icons[1] ? icons[1].left - icons[0].right : 10 };
                     })
                 };
             }, webPresentation);

@@ -298,10 +298,10 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await installTwoAccounts(page, world);
         const title = page.getByRole('textbox', { name: 'Título del capítulo' });
         // El capítulo guardado enseña sus datos plegados en una línea (opción A, 26/10/2026): se despliegan para el título.
-        const summary = page.getByRole('button', { name: /^Editar los datos del capítulo: / });
+        const summary = page.getByRole('button', { name: /^Editar los datos del capítulo/ });
         const showTitle = async () => {
-            await expect(summary.or(title)).toBeVisible({ timeout: 15_000 });
-            if (await summary.isVisible())
+            await expect(summary.or(title).first()).toBeVisible({ timeout: 15_000 });
+            if (!(await title.isVisible()))
                 await summary.click();
         };
         await page.goto(`/book/${visualBook.Id}/chapter/11`);

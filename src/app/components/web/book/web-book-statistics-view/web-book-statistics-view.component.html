@@ -1,121 +1,150 @@
-@if (c.snapshot; as snapshot) {
+@if (c.snapshot && panel; as p) {
   <div class="stats">
-    <!-- Con cabecera animada, arriba del todo; sin ella, la frase en su bloque. -->
+    <!-- Con cabecera animada, arriba del todo; sin ella, la frase en su casilla. -->
     @if (c.bookTitle.available && c.bookTitle.html) {
       <app-web-book-title class="stats__fun-title" mode="summary" [state]="c.bookTitle"></app-web-book-title>
     }
-    <header class="stats__head">
-      <p class="eyebrow">Resumen del libro</p>
-      <h1>Tu lectura de un vistazo</h1>
-    </header>
-
     @if (c.bookTitle.available && !c.bookTitle.html) {
-      <section class="panel" aria-labelledby="web-book-fun-title">
-        <header><h2 id="web-book-fun-title">Tu título</h2></header>
-        <app-web-book-title [state]="c.bookTitle"></app-web-book-title>
-      </section>
+      <section class="tile tile--wide" aria-labelledby="web-book-fun-title"><h2 id="web-book-fun-title">Tu título</h2><app-web-book-title [state]="c.bookTitle"></app-web-book-title></section>
     }
 
-    <div class="hero">
-      <!-- Compacta (opción A del propietario, 26/10/2026): lo que no tiene dato no ocupa sitio. -->
-      <section class="panel reading" aria-labelledby="web-book-progress">
-        <h2 id="web-book-progress">Progreso</h2>
-        @if (progress && progress.page) {
-          <p class="reading__line">
-            @if (progress.percent !== null && progress.total) {Página <strong>{{progress.page}}</strong> de {{progress.total}} · <strong>{{progress.percent}} %</strong>}
-            @else {Vas por la página <strong>{{progress.page}}</strong>}
-          </p>
-          @if (progress.percent !== null && progress.total) {
-            <div class="reading__bar" role="progressbar" aria-label="Leído" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress.percent"><span [style.width.%]="progress.percent"></span></div>
-          }
-        }
-        @if (c.readingMilestones.length || c.readingStateLabel) {
-          <ul class="reading__dates">
-            @for (milestone of c.readingMilestones; track milestone.label) {
-              <li><span>{{milestone.label}}</span> {{milestone.date | date:'d MMM y'}}@if (milestone.detail) { · {{milestone.detail}}}</li>
+    <!-- «Tu lectura» en casillas (6/11/2026): cada cifra una sola vez. -->
+    <div class="tiles">
+      @if (p.progress.page > 0 || p.progressStart || p.progressEnd) {
+        <section class="tile tile--wide reading-progress" aria-label="Progreso">
+          @if (p.progress.page > 0 || p.progress.total) {
+            <p class="reading-progress__line">
+              <strong>{{p.progress.page}}</strong><span>{{p.progress.total ? 'de ' + p.progress.total + ' págs.' : 'págs.'}}</span>
+              @if (p.progress.percent !== null) {<b>{{p.progress.percent}} %</b>}
+            </p>
+            @if (p.progress.percent !== null) {
+              <div class="reading-progress__bar" role="progressbar" aria-label="Leído" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="p.progress.percent"><span [style.width.%]="p.progress.percent"></span></div>
             }
-            @if (c.readingStateLabel) {<li class="is-state">{{c.readingStateLabel}}</li>}
+          }
+          @if (p.progressStart || p.progressEnd) {
+            <p class="reading-progress__dates"><span>{{p.progressStart}}</span>@if (p.progressEnd) {<span>{{p.progressEnd}}</span>}</p>
+          }
+        </section>
+      }
+
+      @if (p.paceValue !== null) {
+        <section class="tile" aria-labelledby="web-tile-pace">
+          <h2 id="web-tile-pace">Ritmo</h2>
+          <p class="tile__figure">{{p.paceValue | number:'1.0-1'}}<small>págs./día</small></p>
+          @if (p.paceLine) {
+            <svg class="mini-line" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+              <polyline [attr.points]="p.paceLine" vector-effect="non-scaling-stroke"></polyline>
+            </svg>
+          }
+          @if (p.paceVersus) {<p class="note" [class.is-up]="p.paceVersus.startsWith('+')">{{p.paceVersus}}</p>}
+        </section>
+      }
+
+      @if (p.chapters) {
+        <section class="tile" aria-labelledby="web-tile-chapters">
+          <h2 id="web-tile-chapters">Capítulos</h2>
+          <p class="tile__figure">{{p.chapters}}<small>· {{p.scenes}} {{p.scenes === 1 ? 'escena' : 'escenas'}}</small></p>
+          @if (p.chapterBars.length) {
+            <div class="mini-bars" aria-hidden="true">
+              @for (height of p.chapterBars; track $index; let last = $last) {<span [class.is-last]="last" [style.height.%]="height"></span>}
+            </div>
+          }
+          @if (p.averagePages !== null) {<p class="note">{{p.averagePages | number:'1.0-1'}} págs. de media</p>}
+        </section>
+      }
+
+      @if (p.days.length) {
+        <section class="tile" aria-labelledby="web-tile-days">
+          <h2 id="web-tile-days">Últimos días</h2>
+          <ul class="days">
+            @for (day of p.days; track day.label) {
+              <li [class.is-best]="day.best">
+                <span class="days__label">{{day.label}}</span>
+                <span class="days__track"><span [class.is-empty]="!day.pages" [style.width.%]="day.pages ? day.width : null"></span></span>
+                <span class="days__value">{{day.pages ?? '—'}}</span>
+              </li>
+            }
           </ul>
-        }
-        @if (c.canAddPurchaseDate) {
-          <label class="reading__add-date">Añadir fecha de compra<input #purchaseInput type="date" [disabled]="c.isSavingPurchaseDate" (change)="c.savePurchaseDateFromInput(purchaseInput.value)"></label>
-        }
-        @if (c.readingPace; as pace) {
-          <dl class="pace">
-            <div><dt>Páginas por día</dt><dd>{{pace.PaginasPorDia | number:'1.0-1'}}</dd></div>
-            <div><dt>Días de lectura</dt><dd>{{pace.DiasActivos}}</dd></div>
-            <div><dt>Mejor día</dt><dd>{{c.paceBestDay}}</dd></div>
-            <div><dt>Tu media</dt><dd>{{pace.MediaPersonalPorDia === null ? '—' : (pace.MediaPersonalPorDia | number:'1.0-1')}}</dd></div>
-          </dl>
-          @if (c.paceComparison) {<p class="muted reading__note">{{c.paceComparison}}</p>}
-        }
-      </section>
+        </section>
+      }
 
-      <div class="metrics" aria-label="Cifras del libro">
-        @for (metric of [
-          {icon: 'menu_book', value: c.totalChapters, label: 'Capítulos'},
-          {icon: 'movie_filter', value: c.totalScenes, label: 'Escenas'},
-          {icon: 'auto_stories', value: c.averagePagesByChapter === null ? '—' : (c.averagePagesByChapter | number:'1.1-1'), label: 'Páginas por capítulo'},
-          {icon: 'theater_comedy', value: snapshot.Personajes.length, label: 'Personajes'},
-          {icon: 'groups', value: c.totalPresentCharacters, label: 'Apariciones'},
-          {icon: 'record_voice_over', value: c.totalMentionedCharacters, label: 'Menciones'}
-        ]; track metric.label) {
-          <article><span class="metrics__icon" aria-hidden="true"><mat-icon>{{metric.icon}}</mat-icon></span><strong>{{metric.value}}</strong><span>{{metric.label}}</span></article>
-        }
-        <article class="metrics__highlight">
-          <span>Más presente</span>
-          <strong>{{c.mostFrequentCharacter?.Nombre ?? '—'}}</strong>
-          @if (c.mostFrequentCharacter) {<small>{{c.mostFrequentCharacter.Apariciones}} apariciones</small>}
-        </article>
-        <article class="metrics__highlight">
-          <span>Más nombrado</span>
-          <strong>{{c.mostMentionedCharacter?.Nombre ?? '—'}}</strong>
-          @if (c.mostMentionedCharacter) {<small>{{c.mostMentionedCharacter.Nombramientos}} menciones</small>}
-        </article>
-      </div>
-    </div>
+      @if (p.dates.length || c.canAddPurchaseDate) {
+        <section class="tile" aria-labelledby="web-tile-dates">
+          <h2 id="web-tile-dates">Fechas</h2>
+          <ul class="dates">
+            @for (date of p.dates; track date.label; let first = $first) {
+              <li [class.is-first]="first"><strong>{{date.label}}@if (date.detail) { · {{date.detail}}}</strong><span>{{date.when}}</span></li>
+            }
+          </ul>
+          @if (c.canAddPurchaseDate) {
+            <label class="add-date"><mat-icon aria-hidden="true">calendar_today</mat-icon>Fecha de compra
+              <input #purchaseInput type="date" [disabled]="c.isSavingPurchaseDate" (change)="c.savePurchaseDateFromInput(purchaseInput.value)"></label>
+          }
+        </section>
+      }
 
-    <!-- Sus cifras van en «Tu lectura»; aquí, solo la curva, y nada si no hay ritmo. -->
-    @if (paceCurve) {
-      <section class="panel" aria-labelledby="web-book-my-pace">
-        <header><h2 id="web-book-my-pace">Tu ritmo en este libro</h2><small>Hasta qué página llegaste cada día</small></header>
-        <apx-chart [series]="paceCurve.series" [chart]="paceCurve.chart" [colors]="paceCurve.colors" [stroke]="paceCurve.stroke" [fill]="paceCurve.fill"
-          [markers]="paceCurve.markers" [dataLabels]="paceCurve.dataLabels" [grid]="paceCurve.grid" [xaxis]="paceCurve.xaxis" [yaxis]="paceCurve.yaxis" [tooltip]="paceCurve.tooltip"></apx-chart>
-      </section>
-    }
+      @if (p.cast.length) {
+        <section class="tile tile--wide" aria-labelledby="web-tile-cast">
+          <header><h2 id="web-tile-cast">Reparto</h2><span>{{p.characters}} personajes</span></header>
+          <ul class="cast">
+            @for (character of p.cast; track character.name) {
+              <li [title]="character.name + ': ' + character.total">
+                <span class="cast__name">{{character.name}}</span>
+                <span class="cast__track"><span class="is-present" [style.width.%]="character.present"></span><span class="is-named" [style.width.%]="character.named"></span></span>
+                <span class="cast__value">{{character.total}}</span>
+              </li>
+            }
+          </ul>
+          <p class="legend"><span><i class="is-present"></i>Aparece</span><span><i class="is-named"></i>Nombrado</span></p>
+        </section>
+      }
 
-    <section class="panel" aria-labelledby="web-book-pacing">
-      <header><h2 id="web-book-pacing">Ritmo del libro</h2><small>Páginas de cada capítulo, en orden de lectura</small></header>
-      @if (pacing) {
-        <apx-chart [series]="pacing.series" [chart]="pacing.chart" [colors]="pacing.colors" [plotOptions]="pacing.plotOptions" [dataLabels]="pacing.dataLabels"
-          [grid]="pacing.grid" [xaxis]="pacing.xaxis" [yaxis]="pacing.yaxis" [annotations]="pacing.annotations" [tooltip]="pacing.tooltip"></apx-chart>
-      } @else {<p class="muted">Añade páginas a los capítulos para ver el ritmo.</p>}
-    </section>
-
-    <section class="panel" aria-labelledby="web-book-presence">
-      <header><h2 id="web-book-presence">Quién aparece en cada capítulo</h2><small>Los personajes más presentes</small></header>
       @if (heatmap) {
-        <apx-chart [series]="heatmap.series" [chart]="heatmap.chart" [dataLabels]="heatmap.dataLabels" [stroke]="heatmap.stroke"
-          [plotOptions]="heatmap.plotOptions" [legend]="heatmap.legend" [xaxis]="heatmap.xaxis" [tooltip]="heatmap.tooltip"></apx-chart>
-      } @else {<p class="muted">Las escenas aún no tienen personajes registrados.</p>}
-    </section>
-
-    <div class="pair">
-      <section class="panel" aria-labelledby="web-book-cast">
-        <header><h2 id="web-book-cast">Reparto por capítulo</h2><small>Aparecen y solo nombrados</small></header>
-        @if (cast) {
-          <apx-chart [series]="cast.series" [chart]="cast.chart" [colors]="cast.colors" [plotOptions]="cast.plotOptions" [dataLabels]="cast.dataLabels"
-            [grid]="cast.grid" [legend]="cast.legend" [xaxis]="cast.xaxis" [yaxis]="cast.yaxis" [tooltip]="cast.tooltip"></apx-chart>
-        } @else {<p class="muted">Las escenas aún no tienen personajes registrados.</p>}
-      </section>
-      <section class="panel" aria-labelledby="web-book-groups">
-        <header><h2 id="web-book-groups">Personajes por grupo</h2></header>
-        @if (groups) {
-          <apx-chart [series]="groups.series" [labels]="groups.labels" [chart]="groups.chart" [colors]="groups.colors" [stroke]="groups.stroke"
-            [dataLabels]="groups.dataLabels" [legend]="groups.legend" [plotOptions]="groups.plotOptions"></apx-chart>
-        } @else {<p class="muted">Todavía no hay personajes.</p>}
-      </section>
+        <section class="tile tile--wide" aria-labelledby="web-tile-presence">
+          <h2 id="web-tile-presence">Quién aparece, capítulo a capítulo</h2>
+          <apx-chart [series]="heatmap.series" [chart]="heatmap.chart" [dataLabels]="heatmap.dataLabels" [stroke]="heatmap.stroke"
+            [plotOptions]="heatmap.plotOptions" [legend]="heatmap.legend" [xaxis]="heatmap.xaxis" [tooltip]="heatmap.tooltip"></apx-chart>
+        </section>
+      }
     </div>
+
+    @if (hasMoreCharts) {
+      <button class="more" type="button" [attr.aria-expanded]="chartsOpen" aria-controls="web-book-charts" (click)="chartsOpen = !chartsOpen">
+        {{chartsOpen ? 'Ocultar gráficos' : 'Ver gráficos'}}<mat-icon aria-hidden="true">{{chartsOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
+      </button>
+    }
+    @if (chartsOpen) {
+      <div id="web-book-charts" class="charts">
+        @if (paceCurve) {
+          <section class="tile tile--wide" aria-labelledby="web-book-my-pace">
+            <h2 id="web-book-my-pace">Hasta qué página llegaste cada día</h2>
+            <apx-chart [series]="paceCurve.series" [chart]="paceCurve.chart" [colors]="paceCurve.colors" [stroke]="paceCurve.stroke" [fill]="paceCurve.fill"
+              [markers]="paceCurve.markers" [dataLabels]="paceCurve.dataLabels" [grid]="paceCurve.grid" [xaxis]="paceCurve.xaxis" [yaxis]="paceCurve.yaxis" [tooltip]="paceCurve.tooltip"></apx-chart>
+          </section>
+        }
+        @if (pacing) {
+          <section class="tile tile--wide" aria-labelledby="web-book-pacing">
+            <h2 id="web-book-pacing">Páginas de cada capítulo</h2>
+            <apx-chart [series]="pacing.series" [chart]="pacing.chart" [colors]="pacing.colors" [plotOptions]="pacing.plotOptions" [dataLabels]="pacing.dataLabels"
+              [grid]="pacing.grid" [xaxis]="pacing.xaxis" [yaxis]="pacing.yaxis" [annotations]="pacing.annotations" [tooltip]="pacing.tooltip"></apx-chart>
+          </section>
+        }
+        @if (cast) {
+          <section class="tile" aria-labelledby="web-book-cast">
+            <h2 id="web-book-cast">Reparto por capítulo</h2>
+            <apx-chart [series]="cast.series" [chart]="cast.chart" [colors]="cast.colors" [plotOptions]="cast.plotOptions" [dataLabels]="cast.dataLabels"
+              [grid]="cast.grid" [legend]="cast.legend" [xaxis]="cast.xaxis" [yaxis]="cast.yaxis" [tooltip]="cast.tooltip"></apx-chart>
+          </section>
+        }
+        @if (groups) {
+          <section class="tile" aria-labelledby="web-book-groups">
+            <h2 id="web-book-groups">Personajes por grupo</h2>
+            <apx-chart [series]="groups.series" [labels]="groups.labels" [chart]="groups.chart" [colors]="groups.colors" [stroke]="groups.stroke"
+              [dataLabels]="groups.dataLabels" [legend]="groups.legend" [plotOptions]="groups.plotOptions"></apx-chart>
+          </section>
+        }
+      </div>
+    }
   </div>
 } @else {
   <div class="state"><mat-icon aria-hidden="true">analytics</mat-icon><p>Abre un libro para ver sus estadísticas.</p></div>

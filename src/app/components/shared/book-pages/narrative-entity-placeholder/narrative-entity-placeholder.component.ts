@@ -29,7 +29,7 @@ import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-erro
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
-import { narrativeEntityDisplayName } from '../../../../shared/narrative-entity-names';
+import { defaultEntryDescriptionText, isFeminineNarrativeEntity, narrativeEntityDisplayName } from '../../../../shared/narrative-entity-names';
 import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -38,6 +38,7 @@ import { WebNarrativeEntityViewComponent } from '../../../web/book/web-narrative
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 import { foldText } from '../../../../shared/text';
 import { CharacterGroup, characterGroupRank, groupCharactersByGroup } from '../../../../shared/character-groups';
+import { duplicateCharacterQuestion, findCharacterNamed } from '../../../../shared/scene-cast';
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { createClientRequestId } from '../../../../shared/client-request-id';
 
@@ -1098,8 +1099,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
      */
     private createCharacter(basePayload: NarrativeEntityCreate): void {
         const name = (this.name.value ?? '').trim();
-        const sameName = this.findCharacterNamed(name);
-        if (sameName && !window.confirm(`Ya hay un personaje llamado «${sameName.Nombre}» en este libro. ¿Quieres crear otro con el mismo nombre?`))
+        const sameName = findCharacterNamed(this.book.Personajes ?? [], name);
+        if (sameName && !window.confirm(duplicateCharacterQuestion(sameName.Nombre)))
             return;
 
         const bookId = this.book.Id;
@@ -1179,13 +1180,6 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         this.isSubmittingEntity = false;
         if (ownsLoader)
             this.loader.deactivateLoader();
-    }
-
-    private findCharacterNamed(name: string): Character | undefined {
-        const target = foldText(name).trim();
-        if (!target)
-            return undefined;
-        return (this.book.Personajes ?? []).find(character => foldText(character.Nombre ?? '').trim() === target);
     }
 
     private joinLabels(labels: string[]): string {
@@ -2011,11 +2005,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     private getDefaultEntryDescriptionText(): string {
-        return `Descripción ${this.isFeminineEntity() ? 'de la' : 'del'} ${this.getConfig().singular}`;
+        return defaultEntryDescriptionText(this.getConfig().singular);
     }
 
     private isFeminineEntity(): boolean {
-        return ['organización', 'localización', 'cita'].includes(this.getConfig().singular);
+        return isFeminineNarrativeEntity(this.getConfig().singular);
     }
 
     private resetCreateEntries(): void {

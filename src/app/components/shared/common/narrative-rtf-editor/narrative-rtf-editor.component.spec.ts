@@ -150,6 +150,72 @@ describe('NarrativeRtfEditorComponent', () => {
         expect(rtfToPlainText(onChange.calls.mostRecent().args[0])).toBe('vino');
     });
 
+    describe('la @ del texto (rediseño del 6/11/2026)', () => {
+        function caretAtEnd(paragraph: Element): void {
+            const range = document.createRange();
+            range.selectNodeContents(paragraph);
+            range.collapse(false);
+            window.getSelection()?.removeAllRanges();
+            window.getSelection()?.addRange(range);
+        }
+
+        it('avisa de la @ que se escribe en el párrafo y la cambia por el nombre elegido', () => {
+            const { component, root } = createEditor('Citra vino');
+            component.mentions = true;
+            const mentions: Array<string | null> = [];
+            component.mentionChange.subscribe(mention => mentions.push(mention?.query ?? null));
+            const onChange = jasmine.createSpy('onChange');
+            component.registerOnChange(onChange);
+            component.markFocused();
+            root.innerHTML = '<p>Citra vino</p><p>Con @ro</p>';
+            caretAtEnd(root.querySelectorAll('p')[1]);
+
+            component.handleSelectionChange();
+            expect(mentions).toEqual(['ro']);
+
+            component.completeMention('Rowan');
+            expect(mentions).toEqual(['ro', null]);
+            const paragraphs = [...root.querySelectorAll('p')].map(paragraph => paragraph.textContent);
+            expect(paragraphs).toEqual(['Citra vino', 'Con Rowan ']);
+            expect(rtfToPlainText(onChange.calls.mostRecent().args[0])).toContain('Con Rowan');
+        });
+
+        it('sin la opción, o tras una palabra, no hay @; con la tarjeta abierta, las flechas y Escape son suyas', () => {
+            const { component, root } = createEditor('Citra vino');
+            const mentions: Array<string | null> = [];
+            const keys: string[] = [];
+            component.mentionChange.subscribe(mention => mentions.push(mention?.query ?? null));
+            component.mentionKey.subscribe(key => keys.push(key));
+            root.innerHTML = '<p>Con @ro</p>';
+            caretAtEnd(root.querySelector('p')!);
+            component.handleSelectionChange();
+            expect(mentions).withContext('sin `mentions`').toEqual([]);
+
+            component.mentions = true;
+            root.innerHTML = '<p>yo@ro</p>';
+            caretAtEnd(root.querySelector('p')!);
+            component.handleSelectionChange();
+            expect(mentions).withContext('dentro de una palabra').toEqual([]);
+
+            root.innerHTML = '<p>Con @ro</p>';
+            caretAtEnd(root.querySelector('p')!);
+            component.handleSelectionChange();
+            const enter = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+            component.handleKeydown(enter);
+            expect(enter.defaultPrevented).withContext('sin tarjeta, Intro escribe').toBeFalse();
+
+            component.mentionMenuOpen = true;
+            const down = new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true });
+            component.handleKeydown(down);
+            component.handleKeydown(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
+            expect(down.defaultPrevented).toBeTrue();
+            expect(keys).toEqual(['next', 'close']);
+            // Cerrada con Escape, la misma @ no vuelve a abrirse.
+            component.handleSelectionChange();
+            expect(mentions).toEqual(['ro', null]);
+        });
+    });
+
     it('emits a commit after a real editor mutation', () => {
         const { component, root } = createEditor('Texto normal');
         const onChange = jasmine.createSpy('onChange');

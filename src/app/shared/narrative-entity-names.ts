@@ -33,3 +33,13 @@ export function narrativeEntityDisplayName(
 ): string {
     return findNarrativeEntityName(entities, id) ?? cleanName(rowName) ?? fallbackLabel;
 }
+
+/** Los tipos de entidad que se nombran en femenino («Nueva localización», «Descripción de la cita»). */
+export function isFeminineNarrativeEntity(singular: string): boolean {
+    return ['organización', 'localización', 'cita'].includes(singular);
+}
+
+/** El texto de la primera entrada de un alta: «Descripción del personaje», «Descripción de la cita»… */
+export function defaultEntryDescriptionText(singular: string): string {
+    return `Descripción ${isFeminineNarrativeEntity(singular) ? 'de la' : 'del'} ${singular}`;
+}

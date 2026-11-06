@@ -10,7 +10,7 @@ import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
 import { Scene, SceneCharacterDetail } from '../../../../interfaces/scene';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { catchError, debounceTime, EMPTY, finalize, forkJoin, map, merge, Observable, of, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
+import { catchError, debounceTime, EMPTY, finalize, forkJoin, map, merge, Observable, of, Subject, switchMap, takeUntil, tap, throwError, timeout, TimeoutError } from 'rxjs';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSelectModule } from '@angular/material/select';
@@ -24,8 +24,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
-import { findNarrativeEntityName } from '../../../../shared/narrative-entity-names';
-import { htmlToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { defaultEntryDescriptionText, findNarrativeEntityName } from '../../../../shared/narrative-entity-names';
+import { htmlToRtf, plainTextToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileChapterViewComponent } from '../../../mobile/book/mobile-chapter-view/mobile-chapter-view.component';
@@ -35,6 +35,10 @@ import { foldText } from '../../../../shared/text';
 import { CharacterGroup, groupCharactersByGroup } from '../../../../shared/character-groups';
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { AppToastService } from '../../../../shared/toast/app-toast.service';
+import { CharacterService } from '../../../../services/entities/character.service';
+import { castNameToCreate, duplicateCharacterQuestion, filterSceneCast, findCharacterNamed, pressCastIcon, withSceneCastFirst } from '../../../../shared/scene-cast';
+import { createClientRequestId } from '../../../../shared/client-request-id';
+import { getApiErrorCode } from '../../../../shared/api-error-message';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -57,6 +61,9 @@ interface ChapterPersistBatch {
 }
 
 type ChapterCharacterUsage = 'present' | 'named' | null;
+
+/** Lo que espera el alta rápida de un personaje desde una escena (como la hoja de alta). */
+const SCENE_CHARACTER_CREATE_TIMEOUT_MS = 30_000;
 
 /** Lo que un capítulo no había guardado cuando cambió la cuenta: el formulario tal cual y las escenas borradas. */
 interface ChapterDraft {
@@ -152,6 +159,17 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     /** La escena con el desplegable «+ Personaje» abierto, y su búsqueda. */
     characterPickerSceneIndex: number | null = null;
     characterPickerQuery = new FormControl('');
+    /**
+     * Web, «Escenas plegadas» (rediseño del 6/11/2026, igual que la APK): la única escena desplegada; al abrir el
+     * capítulo, la última.
+     */
+    openSceneIndex: number | null = null;
+    /** El nombre del personaje que se está creando desde una escena (el reparto o la @), o `null`. */
+    creatingSceneCharacter: string | null = null;
+    /** Los que estaban en la escena al abrir su reparto: salen arriba y la lista no salta al pulsar. */
+    private castSheetFirst = new Set<number>();
+    /** El `IdCliente` de cada nombre que se crea desde una escena: el mismo en cada reintento, para no duplicarlo. */
+    private sceneCharacterClientIds = new Map<string, string>();
 
     fgChapter = this.fBuild.group({
         name: this.name,
@@ -224,7 +242,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private presentation: PresentationModeService,
         private saveIndicator: BookSaveIndicatorService,
         private pendingWork: PendingWorkService,
-        private toasts: AppToastService
+        private toasts: AppToastService,
+        private characterSrv: CharacterService
     ) {
         this.stopPendingWork = this.pendingWork.register(this);
         merge(this.name.statusChanges, this.name.valueChanges)
@@ -402,6 +421,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         }
         if (this.scenesControls.length === 0)
             this.appendScene();
+        this.openSceneIndex = this.scenesControls.length - 1;
         this.deletedSceneIds = (draft.deletedSceneIds ?? []).filter(id => Number.isInteger(id) && id > 0);
         this.isInitializingForm = false;
         this.formRevision++;
@@ -479,6 +499,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         }
         if (this.scenesControls.length === 0)
             this.appendScene();
+        this.openSceneIndex = this.scenesControls.length - 1;
         this.refreshSavedSnapshots();
         this.fgChapter.markAsPristine();
         this.autosaveStatus = 'idle';
@@ -573,6 +594,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         }
 
         this.appendScene();
+        this.openSceneIndex = this.scenesControls.length - 1;
         return true;
     }
 
@@ -586,6 +608,10 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             this.deletedSceneIds.push(sceneId);
         this.closeCharacterPicker();
         this.scenesControls.removeAt(index);
+        if (this.openSceneIndex === index)
+            this.openSceneIndex = this.scenesControls.length ? this.scenesControls.length - 1 : null;
+        else if (this.openSceneIndex !== null && this.openSceneIndex > index)
+            this.openSceneIndex--;
     }
 
     isSceneValid(sceneGroup: FormGroup): boolean {
@@ -731,10 +757,33 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     /** «Indiscreciones · págs. 145–151 · nº 11» (o «pág. 145» si empieza y acaba en la misma). */
     getChapterSummary(): string {
+        return `${String(this.name.value ?? '').trim()} · ${this.getChapterPagesLabel()} · nº ${String(this.order.value ?? '').trim()}`;
+    }
+
+    /** «págs. 145–151», o «pág. 145» si empieza y acaba en la misma (o no tiene final). */
+    private getChapterPagesLabel(): string {
         const start = String(this.page.value ?? '').trim();
         const end = String(this.endPage.value ?? '').trim();
-        const pages = !end || end === start ? `pág. ${start}` : `págs. ${start}–${end}`;
-        return `${String(this.name.value ?? '').trim()} · ${pages} · nº ${String(this.order.value ?? '').trim()}`;
+        return !end || end === start ? `pág. ${start}` : `págs. ${start}–${end}`;
+    }
+
+    /** El título del capítulo en su cabecera Web, con lo que se está escribiendo. */
+    getChapterHeading(): string {
+        return String(this.name.value ?? '').trim() || `Capítulo ${String(this.order.value ?? '').trim() || this.chapter.Orden}`;
+    }
+
+    /** «Cap. 11 · págs. 145–151» bajo el título (como la barra de la APK); lo que no es válido no sale. */
+    getChapterSubtitle(): string {
+        const order = this.order.valid ? `Cap. ${String(this.order.value).trim()}` : '';
+        const pages = !this.page.valid ? '' : this.endPage.valid ? this.getChapterPagesLabel() : `pág. ${String(this.page.value).trim()}`;
+        return [order, pages].filter(Boolean).join(' · ');
+    }
+
+    /** El lápiz de la cabecera Web: despliega o pliega los datos del capítulo guardado. */
+    toggleChapterFields(): void {
+        if (this.chapter.Id <= 0)
+            return;
+        this.chapterFieldsOpenFor = this.chapterFieldsOpenFor === this.chapter.Id ? null : this.chapter.Id;
     }
 
     /** El contador del título solo cuando falta poco para el límite de 200. */
@@ -767,6 +816,130 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     getCharacterPickerOptions(sceneGroup: AbstractControl): Character[] {
         return this.getFilteredAvailableSceneCharacters(sceneGroup, this.characterPickerQuery.value ?? '');
+    }
+
+    // --- Web, «Escenas plegadas» y el reparto de la escena (rediseño del 6/11/2026, igual que la APK). ---
+
+    /** Despliega esa escena y pliega la que estuviera abierta. */
+    openScene(index: number): void {
+        this.openSceneIndex = index;
+    }
+
+    /** A la escena le falta algo y ya se ha tocado: su tarjeta plegada lo marca. */
+    sceneHasErrors(sceneGroup: AbstractControl): boolean {
+        return sceneGroup.touched && (sceneGroup.invalid || (this.chapter.Id > 0 && !this.hasAssignedCharacter(sceneGroup)));
+    }
+
+    /** Su texto sin formato, para la tarjeta plegada; vacío si es el de por defecto. */
+    getScenePreview(sceneGroup: AbstractControl): string {
+        if (this.isDefaultSceneDescription(sceneGroup))
+            return '';
+        return rtfToPlainText(sceneGroup.get('descripcion')?.value ?? '').replace(/\s+/g, ' ').trim();
+    }
+
+    /** La localización de la escena para su tarjeta plegada; «Sin localización» no se enseña. */
+    getSceneLocationLabel(sceneGroup: AbstractControl): string {
+        const id = sceneGroup.get('localizacion')?.value;
+        if (typeof id !== 'number' || id === Number(this.getCanonicalNeutralLocation()?.Id))
+            return '';
+        return this.displaySceneLocation(id);
+    }
+
+    /** Abre el reparto de la escena: el buscador vacío y los que ya están en ella, arriba. */
+    openCastSheet(sceneIndex: number): void {
+        this.openCharacterPicker(sceneIndex);
+        const scene = this.scenesControls.at(sceneIndex) as FormGroup | undefined;
+        this.castSheetFirst = new Set(scene ? this.getSelectedSceneCharacters(scene).map(character => character.Id) : []);
+    }
+
+    /** Todos los personajes del libro que coinciden con el buscador del reparto, con los de la escena arriba. */
+    getCastSheetOptions(): Character[] {
+        return withSceneCastFirst(filterSceneCast(this.book.Personajes, this.characterPickerQuery.value ?? ''), this.castSheetFirst);
+    }
+
+    /** El nombre de «Crear «…»» con lo escrito en `query`, o `null` si no vale. */
+    getCastNameToCreate(query: string | null | undefined): string | null {
+        return castNameToCreate(query ?? '');
+    }
+
+    /** Los que coinciden con lo escrito tras la @ (hasta cuatro). */
+    getMentionOptions(query: string): Character[] {
+        return filterSceneCast(this.book.Personajes, query).slice(0, 4);
+    }
+
+    /** Cómo está un personaje en la escena: en escena, solo nombrado o fuera. */
+    getSceneCastState(sceneGroup: AbstractControl, characterId: number): ChapterCharacterUsage {
+        const member = this.getSelectedSceneCharacters(sceneGroup as FormGroup).find(character => character.Id === Number(characterId));
+        return member ? (member.Nombrado ? 'named' : 'present') : null;
+    }
+
+    /** Uno de los dos iconos de un personaje en el reparto (`pressCastIcon`): la escena cambia al momento. */
+    pressSceneCastIcon(sceneGroup: AbstractControl, characterId: number, named: boolean): void {
+        const id = Number(characterId);
+        const next = pressCastIcon(this.getSelectedSceneCharacters(sceneGroup as FormGroup), id, named).find(character => character.Id === id);
+        if (next)
+            this.assignCharacterById(sceneGroup, id, next.Nombrado);
+        else
+            this.removeSceneCharacter(sceneGroup, id);
+    }
+
+    /**
+     * «Crear «…»» desde el reparto o la @: el alta rápida (el nombre, «Vivo» y «No sé» de sexo, con la entrada
+     * «Descripción» de siempre) sin salir del capítulo, con el aviso de nombre repetido de la hoja de alta. Creado, entra
+     * en la escena como presente y se avisa a `created` con su id. Un reintento del mismo nombre no lo duplica.
+     */
+    createSceneCharacter(sceneGroup: AbstractControl, rawName: string, created?: (characterId: number) => void): void {
+        const name = castNameToCreate(rawName);
+        if (!name || this.creatingSceneCharacter || this.abandoned || this.book.Id <= 0)
+            return;
+        const sameName = findCharacterNamed(this.book.Personajes, name);
+        if (sameName && !window.confirm(duplicateCharacterQuestion(sameName.Nombre)))
+            return;
+        const bookId = this.book.Id;
+        const key = foldText(name);
+        const clientId = this.sceneCharacterClientIds.get(key) ?? createClientRequestId();
+        this.sceneCharacterClientIds.set(key, clientId);
+        this.creatingSceneCharacter = name;
+        this.characterSrv.create({
+            LibroId: bookId,
+            Apodo: name,
+            Sexo: 2,
+            Entradas: [{ Nombre: 'Descripción', Descripcion: plainTextToRtf(defaultEntryDescriptionText('personaje')) }],
+            IdCliente: clientId
+        }).pipe(
+            timeout({ first: SCENE_CHARACTER_CREATE_TIMEOUT_MS }),
+            finalize(() => this.creatingSceneCharacter = null),
+            takeUntil(this.destroy$)
+        ).subscribe({
+            next: character => {
+                this.sceneCharacterClientIds.delete(key);
+                if (this.abandoned || this.book.Id !== bookId)
+                    return;
+                // Entra en el libro sin rehacer el formulario (un capítulo nuevo se rehace con cada libro que llega).
+                this.skipNextBookStoreSync = true;
+                this.bookStore.upsertCharacter(bookId, character);
+                this.skipNextBookStoreSync = false;
+                if (this.scenesControls.controls.includes(sceneGroup))
+                    this.assignCharacterById(sceneGroup, character.Id, false);
+                this.castSheetFirst.add(Number(character.Id));
+                this._snackBar.openSnackBar('Personaje creado', 'successBar');
+                if (this.chapter.Id > 0)
+                    this.queueCharacterOrderRefresh();
+                created?.(Number(character.Id));
+            },
+            error: errorData => {
+                const code = getApiErrorCode(errorData);
+                if (code === 'invalid_client_request_id' || code === 'character_client_request_conflict')
+                    this.sceneCharacterClientIds.delete(key);
+                if (errorData instanceof TimeoutError)
+                    this._snackBar.openSnackBar(
+                        'La API no ha respondido a tiempo. Si el personaje se ha creado aparecerá en la lista; si lo vuelves a crear no se duplicará.',
+                        'errorBar'
+                    );
+                else
+                    this._snackBar.openApiError(errorData, 'Error al crear el personaje');
+            }
+        });
     }
 
     isNamedSceneCharacter(characterGroup: AbstractControl): boolean {

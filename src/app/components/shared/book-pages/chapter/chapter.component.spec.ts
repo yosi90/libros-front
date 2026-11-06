@@ -4,6 +4,7 @@ import { FormGroup } from '@angular/forms';
 import { NEVER, of } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
 import { ChapterService } from '../../../../services/entities/chapter.service';
+import { CharacterService } from '../../../../services/entities/character.service';
 import { SceneService } from '../../../../services/entities/scene.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
@@ -11,6 +12,7 @@ import { CharacterOrderRefreshService } from '../../../../services/stores/charac
 import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
 import { PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { PresentationModeService, PresentationState } from '../../../../services/ui/presentation-mode.service';
+import { plainTextToRtf } from '../../../../shared/rtf/rtf-text';
 import { ChapterComponent } from './chapter.component';
 
 describe('ChapterComponent', () => {
@@ -19,6 +21,7 @@ describe('ChapterComponent', () => {
     let bookStore: BookStoreService;
     let chapterService: jasmine.SpyObj<ChapterService>;
     let sceneService: jasmine.SpyObj<SceneService>;
+    let characterService: jasmine.SpyObj<CharacterService>;
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
@@ -48,13 +51,15 @@ describe('ChapterComponent', () => {
                     provide: CharacterOrderRefreshService,
                     useValue: { isRefreshing$: jasmine.createSpy('isRefreshing$').and.returnValue(of(false)), refresh: jasmine.createSpy('refresh') }
                 },
-                { provide: NarrativeEditorFontPreferenceService, useValue: { preferredFont: jasmine.createSpy('preferredFont').and.returnValue('Arial') } }
+                { provide: NarrativeEditorFontPreferenceService, useValue: { preferredFont: jasmine.createSpy('preferredFont').and.returnValue('Arial') } },
+                { provide: CharacterService, useValue: jasmine.createSpyObj<CharacterService>('CharacterService', ['create']) }
             ]
         }).compileComponents();
 
         bookStore = TestBed.inject(BookStoreService);
         chapterService = TestBed.inject(ChapterService) as jasmine.SpyObj<ChapterService>;
         sceneService = TestBed.inject(SceneService) as jasmine.SpyObj<SceneService>;
+        characterService = TestBed.inject(CharacterService) as jasmine.SpyObj<CharacterService>;
         bookStore.setBook(createBook());
         fixture = TestBed.createComponent(ChapterComponent);
         component = fixture.componentInstance;
@@ -330,7 +335,7 @@ describe('ChapterComponent', () => {
             expect(component.getSelectedSceneCharacters(scene)).toEqual([{ Id: 10, Nombrado: false }, { Id: 20, Nombrado: true }]);
         });
 
-        for (const mode of ['web', 'mobile'] as const) {
+        for (const mode of ['mobile'] as Array<'web' | 'mobile'>) {
             it(`se ve compacto en ${mode === 'web' ? 'Web' : 'Mobile'}`, () => {
                 activeMode = mode;
                 saveChapter();
@@ -370,6 +375,94 @@ describe('ChapterComponent', () => {
                 expect(host().querySelector(mode === 'web' ? '.chapter__title' : '.m-chapter__name input')).not.toBeNull();
             });
         }
+
+        it('Web: el título con sus páginas y el lápiz, y la escena desplegada con «+» y sus fichas', () => {
+            saveChapter();
+            const scene = component.scenesControls.at(0);
+            component.assignCharacterById(scene, 30, false);
+            component.assignCharacterById(scene, 20, true);
+            fixture.detectChanges();
+
+            expect(text(host().querySelector('.chapter__name'))).toBe('Indiscreciones');
+            expect(text(host().querySelector('.chapter__sub'))).toBe('Cap. 11 · págs. 145–151');
+            expect(host().querySelector('input[aria-label="Título del capítulo"]')).toBeNull();
+            expect(host().querySelector('.rtf-toolbar')).withContext('la barra, solo al escribir').toBeNull();
+            expect([...host().querySelectorAll('.chip .chip__name')].map(text)).toEqual(['Bruno', '@ Zelda']);
+
+            host().querySelector<HTMLButtonElement>('button[aria-label="Editar los datos del capítulo"]')!.click();
+            fixture.detectChanges();
+            expect(host().querySelector('input[aria-label="Título del capítulo"]')).not.toBeNull();
+
+            host().querySelector<HTMLButtonElement>('button[aria-label="Añadir personaje"]')!.click();
+            fixture.detectChanges();
+            const sheet = document.querySelector<HTMLElement>('[role="dialog"][aria-label="Personajes de la escena"]');
+            expect(sheet?.querySelector('input[aria-label="Buscar o crear personaje"]')).not.toBeNull();
+            expect([...sheet!.querySelectorAll('.cast__name')].map(text)).withContext('los de la escena, arriba').toEqual(['Bruno', 'Zelda', 'Ágata']);
+            sheet!.querySelector<HTMLButtonElement>('button[aria-label="Ágata, solo nombrado"]')!.click();
+            fixture.detectChanges();
+            expect(component.getSceneCastState(scene, 10)).toBe('named');
+            expect(sheet!.querySelector('button[aria-label="Ágata, solo nombrado"]')?.getAttribute('aria-pressed')).toBe('true');
+            component.closeCharacterPicker();
+            fixture.detectChanges();
+        });
+
+        it('pliega todas las escenas menos la abierta (al abrir, la última) y la nueva se abre', () => {
+            const first = component.scenesControls.at(0);
+            first.patchValue({ nombre: 'La entrada', descripcion: plainTextToRtf('Rowan llega tarde a la cena, como siempre.') });
+            component.assignCharacterById(first, 30, false);
+            expect(component.openSceneIndex).toBe(0);
+
+            expect(component.addScene()).toBeTrue();
+            expect(component.openSceneIndex).toBe(1);
+            fixture.detectChanges();
+            const folded = host().querySelector<HTMLElement>('.scene--folded');
+            expect(text(folded?.querySelector('.scene__row strong') ?? null)).toBe('La entrada');
+            expect(text(folded?.querySelector('.scene__excerpt') ?? null)).toBe('Rowan llega tarde a la cena, como siempre.');
+            expect(text(folded?.querySelector('.scene__cast') ?? null)).toBe('Bruno');
+            expect(host().querySelectorAll('.scene--open').length).toBe(1);
+
+            folded!.querySelector<HTMLButtonElement>('.scene__open')!.click();
+            expect(component.openSceneIndex).toBe(0);
+            component.removeScene(0);
+            expect(component.openSceneIndex).toBe(0);
+        });
+
+        it('los dos iconos del reparto cambian la escena al momento, como un radio que se apaga', () => {
+            const scene = component.scenesControls.at(0);
+            component.pressSceneCastIcon(scene, 10, false);
+            expect(component.getSceneCastState(scene, 10)).toBe('present');
+            component.pressSceneCastIcon(scene, 10, true);
+            expect(component.getSelectedSceneCharacters(scene as FormGroup)).toEqual([{ Id: 10, Nombrado: true }]);
+            component.pressSceneCastIcon(scene, 10, true);
+            expect(component.getSceneCastState(scene, 10)).toBeNull();
+        });
+
+        it('«Crear» da de alta el personaje, lo pone en escena y no rehace un capítulo nuevo', () => {
+            const scene = component.scenesControls.at(0);
+            component.name.setValue('Un capítulo sin guardar');
+            characterService.create.and.returnValue(of({ Id: 77, Nombre: 'Faraday' } as any));
+
+            component.createSceneCharacter(scene, '  Faraday ');
+
+            expect(characterService.create).toHaveBeenCalledWith(jasmine.objectContaining({ LibroId: 1, Apodo: 'Faraday', Sexo: 2, IdCliente: jasmine.any(String) }));
+            expect(component.getSceneCastState(scene, 77)).toBe('present');
+            expect(component.name.value).withContext('el formulario sigue').toBe('Un capítulo sin guardar');
+            expect(bookStore.getBook().Personajes.some(character => character.Id === 77)).toBeTrue();
+            expect(component.creatingSceneCharacter).toBeNull();
+        });
+
+        it('«Crear» con un nombre repetido pregunta antes, y con menos de tres letras no se ofrece', () => {
+            const scene = component.scenesControls.at(0);
+            spyOn(window, 'confirm').and.returnValue(false);
+
+            component.createSceneCharacter(scene, 'bruno');
+            component.createSceneCharacter(scene, 'ab');
+
+            expect(window.confirm).toHaveBeenCalledOnceWith('Ya hay un personaje llamado «Bruno» en este libro. ¿Quieres crear otro con el mismo nombre?');
+            expect(characterService.create).not.toHaveBeenCalled();
+            expect(component.getCastNameToCreate('ab')).toBeNull();
+            expect(component.getMentionOptions('a').map(character => character.Nombre)).toEqual(['Ágata', 'Zelda']);
+        });
 
         it('avisa si a la escena de un capítulo guardado le falta un personaje', () => {
             saveChapter();

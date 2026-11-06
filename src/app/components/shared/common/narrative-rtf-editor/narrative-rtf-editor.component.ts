@@ -6,6 +6,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { applyNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { htmlToRtf, rtfToHtml } from '../../../../shared/rtf/rtf-text';
 import { markRtfInkTones } from '../../../../shared/rtf/rtf-ink';
+import { mentionInProgress, mentionInsertion } from '../../../../shared/rtf/mentions';
 import { audioRecordingAvailable, browserSpeechAvailable, RecordedDictation, SpeechDictation } from '../../../../shared/dictation/browser-dictation';
 import { joinDictation } from '../../../../shared/dictation/join-dictation';
 import { DictationService } from '../../../../services/entities/dictation.service';
@@ -25,6 +26,17 @@ interface EditorSelectionRange {
     start: number;
     end: number;
 }
+
+/** La @ que se está escribiendo (`mentions`): lo escrito tras ella y dónde está la @ en la pantalla. */
+export interface EditorMention {
+    query: string;
+    x: number;
+    y: number;
+    height: number;
+}
+
+/** Las teclas que mueven la tarjeta de la @ mientras está abierta. */
+export type EditorMentionKey = 'next' | 'previous' | 'choose' | 'close';
 
 @Component({
     standalone: true,
@@ -49,6 +61,15 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     @Input() selectAllOnFocus = false;
     @Output() narrativeLinkActivated = new EventEmitter<NarrativeEntityLink>();
     @Output() editCommitted = new EventEmitter<void>();
+    /**
+     * La @ del texto (las escenas del capítulo Web, rediseño del 6/11/2026): avisa con `mentionChange` de la @ que se
+     * está escribiendo (o de que ya no hay ninguna) y, mientras quien la usa enseña su tarjeta (`mentionMenuOpen`), le
+     * pasa las flechas, Intro, Tab y Escape con `mentionKey`. `completeMention` cambia lo escrito por el nombre.
+     */
+    @Input() mentions = false;
+    @Input() mentionMenuOpen = false;
+    @Output() mentionChange = new EventEmitter<EditorMention | null>();
+    @Output() mentionKey = new EventEmitter<EditorMentionKey>();
 
     /** Nombre accesible del cuadro de texto (p. ej. «Descripción de la escena 2»). */
     @Input() ariaLabel = 'Texto narrativo';
@@ -102,6 +123,10 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     private toolbarMenuOpen = false;
     private savedSelectionRange: EditorSelectionRange | null = null;
     private keywordSyncTimer: ReturnType<typeof setTimeout> | null = null;
+    /** La @ en curso, en desplazamientos de texto del editor (sobreviven a que se repinten los enlaces). */
+    private activeMention: { start: number; end: number; query: string } | null = null;
+    /** La @ que se cerró con Escape: no vuelve a abrirse hasta que se escriba otra. */
+    private dismissedMentionStart: number | null = null;
 
     /** Durante `ngAfterViewInit` la barra ya se ha comprobado: su sincronización se aplaza. */
     private deferToolbarSync = false;
@@ -317,9 +342,12 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     handleSelectionChange(): void {
         const selection = window.getSelection();
         const root = this.editor?.nativeElement;
-        if (!root || !selection?.rangeCount || !root.contains(selection.getRangeAt(0).startContainer))
+        if (!root || !selection?.rangeCount || !root.contains(selection.getRangeAt(0).startContainer)) {
+            this.clearMention();
             return;
+        }
         this.refreshActiveFormats();
+        this.detectMention();
     }
 
     @HostListener('document:pointerdown', ['$event'])
@@ -413,9 +441,11 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
         this.savedSelectionRange = selection;
         this.scheduleKeywordSync();
         this.refreshActiveFormats();
+        this.detectMention();
     }
 
     markTouched(): void {
+        this.clearMention();
         const shouldCommit = this.dirtySinceFocus;
         this.focused = false;
         this.onTouched();
@@ -600,6 +630,8 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     }
 
     handleKeydown(event: KeyboardEvent): void {
+        if (this.handleMentionKey(event))
+            return;
         const target = event.target as HTMLElement | null;
         const keyword = target?.closest?.('.rtf-narrative-link') as HTMLElement | null;
         if (keyword && (event.key === 'Enter' || event.key === ' ')) {
@@ -646,6 +678,115 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
         event.preventDefault();
         event.stopPropagation();
         this.narrativeLinkActivated.emit(link);
+    }
+
+    /**
+     * Cambia lo escrito desde la @ en curso por `name` (con un espacio detrás si no lo hay) y deja el cursor tras él.
+     * El nombre queda como enlace en cuanto se repintan las palabras clave.
+     */
+    completeMention(name: string): void {
+        const mention = this.activeMention;
+        const root = this.editor?.nativeElement;
+        if (!mention || !root || this.readonly || this.disabled)
+            return;
+        const start = this.findCharacterAtOffset(root, mention.start);
+        const end = this.findPositionAtOffset(root, mention.end);
+        if (!start || !end)
+            return;
+        const insertion = mentionInsertion(root.textContent ?? '', mention, name);
+        this.clearMention();
+        root.focus();
+        const range = document.createRange();
+        range.setStart(start.node, start.offset);
+        range.setEnd(end.node, end.offset);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        this.replaceEditableSelection(insertion, true);
+        this.captureEditorSelection();
+    }
+
+    /** Con la tarjeta de la @ abierta, las flechas, Intro, Tab y Escape son suyas. */
+    private handleMentionKey(event: KeyboardEvent): boolean {
+        if (!this.activeMention || !this.mentionMenuOpen || event.isComposing)
+            return false;
+        const key: EditorMentionKey | null = event.key === 'ArrowDown' ? 'next'
+            : event.key === 'ArrowUp' ? 'previous'
+            : (event.key === 'Enter' || event.key === 'Tab') && !event.shiftKey ? 'choose'
+            : event.key === 'Escape' ? 'close'
+            : null;
+        if (!key)
+            return false;
+        event.preventDefault();
+        event.stopPropagation();
+        if (key === 'close') {
+            this.dismissedMentionStart = this.activeMention.start;
+            this.clearMention();
+        }
+        this.mentionKey.emit(key);
+        return true;
+    }
+
+    /** La @ que hay justo antes del cursor (`mentionInProgress`, en el texto de su párrafo), o ninguna. */
+    private detectMention(): void {
+        if (!this.mentions || this.readonly || this.disabled || !this.editor)
+            return;
+        const root = this.editor.nativeElement;
+        const selection = window.getSelection();
+        const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+        if (!range || !range.collapsed || !root.contains(range.startContainer)) {
+            this.clearMention();
+            return;
+        }
+        const startElement = range.startContainer.nodeType === Node.ELEMENT_NODE
+            ? range.startContainer as Element
+            : range.startContainer.parentElement;
+        const block = startElement?.closest('p, div');
+        const paragraph = block && root.contains(block) ? block : root;
+        const before = document.createRange();
+        before.setStart(paragraph, 0);
+        before.setEnd(range.startContainer, range.startOffset);
+        const fragment = before.cloneContents();
+        fragment.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+        const text = fragment.textContent ?? '';
+        const found = mentionInProgress(text, text.length);
+        // Entre la @ y el cursor no hay saltos: su largo es el mismo en el párrafo y en todo el editor.
+        const caret = this.getTextOffset(root, range.startContainer, range.startOffset);
+        const start = found ? caret - (found.end - found.start) : -1;
+        if (!found || start < 0 || start === this.dismissedMentionStart) {
+            if (!found)
+                this.dismissedMentionStart = null;
+            this.clearMention();
+            return;
+        }
+        const previous = this.activeMention;
+        this.activeMention = { start, end: caret, query: found.query };
+        if (previous?.start === start && previous.query === found.query)
+            return;
+        this.mentionChange.emit({ query: found.query, ...this.mentionPoint(root, start) });
+    }
+
+    /** Dónde está la @ en la pantalla (su carácter), o el editor si el navegador no lo sabe. */
+    private mentionPoint(root: HTMLElement, start: number): { x: number; y: number; height: number } {
+        const from = this.findCharacterAtOffset(root, start);
+        const to = this.findPositionAtOffset(root, start + 1);
+        let rect: DOMRect | null = null;
+        if (from && to) {
+            const range = document.createRange();
+            range.setStart(from.node, from.offset);
+            range.setEnd(to.node, to.offset);
+            rect = range.getClientRects()[0] ?? range.getBoundingClientRect();
+        }
+        if (!rect || (!rect.width && !rect.height))
+            rect = root.getBoundingClientRect();
+        return { x: rect.left, y: rect.top, height: rect.height };
+    }
+
+    private clearMention(): void {
+        if (!this.activeMention)
+            return;
+        this.activeMention = null;
+        this.mentionChange.emit(null);
     }
 
     private syncEditorText(options: { force?: boolean; preserveSelection?: EditorSelectionRange | null } = {}): void {
@@ -1167,5 +1308,22 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
             offset += length;
         }
         return { node: root, offset: root.childNodes.length };
+    }
+
+    /**
+     * Justo delante del carácter que hay en `targetOffset`, en su propio nodo (`findPositionAtOffset` da el final del
+     * nodo anterior cuando cae en el borde, que puede ser otro párrafo o un enlace).
+     */
+    private findCharacterAtOffset(root: Node, targetOffset: number): { node: Node; offset: number } | null {
+        let offset = 0;
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) {
+            const node = walker.currentNode;
+            const length = node.textContent?.length ?? 0;
+            if (targetOffset < offset + length)
+                return { node, offset: targetOffset - offset };
+            offset += length;
+        }
+        return null;
     }
 }

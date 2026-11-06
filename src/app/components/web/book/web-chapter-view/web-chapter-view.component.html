@@ -1,119 +1,161 @@
 <div class="chapter" cdkDropListGroup>
   <form class="chapter__main" [formGroup]="c.fgChapter" (submit)="$event.preventDefault(); c.setChapter()">
-    <!-- Capítulo compacto (opción A del propietario, 26/10/2026): guardado y sin errores, sus datos en una línea. -->
+    <!-- «Escenas plegadas» (6/11/2026): el título del capítulo con sus páginas y el lápiz de sus datos. -->
     <header class="chapter__head">
-      @if (c.isChapterSummaryVisible()) {
-        <div class="chapter__meta chapter__meta--summary">
-          <button class="chapter__summary" type="button" [attr.aria-label]="'Editar los datos del capítulo: ' + c.getChapterSummary()" (click)="editChapterData()">
-            <span>{{c.getChapterSummary()}}</span><mat-icon aria-hidden="true">edit</mat-icon>
-          </button>
-          <ng-container *ngTemplateOutlet="chapterStatus"></ng-container>
+      <div class="chapter__heading">
+        <div class="chapter__identity">
+          <h1 class="chapter__name">{{c.getChapterHeading()}}</h1>
+          @if (c.getChapterSubtitle(); as subtitle) {<p class="chapter__sub">{{subtitle}}</p>}
         </div>
-      } @else {
-        <div class="chapter__fields" (focusin)="c.openChapterFields()">
-          <p class="eyebrow">{{isNew ? 'Nuevo capítulo' : 'Capítulo ' + c.chapter.Orden}}</p>
-          <input class="chapter__title" type="text" [formControl]="c.name" maxlength="200" required aria-label="Título del capítulo"
-            placeholder="Título del capítulo" (focus)="c.selectDefaultText($event, 'Capítulo ' + c.chapter.Orden)" (blur)="c.updateNameErrorMessage()">
-          @if (c.name.invalid && c.name.touched) {<p class="field-error">{{c.errorNameMessage}}</p>}
-          @else if (c.shouldShowNameCounter()) {<p class="chapter__counter">{{c.name.value?.length || 0}} / 200</p>}
+        @if (!isNew && c.autosaveStatus !== 'idle') {
+          <span class="autosave" [attr.data-state]="c.autosaveStatus" role="status" aria-live="polite">
+            <mat-icon aria-hidden="true" [class.is-spinning]="c.autosaveStatus === 'saving'">{{c.autosaveIcon}}</mat-icon><span>{{c.autosaveLabel}}</span>
+          </span>
+        }
+        @if (!isNew) {
+          <button class="icon-button" type="button" matTooltip="Editar los datos del capítulo" aria-label="Editar los datos del capítulo"
+            [class.is-active]="!c.isChapterSummaryVisible()" [attr.aria-expanded]="!c.isChapterSummaryVisible()" (click)="toggleChapterData()"><mat-icon>edit</mat-icon></button>
+        }
+      </div>
 
-          <div class="chapter__meta">
-            <label class="inline-field"><span>Página inicial</span><input type="text" inputmode="numeric" [formControl]="c.page" required (blur)="c.syncEndPageFromStart()"></label>
-            <label class="inline-field"><span>Página final</span><input type="text" inputmode="numeric" [formControl]="c.endPage" (blur)="c.syncStartPageFromEnd()"></label>
-            <label class="inline-field"><span>Orden</span><input type="text" inputmode="numeric" [formControl]="c.order" required (blur)="c.updateOrderErrorMessage()"></label>
-            <ng-container *ngTemplateOutlet="chapterStatus"></ng-container>
-          </div>
-          @if (c.page.invalid && c.page.touched) {<p class="field-error">{{c.errorPageMessage}}</p>}
-          @if (c.endPage.invalid && c.endPage.touched) {<p class="field-error">{{c.errorEndPageMessage}}</p>}
-          @if (c.order.invalid && c.order.touched) {<p class="field-error">{{c.errorOrderMessage}}</p>}
+      @if (!c.isChapterSummaryVisible()) {
+        <div class="chapter__fields" (focusin)="c.openChapterFields()">
+          <label class="inline-field inline-field--wide"><span>Título</span>
+            <input class="chapter__title" type="text" [formControl]="c.name" maxlength="200" required aria-label="Título del capítulo"
+              (focus)="c.selectDefaultText($event, 'Capítulo ' + c.chapter.Orden)" (blur)="c.updateNameErrorMessage()"></label>
+          <label class="inline-field"><span>Página inicial</span><input type="text" inputmode="numeric" [formControl]="c.page" required (blur)="c.syncEndPageFromStart()"></label>
+          <label class="inline-field"><span>Página final</span><input type="text" inputmode="numeric" [formControl]="c.endPage" (blur)="c.syncStartPageFromEnd()"></label>
+          <label class="inline-field"><span>Orden</span><input type="text" inputmode="numeric" [formControl]="c.order" required (blur)="c.updateOrderErrorMessage()"></label>
         </div>
+        @if (c.name.invalid && c.name.touched) {<p class="field-error">{{c.errorNameMessage}}</p>}
+        @else if (c.shouldShowNameCounter()) {<p class="chapter__counter">{{c.name.value?.length || 0}} / 200</p>}
+        @if (c.page.invalid && c.page.touched) {<p class="field-error">{{c.errorPageMessage}}</p>}
+        @if (c.endPage.invalid && c.endPage.touched) {<p class="field-error">{{c.errorEndPageMessage}}</p>}
+        @if (c.order.invalid && c.order.touched) {<p class="field-error">{{c.errorOrderMessage}}</p>}
       }
     </header>
 
-    <section class="scenes" formArrayName="scenes" aria-labelledby="web-scenes-title">
-      <header class="scenes__head">
-        <h2 id="web-scenes-title">Escenas</h2>
-        <button class="web-button web-button--small" type="button" (click)="addScene()"><mat-icon>add</mat-icon>Nueva escena</button>
-      </header>
-
+    <section class="scenes" formArrayName="scenes" aria-label="Escenas">
       @for (scene of c.scenesControls.controls; track scene; let i = $index) {
-        <article class="scene" [formGroupName]="i" [attr.data-scene-index]="i">
-          <div class="scene__head">
-            <span class="scene__index" aria-hidden="true">{{i + 1}}</span>
-            <input class="scene__title" type="text" formControlName="nombre" placeholder="Título de la escena" [attr.aria-label]="'Título de la escena ' + (i + 1)"
-              (focus)="c.selectDefaultText($event, 'Escena ' + (i + 1))">
-            <label class="scene__location">
-              <mat-icon aria-hidden="true">place</mat-icon>
-              <input type="text" autocomplete="off" formControlName="localizacion" placeholder="Localización" aria-label="Localización"
-                [matAutocomplete]="locationAuto" #locationTrigger="matAutocompleteTrigger" (focus)="locationTrigger.openPanel()">
-              <mat-icon aria-hidden="true">expand_more</mat-icon>
-              <mat-autocomplete #locationAuto="matAutocomplete" autoActiveFirstOption [displayWith]="c.displaySceneLocation.bind(c)">
-                @for (location of c.getFilteredSceneLocations(scene); track location.Id) {
-                  <mat-option [value]="c.getSceneLocationOptionId(location)">{{location.Nombre}}</mat-option>
-                } @empty {
-                  <mat-option disabled>No hay localizaciones disponibles</mat-option>
-                }
-              </mat-autocomplete>
-            </label>
-            <button class="icon-button" type="button" matTooltip="Eliminar escena" [attr.aria-label]="'Eliminar escena ' + (i + 1)" (click)="c.removeScene(i)"><mat-icon>delete_outline</mat-icon></button>
-          </div>
-          @if (scene.get('nombre')?.invalid && scene.get('nombre')?.touched) {<p class="field-error">El título necesita al menos 3 caracteres.</p>}
-          @if (!c.hasCanonicalSceneLocation()) {
-            <p class="field-error">El libro no incluye «Sin localización».</p>
-          } @else if (scene.get('localizacion')?.invalid && scene.get('localizacion')?.touched) {
-            <p class="field-error">Selecciona una localización de la lista.</p>
-          }
+        @if (c.openSceneIndex === i) {
+          <article class="scene scene--open" [formGroupName]="i" [attr.data-scene-index]="i">
+            <div class="scene__head">
+              <span class="scene__index" aria-hidden="true">{{i + 1}}</span>
+              <input class="scene__title" type="text" formControlName="nombre" placeholder="Título de la escena" [attr.aria-label]="'Título de la escena ' + (i + 1)"
+                (focus)="c.selectDefaultText($event, 'Escena ' + (i + 1))">
+              <label class="scene__location" [class.has-error]="scene.get('localizacion')?.invalid && scene.get('localizacion')?.touched">
+                <mat-icon aria-hidden="true">place</mat-icon>
+                <input type="text" autocomplete="off" formControlName="localizacion" placeholder="Localización" aria-label="Localización"
+                  [matAutocomplete]="locationAuto" #locationTrigger="matAutocompleteTrigger" (focus)="locationTrigger.openPanel()">
+                <mat-icon aria-hidden="true">expand_more</mat-icon>
+                <mat-autocomplete #locationAuto="matAutocomplete" autoActiveFirstOption [displayWith]="c.displaySceneLocation.bind(c)">
+                  @for (location of c.getFilteredSceneLocations(scene); track location.Id) {
+                    <mat-option [value]="c.getSceneLocationOptionId(location)">{{location.Nombre}}</mat-option>
+                  } @empty {
+                    <mat-option disabled>No hay localizaciones disponibles</mat-option>
+                  }
+                </mat-autocomplete>
+              </label>
+              <button class="icon-button" type="button" matTooltip="Eliminar escena" [attr.aria-label]="'Eliminar escena ' + (i + 1)" (click)="c.removeScene(i)"><mat-icon>delete_outline</mat-icon></button>
+            </div>
+            @if (scene.get('nombre')?.invalid && scene.get('nombre')?.touched) {<p class="field-error">El título necesita al menos 3 caracteres.</p>}
+            @if (!c.hasCanonicalSceneLocation()) {
+              <p class="field-error">El libro no incluye «Sin localización».</p>
+            } @else if (scene.get('localizacion')?.invalid && scene.get('localizacion')?.touched) {
+              <p class="field-error">Selecciona una localización de la lista.</p>
+            }
 
-          <app-narrative-rtf-editor formControlName="descripcion" [ariaLabel]="'Descripción de la escena ' + (i + 1)" [value]="scene.get('descripcion')?.value ?? ''"
-            [narrativeLinks]="c.narrativeEntityLinks" [preferenceBookId]="c.book.Id" [selectAllOnFocus]="c.isDefaultSceneDescription(scene)"
-            [toolbarOnlyWhileEditing]="true" (editCommitted)="c.flushAutosave()" (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
-          @if (scene.get('descripcion')?.invalid) {<p class="field-error">La descripción necesita al menos 15 caracteres.</p>}
-
-          <!-- Los personajes en una sola fila: en escena y, después, los solo nombrados (en cursiva y con «·»). -->
-          <section class="scene__people" [attr.aria-label]="'Personajes de la escena ' + (i + 1)">
+            <app-narrative-rtf-editor formControlName="descripcion" [ariaLabel]="'Descripción de la escena ' + (i + 1)" [value]="scene.get('descripcion')?.value ?? ''"
+              [narrativeLinks]="c.narrativeEntityLinks" [preferenceBookId]="c.book.Id" [selectAllOnFocus]="c.isDefaultSceneDescription(scene)"
+              [toolbarOnlyWhileEditing]="true" [mentions]="true" [mentionMenuOpen]="mentionVisible"
+              (mentionChange)="onMentionChange($event)" (mentionKey)="onMentionKey(scene, $event)"
+              (editCommitted)="c.flushAutosave()" (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
+            @if (scene.get('descripcion')?.invalid) {<p class="field-error">La descripción necesita al menos 15 caracteres.</p>}
             @if (!isNew && !c.hasAssignedCharacter(scene)) {<p class="scene__warning">Necesita al menos un personaje presente o nombrado.</p>}
-            <div class="chips" cdkDropList cdkDropListOrientation="mixed" [cdkDropListSortingDisabled]="true" (cdkDropListDropped)="c.dropCharacterInScene($event, i)">
+
+            <!-- Los personajes: primero los presentes y después los solo nombrados («@»); tocar uno, cambiarlo o quitarlo. -->
+            <div class="chips" [attr.aria-label]="'Personajes de la escena ' + (i + 1)" role="group"
+              cdkDropList cdkDropListOrientation="mixed" [cdkDropListSortingDisabled]="true" (cdkDropListDropped)="c.dropCharacterInScene($event, i)">
               @for (character of c.getSceneCharactersInRow(scene); track character.get('Id')?.value) {
                 @let named = c.isNamedSceneCharacter(character);
                 @let characterName = character.get('Nombre')?.value;
-                <span class="chip" [class.chip--named]="named" cdkDrag [cdkDragData]="c.getAssignmentData(character)">
-                  <span class="chip__name">{{named ? '· ' + characterName : characterName}}</span>
-                  <button type="button" [matTooltip]="named ? 'Pasar a en escena' : 'Pasar a solo nombrados'"
-                    [attr.aria-label]="(named ? 'Pasar a en escena: ' : 'Pasar a solo nombrados: ') + characterName"
-                    (click)="c.moveSceneCharacter(scene, character, !named)"><mat-icon>{{named ? 'person' : 'alternate_email'}}</mat-icon></button>
-                  <button type="button" [attr.aria-label]="'Quitar a ' + characterName"
-                    (click)="c.removeSceneCharacter(scene, character.get('Id')?.value)"><mat-icon>close</mat-icon></button>
+                <button class="chip" type="button" [class.chip--named]="named" [matMenuTriggerFor]="chipMenu"
+                  [matMenuTriggerData]="{ character: character, named: named }" [attr.aria-label]="'Cambiar o quitar a ' + characterName">
+                  <span class="chip__name">{{named ? '@ ' + characterName : characterName}}</span>
+                </button>
+              }
+              <button class="chip-add" type="button" cdkOverlayOrigin #addOrigin="cdkOverlayOrigin" aria-haspopup="dialog" aria-label="Añadir personaje"
+                matTooltip="Añadir personaje" [attr.aria-expanded]="c.characterPickerSceneIndex === i" (click)="c.openCastSheet(i)"><mat-icon>add</mat-icon></button>
+              @if (!isCompact) {
+                <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="addOrigin" [cdkConnectedOverlayOpen]="c.characterPickerSceneIndex === i"
+                  [cdkConnectedOverlayPositions]="pickerPositions" (overlayOutsideClick)="c.closeCharacterPicker()" (detach)="c.closeCharacterPicker()"
+                  (overlayKeydown)="closeCastOnEscape($event)">
+                  <ng-container *ngTemplateOutlet="castPanel; context: { $implicit: scene }"></ng-container>
+                </ng-template>
+              }
+            </div>
+            <mat-menu #chipMenu="matMenu">
+              <ng-template matMenuContent let-character="character" let-named="named">
+                <button mat-menu-item type="button" (click)="c.moveSceneCharacter(scene, character, !named)">
+                  <mat-icon>{{named ? 'person' : 'alternate_email'}}</mat-icon><span>{{named ? 'En escena' : 'Solo nombrado'}}</span>
+                </button>
+                <button mat-menu-item type="button" class="is-danger" (click)="c.removeSceneCharacter(scene, character.get('Id')?.value)">
+                  <mat-icon>close</mat-icon><span>Quitar</span>
+                </button>
+              </ng-template>
+            </mat-menu>
+
+            @if (isCompact && c.characterPickerSceneIndex === i) {
+              <button class="cast-scrim" type="button" aria-label="Cerrar" (click)="c.closeCharacterPicker()"></button>
+              <div class="cast-sheet" (keydown)="closeCastOnEscape($event)">
+                <ng-container *ngTemplateOutlet="castPanel; context: { $implicit: scene }"></ng-container>
+              </div>
+            }
+            <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="mentionOrigin" [cdkConnectedOverlayOpen]="mentionVisible"
+              [cdkConnectedOverlayPositions]="mentionPositions" (overlayOutsideClick)="mention = null" (detach)="mention = null">
+              <div class="mention" role="group" aria-label="Personajes que coinciden" (mousedown)="$event.preventDefault()">
+                @for (option of mentionOptions; track option.Id; let k = $index) {
+                  <div class="mention__row" [class.is-active]="k === mentionActive">
+                    <button class="mention__name" type="button" [attr.aria-current]="k === mentionActive ? 'true' : null" tabindex="-1"
+                      (click)="chooseMention(scene, option, false)">{{option.Nombre}}</button>
+                    <button class="mention__named" type="button" tabindex="-1" [attr.aria-label]="option.Nombre + ', solo nombrado'"
+                      (click)="chooseMention(scene, option, true)"><mat-icon>alternate_email</mat-icon></button>
+                  </div>
+                }
+                @if (mentionCreateName; as name) {
+                  <button class="cast-create" type="button" tabindex="-1" [class.is-active]="mentionActive === mentionOptions.length"
+                    [attr.aria-current]="mentionActive === mentionOptions.length ? 'true' : null" [disabled]="!!c.creatingSceneCharacter"
+                    (click)="createFromMention(scene)"><span class="cast-create__plus" aria-hidden="true"><mat-icon>add</mat-icon></span>Crear «{{name}}»</button>
+                }
+              </div>
+            </ng-template>
+          </article>
+        } @else {
+          <!-- Plegada: tocarla la despliega (y pliega la otra). -->
+          <article class="scene scene--folded" [class.has-error]="c.sceneHasErrors(scene)" [attr.data-scene-index]="i"
+            cdkDropList [cdkDropListSortingDisabled]="true" (cdkDropListDropped)="c.dropCharacterInScene($event, i)">
+            <button class="scene__open" type="button" [attr.aria-label]="'Editar la escena ' + (i + 1)" (click)="openScene(i)">
+              <span class="scene__row">
+                <span class="scene__number">{{i + 1}}</span>
+                <strong>{{scene.get('nombre')?.value || 'Escena ' + (i + 1)}}</strong>
+                @if (c.getSceneLocationLabel(scene); as place) {<span class="scene__place">{{place}}</span>}
+              </span>
+              @if (c.getScenePreview(scene); as preview) {<span class="scene__excerpt">{{preview}}</span>}
+              @if (c.getSceneCharactersInRow(scene).length) {
+                <span class="scene__cast">
+                  @for (character of c.getSceneCharactersInRow(scene); track character.get('Id')?.value; let first = $first) {
+                    @if (!first) {
+                      <span aria-hidden="true"> · </span>
+                    }
+                    <span [class.is-named]="c.isNamedSceneCharacter(character)">{{(c.isNamedSceneCharacter(character) ? '@' : '') + character.get('Nombre')?.value}}</span>
+                  }
                 </span>
               }
-              <button class="chip chip--add" type="button" cdkOverlayOrigin #addOrigin="cdkOverlayOrigin" aria-haspopup="dialog"
-                [attr.aria-expanded]="c.characterPickerSceneIndex === i" [disabled]="!c.getAvailableSceneCharacters(scene).length"
-                (click)="c.openCharacterPicker(i)"><mat-icon aria-hidden="true">add</mat-icon>Personaje</button>
-              <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="addOrigin" [cdkConnectedOverlayOpen]="c.characterPickerSceneIndex === i"
-                [cdkConnectedOverlayPositions]="pickerPositions" (overlayOutsideClick)="c.closeCharacterPicker()" (detach)="c.closeCharacterPicker()"
-                (overlayKeydown)="closePickerOnEscape($event)">
-                <div class="character-menu" role="dialog" aria-label="Añadir personaje" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
-                  <label class="search"><mat-icon aria-hidden="true">search</mat-icon><input type="search" autocomplete="off" [formControl]="c.characterPickerQuery"
-                    placeholder="Buscar personaje" aria-label="Buscar personaje" cdkFocusInitial></label>
-                  <p class="character-menu__hint">Toca el nombre si está en escena, o la @ si solo se le nombra.</p>
-                  <ul>
-                    @for (option of c.getCharacterPickerOptions(scene); track option.Id) {
-                      <li>
-                        <button class="character-menu__name" type="button" (click)="c.pickSceneCharacter(i, option.Id, false)">{{option.Nombre}}</button>
-                        <button class="icon-button" type="button" [attr.aria-label]="'Añadir a ' + option.Nombre + ' como solo nombrado'"
-                          (click)="c.pickSceneCharacter(i, option.Id, true)"><mat-icon>alternate_email</mat-icon></button>
-                      </li>
-                    } @empty {
-                      <li class="character-menu__empty">No quedan personajes disponibles</li>
-                    }
-                  </ul>
-                </div>
-              </ng-template>
-            </div>
-          </section>
-        </article>
-      } @empty {
-        <div class="state"><mat-icon aria-hidden="true">theaters</mat-icon><p>Este capítulo todavía no tiene escenas.</p></div>
+            </button>
+          </article>
+        }
       }
+      <button class="scenes__add" type="button" aria-label="Nueva escena" (click)="addScene()"><mat-icon aria-hidden="true">add</mat-icon>Escena</button>
     </section>
 
     @if (isNew) {
@@ -123,12 +165,11 @@
     }
   </form>
 
-  @if (charactersOpen) {<button class="characters-scrim" type="button" aria-label="Cerrar personajes" (click)="charactersOpen = false"></button>}
-  <aside id="web-chapter-characters" class="characters" [class.is-open]="charactersOpen" aria-label="Personajes del libro" [swipeDisabled]="!charactersOpen" (appSwipeToClose)="charactersOpen = false">
+  <!-- Escritorio con ratón: el panel fijo para arrastrar personajes a una escena. -->
+  <aside id="web-chapter-characters" class="characters" aria-label="Personajes del libro">
     <header class="characters__head">
       <strong>Personajes</strong>
       <span>{{c.getAssignedCharactersCount()}} / {{c.book.Personajes.length}}</span>
-      <button class="icon-button characters__close" type="button" aria-label="Cerrar personajes" (click)="charactersOpen = false"><mat-icon>close</mat-icon></button>
     </header>
     <label class="search"><mat-icon aria-hidden="true">search</mat-icon><input type="search" [formControl]="c.characterFilter" placeholder="Filtrar personajes" aria-label="Filtrar personajes"></label>
     @if (c.characterOrderRefreshing$ | async) {<p class="characters__refresh"><mat-icon aria-hidden="true">sync</mat-icon>Actualizando orden…</p>}
@@ -149,13 +190,32 @@
   </aside>
 </div>
 
-<!-- El estado del autoguardado y el acceso a los personajes, con los datos plegados o desplegados. -->
-<ng-template #chapterStatus>
-  @if (!isNew && c.autosaveStatus !== 'idle') {
-    <span class="autosave" [attr.data-state]="c.autosaveStatus" role="status" aria-live="polite">
-      <mat-icon aria-hidden="true" [class.is-spinning]="c.autosaveStatus === 'saving'">{{c.autosaveIcon}}</mat-icon>{{c.autosaveLabel}}
-    </span>
-  }
-  <button class="web-button web-button--small characters-toggle" type="button" [attr.aria-expanded]="charactersOpen" aria-controls="web-chapter-characters"
-    (click)="charactersOpen = !charactersOpen"><mat-icon>groups</mat-icon>Personajes <span>{{c.getAssignedCharactersCount()}} / {{c.book.Personajes.length}}</span></button>
+<!-- El reparto de una escena: solo el buscador y la X; todos los personajes con sus dos iconos y, al final, «Crear «…»». -->
+<ng-template #castPanel let-scene>
+  <div class="cast" role="dialog" aria-label="Personajes de la escena" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+    <div class="cast__top">
+      <label class="search"><input type="search" autocomplete="off" [formControl]="c.characterPickerQuery" placeholder="Buscar o crear"
+        aria-label="Buscar o crear personaje" cdkFocusInitial><mat-icon aria-hidden="true">search</mat-icon></label>
+      <button class="icon-button" type="button" aria-label="Cerrar" (click)="c.closeCharacterPicker()"><mat-icon>close</mat-icon></button>
+    </div>
+    <ul class="cast__list">
+      @for (character of c.getCastSheetOptions(); track character.Id) {
+        @let state = c.getSceneCastState(scene, character.Id);
+        <li class="cast__row">
+          <span class="cast__name">{{character.Nombre}}</span>
+          <button class="cast__icon" type="button" [class.is-on]="state === 'present'" [attr.aria-pressed]="state === 'present'"
+            [attr.aria-label]="character.Nombre + ', en escena'" (click)="c.pressSceneCastIcon(scene, character.Id, false)"><mat-icon>person</mat-icon></button>
+          <button class="cast__icon" type="button" [class.is-on]="state === 'named'" [attr.aria-pressed]="state === 'named'"
+            [attr.aria-label]="character.Nombre + ', solo nombrado'" (click)="c.pressSceneCastIcon(scene, character.Id, true)"><mat-icon>alternate_email</mat-icon></button>
+        </li>
+      }
+      @if (c.getCastNameToCreate(c.characterPickerQuery.value); as name) {
+        <li>
+          <button class="cast-create" type="button" [disabled]="!!c.creatingSceneCharacter" (click)="createFromCast(scene, name)">
+            <span class="cast-create__plus" aria-hidden="true"><mat-icon>add</mat-icon></span>{{c.creatingSceneCharacter === name ? 'Creando «' + name + '»…' : 'Crear «' + name + '»'}}
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
 </ng-template>

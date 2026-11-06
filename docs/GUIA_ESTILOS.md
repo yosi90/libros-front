@@ -134,7 +134,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 ### Espacio de libro
 
 - Wood recupera índice persistente y composición editorial de escritorio.
-- Web ocupa la pantalla completa con una cabecera de una sola fila (volver, portada y título, pestañas Resumen/Notas/entidades, búsqueda y wiki). El índice lateral se pliega desde su propia cabecera a un carril; por debajo de 1051 px se superpone y se cierra también arrastrándolo. El capítulo ocupa todo el ancho; en escritorio con ratón los personajes también se asignan arrastrando desde un panel fijo, y en todas partes con «+ Personaje». El Resumen usa gráficos ApexCharts con los colores del tema.
+- Web ocupa la pantalla completa con una cabecera de una sola fila (volver, portada y título, pestañas Resumen/Notas/entidades, búsqueda y wiki); por debajo de 600 px, Resumen, Notas, la búsqueda y la wiki van juntos en «⋯» (como la APK, 6/11/2026). El índice lateral se pliega desde su propia cabecera a un carril; por debajo de 1051 px se superpone y se cierra también arrastrándolo. El capítulo ocupa todo el ancho; en escritorio con ratón los personajes también se asignan arrastrando desde un panel fijo, y en todas partes con el «+» de la escena y la @ del texto. El Resumen («Tu lectura») es un panel de casillas con gráficos mini; los gráficos ApexCharts grandes, con los colores del tema, quedan tras «Ver gráficos».
 - Todas las presentaciones tienen «Notas» del libro (notas personales de lectura).
 - Mobile usa atrás, portada/título y accesos a Estadísticas, Wiki y Buscar en la cabecera. Wiki permanece visible pero deshabilitada cuando el libro no tiene un enlace válido.
 - En compact, la navegación inferior del libro contiene únicamente Índice y Elementos. En medium sustituye Elementos por accesos directos a Personajes, Localizaciones, Organizaciones, Eventos, Conceptos y Citas; cada listado ofrece una acción textual inequívoca para crear un elemento nuevo.
@@ -170,7 +170,13 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 - El estado editable pertenece a la fachada de feature y sobrevive a orientación/cambio de presentación.
 - Mobile apila título, localización, contenido y asignaciones; medium paraleliza solo por container query y ancho real.
-- **Capítulo compacto** (opción A del propietario, 26/10/2026; Mobile y Web, igual que la APK; Wood conserva su composición):
+- **Escenas plegadas** (rediseño del 6/11/2026, aceptado en la APK y llevado a Web; Mobile conserva el capítulo compacto de abajo y Wood su composición):
+  - arriba, el título del capítulo con «Cap. N · págs. X–Y» y el lápiz que despliega sus datos (en uno nuevo o con errores, desplegados);
+  - cada escena es una tarjeta plegada (número, título, localización salvo «Sin localización», dos líneas del texto y sus personajes, los nombrados en cursiva con «@») y solo la que se edita se despliega; al abrir, la última; «+ Escena» al final, con borde discontinuo;
+  - las fichas de la escena: presentes rellenas, solo nombrados «@ Nombre» en cursiva con borde; tocar una abre «Solo nombrado / En escena» y «Quitar»; el «+» abre el reparto;
+  - el reparto (desplegable junto al «+»; hoja desde abajo por debajo de 600 px): solo el buscador «Buscar o crear» y la X; todos los personajes, con los de la escena arriba (orden fijado al abrir) y, en cada fila, solo el nombre y los iconos «en escena» y «solo nombrado», como un radio que se apaga; al final, «Crear «…»» (3 a 100 caracteres), con el aviso de nombre repetido del alta;
+  - en el texto, «@» y unas letras abren una tarjeta con hasta cuatro personajes (el nombre lo pone en escena; la @, solo nombrado; las flechas, Intro, Tab y Escape la manejan) y «Crear «…»»; lo escrito desde la @ pasa a ser el nombre.
+- **Capítulo compacto** (opción A del propietario, 26/10/2026; Mobile, igual que la APK de entonces; Wood conserva su composición):
   - un capítulo guardado y sin errores resume sus datos en una línea («Indiscreciones · págs. 145–151 · nº 11», o «pág. 145») que se despliega al tocarla o con el lápiz; uno nuevo, o con errores, enseña los campos;
   - el contador del título («14 / 200») solo aparece desde 180 caracteres o con error;
   - cada escena, sin cabecera «Escena N»: el título sin etiqueta (con placeholder y nombre accesible) en una fila con la localización y la papelera; en estrecho, el título y la papelera en una fila y la localización debajo;

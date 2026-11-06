@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BookRouterComponent } from '../../../book-router/book-router.component';
@@ -20,7 +21,7 @@ import { YosiftwareWebsComponent } from '../../../shared/common/yosiftware-webs/
 @Component({
     selector: 'app-web-book-shell-view',
     standalone: true,
-    imports: [YosiftwareAccountComponent, YosiftwareNotificationsComponent, YosiftwareWebsComponent, SwipeToCloseDirective, CommonModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule,
+    imports: [YosiftwareAccountComponent, YosiftwareNotificationsComponent, YosiftwareWebsComponent, SwipeToCloseDirective, CommonModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatMenuModule, MatSelectModule,
         MatTooltipModule, BookRouterComponent, CoverCachePipe],
     templateUrl: './web-book-shell-view.component.html',
     styleUrl: './web-book-shell-view.component.sass',
@@ -33,12 +34,12 @@ export class WebBookShellViewComponent {
 
     get c(): BookComponent { return this.controller; }
 
-    /** Pestañas de secciones: Resumen, Notas y las entidades narrativas. */
-    get tabs(): Array<{ label: string; icon: string; route: string; createRoute: string }> {
+    /** Pestañas de secciones: Resumen y Notas (herramientas del libro, en «⋯» en estrecho) y las entidades narrativas. */
+    get tabs(): Array<{ label: string; icon: string; route: string; createRoute: string; tool: boolean }> {
         return [
-            { label: 'Resumen', icon: 'query_stats', route: 'statistics', createRoute: 'statistics' },
-            { label: 'Notas', icon: 'sticky_note_2', route: 'notes', createRoute: 'notes' },
-            ...this.c.entityToolbarActions.map(action => ({ label: action.label, icon: action.icon, route: action.listRoute, createRoute: action.createRoute }))
+            { label: 'Resumen', icon: 'query_stats', route: 'statistics', createRoute: 'statistics', tool: true },
+            { label: 'Notas', icon: 'sticky_note_2', route: 'notes', createRoute: 'notes', tool: true },
+            ...this.c.entityToolbarActions.map(action => ({ label: action.label, icon: action.icon, route: action.listRoute, createRoute: action.createRoute, tool: false }))
         ];
     }
 

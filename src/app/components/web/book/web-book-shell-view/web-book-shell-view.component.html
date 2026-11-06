@@ -16,17 +16,31 @@
     <nav class="book__tabs" aria-label="Secciones del libro">
       @for (tab of tabs; track tab.route) {
         <button type="button" [class.is-active]="isSectionActive(tab.route, tab.createRoute)" [attr.aria-current]="isSectionActive(tab.route, tab.createRoute) ? 'page' : null"
-          (click)="c.navigateBookChild(tab.route)"><mat-icon aria-hidden="true">{{tab.icon}}</mat-icon>{{tab.label}}</button>
+          [class.book__tool]="tab.tool" (click)="c.navigateBookChild(tab.route)"><mat-icon aria-hidden="true">{{tab.icon}}</mat-icon>{{tab.label}}</button>
       }
     </nav>
 
     <div class="book__tools">
       @if (saveIndicator.isVisibleFor(c.book.Id)) {<span class="book__saved" role="status"><mat-icon aria-hidden="true">cloud_done</mat-icon>Guardado</span>}
-      <button class="icon-button" type="button" matTooltip="Buscar en el libro" aria-label="Buscar en el libro"
+      <button class="icon-button book__tool" type="button" matTooltip="Buscar en el libro" aria-label="Buscar en el libro"
         [class.is-active]="isSectionActive('search')" (click)="c.navigateBookChild('search')"><mat-icon>search</mat-icon></button>
       @if (c.hasBookWikiLink()) {
-        <button class="icon-button" type="button" matTooltip="Abrir la wiki del libro" aria-label="Abrir la wiki del libro" (click)="c.openBookWiki()"><mat-icon>language</mat-icon></button>
+        <button class="icon-button book__tool" type="button" matTooltip="Abrir la wiki del libro" aria-label="Abrir la wiki del libro" (click)="c.openBookWiki()"><mat-icon>language</mat-icon></button>
       }
+      <!-- En estrecho (como la APK, 6/11/2026): Resumen, Notas, la búsqueda y la wiki, juntos en «⋯». -->
+      <button class="icon-button book__more" type="button" aria-label="Más herramientas del libro" [matMenuTriggerFor]="toolsMenu"
+        [class.is-active]="isSectionActive('statistics', 'notes', 'search')"><mat-icon>more_horiz</mat-icon></button>
+      <mat-menu #toolsMenu="matMenu" xPosition="before">
+        @for (tab of tabs; track tab.route) {
+          @if (tab.tool) {
+            <button mat-menu-item type="button" [class.is-active]="isSectionActive(tab.route)" (click)="c.navigateBookChild(tab.route)"><mat-icon>{{tab.icon}}</mat-icon><span>{{tab.label}}</span></button>
+          }
+        }
+        <button mat-menu-item type="button" [class.is-active]="isSectionActive('search')" (click)="c.navigateBookChild('search')"><mat-icon>search</mat-icon><span>Buscar en el libro</span></button>
+        @if (c.hasBookWikiLink()) {
+          <button mat-menu-item type="button" (click)="c.openBookWiki()"><mat-icon>language</mat-icon><span>Abrir la wiki del libro</span></button>
+        }
+      </mat-menu>
       <!-- Las webs del ecosistema, la campana y la cuenta de Yosiftware también desde el libro: cambiar de cuenta no
            obliga a salir de él. -->
       <app-yosiftware-webs class="book__account"></app-yosiftware-webs>
