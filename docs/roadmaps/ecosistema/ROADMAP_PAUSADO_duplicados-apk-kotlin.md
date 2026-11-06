@@ -116,7 +116,9 @@ Solo propuestas: no se tocan ni la web ni el backend.
   - **Peligros si se mantiene como estaba:** que la plataforma cambie un código y las tablas no se enteren.
   - **Peligros del cambio:** perder el «club» de los textos si la plataforma habla de «espacio».
 
-- [ ] **14. Las estadísticas que calculan las dos apps**
+- [x] **14. Las estadísticas que calculan las dos apps**
+  - **Hecho (06/11/2026), las validaciones:** la regla se queda en cada parte (la validación local hace falta para no esperar al servidor), pero con los mismos casos: `src/app/shared/casos-de-validacion.json` (ISBN-13 e ISBN-10, separadores, la X, prefijos y dígitos de control; fechas parciales, bisiestos y formatos que no valen), leído por `isbn.spec.ts` y `publication-date.spec.ts` de la web y por `CasosDeValidacionTest` de la APK. La fecha vacía no está: cada pantalla decide antes si el campo es obligatorio (la web la da por no válida y la APK por válida, y las dos lo tratan antes). La API (`utils/google_books.py`, `utils/editorial_metadata.py`) sigue con sus propias pruebas: está en otro repositorio.
+  - **Las estadísticas se quedan (06/11/2026):** las dos apps ya tienen la colección cargada cuando las enseñan; calcularlas en la API añadiría una petición y una espera (y fallaría sin conexión) para lo mismo. Si llegan a divergir, el remedio es el de las validaciones: una colección de ejemplo y lo esperado, en un archivo que lean las dos pruebas.
   - **Descripción:** `ui/estadisticas/Estadisticas.kt` repite en Kotlin `src/app/shared/library-stats.ts` (recuentos, «más tiempo en espera», los más repetidos) sobre la colección entera, y `ui/catalogo/Peticiones.kt` (81-101) las validaciones de ISBN y fecha (punto 7 de la web).
   - **Qué se espera lograr:** lo que dependa solo de la colección, calculado por el backend en `estadisticas/` (ya hace las métricas generales) y leído por las dos; las validaciones, con sus casos de prueba compartidos en `docs/backend/api/`.
   - **Peligros:** bajos; prioridad baja, tras el clon.
