@@ -6,8 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,21 +54,18 @@ import androidx.compose.ui.unit.sp
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.modelos.Personaje
 import es.yosiftware.libros.datos.modelos.PersonajeEnEscena
-import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
 import es.yosiftware.libros.ui.elementos.ElementosViewModel
 import es.yosiftware.libros.ui.tema.Espacios
-import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
 import es.yosiftware.libros.ui.tema.Textos
-import es.yosiftware.libros.ui.tema.rem
 import es.yosiftware.libros.ui.tema.sombra2
 
 // Añadir personajes a una escena (rediseño del 6/11/2026, mezcla de las opciones A y C del propietario): la hoja de
-// reparto (buscador, «En escena / Solo nombrado», los elegidos arriba, casillas para elegir varios y «Crear «…»» sin salir
+// reparto (buscador y todos los personajes con sus iconos de en escena y @, que cambian la escena al pulsarlos, y «Crear «…»» sin salir
 // del capítulo), la @ del texto y las fichas de la escena.
 
 /**
@@ -105,97 +100,57 @@ class CreadorDePersonajes(private val personajes: ElementosViewModel) {
 }
 
 /**
- * La hoja de reparto de [escena] (`null`: cerrada): el buscador, el conmutador de cómo entran, los elegidos como fichas
- * (tocar una la quita), la lista con casillas de los que aún no están en la escena, «Crear «…»» y «Añadir N».
+ * La hoja de reparto de [escena] (`null`: cerrada): el buscador con la X y todos los personajes del libro (primero los
+ * que ya estaban en la escena al abrirla), cada uno con sus dos iconos, en escena y @, que cambian la escena al pulsarlos
+ * ([CapituloViewModel.pulsarEnElReparto]); al final, «Crear «…»», que lo crea ya en escena.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HojaDeReparto(vm: CapituloViewModel, libro: Libro, escena: EscenaEditable?, creador: CreadorDePersonajes) {
     val colores = LocalColores.current
     var buscado by remember(escena?.clave) { mutableStateOf("") }
-    var nombrado by remember(escena?.clave) { mutableStateOf(false) }
-    var seleccion by remember(escena?.clave) { mutableStateOf(SeleccionDeReparto()) }
+    // Se fija al abrir (y suma los recién creados) para que la lista no salte al pulsar.
+    var primero by remember(escena?.clave) { mutableStateOf(escena?.personajes?.map { it.id }?.toSet().orEmpty()) }
     HojaInferior(abierta = escena != null, alCerrar = vm::cerrarReparto, titulo = "Personajes") {
         if (escena == null) return@HojaInferior
-        val enEscena = escena.personajes.map { it.id }.toSet()
-        val lista = RepartoDeEscena.filtrar(libro.personajes, buscado, excluir = enEscena)
+        val lista = RepartoDeEscena.conLosDeLaEscenaPrimero(RepartoDeEscena.filtrar(libro.personajes, buscado), primero)
         val paraCrear = RepartoDeEscena.nombreParaCrear(buscado)
-        Row(Modifier.fillMaxWidth().padding(start = Espacios.e5, end = Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
-            Text("Personajes", style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = 21.sp, fontWeight = FontWeight.Bold, color = colores.tinta), modifier = Modifier.weight(1f))
-            BotonDeIcono(Iconos.close, "Cerrar", vm::cerrarReparto)
-        }
-        Column(Modifier.fillMaxWidth().padding(start = Espacios.e5, end = Espacios.e5, bottom = Espacios.e5), verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
+        Row(
+            Modifier.fillMaxWidth().padding(start = Espacios.e5, end = Espacios.e2),
+            horizontalArrangement = Arrangement.spacedBy(Espacios.e1),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             CampoNativo(
-                etiqueta = null, valor = buscado, alCambiar = { buscado = it }, modifier = Modifier.fillMaxWidth(),
+                etiqueta = null, valor = buscado, alCambiar = { buscado = it }, modifier = Modifier.weight(1f),
                 ejemplo = "Buscar o crear", iconoFinal = Iconos.search, nombreAccesible = "Buscar o crear personaje",
             )
-            Conmutador(nombrado) { nombrado = it }
-            if (seleccion.cantidad > 0) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalArrangement = Arrangement.spacedBy(Espacios.e1)) {
-                    seleccion.elegidos.forEach { elegido ->
-                        Ficha(ReglasDelCapitulo.nombreDePersonaje(libro, elegido.id), elegido.nombrado, alto = 34.dp, marcada = true, descripcion = "Quitar de la selección") {
-                            seleccion = seleccion.quitar(elegido.id)
-                        }
-                    }
-                }
-            }
-            Column(
-                Modifier.fillMaxWidth().heightIn(max = 336.dp).verticalScroll(rememberScrollState())
-                    .drawBehind { drawRect(colores.superficieAlta, Offset.Zero, Size(size.width, 1.dp.toPx())) },
-            ) {
-                lista.forEach { personaje ->
-                    FilaDePersonaje(personaje, seleccion.contiene(personaje.id)) { seleccion = seleccion.alternar(personaje.id, nombrado) }
-                }
-                if (paraCrear != null) {
-                    val ocupado = creador.creando != null
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = 56.dp).alpha(if (ocupado) 0.5f else 1f)
-                            .clickable(enabled = !ocupado, role = Role.Button) {
-                                creador.crear(libro, paraCrear) { id ->
-                                    seleccion = seleccion.anadir(id, nombrado)
-                                    buscado = ""
-                                }
-                            },
-                        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        CirculoDeCrear(36.dp)
-                        Text(if (creador.creando == paraCrear) "Creando «$paraCrear»…" else "Crear «$paraCrear»", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.primario), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                }
-                if (lista.isEmpty() && buscado.isBlank()) {
-                    Text(
-                        "Ya están todos en la escena.",
-                        style = Textos.cuerpo.copy(fontSize = rem(0.8), color = colores.tintaSuave),
-                        modifier = Modifier.padding(vertical = Espacios.e3),
-                    )
-                }
-            }
-            Boton(
-                if (seleccion.cantidad > 0) "Añadir ${seleccion.cantidad}" else "Añadir",
-                {
-                    vm.anadirPersonajes(escena.clave, seleccion)
-                    vm.cerrarReparto()
-                },
-                Modifier.fillMaxWidth(),
-                habilitado = seleccion.cantidad > 0,
-            )
+            BotonDeIcono(Iconos.close, "Cerrar", vm::cerrarReparto)
         }
-    }
-}
-
-/** «En escena / Solo nombrado»: dos mitades de 40 dp en una píldora; la elegida, rellena del primario. */
-@Composable
-private fun Conmutador(nombrado: Boolean, alCambiar: (Boolean) -> Unit) {
-    val colores = LocalColores.current
-    Row(Modifier.fillMaxWidth().clip(Radios.pildora).background(colores.superficieContenedor).padding(4.dp)) {
-        listOf(false to "En escena", true to "Solo nombrado").forEach { (valor, texto) ->
-            val elegida = valor == nombrado
-            Box(
-                Modifier.weight(1f).height(40.dp).clip(Radios.pildora).background(if (elegida) colores.primario else Color.Transparent)
-                    .clickable(role = Role.Tab) { alCambiar(valor) }.semantics { selected = elegida },
-                contentAlignment = Alignment.Center,
-            ) { Text(texto, style = Textos.cuerpo.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold, lineHeight = 1.2.em, color = if (elegida) colores.sobrePrimario else colores.tintaSuave)) }
+        Column(
+            Modifier.fillMaxWidth().padding(start = Espacios.e5, end = Espacios.e3, top = Espacios.e2, bottom = Espacios.e4)
+                .heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
+        ) {
+            lista.forEach { personaje ->
+                val actual = escena.personajes.firstOrNull { it.id == personaje.id }
+                FilaDePersonaje(personaje, actual) { nombrado -> vm.pulsarEnElReparto(escena.clave, personaje.id, nombrado) }
+            }
+            if (paraCrear != null) {
+                val ocupado = creador.creando != null
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 56.dp).alpha(if (ocupado) 0.5f else 1f)
+                        .clickable(enabled = !ocupado, role = Role.Button) {
+                            creador.crear(libro, paraCrear) { id ->
+                                primero = primero + id
+                                vm.asignarPersonaje(escena.clave, id, false)
+                                buscado = ""
+                            }
+                        },
+                    horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CirculoDeCrear(36.dp)
+                    Text(if (creador.creando == paraCrear) "Creando «$paraCrear»…" else "Crear «$paraCrear»", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.primario), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
         }
     }
 }
@@ -222,36 +177,52 @@ private fun CirculoDeCrear(tamano: Dp) {
     ) { Icon(painterResource(Iconos.add), contentDescription = null, tint = colores.primario, modifier = Modifier.size(18.dp)) }
 }
 
-/** Una fila de la lista: la inicial, el nombre y la casilla; tocar cualquier parte la marca o la desmarca. */
+/**
+ * Una fila de la lista: la inicial, el nombre y los dos iconos, en escena y @ ([actual] dice cuál está encendido; `null`,
+ * ninguno). Pulsar uno lo enciende y apaga el otro; pulsar el encendido lo apaga.
+ */
 @Composable
-private fun FilaDePersonaje(personaje: Personaje, marcado: Boolean, alPulsar: () -> Unit) {
+private fun FilaDePersonaje(personaje: Personaje, actual: PersonajeEnEscena?, alPulsar: (nombrado: Boolean) -> Unit) {
     val colores = LocalColores.current
     Row(
         Modifier.fillMaxWidth().heightIn(min = 56.dp)
-            .drawBehind { drawRect(colores.superficieAlta, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
-            .clickable(role = Role.Checkbox, onClick = alPulsar)
-            .semantics { selected = marcado },
+            .drawBehind { drawRect(colores.superficieAlta, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) },
         horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Inicial(personaje.nombre, 36.dp)
         Text(personaje.nombre, style = Textos.cuerpo.copy(fontWeight = FontWeight.SemiBold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-        val forma = RoundedCornerShape(6.dp)
+        Row {
+            IconoDeReparto(Iconos.person, "${personaje.nombre}, en escena", encendido = actual?.nombrado == false) { alPulsar(false) }
+            IconoDeReparto(Iconos.alternateEmail, "${personaje.nombre}, solo nombrado", encendido = actual?.nombrado == true) { alPulsar(true) }
+        }
+    }
+}
+
+/** Uno de los dos iconos de la fila: 36 dp a la vista (relleno del primario si está encendido), 44 de objetivo. */
+@Composable
+private fun IconoDeReparto(icono: Int, descripcion: String, encendido: Boolean, alPulsar: () -> Unit) {
+    val colores = LocalColores.current
+    Box(
+        Modifier.size(44.dp).clip(CircleShape)
+            .clickable(role = Role.RadioButton, onClick = alPulsar)
+            .semantics { contentDescription = descripcion; selected = encendido },
+        contentAlignment = Alignment.Center,
+    ) {
         Box(
-            Modifier.padding(end = 4.dp).size(24.dp).clip(forma)
-                .background(if (marcado) colores.primario else Color.Transparent)
-                .border(2.dp, if (marcado) colores.primario else colores.contornoFuerte, forma),
+            Modifier.size(36.dp).clip(CircleShape).background(if (encendido) colores.primario else Color.Transparent)
+                .border(1.dp, if (encendido) colores.primario else colores.contorno, CircleShape),
             contentAlignment = Alignment.Center,
-        ) { if (marcado) Icon(painterResource(Iconos.check), contentDescription = null, tint = colores.sobrePrimario, modifier = Modifier.size(18.dp)) }
+        ) { Icon(painterResource(icono), contentDescription = null, tint = if (encendido) colores.sobrePrimario else colores.tintaSuave, modifier = Modifier.size(20.dp)) }
     }
 }
 
 /**
- * Una ficha de personaje: presente, rellena del contenedor primario; solo nombrado, «@ Nombre» en cursiva con borde (en la
- * hoja, discontinuo). [alto] es lo que se ve; el objetivo táctil es de 44 dp.
+ * Una ficha de personaje: presente, rellena del contenedor primario; solo nombrado, «@ Nombre» en cursiva con borde.
+ * [alto] es lo que se ve; el objetivo táctil es de 44 dp.
  */
 @Composable
-private fun Ficha(nombre: String, nombrado: Boolean, alto: Dp, marcada: Boolean, descripcion: String, alPulsar: () -> Unit) {
+private fun Ficha(nombre: String, nombrado: Boolean, alto: Dp, descripcion: String, alPulsar: () -> Unit) {
     val colores = LocalColores.current
     Box(Modifier.heightIn(min = 44.dp).clickable(role = Role.Button, onClickLabel = descripcion, onClick = alPulsar), contentAlignment = Alignment.Center) {
         Row(
@@ -262,14 +233,13 @@ private fun Ficha(nombre: String, nombrado: Boolean, alto: Dp, marcada: Boolean,
                     val ancho = 1.dp.toPx()
                     drawRoundRect(
                         colores.contornoFuerte, Offset(ancho / 2, ancho / 2), Size(size.width - ancho, size.height - ancho), CornerRadius(size.height / 2),
-                        style = Stroke(ancho, pathEffect = if (marcada) PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())) else null),
+                        style = Stroke(ancho),
                     )
                 }
                 .padding(horizontal = if (alto > 32.dp) Espacios.e3 else 10.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (marcada && !nombrado) Icon(painterResource(Iconos.check), contentDescription = null, tint = colores.sobreContenedorPrimario, modifier = Modifier.size(16.dp))
             Text(
                 if (nombrado) "@ $nombre" else nombre,
                 style = Textos.cuerpo.copy(
@@ -291,7 +261,7 @@ internal fun FichaDePersonaje(vm: CapituloViewModel, libro: Libro, escena: Escen
     val nombre = ReglasDelCapitulo.nombreDePersonaje(libro, personaje.id)
     var abierto by remember { mutableStateOf(false) }
     Box {
-        Ficha(nombre, personaje.nombrado, alto = 32.dp, marcada = false, descripcion = "Cambiar o quitar a $nombre") { abierto = true }
+        Ficha(nombre, personaje.nombrado, alto = 32.dp, descripcion = "Cambiar o quitar a $nombre") { abierto = true }
         DropdownMenu(abierto, onDismissRequest = { abierto = false }, containerColor = colores.superficie) {
             DropdownMenuItem(
                 text = { Text(if (personaje.nombrado) "En escena" else "Solo nombrado", style = Textos.cuerpo.copy(color = colores.tinta)) },

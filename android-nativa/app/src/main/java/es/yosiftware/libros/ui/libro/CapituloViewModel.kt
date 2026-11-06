@@ -160,10 +160,9 @@ class CapituloViewModel(
         repartoDe = null
     }
 
-    /** «Añadir N» de la hoja de reparto: todos los elegidos de golpe, cada uno presente o solo nombrado. */
-    fun anadirPersonajes(clave: Long, seleccion: SeleccionDeReparto) {
-        if (seleccion.cantidad == 0) return
-        cambiarEscena(clave) { escena -> escena.copy(personajes = ordenar(seleccion.aplicar(escena.personajes))) }
+    /** Uno de los dos iconos de un personaje en la hoja de reparto ([RepartoDeEscena.pulsar]): cambia la escena al momento. */
+    fun pulsarEnElReparto(clave: Long, id: Int, nombrado: Boolean) = cambiarEscena(clave) { escena ->
+        escena.copy(personajes = ordenar(RepartoDeEscena.pulsar(escena.personajes, id, nombrado)))
     }
 
     /** Pone un personaje en la escena, presente o solo nombrado; si ya estaba, solo cambia cómo (`assignCharacterToScene`). */

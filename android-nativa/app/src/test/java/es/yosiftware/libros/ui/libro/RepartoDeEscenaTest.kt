@@ -9,7 +9,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** La hoja de reparto y la @ de una escena: el buscador, «Crear «…»», el nombre repetido y la selección múltiple. */
+/** La hoja de reparto y la @ de una escena: el buscador, «Crear «…»», el nombre repetido y los iconos de cada personaje. */
 class RepartoDeEscenaTest {
     private val personajes = Libro.de(JSONObject("""
         {"Tipo": "libro", "Id": 9, "Nombre": "Siega", "Autores": [], "Estados": [], "Capitulos": [], "Partes": [], "Interludios": [],
@@ -59,25 +59,23 @@ class RepartoDeEscenaTest {
     }
 
     @Test
-    fun laSeleccionMultipleRecuerdaComoSeEligioCadaUno() {
-        val seleccion = SeleccionDeReparto()
-            .alternar(1, nombrado = false)
-            .alternar(2, nombrado = false)
-            .alternar(5, nombrado = true)
-        assertEquals(3, seleccion.cantidad)
-        assertEquals(listOf(PersonajeEnEscena(1, false), PersonajeEnEscena(2, false), PersonajeEnEscena(5, true)), seleccion.elegidos)
-        // Desmarcar la casilla lo saca; quitar la ficha, también.
-        assertEquals(listOf(1, 5), seleccion.alternar(2, nombrado = true).elegidos.map { it.id })
-        assertEquals(listOf(1, 2), seleccion.quitar(5).elegidos.map { it.id })
-        // Uno recién creado entra como diga el conmutador, aunque ya estuviera elegido de otra forma.
-        assertEquals(PersonajeEnEscena(1, true), seleccion.anadir(1, nombrado = true).elegidos.last())
+    fun losDosIconosFuncionanComoRadioQueSePuedeApagar() {
+        val escena = listOf(PersonajeEnEscena(3, false), PersonajeEnEscena(4, true))
+        // Uno que no está entra como diga el icono.
+        assertEquals(escena + PersonajeEnEscena(1, false), RepartoDeEscena.pulsar(escena, 1, nombrado = false))
+        assertEquals(escena + PersonajeEnEscena(1, true), RepartoDeEscena.pulsar(escena, 1, nombrado = true))
+        // Encender el otro icono cambia cómo está, sin repetirlo.
+        assertEquals(listOf(PersonajeEnEscena(4, true), PersonajeEnEscena(3, true)), RepartoDeEscena.pulsar(escena, 3, nombrado = true))
+        assertEquals(listOf(PersonajeEnEscena(3, false), PersonajeEnEscena(4, false)), RepartoDeEscena.pulsar(escena, 4, nombrado = false))
+        // Pulsar el encendido lo saca de la escena.
+        assertEquals(listOf(PersonajeEnEscena(4, true)), RepartoDeEscena.pulsar(escena, 3, nombrado = false))
+        assertEquals(listOf(PersonajeEnEscena(3, false)), RepartoDeEscena.pulsar(escena, 4, nombrado = true))
     }
 
     @Test
-    fun anadirLosPoneTodosDeGolpeSinRepetirLosQueYaEstaban() {
-        val escena = listOf(PersonajeEnEscena(3, false), PersonajeEnEscena(4, true))
-        val seleccion = SeleccionDeReparto().anadir(1, false).anadir(4, false)
-        assertEquals(listOf(PersonajeEnEscena(3, false), PersonajeEnEscena(1, false), PersonajeEnEscena(4, false)), seleccion.aplicar(escena))
-        assertEquals(escena, SeleccionDeReparto().aplicar(escena))
+    fun laHojaPoneArribaLosQueEstabanEnLaEscenaSinMoverElResto() {
+        val lista = RepartoDeEscena.conLosDeLaEscenaPrimero(RepartoDeEscena.filtrar(personajes, ""), setOf(5, 2))
+        assertEquals(listOf("Rowan", "Segador Goddard", "Ángela", "Citra Terranova", "Marie Curie", "Mercury"), lista.map { it.nombre })
+        assertEquals(listOf("Marie Curie", "Mercury"), RepartoDeEscena.conLosDeLaEscenaPrimero(RepartoDeEscena.filtrar(personajes, "cur"), setOf(5)).map { it.nombre })
     }
 }
