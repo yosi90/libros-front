@@ -36,9 +36,11 @@ import { CharacterGroup, groupCharactersByGroup } from '../../../../shared/chara
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { AppToastService } from '../../../../shared/toast/app-toast.service';
 import { CharacterService } from '../../../../services/entities/character.service';
-import { castNameToCreate, duplicateCharacterQuestion, filterSceneCast, findCharacterNamed, pressCastIcon, withSceneCastFirst } from '../../../../shared/scene-cast';
+import {
+    CHARACTER_CREATE_TIMEOUT_MS, castNameToCreate, duplicateCharacterQuestion, filterSceneCast, findCharacterNamed, isRejectedCharacterClientRequestId,
+    pressCastIcon, withSceneCastFirst
+} from '../../../../shared/scene-cast';
 import { createClientRequestId } from '../../../../shared/client-request-id';
-import { getApiErrorCode } from '../../../../shared/api-error-message';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -61,9 +63,6 @@ interface ChapterPersistBatch {
 }
 
 type ChapterCharacterUsage = 'present' | 'named' | null;
-
-/** Lo que espera el alta rápida de un personaje desde una escena (como la hoja de alta). */
-const SCENE_CHARACTER_CREATE_TIMEOUT_MS = 30_000;
 
 /** Lo que un capítulo no había guardado cuando cambió la cuenta: el formulario tal cual y las escenas borradas. */
 interface ChapterDraft {
@@ -907,7 +906,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             Entradas: [{ Nombre: 'Descripción', Descripcion: plainTextToRtf(defaultEntryDescriptionText('personaje')) }],
             IdCliente: clientId
         }).pipe(
-            timeout({ first: SCENE_CHARACTER_CREATE_TIMEOUT_MS }),
+            timeout({ first: CHARACTER_CREATE_TIMEOUT_MS }),
             finalize(() => this.creatingSceneCharacter = null),
             takeUntil(this.destroy$)
         ).subscribe({
@@ -928,8 +927,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
                 created?.(Number(character.Id));
             },
             error: errorData => {
-                const code = getApiErrorCode(errorData);
-                if (code === 'invalid_client_request_id' || code === 'character_client_request_conflict')
+                if (isRejectedCharacterClientRequestId(errorData))
                     this.sceneCharacterClientIds.delete(key);
                 if (errorData instanceof TimeoutError)
                     this._snackBar.openSnackBar(

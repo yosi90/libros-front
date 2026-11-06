@@ -25,7 +25,7 @@ import { EntryService, NarrativeEntityKind } from '../../../../services/entities
 import { NarrativeEntry, NarrativeEntryCreate } from '../../../../interfaces/api-contract';
 import { OrganizationCharacterRelation, OrganizationLocationRelation } from '../../../../interfaces/organization';
 import { LocationStatus } from '../../../../interfaces/location';
-import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
@@ -38,12 +38,9 @@ import { WebNarrativeEntityViewComponent } from '../../../web/book/web-narrative
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 import { foldText } from '../../../../shared/text';
 import { CharacterGroup, characterGroupRank, groupCharactersByGroup } from '../../../../shared/character-groups';
-import { duplicateCharacterQuestion, findCharacterNamed } from '../../../../shared/scene-cast';
+import { CHARACTER_CREATE_TIMEOUT_MS, duplicateCharacterQuestion, findCharacterNamed, isRejectedCharacterClientRequestId } from '../../../../shared/scene-cast';
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { createClientRequestId } from '../../../../shared/client-request-id';
-
-/** Espera máxima de cada petición del alta de un personaje antes de dar el paso por fallido. */
-const CHARACTER_CREATE_STEP_TIMEOUT_MS = 30_000;
 
 interface CharacterCreationResult {
     character: Character;
@@ -1124,8 +1121,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             },
             error: errorData => {
                 this.markBackendField(errorData);
-                const code = getApiErrorCode(errorData);
-                if (code === 'invalid_client_request_id' || code === 'character_client_request_conflict')
+                if (isRejectedCharacterClientRequestId(errorData))
                     this.characterCreateClientId = null;
                 if (errorData instanceof TimeoutError)
                     this.snackBar.openSnackBar(
@@ -1814,7 +1810,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             Entradas: basePayload.Entradas,
             ...(this.characterCreateClientId ? { IdCliente: this.characterCreateClientId } : {})
         }).pipe(
-            timeout({ first: CHARACTER_CREATE_STEP_TIMEOUT_MS }),
+            timeout({ first: CHARACTER_CREATE_TIMEOUT_MS }),
             tap(character => this.bookStore.upsertCharacter(bookId, character)),
             switchMap(character => {
                 // El alta sigue aunque se salga de la pantalla, pero no con otra cuenta: lo que falta
@@ -1842,7 +1838,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                     // Ficha del personaje con lo guardado después del alta; si no llega, vale la del alta.
                     switchMap(failedDetails => (steps.length
                         ? this.characterSrv.get(character.Id, bookId).pipe(
-                            timeout({ first: CHARACTER_CREATE_STEP_TIMEOUT_MS }),
+                            timeout({ first: CHARACTER_CREATE_TIMEOUT_MS }),
                             catchError(() => of(character))
                         )
                         : of(character)
@@ -1865,7 +1861,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     private characterCreateStep(label: string, request: Observable<unknown>): Observable<string | null> {
         return request.pipe(
-            timeout({ first: CHARACTER_CREATE_STEP_TIMEOUT_MS }),
+            timeout({ first: CHARACTER_CREATE_TIMEOUT_MS }),
             map(() => null),
             catchError(() => of(label))
         );

@@ -1,5 +1,6 @@
 import { Character } from '../interfaces/character';
 import { SceneCharacterDetail } from '../interfaces/scene';
+import { getApiErrorCode } from './api-error-message';
 import { foldText } from './text';
 
 /**
@@ -67,4 +68,16 @@ export function findCharacterNamed(characters: Character[], name: string): Chara
 /** La pregunta de la hoja de alta cuando el nombre ya existe en el libro. */
 export function duplicateCharacterQuestion(name: string): string {
     return `Ya hay un personaje llamado «${name}» en este libro. ¿Quieres crear otro con el mismo nombre?`;
+}
+
+/** Espera máxima de cada petición del alta de un personaje (la hoja de alta y la escena) antes de darla por fallida. */
+export const CHARACTER_CREATE_TIMEOUT_MS = 30_000;
+
+/**
+ * La API rechazó el `IdCliente` del alta de un personaje (no es un UUID, o ya se usó en otro libro): el siguiente
+ * intento lleva uno nuevo.
+ */
+export function isRejectedCharacterClientRequestId(error: unknown): boolean {
+    const code = getApiErrorCode(error);
+    return code === 'invalid_client_request_id' || code === 'character_client_request_conflict';
 }

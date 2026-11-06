@@ -1,5 +1,8 @@
 import { Character, CharacterAlias } from '../interfaces/character';
-import { castNameToCreate, duplicateCharacterQuestion, filterSceneCast, findCharacterNamed, pressCastIcon, withSceneCastFirst } from './scene-cast';
+import { HttpErrorResponse } from '@angular/common/http';
+import {
+    castNameToCreate, duplicateCharacterQuestion, filterSceneCast, findCharacterNamed, isRejectedCharacterClientRequestId, pressCastIcon, withSceneCastFirst
+} from './scene-cast';
 
 /** Los mismos casos que la APK (`RepartoDeEscenaTest`). */
 describe('scene-cast', () => {
@@ -44,6 +47,14 @@ describe('scene-cast', () => {
         expect(findCharacterNamed(characters, 'Curie')).toBeUndefined();
         expect(findCharacterNamed(characters, '  ')).toBeUndefined();
         expect(duplicateCharacterQuestion('Rowan')).toBe('Ya hay un personaje llamado «Rowan» en este libro. ¿Quieres crear otro con el mismo nombre?');
+    });
+
+    it('el IdCliente rechazado por la API se cambia en el siguiente intento', () => {
+        const apiError = (code: string, status = 409) => new HttpErrorResponse({ status, error: { error: 'No', code } });
+        expect(isRejectedCharacterClientRequestId(apiError('character_client_request_conflict'))).toBeTrue();
+        expect(isRejectedCharacterClientRequestId(apiError('invalid_client_request_id', 400))).toBeTrue();
+        expect(isRejectedCharacterClientRequestId(apiError('validation_error', 400))).toBeFalse();
+        expect(isRejectedCharacterClientRequestId(new Error('timeout'))).toBeFalse();
     });
 
     it('los dos iconos funcionan como un radio que se puede apagar', () => {
