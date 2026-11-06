@@ -3,18 +3,15 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { environment } from '../../../environment/environment';
+import { crearDobleYosiftware, type DobleYosiftware, type OpcionesDelDoble } from '../../../../pruebas/yosiftware-doble/yosiftware-doble.js';
 import { GENERACION_PETICION, IdentityChange, PlatformSessionService } from './platform-session.service';
-import { CARGADOR_SDK, CuentaPlataforma, EstadoPlataforma } from './yosiftware-sdk';
-import { YosiftwareSdkDouble } from './yosiftware-sdk.testing';
+import { CARGADOR_SDK } from './yosiftware-sdk';
 
-/** Doble del SDK de la plataforma: el estado lo decide la prueba. */
-class SdkDouble extends YosiftwareSdkDouble { }
-
-const cuenta = (id: string, alias = id): CuentaPlataforma => ({ id, alias, correo: `${alias}@example.test` });
-const conSesion = (id: string): EstadoPlataforma => ({ tipo: 'con_sesion', cuenta: cuenta(id) });
+const cuenta = (id: string) => ({ id, alias: id });
 
 describe('PlatformSessionService', () => {
-    let sdk: SdkDouble;
+    /** El doble oficial del SDK (kit 1.85, `pruebas/yosiftware-doble/`): por defecto, sin sesión. */
+    let doble: DobleYosiftware;
     let http: HttpTestingController;
     let router: { url: string; navigateByUrl: jasmine.Spy };
     let loader: jasmine.Spy;
@@ -32,6 +29,11 @@ describe('PlatformSessionService', () => {
         return TestBed.inject(PlatformSessionService);
     }
 
+    /** El SDK con el que arranca la prueba: con una cuenta (`{ cuenta }`), con su `fetch`… */
+    function conDoble(opciones: OpcionesDelDoble): void {
+        doble = crearDobleYosiftware(opciones);
+    }
+
     function answerLocalUser(id: number, nombre = `usuario-${id}`) {
         const request = http.expectOne(`${environment.apiUrl}usuarios/me`);
         request.flush({ success: true, user: { Id: id, Nombre: nombre, Role: { Id: 1, Nombre: 'usuario' } } });
@@ -40,8 +42,8 @@ describe('PlatformSessionService', () => {
 
     beforeEach(() => {
         localStorage.clear();
-        sdk = new SdkDouble();
-        loader = jasmine.createSpy('cargarSdk').and.callFake(() => Promise.resolve(sdk));
+        conDoble({});
+        loader = jasmine.createSpy('cargarSdk').and.callFake(() => Promise.resolve(doble.yosiftware));
         router = { url: '/dashboard/books', navigateByUrl: jasmine.createSpy('navigateByUrl').and.resolveTo(true) };
     });
 
@@ -57,7 +59,6 @@ describe('PlatformSessionService', () => {
 
     it('sin sesión deja la web en la vista sin sesión, sin pedir nada a la API', fakeAsync(() => {
         const session = create();
-        sdk.estado = { tipo: 'sin_sesion' };
 
         session.start();
         flushMicrotasks();
@@ -70,7 +71,7 @@ describe('PlatformSessionService', () => {
 
     it('al quedar lista, quien escucha access$ ya ve la persona dentro (las guardas lo leen en el acto)', fakeAsync(() => {
         const session = create();
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
         const seen: Array<[string, boolean]> = [];
         session.access$.subscribe(access => seen.push([access, session.userIsLogged]));
 
@@ -85,35 +86,39 @@ describe('PlatformSessionService', () => {
 
     it('con sesión pide su usuario local con la generación de esa cuenta y presenta la cuenta', fakeAsync(() => {
         const session = create();
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
+        doble.control.ponerPerfil('cuenta-a', { nombre: 'Yosi Lectora' });
 
         session.start();
         flushMicrotasks();
         expect(session.access).toBe('cargando');
         const request = answerLocalUser(1, 'yosi');
+        // Primero el nombre del usuario local; en cuanto llega el perfil de la plataforma, el suyo.
+        expect(session.userName).toBe('yosi');
         flushMicrotasks();
 
         expect(request.request.context.get(GENERACION_PETICION)).toBe(session.generation);
         expect(session.userIsLogged).toBeTrue();
         expect(session.userId).toBe(1);
-        expect(session.userName).toBe('yosi');
+        expect(session.userName).toBe('Yosi Lectora');
         expect(session.access).toBe('lista');
         expect(session.storageScope).toBe(`${environment.environmentName}:cuenta-a`);
         expect(session.accountStorageKey('libros:x:')).toBe(`libros:x:${environment.environmentName}:cuenta-a`);
     }));
 
-    it('de A a B sin cerrar: vacía lo de A antes de presentar B y vuelve a la biblioteca', fakeAsync(() => {
+    it('de A a B sin cerrar y sin el aviso previo: vacía lo de A antes de presentar B y vuelve a la biblioteca', fakeAsync(() => {
         const session = create();
         const changes: IdentityChange[] = [];
         session.identityChange$.subscribe(change => changes.push(change));
-        sdk.estado = conSesion('cuenta-a');
+        // Los avisos del doble van a otro sitio: la web solo ve el estado nuevo, y aun así no mezcla las cuentas.
+        conDoble({ cuenta: cuenta('cuenta-a'), ventana: new EventTarget() });
         session.start();
         flushMicrotasks();
         answerLocalUser(1);
         const generationA = session.generation;
         router.url = '/book/73/chapter/11';
 
-        sdk.emitir(conSesion('cuenta-b'));
+        doble.control.iniciarSesion(cuenta('cuenta-b'));
 
         expect(session.userIsLogged).toBeFalse();
         expect(session.userId).toBe(-1);
@@ -127,31 +132,29 @@ describe('PlatformSessionService', () => {
 
     it('de A a B con el aviso previo del SDK (como el de verdad): también saca a la persona de lo privado de A', fakeAsync(() => {
         const session = create();
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
         session.start();
         flushMicrotasks();
         answerLocalUser(1);
         router.url = '/book/73/chapter/11';
 
-        // El SDK avisa antes de confirmar; el aviso ya vacía la identidad, y el estado nuevo llega después.
-        window.dispatchEvent(new CustomEvent('yosiftware:identidad'));
-        sdk.emitir(conSesion('cuenta-b'));
+        // El SDK avisa antes de confirmar (`yosiftware:identidad`); el aviso ya vacía la identidad, y el estado nuevo llega después.
+        doble.control.cambioDesdeOtraPestana(cuenta('cuenta-b'));
 
         expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard/books', { replaceUrl: true });
         answerLocalUser(2);
         expect(session.userId).toBe(2);
     }));
 
-    it('el aviso previo del SDK seguido de sin_sesion (revocación) vuelve a la portada', fakeAsync(() => {
+    it('el aviso previo del SDK seguido de sin_sesion (otra pestaña sale) vuelve a la portada', fakeAsync(() => {
         const session = create();
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
         session.start();
         flushMicrotasks();
         answerLocalUser(1);
         router.url = '/dashboard/community/messages';
 
-        window.dispatchEvent(new CustomEvent('yosiftware:identidad'));
-        sdk.emitir({ tipo: 'sin_sesion', motivo: 'revocada' } as EstadoPlataforma);
+        doble.control.cambioDesdeOtraPestana(null);
 
         expect(router.navigateByUrl).toHaveBeenCalledWith('/home', { replaceUrl: true });
         expect(session.userIsLogged).toBeFalse();
@@ -159,12 +162,12 @@ describe('PlatformSessionService', () => {
 
     it('descarta el usuario local de A que llega después de cambiar a B', fakeAsync(() => {
         const session = create();
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
         session.start();
         flushMicrotasks();
         const lateA = http.expectOne(`${environment.apiUrl}usuarios/me`);
 
-        sdk.emitir(conSesion('cuenta-b'));
+        doble.control.cambioDesdeOtraPestana(cuenta('cuenta-b'));
         const requestB = http.match(`${environment.apiUrl}usuarios/me`);
         lateA.flush({ success: true, user: { Id: 1, Nombre: 'de A', Role: null } });
 
@@ -179,17 +182,17 @@ describe('PlatformSessionService', () => {
         const session = create();
         const changes: IdentityChange[] = [];
         session.identityChange$.subscribe(change => changes.push(change));
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
         session.start();
         flushMicrotasks();
         answerLocalUser(1);
         const before = session.generation;
 
-        window.dispatchEvent(new CustomEvent('yosiftware:identidad'));
+        // Otra pestaña vuelve a A (de A a B y de vuelta): el SDK avisa aunque sea la misma cuenta.
+        doble.control.cambioDesdeOtraPestana(cuenta('cuenta-a'));
         expect(session.userIsLogged).toBeFalse();
         expect(session.access).toBe('cargando');
 
-        sdk.emitir(conSesion('cuenta-a'));
         answerLocalUser(1);
 
         expect(session.generation).toBe(before + 2);
@@ -197,16 +200,16 @@ describe('PlatformSessionService', () => {
         expect(session.userIsLogged).toBeTrue();
     }));
 
-    it('al pasar por sin_sesion olvida a la persona y vuelve a la portada', fakeAsync(() => {
+    it('al pasar por sin_sesion (la sesión caduca o la revocan, sin aviso) olvida a la persona y vuelve a la portada', fakeAsync(() => {
         const session = create();
         const changes: IdentityChange[] = [];
         session.identityChange$.subscribe(change => changes.push(change));
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
         session.start();
         flushMicrotasks();
         answerLocalUser(1);
 
-        sdk.emitir({ tipo: 'sin_sesion' });
+        doble.control.sesionCaducada();
 
         expect(session.userIsLogged).toBeFalse();
         expect(session.userId).toBe(-1);
@@ -217,12 +220,12 @@ describe('PlatformSessionService', () => {
 
     it('conserva la cuenta presentada mientras la plataforma no responde', fakeAsync(() => {
         const session = create();
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
         session.start();
         flushMicrotasks();
         answerLocalUser(1);
 
-        sdk.emitir({ tipo: 'no_disponible' });
+        doble.control.noDisponible();
 
         expect(session.userIsLogged).toBeTrue();
         expect(session.cuenta?.id).toBe('cuenta-a');
@@ -242,7 +245,7 @@ describe('PlatformSessionService', () => {
 
     it('una cuenta borrada en la plataforma vuelve a la vista sin sesión', fakeAsync(() => {
         const session = create();
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
         session.start();
         flushMicrotasks();
 
@@ -255,7 +258,8 @@ describe('PlatformSessionService', () => {
 
     it('pide los tokens al SDK cada vez y no guarda ninguno en el navegador', fakeAsync(async () => {
         const session = create();
-        sdk.estado = conSesion('cuenta-a');
+        conDoble({ cuenta: cuenta('cuenta-a') });
+        doble.control.ponerTokens('cuenta-a', { api: 'token-1' });
         session.start();
         flushMicrotasks();
         answerLocalUser(1);
@@ -271,26 +275,38 @@ describe('PlatformSessionService', () => {
 
     it('un token pedido mientras cambia la cuenta no se usa', fakeAsync(() => {
         const session = create();
-        const cambio = new Error('La cuenta ha cambiado.');
-        cambio.name = 'CambioDeIdentidad';
-        sdk.token.and.rejectWith(cambio);
+        conDoble({ cuenta: cuenta('cuenta-a') });
+        // La cuenta cambia en otra pestaña mientras el SDK busca el token: el doble lo rechaza con `CambioDeIdentidad`.
+        const token = doble.yosiftware.token;
+        spyOn(doble.yosiftware, 'token').and.callFake(() => {
+            const pedido = token();
+            doble.control.cambioDesdeOtraPestana(cuenta('cuenta-b'));
+            return pedido;
+        });
 
-        let token: string | null | undefined;
-        void session.token().then(value => token = value);
+        let result: string | null | undefined;
+        void session.token().then(value => result = value);
         flushMicrotasks();
 
-        expect(token).toBeNull();
+        expect(result).toBeNull();
     }));
 
     it('tras un 401 da un token nuevo; si el SDK aún tiene el mismo, le obliga a renovarlo', fakeAsync(() => {
         const session = create();
-        sdk.tokens = ['viejo', 'nuevo'];
+        // La plataforma renueva el token de la cuenta cuando la API responde 401 a `yosiftware.fetch()`.
+        const fetch = jasmine.createSpy('fetch').and.callFake(async (_entrada: string, opciones?: RequestInit) => {
+            if (new Headers(opciones?.headers).get('Authorization') !== 'Bearer viejo') return new Response(null, { status: 200 });
+            doble.control.ponerTokens('cuenta-a', { api: 'nuevo' });
+            return new Response(null, { status: 401 });
+        });
+        conDoble({ cuenta: cuenta('cuenta-a'), fetch });
+        doble.control.ponerTokens('cuenta-a', { api: 'viejo' });
 
         let renewed: string | null = null;
         void session.renewToken('viejo').then(value => renewed = value);
         flushMicrotasks();
 
-        expect(sdk.fetch).toHaveBeenCalledOnceWith(`${environment.apiUrl}usuarios/me`, { cache: 'no-store' });
+        expect(fetch).toHaveBeenCalledWith(`${environment.apiUrl}usuarios/me`, jasmine.objectContaining({ cache: 'no-store' }));
         expect(renewed as string | null).toBe('nuevo');
     }));
 
@@ -305,7 +321,6 @@ describe('PlatformSessionService', () => {
         localStorage.setItem('book-front:floating-window:v1:7:chat', '{}');
         localStorage.setItem('yosiftadisticas:excluir', '1');
         localStorage.setItem('libros:web-theme:last', 'dark');
-        sdk.estado = { tipo: 'sin_sesion' };
 
         create().start();
 
@@ -321,8 +336,8 @@ describe('PlatformSessionService', () => {
         void session.cambiarCuenta();
         flushMicrotasks();
 
-        expect(sdk.entrar).toHaveBeenCalledOnceWith({ vista: 'registro' });
-        expect(sdk.salir).toHaveBeenCalled();
-        expect(sdk.cambiarCuenta).toHaveBeenCalled();
+        expect(doble.control.llamadasA('entrar')).toEqual([[{ vista: 'registro' }]]);
+        expect(doble.control.llamadasA('salir')).toEqual([[]]);
+        expect(doble.control.llamadasA('cambiarCuenta')).toEqual([[]]);
     }));
 });

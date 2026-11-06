@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures/test';
-import { installLocalVisualSession } from './support/local-visual-session';
-import { SDK_DOUBLE_TOKEN } from './support/yosiftware-sdk-double';
+import { installLocalVisualSession, localAccount } from './support/local-visual-session';
+import { doubleToken } from './support/yosiftware-doble';
 
 // Caso real (Siega, 20/10/2026): el alta de «Segador Goodall» se guardó en la API, la web no
 // recibió la respuesta, la lista no lo mostró al volver y el segundo intento lo duplicó.
@@ -109,7 +109,7 @@ test.describe('Alta de personajes en la web', () => {
         expect(server.created).toHaveLength(1);
         expect(server.createRequests).toHaveLength(2);
         expect(server.createRequests[1]['IdCliente']).toBe(server.createRequests[0]['IdCliente']);
-        expect(server.createAuthorizations).toEqual([`Bearer ${SDK_DOUBLE_TOKEN}`, `Bearer ${SDK_DOUBLE_TOKEN}`]);
+        expect(server.createAuthorizations).toEqual([`Bearer ${doubleToken(localAccount.id)}`, `Bearer ${doubleToken(localAccount.id)}`]);
     });
 
     test('al volver a la lista aparece el alta cuya respuesta se perdió y crear otro igual pide confirmación', async ({ page }) => {

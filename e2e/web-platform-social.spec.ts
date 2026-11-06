@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures/test';
-import { installLocalVisualSession } from './support/local-visual-session';
+import { installLocalVisualSession, localAccount } from './support/local-visual-session';
 import { localPlatformPerson as yo, watchRetiredCalls } from './support/platform-fixtures';
-import { SDK_DOUBLE_PLATFORM_TOKEN } from './support/yosiftware-sdk-double';
+import { doublePlatformToken } from './support/yosiftware-doble';
 
 // Hito 3 de la adhesión: lo social es de la plataforma Yosiftware. La cabecera lleva sus webs, su campana y la cuenta;
 // el chat es el de la plataforma con la interfaz de Libros, y la web no llama a nada que la API de Libros retiró.
@@ -101,7 +101,7 @@ test.describe('Lo social con la plataforma (hito 3)', () => {
         expect(sent).toHaveLength(1);
         expect(sent[0].body['texto']).toBe('Perfecto, gracias');
         expect(typeof sent[0].body['idCliente']).toBe('string');
-        expect(sent[0].auth).toBe(`Bearer ${SDK_DOUBLE_PLATFORM_TOKEN}`);
+        expect(sent[0].auth).toBe(`Bearer ${doublePlatformToken(localAccount.id)}`);
         expect(retired).toEqual([]);
     });
 

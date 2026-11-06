@@ -8,8 +8,8 @@ test.describe('superficies publicas @smoke', () => {
         await expect(page).toHaveTitle('Memoria bibliográfica');
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'web');
         await expect(page.getByRole('heading', { name: 'Cada libro deja una huella.' })).toBeVisible();
+        // Lo que pinta `<yosi-acceso>` es del SDK: el doble lo deja vacío y se prueba contra la plataforma de QA.
         await expect(page.locator('yosi-acceso')).toHaveCount(1);
-        await expect(page.locator('yosi-acceso').getByRole('button', { name: 'Entrar' })).toBeVisible();
         await expect(page.getByRole('button', { name: /Crear mi biblioteca/ })).toBeVisible();
         await expect(page.getByRole('button', { name: /Ya tengo cuenta/ })).toBeVisible();
         await expect(page.getByText('Entra con tu cuenta de Yosiftware')).toBeVisible();

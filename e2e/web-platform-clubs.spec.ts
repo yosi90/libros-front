@@ -1,8 +1,8 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures/test';
-import { installLocalVisualSession } from './support/local-visual-session';
+import { installLocalVisualSession, localAccount } from './support/local-visual-session';
 import { json, localPlatformPerson as yo, watchRetiredCalls } from './support/platform-fixtures';
-import { SDK_DOUBLE_PLATFORM_TOKEN } from './support/yosiftware-sdk-double';
+import { doublePlatformToken, type WindowWithDouble } from './support/yosiftware-doble';
 
 // Hito 3 de la adhesión, parte de los clubes (fase 4 de la API): cada club es un espacio de la plataforma. Entrar,
 // pedir entrar, invitar, aceptar y salir van por `/v1/espacios` con el token de la plataforma; la conversación es la
@@ -106,7 +106,7 @@ test.describe('Los clubes en los espacios de la plataforma (hito 3)', () => {
         await expect(access.locator('.notice')).toContainText('Ya eres miembro de Club de Dune');
 
         const accepted = world.platformCalls.find(call => call.method === 'POST' && call.path === '/v1/espacios/invitaciones/5/aceptar');
-        expect(accepted?.auth).toBe(`Bearer ${SDK_DOUBLE_PLATFORM_TOKEN}`);
+        expect(accepted?.auth).toBe(`Bearer ${doublePlatformToken(localAccount.id)}`);
         expect(retired).toEqual([]);
     });
 
@@ -149,7 +149,7 @@ test.describe('Los clubes en los espacios de la plataforma (hito 3)', () => {
 
         // El feed ya ha llegado (`/clubes-lectura/mios` trae el club): Libros lo abre sin recargar.
         await expect(club.getByRole('button', { name: 'Abrir chat' })).toBeEnabled({ timeout: 15_000 });
-        await expect.poll(() => page.evaluate(() => (window as unknown as { __yosiftwareDoble: { canalesAbiertos(): number[] } }).__yosiftwareDoble.canalesAbiertos())).toEqual([9]);
+        await expect.poll(() => page.evaluate(() => (window as unknown as WindowWithDouble).yosiftwareDoble.canalesAbiertos(9))).toBe(1);
 
         await club.locator('.tabs').getByRole('button', { name: 'Chat', exact: true }).click();
         await expect(club.locator('.chat-frame app-chat-conversation')).toContainText('¿Empezamos el lunes?');
@@ -161,10 +161,9 @@ test.describe('Los clubes en los espacios de la plataforma (hito 3)', () => {
         // Un evento del canal refresca solo el calendario, una vez aunque llegue repetido.
         const before = world.libraryCalls.filter(call => call.endsWith('/70/eventos')).length;
         await page.evaluate(() => {
-            const doble = (window as unknown as { __yosiftwareDoble: { canal(id: number, mensaje: unknown): void } }).__yosiftwareDoble;
-            const mensaje = { tipo: 'mensaje', secuencia: 1, idExterno: 'club.event_created-6', datos: { tipo: 'club.event_created', ClubId: 70, EventoId: 6 }, fecha: '' };
-            doble.canal(9, mensaje);
-            doble.canal(9, mensaje);
+            const doble = (window as unknown as WindowWithDouble).yosiftwareDoble;
+            const mensaje = doble.publicarEnCanal(9, 'club.event_created-6', { tipo: 'club.event_created', ClubId: 70, EventoId: 6 });
+            doble.enviarAlCanal(9, mensaje);
         });
         await expect.poll(() => world.libraryCalls.filter(call => call.endsWith('/70/eventos')).length).toBe(before + 1);
         expect(retired).toEqual([]);
