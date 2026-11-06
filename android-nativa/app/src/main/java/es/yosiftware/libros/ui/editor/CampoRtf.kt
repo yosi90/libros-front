@@ -44,6 +44,8 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
     var alCambiar: (String) -> Unit = {}
     var alCambiarLaBarra: (EstadoDeLaBarra) -> Unit = {}
     var alAbrirEnlace: (EnlaceNarrativo) -> Unit = {}
+    /** La @ que se está escribiendo y dónde está, o `null` ([Menciones]); solo si alguien la escucha. */
+    var alCambiarLaMencion: ((MencionEnElCampo?) -> Unit)? = null
 
     private var enlaces: List<EnlaceNarrativo> = emptyList()
     private var cargando = false
@@ -59,6 +61,7 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
     private var claveTocada: IntRange? = null
     private val principal = Handler(Looper.getMainLooper())
     private val buscarClaves = Runnable { pintarPalabrasClave() }
+    private var mencion: MencionEnElCampo? = null
 
     private val gestos = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapUp(e: MotionEvent): Boolean {
@@ -109,6 +112,7 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
                 principal.removeCallbacks(buscarClaves)
                 principal.postDelayed(buscarClaves, 250)
                 emitir()
+                avisarDeLaMencion()
             }
         })
         listo = true
@@ -131,6 +135,12 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
             posicionDelPendiente = -1
         }
         avisarALaBarra()
+        avisarDeLaMencion()
+    }
+
+    override fun onFocusChanged(focused: Boolean, direction: Int, previouslyFocusedRect: android.graphics.Rect?) {
+        super.onFocusChanged(focused, direction, previouslyFocusedRect)
+        if (listo) avisarDeLaMencion()
     }
 
     /** Carga un valor guardado (RTF o texto plano), sin avisar de cambios. */
@@ -150,6 +160,30 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
         // `setText` avisa del cursor antes de que haya formato: la barra se calcula ya con él (si no, enseñaría los
         // valores por defecto hasta mover el cursor, el fallo de la APK actual).
         avisarALaBarra()
+    }
+
+    /**
+     * Mientras se escribe, lo que llega de fuera no pisa el texto, pero las palabras clave sí se actualizan (un personaje
+     * recién creado desde la @ se enlaza sin esperar a salir del campo).
+     */
+    fun cambiarEnlaces(nuevos: List<EnlaceNarrativo>) {
+        if (nuevos == enlaces) return
+        enlaces = nuevos
+        cargando = true
+        try {
+            pintarPalabrasClave()
+        } finally {
+            cargando = false
+        }
+    }
+
+    /** Cambia la @ que se estaba escribiendo por [nombre] (y un espacio), si sigue ahí; el cursor queda detrás. */
+    fun sustituirMencion(actual: Mencion, nombre: String) {
+        val editable = text ?: return
+        if (actual.fin > editable.length || editable[actual.inicio] != '@' || Menciones.enCurso(editable, actual.fin) != actual) return
+        val entra = Menciones.insercion(editable, actual, nombre)
+        editable.replace(actual.inicio, actual.fin, entra)
+        setSelection(minOf(editable.length, actual.inicio + nombre.length + 1))
     }
 
     /** El valor que tiene el campo ahora (el último que se cargó o se emitió). */
@@ -247,6 +281,26 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
             fuente = letra.fuente, mediosPuntos = letra.tamano,
             parrafo = marcado.parrafos.getOrElse(marcado.parrafoEn(posicion)) { EstiloDeParrafo() },
         ))
+    }
+
+    /** Con alguien escuchando: la @ que hay antes del cursor (con el foco y sin selección) y dónde pintarla. */
+    private fun avisarDeLaMencion() {
+        val escucha = alCambiarLaMencion ?: return
+        val editable = text
+        val cursor = selectionStart
+        val nueva = if (editable == null || !hasFocus() || cursor != selectionEnd) null else Menciones.enCurso(editable, cursor)?.let { encontrada ->
+            val disposicion = layout ?: return@let null
+            val linea = disposicion.getLineForOffset(encontrada.inicio)
+            MencionEnElCampo(
+                encontrada,
+                x = (disposicion.getPrimaryHorizontal(encontrada.inicio) + totalPaddingLeft - scrollX).toInt(),
+                arriba = disposicion.getLineTop(linea) + totalPaddingTop - scrollY,
+                abajo = disposicion.getLineBottom(linea) + totalPaddingTop - scrollY,
+            )
+        }
+        if (nueva == mencion) return
+        mencion = nueva
+        escucha(nueva)
     }
 
     /** Busca las menciones en cada trozo de cada tramo, como `applyNarrativeEntityLinks` en los nodos de texto. */

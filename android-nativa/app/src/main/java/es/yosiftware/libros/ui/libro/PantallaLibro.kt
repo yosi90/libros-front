@@ -78,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.min
+import androidx.compose.ui.unit.sp
 import es.yosiftware.libros.datos.modelos.Capitulo
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.zonaSegura
@@ -190,14 +191,25 @@ private fun Barra(vm: LibroViewModel, nombre: String, portada: String?) {
         verticalAlignment = Alignment.Bottom,
     ) {
         BotonDeIcono(Iconos.keyboardArrowDown, "Minimizar libro", vm::minimizar)
+        // En el capítulo (rediseño «Escenas plegadas», 6/11/2026): su título y sus páginas en vez del libro, el lápiz de
+        // sus datos y, en el móvil, las herramientas en «Más» para que el título quepa.
+        val cabecera = vm.cabeceraDelCapitulo.takeIf { vm.vista.esDeCapitulo }
+        val ancha = LocalVentana.current.anchoDp >= 600
         Row(
             Modifier.weight(1f).heightIn(min = 48.dp),
             horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (!portada.isNullOrEmpty()) Portada(portada, null, Modifier.width(30.dp).height(42.dp).clip(RoundedCornerShape(3.dp)))
-            // Hasta dos líneas: la barra tiene alto de sobra, y un título largo no se corta a la primera.
-            Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(0.94), fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (cabecera != null) {
+                Column(Modifier.weight(1f, fill = false)) {
+                    Text(cabecera.first, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = 17.sp, fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (cabecera.second.isNotEmpty()) Text(cabecera.second, style = Textos.cuerpo.copy(fontSize = 12.5.sp, lineHeight = 1.2.em, color = colores.tintaSuave), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            } else {
+                if (!portada.isNullOrEmpty()) Portada(portada, null, Modifier.width(30.dp).height(42.dp).clip(RoundedCornerShape(3.dp)))
+                // Hasta dos líneas: la barra tiene alto de sobra, y un título largo no se corta a la primera.
+                Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(0.94), fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             // `.m-book-bar__saved`: 3 s tras guardar, la nube en un círculo del primario con su halo.
@@ -210,13 +222,40 @@ private fun Barra(vm: LibroViewModel, nombre: String, portada: String?) {
                     contentAlignment = Alignment.Center,
                 ) { Icon(painterResource(Iconos.cloudDone), contentDescription = null, tint = colores.sobrePrimario, modifier = Modifier.size(24.dp)) }
             }
-            Herramienta(Iconos.queryStats, "Estadísticas", vm.estaActiva(VistaDelLibro.Estadisticas)) { vm.ir(VistaDelLibro.Estadisticas) }
-            Herramienta(Iconos.stickyNote2, "Notas del libro", vm.estaActiva(VistaDelLibro.Notas)) { vm.ir(VistaDelLibro.Notas) }
+            if (cabecera != null) Herramienta(Iconos.edit, "Editar los datos del capítulo", vm.datosDelCapitulo, alPulsar = vm::alternarDatosDelCapitulo)
             val wiki = vm.wiki
-            Herramienta(Iconos.language, if (wiki != null) "Abrir wiki del libro" else "Wiki no disponible", activa = false, habilitada = wiki != null) {
-                wiki?.let { runCatching { uri.openUri(it) } }
+            val herramientas: List<Triple<Int, String, Pair<Boolean, Boolean>>> = listOf(
+                Triple(Iconos.queryStats, "Estadísticas", vm.estaActiva(VistaDelLibro.Estadisticas) to true),
+                Triple(Iconos.stickyNote2, "Notas del libro", vm.estaActiva(VistaDelLibro.Notas) to true),
+                Triple(Iconos.language, if (wiki != null) "Abrir wiki del libro" else "Wiki no disponible", false to (wiki != null)),
+                Triple(Iconos.manageSearch, "Buscar dentro del libro", vm.estaActiva(VistaDelLibro.Busqueda) to true),
+            )
+            val alPulsar: (Int) -> Unit = { icono ->
+                when (icono) {
+                    Iconos.queryStats -> vm.ir(VistaDelLibro.Estadisticas)
+                    Iconos.stickyNote2 -> vm.ir(VistaDelLibro.Notas)
+                    Iconos.language -> wiki?.let { runCatching { uri.openUri(it) } }
+                    Iconos.manageSearch -> vm.ir(VistaDelLibro.Busqueda)
+                }
             }
-            Herramienta(Iconos.manageSearch, "Buscar dentro del libro", vm.estaActiva(VistaDelLibro.Busqueda)) { vm.ir(VistaDelLibro.Busqueda) }
+            if (cabecera != null && !ancha) {
+                var mas by remember { mutableStateOf(false) }
+                Box {
+                    Herramienta(Iconos.moreHoriz, "Más herramientas del libro", activa = mas) { mas = true }
+                    DropdownMenu(mas, onDismissRequest = { mas = false }, containerColor = colores.superficie) {
+                        herramientas.forEach { (icono, nombre, estado) ->
+                            DropdownMenuItem(
+                                text = { Text(nombre, style = Textos.cuerpo.copy(color = colores.tinta)) },
+                                leadingIcon = { Icon(painterResource(icono), contentDescription = null, tint = colores.tinta, modifier = Modifier.size(24.dp)) },
+                                enabled = estado.second,
+                                onClick = { mas = false; alPulsar(icono) },
+                            )
+                        }
+                    }
+                }
+            } else {
+                herramientas.forEach { (icono, nombre, estado) -> Herramienta(icono, nombre, estado.first, habilitada = estado.second) { alPulsar(icono) } }
+            }
         }
     }
 }
@@ -620,7 +659,7 @@ fun ContenidoDelLibro(
 ) {
     when (vista) {
         is VistaDelLibro.DeElemento -> es.yosiftware.libros.ui.elementos.PantallaElementos(vm, vista, elementos(vista.elemento))
-        is VistaDelLibro.DeCapitulo, VistaDelLibro.NuevoCapitulo, is VistaDelLibro.NuevoCapituloDeInterludio -> PantallaCapitulo(vm, vista, capitulo(vista))
+        is VistaDelLibro.DeCapitulo, VistaDelLibro.NuevoCapitulo, is VistaDelLibro.NuevoCapituloDeInterludio -> PantallaCapitulo(vm, vista, capitulo(vista), elementos(Elemento.PERSONAJES))
         VistaDelLibro.Estadisticas -> PantallaResumenDelLibro(vm)
         VistaDelLibro.Notas -> PantallaNotasDelLibro(vm.abierto?.id ?: 0, notas)
         VistaDelLibro.Busqueda -> PantallaBusquedaDelLibro(vm, busqueda)

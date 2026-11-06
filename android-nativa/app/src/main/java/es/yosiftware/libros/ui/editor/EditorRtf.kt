@@ -56,6 +56,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import es.yosiftware.libros.datos.rtf.Alineacion
 import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
 import es.yosiftware.libros.datos.rtf.EstiloDeParrafo
@@ -95,6 +105,11 @@ fun EditorRtf(
     barraSoloAlEscribir: Boolean = false,
     /** El libro en el que se escribe: con él, el dictado con IA lleva los nombres del libro como pista ([BotonDeDictado]). */
     idLibro: Int? = null,
+    /**
+     * Las sugerencias de la @ (rediseño del 6/11/2026, opción C): con ellas, al escribir «@» y unas letras sale una
+     * tarjeta flotante bajo la línea con lo que pinte esto; `sustituir` cambia lo escrito desde la @ por un nombre.
+     */
+    menciones: (@Composable (consulta: String, sustituir: (String) -> Unit) -> Unit)? = null,
 ) {
     val colores = LocalColores.current
     val contexto = LocalContext.current
@@ -105,6 +120,7 @@ fun EditorRtf(
     var campo by remember { mutableStateOf<CampoRtf?>(null) }
     var barra by remember { mutableStateOf(EstadoDeLaBarra()) }
     var enfocado by remember { mutableStateOf(false) }
+    var mencion by remember { mutableStateOf<MencionEnElCampo?>(null) }
     val anillo = mezclar(colores.primario, 0.42f)
     Column(modifier, horizontalAlignment = Alignment.End) {
         val conBarra = !barraSoloAlEscribir || enfocado
@@ -145,6 +161,7 @@ fun EditorRtf(
                             cambiar(nuevo)
                         }
                         alCambiarLaBarra = { barra = it }
+                        if (menciones != null) alCambiarLaMencion = { mencion = it }
                         cargar(valor, enlaces)
                         campo = this
                     }
@@ -153,12 +170,42 @@ fun EditorRtf(
                     vista.alAbrirEnlace = alAbrirEnlace
                     vista.cambiarPintura(pintura)
                     vista.setSelectAllOnFocus(seleccionarTodoAlEnfocar)
-                    // Como la web: mientras se escribe, lo que llega de fuera no pisa el texto.
-                    if (!vista.hasFocus()) vista.cargar(valor, enlaces)
+                    // Como la web: mientras se escribe, lo que llega de fuera no pisa el texto (pero sí sus enlaces).
+                    if (!vista.hasFocus()) vista.cargar(valor, enlaces) else vista.cambiarEnlaces(enlaces)
                 },
             )
+            val actual = mencion
+            if (menciones != null && actual != null && enfocado) {
+                SugerenciaDeMencion(actual) {
+                    menciones(actual.mencion.consulta) { nombre -> campo?.sustituirMencion(actual.mencion, nombre) }
+                }
+            }
         }
     }
+}
+
+/**
+ * La tarjeta de la @: bajo la línea donde se escribe (encima, si el teclado no la deja caber), sin quitarle el foco al
+ * texto y dentro de la pantalla.
+ */
+@Composable
+private fun SugerenciaDeMencion(mencion: MencionEnElCampo, contenido: @Composable () -> Unit) {
+    val densidad = LocalDensity.current
+    val teclado = WindowInsets.ime.getBottom(densidad)
+    val margen = with(densidad) { 8.dp.roundToPx() }
+    val posicion = remember(mencion, teclado) {
+        object : PopupPositionProvider {
+            override fun calculatePosition(anchorBounds: IntRect, windowSize: IntSize, layoutDirection: LayoutDirection, popupContentSize: IntSize): IntOffset {
+                val x = (anchorBounds.left + mencion.x).coerceIn(margen, maxOf(margen, windowSize.width - popupContentSize.width - margen))
+                val debajo = anchorBounds.top + mencion.abajo + margen / 2
+                val visible = windowSize.height - teclado
+                val y = if (debajo + popupContentSize.height <= visible - margen) debajo else maxOf(margen, anchorBounds.top + mencion.arriba - popupContentSize.height - margen / 2)
+                return IntOffset(x, y)
+            }
+        }
+    }
+    // La tarjeta la pinta quien da las sugerencias: sin ninguna, no se ve nada.
+    Popup(popupPositionProvider = posicion, properties = PopupProperties(focusable = false)) { contenido() }
 }
 
 /** `.rtf-toolbar` en móvil: sobre la superficie contenedora, con borde y sin el de abajo, desplazable de lado. */

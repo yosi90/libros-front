@@ -34,6 +34,9 @@ sealed interface VistaDelLibro {
     /** [seleccionado]: el que se abre en la lista (el `?selected=` de la web), como desde la búsqueda. */
     data class DeElemento(val elemento: Elemento, val crear: Boolean = false, val seleccionado: Int? = null) : VistaDelLibro
 
+    /** Si es un capítulo (abierto o nuevo). */
+    val esDeCapitulo: Boolean get() = this is DeCapitulo || this is NuevoCapitulo || this is NuevoCapituloDeInterludio
+
     companion object {
         /** La vista como texto, para recordarla con el lector (el `readerUrl` de la web). */
         fun aTexto(vista: VistaDelLibro): String = when (vista) {
@@ -139,6 +142,18 @@ class LibroViewModel(
     var visitaDeNuevo by mutableStateOf(0)
         private set
     private var nube: kotlinx.coroutines.Job? = null
+    /**
+     * El título del capítulo abierto y «Cap. N · págs. X–Y», para la barra (rediseño «Escenas plegadas», 6/11/2026): los
+     * pone la pantalla del capítulo mientras se ve, con lo que se está escribiendo.
+     */
+    var cabeceraDelCapitulo by mutableStateOf<Pair<String, String>?>(null)
+    /** Los datos del capítulo (título, páginas y orden) desplegados con el lápiz de la barra. */
+    var datosDelCapitulo by mutableStateOf(false)
+        private set
+
+    fun alternarDatosDelCapitulo() {
+        datosDelCapitulo = !datosDelCapitulo
+    }
 
     val ordenMaximo: Int get() = libro?.let(IndiceDelLibro::ordenMaximo) ?: 0
     val enMarcha: Boolean get() = libro?.let(IndiceDelLibro::enMarcha) ?: false
@@ -231,6 +246,7 @@ class LibroViewModel(
     fun ir(nueva: VistaDelLibro) {
         if (nueva is VistaDelLibro.NuevoCapitulo || nueva is VistaDelLibro.NuevoCapituloDeInterludio) visitaDeNuevo++
         if (historial.lastOrNull() != nueva) historial = historial + nueva
+        if (vista != nueva) datosDelCapitulo = false
         vista = nueva
         recordar()
         vistaElegida = true

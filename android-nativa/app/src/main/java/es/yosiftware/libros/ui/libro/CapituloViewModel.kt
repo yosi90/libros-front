@@ -59,6 +59,12 @@ class CapituloViewModel(
         private set
     /** Para el libro abierto: el capítulo como queda tras guardar (el índice, las estadísticas…). */
     var alGuardar: (Capitulo) -> Unit = {}
+    /** La escena desplegada: solo una a la vez (rediseño «Escenas plegadas», 6/11/2026); al abrir, la última. */
+    var escenaAbierta by mutableStateOf<Long?>(null)
+        private set
+    /** La escena cuya hoja de reparto está abierta, o `null`. */
+    var repartoDe by mutableStateOf<Long?>(null)
+        private set
 
     private var guardado = LoGuardado(null, emptyMap())
     private val escenasDelServidor = mutableMapOf<Int, Escena>()
@@ -97,6 +103,7 @@ class CapituloViewModel(
         guardado = ReglasDelCapitulo.guardadoDe(abierto)
         capitulo = abierto
         recuperar(abierto)
+        escenaAbierta = capitulo?.escenas?.lastOrNull()?.clave
     }
 
     fun actualizarLibro(nuevo: Libro) {
@@ -125,13 +132,38 @@ class CapituloViewModel(
             avisos.informar("Para añadir una nueva escena, primero las escenas existentes deben ser válidas.", "Completa las escenas", "chapter:add-scene:invalid")
             return false
         }
-        cambiar { it.copy(escenas = it.escenas + ReglasDelCapitulo.escenaNueva(libro, it.escenas.size + 1, nuevaClave())) }
+        val nueva = ReglasDelCapitulo.escenaNueva(libro, actual.escenas.size + 1, nuevaClave())
+        cambiar { it.copy(escenas = it.escenas + nueva) }
+        escenaAbierta = nueva.clave
         return true
     }
 
-    fun quitarEscena(clave: Long) = cambiar { capitulo ->
-        val escena = capitulo.escenas.firstOrNull { it.clave == clave } ?: return@cambiar capitulo
-        capitulo.copy(escenas = capitulo.escenas - escena, borradas = if (escena.id > 0) capitulo.borradas + escena.id else capitulo.borradas)
+    fun quitarEscena(clave: Long) {
+        cambiar { capitulo ->
+            val escena = capitulo.escenas.firstOrNull { it.clave == clave } ?: return@cambiar capitulo
+            capitulo.copy(escenas = capitulo.escenas - escena, borradas = if (escena.id > 0) capitulo.borradas + escena.id else capitulo.borradas)
+        }
+        if (escenaAbierta == clave) escenaAbierta = capitulo?.escenas?.lastOrNull()?.clave
+        if (repartoDe == clave) repartoDe = null
+    }
+
+    /** Despliega esa escena y pliega la que estuviera abierta. */
+    fun abrirEscena(clave: Long) {
+        escenaAbierta = clave
+    }
+
+    fun abrirReparto(clave: Long) {
+        repartoDe = clave
+    }
+
+    fun cerrarReparto() {
+        repartoDe = null
+    }
+
+    /** «Añadir N» de la hoja de reparto: todos los elegidos de golpe, cada uno presente o solo nombrado. */
+    fun anadirPersonajes(clave: Long, seleccion: SeleccionDeReparto) {
+        if (seleccion.cantidad == 0) return
+        cambiarEscena(clave) { escena -> escena.copy(personajes = ordenar(seleccion.aplicar(escena.personajes))) }
     }
 
     /** Pone un personaje en la escena, presente o solo nombrado; si ya estaba, solo cambia cómo (`assignCharacterToScene`). */
@@ -369,6 +401,12 @@ class CapituloViewModel(
         val abierto = ReglasDelCapitulo.deCapitulo(libro, capitulo, vista.deInterludio, idInterludio, ::nuevaClave)
         guardado = ReglasDelCapitulo.guardadoDe(abierto)
         this.capitulo = abierto
+        escenaAbierta = abierto.escenas.lastOrNull()?.clave
+    }
+
+    /** Solo para las muestras de depuración: abre la hoja de reparto de la escena desplegada. */
+    internal fun abrirRepartoDeMuestra() {
+        escenaAbierta?.let { repartoDe = it }
     }
 
     /** Cambio de cuenta: deja de enviar y lo que no se había guardado se queda en el borrador de la cuenta que lo escribió. */

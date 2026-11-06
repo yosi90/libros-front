@@ -355,21 +355,7 @@ class ElementosViewModel(
      */
     private fun crearPersonaje(actual: FichaEditable, libro: Libro, nombre: String, entradas: List<EntradaAGuardar>) {
         val cliente = idCliente ?: UUID.randomUUID().toString().also { idCliente = it }
-        cargar({
-            // `cargar` relanza las cancelaciones (y un tiempo agotado lo es): se devuelve `null` y se avisa aparte.
-            val creado = withTimeoutOrNull(esperaDelAlta) { servidor.crearPersonaje(libro.id, nombre, actual.sexo ?: 2, entradas, cliente) }
-                ?: return@cargar null
-            val fallos = mutableListOf<String>()
-            val yaTieneElEstado = creado.estados.any { it.origen == libro.id && it.estado.id == actual.estadoDePersonaje }
-            if (actual.estadoDePersonaje != null && !yaTieneElEstado) {
-                if (runCatching { withTimeout(esperaDelAlta) { servidor.cambiarEstadoDePersonaje(creado.id, libro.id, actual.estadoDePersonaje) } }.isFailure) fallos += "el estado"
-            }
-            val relaciones = actual.relaciones.map { r -> runCatching { withTimeout(esperaDelAlta) { servidor.crearRelacion(creado.id, libro.id, r.idPersonaje, r.parentesco.trim(), false) } } }
-            if (relaciones.any { it.isFailure }) fallos += "las relaciones"
-            val apodos = actual.apodos.filterNot { plegar(it).trim() == plegar(nombre) }.map { a -> runCatching { withTimeout(esperaDelAlta) { servidor.crearApodo(creado.id, libro.id, a) } } }
-            if (apodos.any { it.isFailure }) fallos += "los apodos"
-            Triple(fallos, runCatching { cargarLibro(libro.id) }.getOrNull(), creado.id)
-        }, alFallar = { error ->
+        cargar({ altaDePersonaje(actual, libro, nombre, entradas, cliente) }, alFallar = { error ->
             guardando = false
             if (error.codigo == "invalid_client_request_id" || error.codigo == "character_client_request_conflict") idCliente = null
             marcar(error)
@@ -384,8 +370,81 @@ class ElementosViewModel(
             idCliente = null
             nuevo?.let { recibirLibro(it) }
             terminarAlta(actual, id)
-            if (fallos.isEmpty()) avisos.exito("Personaje creado")
-            else avisos.error("Personaje creado, pero no se ha podido guardar ${unir(fallos)}. Revísalo en su ficha.")
+            avisarDelAlta(fallos)
+        }
+    }
+
+    /**
+     * Lo que hace el alta de un personaje en la API: crearlo y después su estado, sus relaciones y sus apodos. `null`
+     * si la API no responde a tiempo (`cargar` relanza las cancelaciones, y un tiempo agotado lo es).
+     */
+    private suspend fun altaDePersonaje(actual: FichaEditable, libro: Libro, nombre: String, entradas: List<EntradaAGuardar>, cliente: String): Triple<List<String>, Libro?, Int>? {
+        val creado = withTimeoutOrNull(esperaDelAlta) { servidor.crearPersonaje(libro.id, nombre, actual.sexo ?: 2, entradas, cliente) } ?: return null
+        val fallos = mutableListOf<String>()
+        val yaTieneElEstado = creado.estados.any { it.origen == libro.id && it.estado.id == actual.estadoDePersonaje }
+        if (actual.estadoDePersonaje != null && !yaTieneElEstado) {
+            if (runCatching { withTimeout(esperaDelAlta) { servidor.cambiarEstadoDePersonaje(creado.id, libro.id, actual.estadoDePersonaje) } }.isFailure) fallos += "el estado"
+        }
+        val relaciones = actual.relaciones.map { r -> runCatching { withTimeout(esperaDelAlta) { servidor.crearRelacion(creado.id, libro.id, r.idPersonaje, r.parentesco.trim(), false) } } }
+        if (relaciones.any { it.isFailure }) fallos += "las relaciones"
+        val apodos = actual.apodos.filterNot { plegar(it).trim() == plegar(nombre) }.map { a -> runCatching { withTimeout(esperaDelAlta) { servidor.crearApodo(creado.id, libro.id, a) } } }
+        if (apodos.any { it.isFailure }) fallos += "los apodos"
+        return Triple(fallos, runCatching { cargarLibro(libro.id) }.getOrNull(), creado.id)
+    }
+
+    private fun avisarDelAlta(fallos: List<String>) {
+        if (fallos.isEmpty()) avisos.exito("Personaje creado")
+        else avisos.error("Personaje creado, pero no se ha podido guardar ${unir(fallos)}. Revísalo en su ficha.")
+    }
+
+    // --- El alta rápida desde una escena. ---
+
+    /** El nombre del personaje que se está creando desde una escena, o `null`. */
+    var creandoDesdeLaEscena by mutableStateOf<String?>(null)
+        private set
+    /** El `IdCliente` de cada nombre que se crea desde una escena: el mismo en cada reintento, para no duplicarlo. */
+    private val clientesDesdeLaEscena = mutableMapOf<String, String>()
+
+    /**
+     * Para crear personajes desde el capítulo (la «Hoja de reparto» y la @, rediseño del 6/11/2026) sin pasar por la
+     * lista: el libro y los estados («Vivo» por defecto). No toca la ficha abierta ni la vista atendida.
+     */
+    fun prepararAltaDesdeLaEscena(libro: Libro) {
+        val primeraVez = this.libro == null
+        this.libro = libro
+        if (carpeta == null) carpeta = ambito.carpeta(base)
+        if (primeraVez && tipo == Elemento.PERSONAJES) cargarCatalogos()
+    }
+
+    /**
+     * El alta rápida desde una escena: solo el nombre, con «Vivo» y «No sé» de sexo y la entrada «Descripción» por
+     * defecto, por el mismo camino que la hoja de alta ([altaDePersonaje]). Lo de comprobar el nombre repetido lo hace
+     * quien llama, antes. Con el personaje creado (y el libro recargado), [alCrear] con su id.
+     */
+    fun crearDesdeLaEscena(nombre: String, alCrear: (Int) -> Unit) {
+        val libro = libro ?: return
+        val limpio = nombre.trim()
+        if (creandoDesdeLaEscena != null || abandonado || !ReglasDeLaFicha.nombreValido(limpio)) return
+        val ficha = ReglasDeLaFicha.alta(Elemento.PERSONAJES, libro, estadosDePersonaje, estadosDeLugar, clave()).copy(nombre = limpio, sexo = 2)
+        val entradas = ficha.entradas.map { EntradaAGuardar(it.titulo.trim(), it.descripcion) }
+        val claveDelNombre = plegar(limpio)
+        val cliente = clientesDesdeLaEscena.getOrPut(claveDelNombre) { UUID.randomUUID().toString() }
+        creandoDesdeLaEscena = limpio
+        cargar({ altaDePersonaje(ficha, libro, limpio, entradas, cliente) }, alFallar = { error ->
+            creandoDesdeLaEscena = null
+            if (error.codigo == "invalid_client_request_id" || error.codigo == "character_client_request_conflict") clientesDesdeLaEscena.remove(claveDelNombre)
+            avisos.deError(error, "Error al crear el personaje")
+        }) { resultado ->
+            creandoDesdeLaEscena = null
+            if (resultado == null) {
+                avisos.error("La API no ha respondido a tiempo. Si el personaje se ha creado aparecerá en la lista; si lo vuelves a crear no se duplicará.")
+                return@cargar
+            }
+            val (fallos, nuevo, id) = resultado
+            clientesDesdeLaEscena.remove(claveDelNombre)
+            nuevo?.let { recibirLibro(it) }
+            avisarDelAlta(fallos)
+            alCrear(id)
         }
     }
 

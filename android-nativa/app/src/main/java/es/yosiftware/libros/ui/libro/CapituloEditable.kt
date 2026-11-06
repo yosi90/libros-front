@@ -90,6 +90,25 @@ object ReglasDelCapitulo {
         return "${capitulo.nombre.trim()} · $paginas · nº ${capitulo.orden}"
     }
 
+    /**
+     * «Cap. 11 · págs. 145–151» (o «pág. 145»), bajo el título en la barra del capítulo (rediseño «Escenas plegadas», 6/11/2026).
+     * Sin páginas válidas, solo el número.
+     */
+    fun subtitulo(capitulo: CapituloEditable): String {
+        val inicio = capitulo.pagina.takeIf { errorDePagina(it) == null }
+        val fin = capitulo.paginaFinal.takeIf { it.isNotEmpty() && errorDePaginaFinal(it) == null }
+        val paginas = when {
+            inicio == null -> null
+            fin == null || fin == inicio -> "pág. $inicio"
+            else -> "págs. $inicio–$fin"
+        }
+        return listOfNotNull("Cap. ${capitulo.orden}".takeIf { errorDeOrden(capitulo.orden) == null }, paginas).joinToString(" · ")
+    }
+
+    /** El texto de una escena sin formato, para su tarjeta plegada; vacío si es el de por defecto. */
+    fun textoPlano(escena: EscenaEditable): String =
+        rtfATextoPlano(escena.descripcion).trim().takeUnless { it == DESCRIPCION_POR_DEFECTO }.orEmpty().replace(Regex("\\s+"), " ")
+
     fun errorDeNombre(nombre: String): String? = when {
         nombre.isEmpty() -> "El nombre no puede quedar vacío"
         nombre.length < 3 -> "Nombre demasiado corto"
