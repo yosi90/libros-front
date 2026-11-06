@@ -45,7 +45,7 @@ import org.json.JSONObject
  * las cifras se parecen, no son las mismas), `notas-vacias`, `notas-con-notas` (las dos de «El ritmo de la guerra» de
  * la captura y dos más, con el buscador), `nota-nueva` (el formulario con los avisos), `nota-borrar` (la confirmación),
  * `busqueda-vacia`, `busqueda-sin-resultados` («Vin» en «El imperio final», como la captura), `busqueda-con-resultados`
- * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 1 de «Siega», con sus escenas), `capitulo-nuevo`, `minimizado` (la isla del lector), `elementos-lista` (los personajes de «Siega»), `elementos-ficha`
+ * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 3 de «Siega», con sus escenas plegadas y la última desplegada), `capitulo-reparto` (con la hoja de reparto abierta), `capitulo-datos` (con los datos del capítulo desplegados), `capitulo-nuevo`, `minimizado` (la isla del lector), `elementos-lista` (los personajes de «Siega»), `elementos-ficha`
  * (la de Citra) y `elementos-alta` (una organización nueva).
  */
 class MuestrasDeLibro : ComponentActivity() {
@@ -70,7 +70,12 @@ class MuestrasDeLibro : ComponentActivity() {
             "estructura" -> vm.abrirEstructura(TipoDeGrupo.PARTE, 1)
         }
         when (vista) {
-            "capitulo" -> vm.ir(VistaDelLibro.DeCapitulo(1))
+            "capitulo", "capitulo-reparto", "capitulo-datos" -> {
+                vm.ir(VistaDelLibro.DeCapitulo(3))
+                capitulo.abrirMuestra(vm.libro!!, VistaDelLibro.DeCapitulo(3), cacheDir)
+                if (vista == "capitulo-reparto") capitulo.abrirRepartoDeMuestra()
+                if (vista == "capitulo-datos") vm.alternarDatosDelCapitulo()
+            }
             "capitulo-nuevo" -> vm.ir(VistaDelLibro.NuevoCapitulo)
             "minimizado" -> vm.minimizar()
             "elementos-lista" -> vm.ir(VistaDelLibro.DeElemento(Elemento.PERSONAJES))
@@ -122,7 +127,9 @@ class MuestrasDeLibro : ComponentActivity() {
                 val orden = i + 1
                 val escenas = org.json.JSONArray((1..(if (orden % 3 == 0) 3 else 1)).map { e ->
                     val gente = (1..8).filter { (it + orden + e) % 3 != 0 }.map { JSONObject().put("Id", it).put("Nombrado", it > 4 && orden % 2 == 0) }
-                    JSONObject().put("Id", orden * 10 + e).put("Nombre", "Escena $e").put("Descripcion", "").put("PersonajesDetalle", org.json.JSONArray(gente))
+                    JSONObject().put("Id", orden * 10 + e).put("Nombre", escenasDeMuestra[(orden + e) % escenasDeMuestra.size].first)
+                        .put("Descripcion", escenasDeMuestra[(orden + e) % escenasDeMuestra.size].second).put("Id_Localizacion", if (e % 2 == 1) 2 else 3)
+                        .put("PersonajesDetalle", org.json.JSONArray(gente))
                 })
                 JSONObject().put("Id", orden).put("Nombre", "Capítulo $orden").put("Orden", orden).put("Pagina", pagina).put("PaginaFinal", pagina + cuantas - 1)
                     .put("Escenas", escenas).also { pagina += cuantas }
@@ -132,11 +139,28 @@ class MuestrasDeLibro : ComponentActivity() {
                 .put("Autores", org.json.JSONArray().put(JSONObject().put("Id", 2).put("Nombre", "Neal Shusterman")))
                 .put("Estados", org.json.JSONArray()
                     .put(JSONObject().put("Id", 1).put("EstadoId", 3).put("Nombre", "Por comprar").put("Fecha", "2025-09-11T00:00:00"))
-                    .put(JSONObject().put("Id", 2).put("EstadoId", 1).put("Nombre", "En marcha").put("Fecha", "2026-07-12T10:00:00")))
+                    .put(JSONObject().put("Id", 2).put("EstadoId", 1).put("Nombre", "En marcha").put("Fecha", "2026-10-27T10:00:00")))
+                .put("Metricas", JSONObject(METRICAS))
                 .put("Capitulos", capitulos).put("Partes", org.json.JSONArray()).put("Interludios", org.json.JSONArray())
-                .put("Localizaciones", org.json.JSONArray().put(JSONObject().put("Id", 1).put("Nombre", "Sin localización")).put(JSONObject().put("Id", 2).put("Nombre", "Palco de la ópera")))
+                .put("Localizaciones", org.json.JSONArray().put(JSONObject().put("Id", 1).put("Nombre", "Sin localización")).put(JSONObject().put("Id", 2).put("Nombre", "Palco de la ópera")).put(JSONObject().put("Id", 3).put("Nombre", "Mansión de Goddard")))
                 .put("Personajes", personajes))
         }
+
+        /** Títulos y textos de las escenas de la muestra (inventados, como los de los lienzos del rediseño). */
+        val escenasDeMuestra = listOf(
+            "El anillo" to "A la mañana siguiente, Faraday le enseña el anillo y le explica qué significa llevarlo, y por qué nadie más debe tocarlo.",
+            "La cena en casa de Goddard" to "Citra llega tarde y encuentra a Rowan ya sentado a la mesa. Goddard no se levanta; solo levanta la copa y brinda por la siega de mañana.",
+            "Tras la cena" to "Rowan sale al jardín y Citra le sigue sin que nadie lo note. Hablan en voz baja junto a la fuente.",
+            "La lista" to "Goddard repasa la lista de la semana y tacha dos nombres con la misma calma con la que se sirve el vino.",
+        )
+
+        /** Tu ritmo y tu valoración en la muestra: siete días con lectura desde el 27 de octubre. */
+        const val METRICAS = """
+            {"Ritmo": {"Desde": "2026-10-27", "DiasActivos": 7, "PaginasPorDia": 18.3, "MejorDia": {"Fecha": "2026-11-02", "Paginas": 24}, "MediaPersonalPorDia": 15.0,
+             "Curva": [{"Fecha": "2026-10-27", "Pagina": 20}, {"Fecha": "2026-10-29", "Pagina": 42}, {"Fecha": "2026-10-30", "Pagina": 58}, {"Fecha": "2026-11-01", "Pagina": 75},
+                       {"Fecha": "2026-11-02", "Pagina": 99}, {"Fecha": "2026-11-04", "Pagina": 107}, {"Fecha": "2026-11-05", "Pagina": 128}]},
+             "Valoracion": {"Puntuacion": 4, "FechaPuntuacion": "2026-11-03T20:00:00", "FechaResena": null}}
+        """
 
         val ritmo = listOf(
             Nota(1, "Nota 1", "Ojalá Dabbid se convierta en el forjador de vínculos de el hermano.", "2026-07-06T10:00:00", 1),

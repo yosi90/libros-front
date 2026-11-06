@@ -58,7 +58,8 @@ Clonadas de `mobile-statistics-view`, `statistics.component.ts` y `app-stat-rows
 - Estadísticas: `ResumenDelLibro` (las cuentas), `GraficosDelLibro` (los gráficos en Compose) y `PantallaResumenDelLibro`.
 - Notas: `NotasDelLibro` (con `NotasViewModel`) y `PantallaNotasDelLibro`. Las notas antiguas en RTF pasan por `datos/Rtf.kt`.
 - Búsqueda: `BusquedaEnElLibro` (con `BusquedaViewModel`), que busca en el libro ya cargado, y `PantallaBusquedaDelLibro`.
-- Muestras de depuración: `MuestrasDeLibro` (la lista de vistas está en su documentación).
+- Rediseños en prueba (rama `apk/redisenos-prueba`, 6/11/2026): el capítulo con «Escenas plegadas» (`PantallaCapitulo`), la hoja de reparto y la @ del texto (`HojaDeReparto`, `RepartoDeEscena` y `editor/Menciones.kt`) y «Tu lectura» como panel denso (`PanelDeLectura` y `PantallaResumenDelLibro`).
+- Muestras de depuración: `MuestrasDeLibro` (la lista de vistas está en su documentación; `capitulo`, `capitulo-reparto`, `capitulo-datos` y `resumen-con-datos` enseñan los rediseños).
 
 ## Compilar
 
