@@ -136,13 +136,8 @@
     padding: var(--web-space-3) var(--web-space-4) var(--web-space-4)
     border: 2px solid var(--web-color-primary)
 
-.scene--folded
-    &.has-error
-        border-color: var(--web-color-danger)
-
-    &.cdk-drop-list-receiving
-        outline: 1px dashed var(--web-color-primary)
-        outline-offset: 2px
+.scene--folded.has-error
+    border-color: var(--web-color-danger)
 
 .scene__open
     display: grid
@@ -175,11 +170,6 @@
         font: 600 15px/1.25 var(--web-font-reading)
         white-space: nowrap
         text-overflow: ellipsis
-
-.scene__number
-    flex: none
-    color: var(--web-color-primary)
-    font: 800 12px/1.2 var(--web-font-ui)
 
 .scene__place
     flex: 0 1 auto
@@ -215,6 +205,7 @@
     gap: var(--web-space-2)
     min-width: 0
 
+// El número de la escena, plegada o desplegada.
 .scene__index
     flex: none
     color: var(--web-color-primary)
@@ -311,10 +302,10 @@
     min-height: 36px
     border-radius: var(--web-radius-md)
 
-    // Al arrastrar un personaje desde el panel (un contorno que no ocupa sitio).
-    &.cdk-drop-list-receiving
-        outline: 1px dashed var(--web-color-primary)
-        outline-offset: 2px
+// Al arrastrar un personaje desde el panel, la escena plegada o sus personajes (un contorno que no ocupa sitio).
+.scene--folded.cdk-drop-list-receiving, .chips.cdk-drop-list-receiving
+    outline: 1px dashed var(--web-color-primary)
+    outline-offset: 2px
 
 // Presente: relleno del primario suave; solo nombrado: «@ Nombre» en cursiva con borde.
 .chip
@@ -415,9 +406,7 @@
     max-height: min(460px, 70dvh)
     padding: var(--web-space-2) var(--web-space-2) var(--web-space-2) var(--web-space-3)
     color: var(--web-color-ink)
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline)
-    border-radius: var(--web-radius-md)
+    @include web.card
     box-shadow: var(--web-shadow-float)
 
 .cast__top
@@ -559,9 +548,7 @@
     display: grid
     width: min(260px, calc(100vw - 24px))
     padding: 6px
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline)
-    border-radius: var(--web-radius-md)
+    @include web.card
     box-shadow: var(--web-shadow-float)
 
 .mention__row

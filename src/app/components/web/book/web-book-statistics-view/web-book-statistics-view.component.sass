@@ -1,5 +1,8 @@
 @use '../../../../../assets/css/web/primitives' as web
 
+// Las barras de las casillas (capítulos y últimos días): el primario suave; la que se destaca, entero.
+$bar-soft: color-mix(in srgb, var(--web-color-primary) 42%, var(--web-color-surface))
+
 :host
     display: block
     color: var(--web-color-ink)
@@ -137,7 +140,7 @@ apx-chart
         min-width: 3px
         max-width: 12px
         border-radius: 2px 2px 0 0
-        background: color-mix(in srgb, var(--web-color-primary) 42%, var(--web-color-surface))
+        background: $bar-soft
 
         &.is-last
             background: var(--web-color-primary)
@@ -175,7 +178,7 @@ apx-chart
         display: block
         height: 100%
         border-radius: 999px
-        background: color-mix(in srgb, var(--web-color-primary) 42%, var(--web-color-surface))
+        background: $bar-soft
 
         &.is-empty
             width: 6px

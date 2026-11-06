@@ -136,7 +136,7 @@
             cdkDropList [cdkDropListSortingDisabled]="true" (cdkDropListDropped)="c.dropCharacterInScene($event, i)">
             <button class="scene__open" type="button" [attr.aria-label]="'Editar la escena ' + (i + 1)" (click)="openScene(i)">
               <span class="scene__row">
-                <span class="scene__number">{{i + 1}}</span>
+                <span class="scene__index">{{i + 1}}</span>
                 <strong>{{scene.get('nombre')?.value || 'Escena ' + (i + 1)}}</strong>
                 @if (c.getSceneLocationLabel(scene); as place) {<span class="scene__place">{{place}}</span>}
               </span>
