@@ -3,6 +3,7 @@ package es.yosiftware.libros.ui.comunidad
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import es.yosiftware.libros.datos.conLaPaginaSiguiente
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
@@ -126,8 +127,7 @@ class ClubesViewModel(
         if (buscando) return
         buscando = true
         cargar({ clubes.descubrir(busqueda, cursor = cursor) }, alFallar = { buscando = false }) { pagina ->
-            val ids = descubrir.map { it.id }.toSet()
-            descubrir = descubrir + pagina.clubes.filterNot { it.id in ids }
+            descubrir = descubrir.conLaPaginaSiguiente(pagina.clubes) { it.id }
             siguiente = pagina.siguiente
             buscando = false
         }
@@ -146,7 +146,7 @@ class ClubesViewModel(
         val cursor = if (mas) siguientesEventos ?: return else null
         cargandoEventos = true
         cargar({ clubes.eventosProximos(cursor) }, alFallar = { cargandoEventos = false }) { pagina ->
-            eventos = if (cursor != null) eventos + pagina.eventos.filterNot { nuevo -> eventos.any { it.id == nuevo.id } } else pagina.eventos
+            eventos = if (cursor != null) eventos.conLaPaginaSiguiente(pagina.eventos) { it.id } else pagina.eventos
             siguientesEventos = pagina.siguiente
             cargandoEventos = false
         }

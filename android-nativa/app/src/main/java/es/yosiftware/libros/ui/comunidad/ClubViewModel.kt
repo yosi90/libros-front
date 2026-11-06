@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import es.yosiftware.libros.datos.ErrorDeLibros
+import es.yosiftware.libros.datos.conLaPaginaSiguiente
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
@@ -900,7 +901,7 @@ class ClubViewModel(
             errorDePublicaciones = mensajeDelClub(fallo, "No se han podido cargar las publicaciones.")
         }) { pagina ->
             cargandoPublicaciones = false
-            publicaciones = if (cursor == null) pagina.publicaciones else publicaciones + pagina.publicaciones.filterNot { nueva -> publicaciones.any { it.id == nueva.id } }
+            publicaciones = if (cursor == null) pagina.publicaciones else publicaciones.conLaPaginaSiguiente(pagina.publicaciones) { it.id }
             siguientesPublicaciones = pagina.siguiente
         }
     }

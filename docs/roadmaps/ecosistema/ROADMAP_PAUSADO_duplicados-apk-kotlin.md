@@ -43,14 +43,16 @@ Alcance: `android-nativa/app/`. La librería `android-nativa/yosiftware-sesion/`
   - **Peligros si se mantiene como estaba:** cada fila nueva copia la anterior y el aspecto diverge.
   - **Peligros del cambio:** son píxeles: hay que comparar cada pantalla en el Honor (sin emulador) antes y después.
 
-- [ ] **6. Los estilos de texto repetidos en línea**
+- [x] **6. Los estilos de texto repetidos en línea**
+  - **Se queda (06/11/2026):** cada combinación habría que buscarla en el Sass Mobile para saber si es una clase o una coincidencia, y unir dos que coinciden por casualidad haría que cambiar una arrastre a la otra. Las más repetidas son tamaños sueltos (`rem(0.72)` 26 veces, `rem(0.75)` 25) en contextos distintos. Se hace caso a caso cuando se toque cada pantalla.
   - **Descripción:** muchos `Textos.cuerpo.copy(…)` se repiten con los mismos valores en varias pantallas: `fontSize = rem(0.72), fontWeight = ExtraBold` en tinta suave (5), `rem(0.68)` (5), `rem(0.75)` en el color de error (4), `fontWeight = Bold` en la tinta (14, que es `Textos.filaPrincipal`)… La auditoría solo cambió los siete que eran la línea secundaria de una fila (`Textos.filaSecundaria`).
   - **Por qué se necesita:** los tokens de `ui/tema/Tipografia.kt` son los de `_primitives.sass`; lo que se copia en línea no sigue a la guía.
   - **Qué se espera lograr:** buscar cada combinación en el Sass Mobile (`src/assets/css/mobile/`) y, si es una clase (`.m-…`), darle su token; si no, dejarla.
   - **Peligros si se mantiene como estaba:** bajo.
   - **Peligros del cambio:** unir por casualidad dos textos que en la web son clases distintas.
 
-- [ ] **7. La carga por páginas con cursor**
+- [x] **7. La carga por páginas con cursor**
+  - **Hecho en parte (06/11/2026):** lo que de verdad se repetía era añadir la página siguiente sin repetir lo ya cargado: `conLaPaginaSiguiente` (`datos/Listas.kt`, con `ListasTest`) en los avisos, la actividad, el descubrimiento y los eventos de Clubes, las publicaciones del club y el chat (con `delante`, que carga hacia atrás). El «ya está cargando» y el cursor se quedan en cada ViewModel: tienen los matices de abajo, y un estado común cambiaría mucha interfaz por poco.
   - **Descripción:** «si hay cursor y no se está cargando, pedir la página siguiente y añadirla» está escrito a mano en `ui/avisos/CentroDeAvisosViewModel.kt` (130-143), `ui/comunidad/ActividadViewModel.kt` (69-80, y otra vez en los comentarios, 105-113), `ui/mensajes/ConversacionViewModel.kt` (198-220), `ui/comunidad/ClubViewModel.kt` (886-895) y `ui/comunidad/ClubesViewModel.kt` (125-150, dos veces).
   - **Por qué se necesita:** es la «carga paginada» de la lista de lógica de estado repetida.
   - **Qué se espera lograr:** un pequeño estado común (`ListaConCursor`: elementos, cursor, cargando, cargandoMás) con «primera página» y «más», sobre `cargar` de `ViewModelDeCuenta`.
@@ -69,6 +71,7 @@ Alcance: `android-nativa/app/`. La librería `android-nativa/yosiftware-sesion/`
 Solo propuestas y peticiones a la plataforma (`C:\Users\Yosi\Desktop\administracion yosiftware\docs\peticiones\`): la librería no se edita.
 
 - [ ] **9. Los espacios: las rutas y los modelos de la librería**
+  - Petición a la plataforma del 06/11/2026, junto con los puntos 9, 10 y 13: `administracion yosiftware/docs/peticiones/que-la-libreria-de-la-sesion-cubra-lo-que-las-apps-nativas-aun-rehacen.md`.
   - **Descripción:** `datos/repositorios/RepositorioEspacios.kt` (40-49 y 91-104) rehace rutas que `sesion.espacios` (`EspaciosYosiftware`, librería 1.7.1) ya da: `mios`, `espacio`, `entrar`, `salir`, `invitaciones`, `aceptar`, `rechazar`, `porCodigo`, `aceptarPorCodigo`; y `datos/modelos/Espacios.kt` (20-108) tiene sus propias `Espacio`, `YoEnEspacio` e `InvitacionRecibida`, que son `EspacioDeYosiftware`, `YoEnElEspacio` e `InvitacionAEspacio` (la 1.7.0 los hizo públicos «para que una app que llama a otras rutas de los espacios con su propio cliente no los vuelva a escribir»). Las propias se quedaron porque la librería no tiene las solicitudes (`pedirEntrar`, `retirarMiSolicitud`, `solicitudes`, `resolverSolicitud`), las invitaciones enviadas y su retirada, la búsqueda de personas ni el resumen social, y porque así todo pasa por `ClientePlataforma` con la generación de la cuenta.
   - **Por qué se necesita:** es lo que la plataforma pide no rehacer (decisión 4 del propietario).
   - **Qué se espera lograr:** primero, leer con los modelos de la librería (`EspacioDeYosiftware.de`…) y añadir `clubId` como extensión; después, pedir a la plataforma las rutas que faltan y que `EspaciosYosiftware` respete una generación (o un `Job`) para descartar lo de otra cuenta, y retirar las copias.
@@ -76,6 +79,7 @@ Solo propuestas y peticiones a la plataforma (`C:\Users\Yosi\Desktop\administrac
   - **Peligros del cambio:** la lectura de la librería exige campos (`getString`) que la de Libros toma por defecto: un JSON incompleto que hoy se pinta fallaría. Pruebas de `RepositorioEspaciosTest` y de Comunidad delante.
 
 - [ ] **10. El `detalle` de los errores de la plataforma**
+  - Petición a la plataforma del 06/11/2026, junto con los puntos 9, 10 y 13: `administracion yosiftware/docs/peticiones/que-la-libreria-de-la-sesion-cubra-lo-que-las-apps-nativas-aun-rehacen.md`.
   - **Descripción:** `datos/red/Restricciones.kt` (15-50) vuelve a leer el cuerpo de la respuesta para componer la frase de `403 cuenta_restringida` (`detalle: { alcance, hasta }`), porque `ErrorSesion` no conserva el `detalle`; `ClientePlataforma.errorDe` rehace el error con esa frase.
   - **Por qué se necesita:** cada app nativa del ecosistema escribiría lo mismo.
   - **Qué se espera lograr:** petición a la plataforma: `ErrorSesion.detalle` (el JSON) o, mejor, la frase de la restricción hecha por la librería como `describePlatformRestriction` del SDK web.
@@ -99,6 +103,7 @@ Solo propuestas: no se tocan ni la web ni el backend.
   - **Peligros del cambio:** los errores sin `error` (el tiempo real) necesitan que el backend lo añada antes.
 
 - [ ] **13. Los textos de los errores de los espacios**
+  - Petición a la plataforma del 06/11/2026, junto con los puntos 9, 10 y 13: `administracion yosiftware/docs/peticiones/que-la-libreria-de-la-sesion-cubra-lo-que-las-apps-nativas-aun-rehacen.md`.
   - **Descripción:** `ui/comunidad/MensajesDeEspacios.kt` (19-40) copia `SPACE_ERROR_MESSAGES` de `src/app/shared/club-spaces.ts` (33) para códigos de la plataforma (`dos_pasos_necesarios`, `espacio_lleno`…), y los pone por delante de la frase que manda la plataforma.
   - **Por qué se necesita:** los textos de errores de la plataforma deberían salir de la plataforma (o del kit), no de cada web y cada app.
   - **Qué se espera lograr:** petición a la plataforma para que su `mensaje` diga lo que hoy dice la tabla (en clave de club, si la marca de la web lo pide), y retirar las dos tablas.

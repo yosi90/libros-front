@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import es.yosiftware.libros.datos.BorradoresLocales
 import es.yosiftware.libros.datos.ErrorDeLibros
+import es.yosiftware.libros.datos.conLaPaginaSiguiente
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
@@ -206,8 +207,7 @@ class ConversacionViewModel(
             errorDeAccion = fallo.mensajeO("No se han podido cargar mensajes anteriores.")
             cargandoMas = false
         }) { pagina ->
-            val conocidos = mensajes.map { it.id }.toSet()
-            mensajes = pagina.elementos.map(::traducir).filterNot { it.id in conocidos } + mensajes
+            mensajes = mensajes.conLaPaginaSiguiente(pagina.elementos.map(::traducir), delante = true) { it.id }
             cursor = pagina.cursor
             cargandoMas = false
         }
