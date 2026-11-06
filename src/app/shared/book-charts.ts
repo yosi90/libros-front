@@ -1,5 +1,5 @@
 import { Book } from '../interfaces/book';
-import { BookStatisticsSnapshot, ChapterStatistic } from '../interfaces/statistics';
+import { BookStatisticsSnapshot, ChapterStatistic, CharacterBookStatistic } from '../interfaces/statistics';
 import { characterGroupRank } from './character-groups';
 import { ReadingPaceBook, paceDayLabel } from './reading-pace';
 
@@ -27,6 +27,16 @@ const HEATMAP_CHARACTER_LIMIT = 8;
 
 export function orderedChapters(snapshot: BookStatisticsSnapshot): ChapterStatistic[] {
     return [...snapshot.Capitulos].sort((a, b) => a.Orden - b.Orden);
+}
+
+/** Los capítulos que tienen páginas estimadas, por su orden (el ritmo por capítulo y sus barras mini). */
+export function chaptersWithPages(snapshot: BookStatisticsSnapshot): ChapterStatistic[] {
+    return orderedChapters(snapshot).filter(chapter => chapter.PaginasEstimadas !== null);
+}
+
+/** Los personajes con más registros (aparece + nombrado), de más a menos; solo los que tienen alguno. */
+export function topCast(snapshot: BookStatisticsSnapshot, count = 5): CharacterBookStatistic[] {
+    return [...snapshot.Personajes].filter(character => character.Total > 0).sort((a, b) => b.Total - a.Total).slice(0, count);
 }
 
 export function readingProgress(book: Book, snapshot: BookStatisticsSnapshot, finished: boolean): ReadingProgress {
@@ -63,7 +73,7 @@ function baseChart(palette: BookChartPalette, type: string, height: number): Rec
 }
 
 export function pacingChart(snapshot: BookStatisticsSnapshot, palette: BookChartPalette): Record<string, unknown> | null {
-    const chapters = orderedChapters(snapshot).filter(chapter => chapter.PaginasEstimadas !== null);
+    const chapters = chaptersWithPages(snapshot);
     if (!chapters.length)
         return null;
     const pages = chapters.map(chapter => chapter.PaginasEstimadas ?? 0);
@@ -151,7 +161,7 @@ export function castPerChapterChart(snapshot: BookStatisticsSnapshot, palette: B
  * (columnas). Valor = escenas en las que aparece; 0,5 si solo se le nombra.
  */
 export function presenceHeatmap(book: Book, snapshot: BookStatisticsSnapshot, palette: BookChartPalette): Record<string, unknown> | null {
-    const characters = [...snapshot.Personajes].sort((a, b) => b.Total - a.Total).filter(row => row.Total > 0).slice(0, HEATMAP_CHARACTER_LIMIT);
+    const characters = topCast(snapshot, HEATMAP_CHARACTER_LIMIT);
     const chapters = [...book.Capitulos].sort((a, b) => Number(a.Orden) - Number(b.Orden));
     if (!characters.length || !chapters.length)
         return null;

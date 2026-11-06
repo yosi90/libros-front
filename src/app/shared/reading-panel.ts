@@ -1,5 +1,5 @@
-import { BookStatisticsSnapshot, CharacterBookStatistic } from '../interfaces/statistics';
-import { orderedChapters, ReadingProgress } from './book-charts';
+import { BookStatisticsSnapshot } from '../interfaces/statistics';
+import { chaptersWithPages, ReadingProgress } from './book-charts';
 import { DAY_MS } from './library-stats';
 import { ReadingPaceBook } from './reading-pace';
 
@@ -130,12 +130,7 @@ export function milestonesWithoutRepeats(milestones: ReadingMilestone[], skip: R
         .sort((a, b) => b.day.localeCompare(a.day));
 }
 
-/** Los personajes con más registros (aparece + nombrado), de más a menos; solo los que tienen alguno. */
-export function topCast(snapshot: BookStatisticsSnapshot, count = 5): CharacterBookStatistic[] {
-    return [...snapshot.Personajes].filter(character => character.Total > 0).sort((a, b) => b.Total - a.Total).slice(0, count);
-}
-
 /** Las páginas de cada capítulo por su orden (para las barras mini); vacío si ninguno las tiene. */
 export function chapterPages(snapshot: BookStatisticsSnapshot): number[] {
-    return orderedChapters(snapshot).filter(chapter => chapter.PaginasEstimadas !== null).map(chapter => chapter.PaginasEstimadas ?? 0);
+    return chaptersWithPages(snapshot).map(chapter => chapter.PaginasEstimadas ?? 0);
 }

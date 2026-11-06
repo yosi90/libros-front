@@ -7,11 +7,11 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { WebBookTitleComponent } from '../../ui/web-book-title/web-book-title.component';
 import type { BookStatisticsComponent } from '../../../shared/book-pages/book-statistics/book-statistics.component';
 import {
-    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, paceCurveChart, pacingChart, presenceHeatmap, readingProgress
+    BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, paceCurveChart, pacingChart, presenceHeatmap, readingProgress, topCast
 } from '../../../../shared/book-charts';
 import {
     ReadingMilestone, bestReadingDay, chapterPages, estimatedFinish, lastReadingDays, localDay, milestonesWithoutRepeats, pagesPerDay,
-    paceVersusAverage, shortWeekday, topCast
+    paceVersusAverage, shortWeekday
 } from '../../../../shared/reading-panel';
 import { paceDayLabel } from '../../../../shared/reading-pace';
 

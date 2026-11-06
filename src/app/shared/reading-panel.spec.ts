@@ -1,8 +1,9 @@
 import { BookStatisticsSnapshot } from '../interfaces/statistics';
 import {
     addDays, bestReadingDay, chapterPages, estimatedFinish, lastReadingDays, localDay, milestonesWithoutRepeats, naturalPace, pagesPerDay,
-    paceVersusAverage, shortWeekday, topCast
+    paceVersusAverage, shortWeekday
 } from './reading-panel';
+import { topCast } from './book-charts';
 import { ReadingPaceBook } from './reading-pace';
 
 /** Los mismos casos que la APK (`PanelDeLecturaTest`). */
