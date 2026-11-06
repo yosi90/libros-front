@@ -29,13 +29,12 @@ describe('Los clubes en los espacios', () => {
         expect(clubIdFromSpace(null)).toBeNull();
     });
 
-    it('explica los errores de la plataforma: otro correo, dos pasos, caducada, lleno…', () => {
-        const error = (code: string) => new HttpErrorResponse({ status: 409, error: { code } });
-        expect(spaceErrorMessage(error('correo_de_otra_cuenta'), 'x')).toContain('Entra con la cuenta');
-        expect(spaceErrorMessage(error('dos_pasos_necesarios'), 'x')).toContain('dos pasos');
-        expect(spaceErrorMessage(error('invitacion_no_encontrada'), 'x')).toContain('caducó');
-        expect(spaceErrorMessage(error('expulsado_del_espacio'), 'x')).toContain('invitación');
-        expect(spaceErrorMessage(error('otro'), 'Texto de la pantalla')).toBe('Texto de la pantalla');
+    it('enseña la frase de la plataforma tal cual (ya dice «club») y, sin frase, la de la pantalla', () => {
+        const error = (code: string, texto?: string) => new HttpErrorResponse({ status: 409, error: { code, ...(texto ? { error: texto } : {}) } });
+        expect(spaceErrorMessage(error('espacio_lleno', 'Este club ya tiene 2000 miembros.'), 'x')).toBe('Este club ya tiene 2000 miembros.');
+        expect(spaceErrorMessage(error('dos_pasos_necesarios', 'Este club pide la verificación en dos pasos.'), 'x')).toContain('dos pasos');
+        expect(spaceErrorMessage(error('espacio_lleno'), 'Texto de la pantalla')).toBe('Texto de la pantalla');
+        expect(spaceErrorMessage(new HttpErrorResponse({ status: 0 }), 'Sin conexión')).toBe('Sin conexión');
         // Sin sesión, PlatformApiService no llama: el mismo error se explica igual.
         expect(spaceErrorMessage(SIN_SESION_PLATAFORMA, 'x')).toBe('Entra con tu cuenta de Yosiftware.');
     });
