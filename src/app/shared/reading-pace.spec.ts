@@ -43,6 +43,13 @@ describe('reading-pace', () => {
         expect(paceDayLabel('no-es-fecha')).toBe('no-es-fecha');
     });
 
+    it('con el día de hoy, el año solo sale si es otro (como la APK `PanelDeLecturaTest`)', () => {
+        const today = '2026-11-06';
+        expect(paceDayLabel('2026-10-27', today)).toBe('27 oct');
+        expect(paceDayLabel('2025-10-12', today)).toBe('12 oct 2025');
+        expect(paceDayLabel('2026-10-27')).toBe('27 oct');
+    });
+
     it('la curva del libro sigue la página alcanzada cada día, y no se dibuja sin datos', () => {
         const palette = { ink: '#000', muted: '#555', outline: '#ccc', surface: '#fff', surfaceHigh: '#eee', primary: '#0b6b5e', accent: '#9a5b2e' };
         const chart = paceCurveChart(book, palette) as any;

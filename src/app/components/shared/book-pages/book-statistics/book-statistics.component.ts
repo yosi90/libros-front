@@ -35,6 +35,7 @@ import { MobileBookStatisticsViewComponent } from '../../../mobile/book/mobile-b
 import { WebBookStatisticsViewComponent } from '../../../web/book/web-book-statistics-view/web-book-statistics-view.component';
 import { foldText } from '../../../../shared/text';
 import { READING_PACE_SINCE, ReadingPaceBook, paceComparison, paceDayLabel } from '../../../../shared/reading-pace';
+import { localDay } from '../../../../shared/reading-panel';
 import { BookTitleState } from '../../common/book-title/book-title.state';
 import { WoodBookTitleComponent } from '../../common/book-title/wood-book-title.component';
 
@@ -262,15 +263,15 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
     }
 
     savePurchaseDate(): void {
-        const selectedDate = this.purchaseDate.value;
-        if (!this.book.Id || !selectedDate) {
+        const selectedDay = localDay(this.purchaseDate.value);
+        if (!this.book.Id || !selectedDay) {
             this.snackBar.openSnackBar('Selecciona una fecha de compra', 'errorBar');
             return;
         }
 
         this.isSavingPurchaseDate = true;
         this.loader.activateLoader();
-        const payload = { EstadoId: 3 as ReadingStatusId, Fecha: this.toApiDate(selectedDate) };
+        const payload = { EstadoId: 3 as ReadingStatusId, Fecha: `${selectedDay}T00:00:00` };
 
         this.collectionSrv.updateWorkStatus('libro', this.book.Id, payload).pipe(
             switchMap(() => this.bookSrv.getBook(this.book.Id))
@@ -482,12 +483,5 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         }
 
         return null;
-    }
-
-    private toApiDate(date: Date): string {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}T00:00:00`;
     }
 }

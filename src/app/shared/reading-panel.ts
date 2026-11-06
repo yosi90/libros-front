@@ -1,5 +1,6 @@
 import { BookStatisticsSnapshot, CharacterBookStatistic } from '../interfaces/statistics';
 import { orderedChapters, ReadingProgress } from './book-charts';
+import { DAY_MS } from './library-stats';
 import { ReadingPaceBook } from './reading-pace';
 
 /**
@@ -23,7 +24,6 @@ export interface ReadingMilestone {
 
 /** Una estimación más allá de esto no dice nada: no se enseña. */
 const MAX_ESTIMATE_DAYS = 730;
-const DAY_MS = 86_400_000;
 
 const dayTime = (day: string) => Date.parse(`${day.slice(0, 10)}T00:00:00Z`);
 const dayFromTime = (time: number) => new Date(time).toISOString().slice(0, 10);
@@ -113,13 +113,6 @@ export function estimatedFinish(progress: ReadingProgress, pace: ReadingPaceBook
     if (!perDay || perDay <= 0) return null;
     const days = Math.ceil(left / perDay);
     return days > MAX_ESTIMATE_DAYS ? null : addDays(today, days);
-}
-
-/** «27 oct», o «27 oct 2025» si no es del año de `today`. */
-export function shortDate(day: string, today: string): string {
-    const date = new Date(dayTime(day));
-    const sameYear = day.slice(0, 4) === today.slice(0, 4);
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', ...(sameYear ? {} : { year: 'numeric' }), timeZone: 'UTC' }).replace(/\./g, '');
 }
 
 /** «jue 5». */

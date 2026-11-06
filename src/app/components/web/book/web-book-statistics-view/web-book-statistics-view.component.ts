@@ -11,8 +11,9 @@ import {
 } from '../../../../shared/book-charts';
 import {
     ReadingMilestone, bestReadingDay, chapterPages, estimatedFinish, lastReadingDays, localDay, milestonesWithoutRepeats, pagesPerDay,
-    paceVersusAverage, shortDate, shortWeekday, topCast
+    paceVersusAverage, shortWeekday, topCast
 } from '../../../../shared/reading-panel';
+import { paceDayLabel } from '../../../../shared/reading-pace';
 
 /** Una fila de «Últimos días»: el día, sus páginas y lo ancho de su barra. */
 interface PanelDay { label: string; pages: number | null; width: number; best: boolean }
@@ -126,8 +127,8 @@ export class WebBookStatisticsViewComponent implements DoCheck {
 
         return {
             progress,
-            progressStart: started ? `Comenzado ${shortDate(started, today)}` : this.c.readingStateLabel || null,
-            progressEnd: read ? `Leído ${shortDate(read, today)}` : finish ? `Al ritmo actual, ${shortDate(finish, today)}` : null,
+            progressStart: started ? `Comenzado ${paceDayLabel(started, today)}` : this.c.readingStateLabel || null,
+            progressEnd: read ? `Leído ${paceDayLabel(read, today)}` : finish ? `Al ritmo actual, ${paceDayLabel(finish, today)}` : null,
             paceValue: pace?.PaginasPorDia ?? null,
             paceLine: this.linePoints(daily),
             paceVersus: paceVersusAverage(pace),
@@ -141,7 +142,7 @@ export class WebBookStatisticsViewComponent implements DoCheck {
                 width: day.pages && day.pages > 0 ? Math.round(day.pages / topDay * 100) : 0,
                 best: day.date === best
             })),
-            dates: milestonesWithoutRepeats(this.c.readingMilestones, skip).map(item => ({ ...item, when: shortDate(item.day, today) })),
+            dates: milestonesWithoutRepeats(this.c.readingMilestones, skip).map(item => ({ ...item, when: paceDayLabel(item.day, today) })),
             cast: cast.map(character => ({
                 name: character.Nombre,
                 total: character.Total,

@@ -8,7 +8,8 @@ export interface StatRow {
     detail?: string;
 }
 
-const DAY_MS = 86_400_000;
+/** Un día en milisegundos. */
+export const DAY_MS = 86_400_000;
 
 function latestState(item: CollectionItem) {
     return [...(item.Estados ?? [])].sort((a, b) => (a.Fecha ?? '').localeCompare(b.Fecha ?? '')).at(-1) ?? null;

@@ -86,8 +86,14 @@ export function paceComparison(pace: ReadingPaceBook | null | undefined): string
     return 'A tu ritmo de siempre';
 }
 
-/** «25 oct» para los ejes y las filas. */
-export function paceDayLabel(isoDate: string): string {
+/**
+ * «25 oct» para los ejes, las filas y las fechas de «Tu lectura»; con `today` («AAAA-MM-DD»), «25 oct 2025» si no es de
+ * su año. Sin punto tras el mes, como `monthLabel`. Lo que no es una fecha sale tal cual.
+ */
+export function paceDayLabel(isoDate: string, today?: string): string {
     const date = new Date(`${isoDate}T12:00:00Z`);
-    return Number.isNaN(date.getTime()) ? isoDate : date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    if (Number.isNaN(date.getTime()))
+        return isoDate;
+    const otherYear = !!today && isoDate.slice(0, 4) !== today.slice(0, 4);
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', ...(otherYear ? { year: 'numeric' } : {}), timeZone: 'UTC' }).replace(/\./g, '');
 }

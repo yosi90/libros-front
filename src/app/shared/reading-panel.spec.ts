@@ -1,7 +1,7 @@
 import { BookStatisticsSnapshot } from '../interfaces/statistics';
 import {
     addDays, bestReadingDay, chapterPages, estimatedFinish, lastReadingDays, localDay, milestonesWithoutRepeats, naturalPace, pagesPerDay,
-    paceVersusAverage, shortDate, shortWeekday, topCast
+    paceVersusAverage, shortWeekday, topCast
 } from './reading-panel';
 import { ReadingPaceBook } from './reading-pace';
 
@@ -72,9 +72,6 @@ describe('reading-panel', () => {
     });
 
     it('las fechas cortas y los días', () => {
-        const today = '2026-11-06';
-        expect(shortDate('2026-10-27', today)).toBe('27 oct');
-        expect(shortDate('2025-10-12', today)).toBe('12 oct 2025');
         expect(shortWeekday('2026-11-05')).toBe('jue 5');
         expect(addDays('2026-10-31', 1)).toBe('2026-11-01');
         expect(localDay(new Date(2026, 0, 9, 23, 30))).toBe('2026-01-09');
