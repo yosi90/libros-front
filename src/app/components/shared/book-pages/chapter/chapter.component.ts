@@ -967,9 +967,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         const assignedIds = new Set(
             this.getSceneCharacters(sceneGroup).controls.map(control => Number(control.get('Id')?.value))
         );
-        return [...this.book.Personajes]
-            .filter(character => !assignedIds.has(Number(character.Id)))
-            .sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es', { sensitivity: 'base' }));
+        return filterSceneCast(this.book.Personajes, '', assignedIds);
     }
 
     getFilteredAvailableSceneCharacters(sceneGroup: AbstractControl, query: string): Character[] {
