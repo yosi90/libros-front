@@ -166,6 +166,34 @@
         to
             transform: rotate(360deg)
 
+// El campo de búsqueda Web: contenedor con borde, anillo de foco con :focus-within e input transparente sin borde.
+// Cada vista pone su alto, su relleno y su ancho, y lo que añada (icono, botón de limpiar, chips de ámbito).
+// `null` en $background, $outline o $radius no los emite (para quien los toma de otra primitiva, como web.card).
+@mixin search-field($font: "14px/1 var(--web-font-ui)", $radius: var(--web-radius-md), $outline: var(--web-color-outline-strong), $background: var(--web-color-surface), $color: var(--web-color-ink-muted), $input-min-width: 0)
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    color: $color
+    @if $background
+        background: $background
+    @if $outline
+        border: 1px solid $outline
+    @if $radius
+        border-radius: $radius
+
+    &:focus-within
+        border-color: var(--web-color-primary)
+        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+    input
+        flex: 1
+        min-width: $input-min-width
+        color: var(--web-color-ink)
+        font: #{$font}
+        background: transparent
+        border: 0
+        outline: 0
+
 // Interruptor on/off. Espera el marcado de .preference-switch: <i> es el tirador
 // y los textos <b>/<em> quedan solo para lectores de pantalla.
 @mixin switch

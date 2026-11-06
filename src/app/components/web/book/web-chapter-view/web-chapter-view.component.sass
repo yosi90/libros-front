@@ -367,19 +367,9 @@
 // ---------- El reparto: buscador, personajes con sus dos iconos y «Crear «…»» ----------
 
 .search
-    display: flex
-    align-items: center
-    gap: var(--web-space-2)
+    @include web.search-field
     min-height: 36px
     padding: 0 var(--web-space-3)
-    color: var(--web-color-ink-muted)
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline-strong)
-    border-radius: var(--web-radius-md)
-
-    &:focus-within
-        border-color: var(--web-color-primary)
-        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
 
     mat-icon
         flex: none
@@ -387,15 +377,6 @@
         height: 20px
         font-size: 20px
         color: var(--web-color-primary)
-
-    input
-        flex: 1
-        min-width: 0
-        color: var(--web-color-ink)
-        font: 14px/1 var(--web-font-ui)
-        background: transparent
-        border: 0
-        outline: 0
 
 .cast
     box-sizing: border-box
