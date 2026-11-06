@@ -2,12 +2,12 @@ import type { Page, Request, Route } from '@playwright/test';
 import { expect, test } from './fixtures/test';
 import { environment } from '../src/environment/environment';
 import { installLocalVisualSession, visualBook } from './support/local-visual-session';
-import { installYosiftwareSdkDouble, sdkDoublePlatformToken, sdkDoubleToken } from './support/yosiftware-sdk-double';
+import { doublePlatformToken, doubleToken, installYosiftwareDouble, type WindowWithDouble } from './support/yosiftware-doble';
 import { json } from './support/platform-fixtures';
 
 // Hito 4 de la adhesión: la limpieza al cambiar de cuenta (ecosistema-kit/CAMBIO_DE_CUENTA.md). Dos cuentas de
-// Yosiftware con datos distintos en Libros; el doble del SDK cambia de una a otra como el de verdad (aviso
-// `yosiftware:identidad`, `alCambiar` y el anuncio a las demás pestañas), cada cuenta con su token.
+// Yosiftware con datos distintos en Libros; el doble oficial del SDK (kit 1.85) cambia de una a otra como el de verdad
+// (aviso `yosiftware:identidad` y después `alCambiar`), cada cuenta con su token.
 
 interface Account { id: string; alias: string }
 const ana: Account = { id: 'cuenta-ana', alias: 'ana' };
@@ -29,7 +29,8 @@ interface World {
     chapterSaves: Array<{ account: string | null; body: Record<string, unknown> }>;
 }
 
-const accountOfAuth = (auth: string): string | null => ACCOUNTS.find(account => auth.endsWith(`:${account.id}`))?.id ?? null;
+// El doble da a cada cuenta sus tokens (`doble-api.<id>` y `doble-plataforma.<id>`).
+const accountOfAuth = (auth: string): string | null => ACCOUNTS.find(account => auth.endsWith(`.${account.id}`))?.id ?? null;
 const accountOf = (request: Request): string | null => accountOfAuth(request.headers()['authorization'] ?? '');
 const book = (name: string) => ({
     Id: name.length + 200, Nombre: name, Autores: [{ Id: 1, Nombre: 'Autora' }], Orden: 1, Portada: 'missing.png', PorcentajeCompletado: 10,
@@ -44,7 +45,7 @@ const LIBRARY: Record<string, { book: string; universe: string }> = {
 /** Libros (por el token de cada cuenta) y la plataforma (por su token de plataforma), con dos cuentas. */
 async function installTwoAccounts(page: Page, world: World, options: { webPresentation?: boolean } = {}): Promise<void> {
     await installLocalVisualSession(page, { webPresentation: options.webPresentation ?? true });
-    await installYosiftwareSdkDouble(page, { cuenta: ana, tokensPorCuenta: true });
+    await installYosiftwareDouble(page, { cuenta: ana, guardadas: [bruno] });
     await recordRequestsInPage(page);
     page.on('request', request => {
         const url = new URL(request.url());
@@ -69,7 +70,7 @@ async function installTwoAccounts(page: Page, world: World, options: { webPresen
     });
     await page.route('**/v1/chat/conversaciones', route => {
         const auth = route.request().headers()['authorization'] ?? '';
-        const account = ACCOUNTS.find(candidate => auth === `Bearer ${sdkDoublePlatformToken(candidate.id)}`);
+        const account = ACCOUNTS.find(candidate => auth === `Bearer ${doublePlatformToken(candidate.id)}`);
         const titulo = account === ana ? 'Charla de Ana' : 'Charla de Bruno';
         return json(route, { conversaciones: account ? [conversation(account === ana ? 4 : 5, titulo)] : [] });
     });
@@ -136,21 +137,29 @@ async function sentFromPage(page: Page): Promise<SentCall[]> {
     return sent.map(({ tramo, method, url, auth }) => ({ tramo, method, path: new URL(url).pathname, account: accountOfAuth(auth) }));
 }
 
-/** Cambia de cuenta como el SDK y devuelve el tramo que empieza, marcado en el navegador justo antes del aviso. */
-async function switchTo(page: Page, account: Account | null, motivo?: string): Promise<number> {
-    return page.evaluate(([cuenta, razon]) => {
-        const target = window as unknown as {
-            __yosiftwareDoble: { cambiarA(cuenta: unknown, motivo?: string): void };
-            __pruebaPeticiones: PageRequestLog;
-        };
+/**
+ * Cambia de cuenta como el SDK cuando el cambio viene de otra pestaña o web (aviso y después el estado; con `null`, ha
+ * salido) o, con `'caducada'`, como cuando la sesión caduca o la revocan (solo `sin_sesion`, sin aviso). Devuelve el
+ * tramo que empieza, marcado en el navegador justo antes.
+ */
+async function switchTo(page: Page, account: Account | 'caducada' | null): Promise<number> {
+    return page.evaluate(cuenta => {
+        const target = window as unknown as WindowWithDouble & { __pruebaPeticiones: PageRequestLog };
         const tramo = ++target.__pruebaPeticiones.tramo;
-        target.__yosiftwareDoble.cambiarA(cuenta, razon ?? undefined);
+        if (cuenta === 'caducada') target.yosiftwareDoble.sesionCaducada();
+        else target.yosiftwareDoble.cambioDesdeOtraPestana(cuenta);
         return tramo;
-    }, [account, motivo ?? null] as const);
+    }, account);
 }
 
-async function doble<T>(page: Page, expression: 'canalesAbiertos' | 'oyentesDelTiempoReal'): Promise<T> {
-    return page.evaluate(name => (window as unknown as { __yosiftwareDoble: Record<string, () => unknown> }).__yosiftwareDoble[name](), expression) as Promise<T>;
+/** Cuántos canales tiene abiertos la web en el espacio. */
+function openChannels(page: Page, spaceId: number): Promise<number> {
+    return page.evaluate(id => (window as unknown as WindowWithDouble).yosiftwareDoble.canalesAbiertos(id), spaceId);
+}
+
+/** El estado del tiempo real del SDK: `desconectado` cuando la web ya no escucha nada (el SDK cierra el socket). */
+function realtimeState(page: Page): Promise<string> {
+    return page.evaluate(() => window.yosiftware.tiempoReal.estado.tipo);
 }
 
 /** Navega dentro de la aplicación, sin recargar (el router de Angular escucha `popstate`). */
@@ -185,7 +194,6 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
 
         await expect(libraryView.getByText('Libro de Ana').first()).toBeVisible({ timeout: 15_000 });
         await expect(statusesButton).toHaveAttribute('aria-pressed', 'true');
-        await expect(page.locator('yosi-notificaciones')).toHaveAttribute('data-cuenta', ana.id);
 
         const asBruno = await switchTo(page, bruno);
         await expect(libraryView.getByText('Libro de Bruno').first()).toBeVisible();
@@ -193,7 +201,6 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await expect(libraryView.getByText('Universo de Ana')).toHaveCount(0);
         // La vista de Ana es suya: Bruno empieza con la de siempre.
         await expect(libraryView.getByRole('button', { name: 'Universos', exact: true })).toHaveAttribute('aria-pressed', 'true');
-        await expect(page.locator('yosi-notificaciones')).toHaveAttribute('data-cuenta', bruno.id);
         await statusesButton.click();
         await libraryView.getByRole('button', { name: 'Universos', exact: true }).click();
 
@@ -215,7 +222,7 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         expect(stored['yosiftadisticas:excluir']).toBe('1');
         expect(stored['libros:web-theme:last']).toBe('dark');
         // Ningún token en el navegador.
-        expect(JSON.stringify(stored)).not.toContain(sdkDoubleToken(ana.id));
+        expect(JSON.stringify(stored)).not.toContain(doubleToken(ana.id));
     });
 
     test('varias pestañas: el cambio de cuenta en una llega a la otra, y también el cierre', async ({ page, context }) => {
@@ -228,11 +235,22 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await other.goto('/dashboard/books');
         await expect(other.locator('app-web-library-view').getByText('Libro de Ana').first()).toBeVisible({ timeout: 15_000 });
 
-        await switchTo(page, bruno);
+        // La persona elige a Bruno en el panel de cuentas de una pestaña. Lleva el cambio a las demás el canal de sesión
+        // del SDK, que el doble no tiene: la prueba le entrega a la otra lo que le llegaría (el aviso y el estado).
+        await page.evaluate(async id => {
+            const guardadas = await window.yosiftware.cuentasGuardadas();
+            const sesion = guardadas?.cuentas.find(guardada => guardada.cuenta.id === id)?.sesion;
+            if (!sesion || !await window.yosiftware.elegirCuenta(sesion)) throw new Error('No se pudo elegir la cuenta.');
+        }, bruno.id);
+        await expect(page.locator('app-web-library-view').getByText('Libro de Bruno').first()).toBeVisible();
+        await switchTo(other, bruno);
         await expect(other.locator('app-web-library-view').getByText('Libro de Bruno').first()).toBeVisible();
         await expect(other.locator('app-web-library-view').getByText('Libro de Ana')).toHaveCount(0);
 
-        await switchTo(other, null);
+        // Y el cierre de sesión en la otra pestaña.
+        await other.evaluate(() => window.yosiftware.salir());
+        await expect(other).toHaveURL(/\/home(?:\?.*)?$/);
+        await switchTo(page, null);
         await expect(page).toHaveURL(/\/home(?:\?.*)?$/);
         await expect(page.getByRole('heading', { name: 'Cada libro deja una huella.' })).toBeVisible();
         expect(await page.evaluate(() => localStorage.getItem('yosiftadisticas:excluir'))).toBe('1');
@@ -249,20 +267,20 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await page.evaluate(() => (window as unknown as { yosiftware: { salir(): Promise<void> } }).yosiftware.salir());
         await expect(page).toHaveURL(/\/home(?:\?.*)?$/);
         await expect(page.locator('.inbox__list')).toHaveCount(0);
-        expect(await doble<number>(page, 'oyentesDelTiempoReal')).toBe(0);
+        expect(await realtimeState(page)).toBe('desconectado');
 
-        // Vuelve a entrar y la sesión se revoca desde otra web (`sin_sesion` con su motivo).
+        // Vuelve a entrar (desde otra web) y la sesión se revoca: solo `sin_sesion`, sin aviso previo.
         await switchTo(page, ana);
         await expect(page).toHaveURL(/\/dashboard\/books/);
         await navigateInApp(page, '/dashboard/community/messages');
         await expect(page.locator('.inbox__list .thread').first()).toContainText('Charla de Ana', { timeout: 15_000 });
         // Lo que salió antes de la revocación (el resumen social de Comunidad puede salir unos milisegundos antes) se
         // descarta al llegar; lo que se comprueba es que, desde el aviso, nada sale ya con la cuenta de Ana.
-        const revoked = await switchTo(page, null, 'revocada');
+        const revoked = await switchTo(page, 'caducada');
         await expect(page).toHaveURL(/\/home(?:\?.*)?$/);
         await page.waitForTimeout(1500);
         expect((await sentFromPage(page)).filter(call => call.tramo >= revoked && call.account !== null)).toEqual([]);
-        expect(await doble<number>(page, 'oyentesDelTiempoReal')).toBe(0);
+        expect(await realtimeState(page)).toBe('desconectado');
         expect(await page.evaluate(() => localStorage.getItem('yosiftadisticas:excluir'))).toBe('1');
     });
 
@@ -353,21 +371,20 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         expect(await page.evaluate(key => localStorage.getItem(key), pendingKey(ana))).toBeNull();
     });
 
-    test('el chat, la campana y los canales de los espacios se cierran y no enseñan nada de A', async ({ page }) => {
+    test('el chat y los canales de los espacios se cierran y no enseñan nada de A', async ({ page }) => {
         const world = newWorld();
         await installTwoAccounts(page, world, { webPresentation: false });
         await installClubOfAna(page);
         await page.goto('/dashboard/community/clubs/70');
         const club = page.locator('app-club-detail .club-detail');
         await expect(club.locator('.club-detail__chat-frame app-chat-conversation')).toContainText('¿Empezamos el lunes?', { timeout: 15_000 });
-        await expect.poll(() => doble<number[]>(page, 'canalesAbiertos')).toEqual([9]);
+        await expect.poll(() => openChannels(page, 9)).toBe(1);
 
         await switchTo(page, bruno);
         await expect(page).toHaveURL(/\/dashboard\/books/);
-        await expect.poll(() => doble<number[]>(page, 'canalesAbiertos')).toEqual([]);
-        await expect(page.locator('yosi-notificaciones')).toHaveAttribute('data-cuenta', bruno.id);
+        await expect.poll(() => openChannels(page, 9)).toBe(0);
         // Un mensaje del club de Ana que llega tarde por el tiempo real no se enseña a Bruno.
-        await page.evaluate(() => (window as unknown as { __yosiftwareDoble: { evento(tipo: string, datos: unknown): void } }).__yosiftwareDoble.evento('chat.mensaje', {
+        await page.evaluate(() => (window as unknown as WindowWithDouble).yosiftwareDoble.emitir('chat.mensaje', {
             conversacion: 120, mensaje: { id: 99, conversacion: 120, tipo: 'texto', persona: { id: 'cuenta-ada', alias: 'ada', nombre: 'Ada', avatar: null }, texto: 'Mensaje tardío del club de Ana', propio: false, creado: '2026-10-25T09:00:00Z' }
         }));
         await navigateInApp(page, '/dashboard/community/messages');
@@ -382,7 +399,7 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
 async function installClubOfAna(page: Page): Promise<void> {
     const ada = { id: 'cuenta-ada', alias: 'ada', nombre: 'Ada', avatar: null };
     const isAna = (route: Route) => accountOf(route.request()) === ana.id
-        || (route.request().headers()['authorization'] ?? '') === `Bearer ${sdkDoublePlatformToken(ana.id)}`;
+        || (route.request().headers()['authorization'] ?? '') === `Bearer ${doublePlatformToken(ana.id)}`;
     const summary = { Id: 70, EspacioId: 9, Nombre: 'Club de Dune', DescripcionMarkdown: null, Visibilidad: 'abierto', PropietarioId: 2, Objetivo: null, Miembros: 2, FechaActualizacion: '2026-10-24T10:00:00Z' };
     await page.route('**/comunidad/capacidades', route => json(route, {
         success: true, UsuarioId: 37, VersionConfiguracion: 1, VersionCliente: '1.0.0', FechaExpiracion: null, CacheTtlSegundos: 300, Conservadora: false,

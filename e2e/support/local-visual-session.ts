@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { installYosiftwareSdkDouble } from './yosiftware-sdk-double';
+import { installYosiftwareDouble } from './yosiftware-doble';
 
 /** La persona de las regresiones: su cuenta de Yosiftware (doble del SDK) y su usuario local de Libros. */
 export const localUser = { Id: 37, Nombre: 'Lector de prueba', Role: { Id: 1, Nombre: 'usuario' } };
@@ -70,7 +70,7 @@ export async function installLocalVisualSession(page: Page, options: { webPresen
         if (!options.webPresentation)
             await page.addInitScript(() => { try { localStorage.setItem('book-front:web-presentation', 'off'); } catch { /* sin almacenamiento */ } });
         // Entra con la cuenta de Yosiftware (doble del SDK) y Libros reconoce a su usuario local.
-        await installYosiftwareSdkDouble(page, { cuenta: localAccount });
+        await installYosiftwareDouble(page, { cuenta: localAccount });
         await page.route('**/usuarios/me', route => route.fulfill({
             status: 200,
             contentType: 'application/json',

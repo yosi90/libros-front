@@ -1,17 +1,18 @@
 import { NgZone } from '@angular/core';
 import { fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { Observable, of, throwError } from 'rxjs';
+import { crearDobleYosiftware } from '../../../../pruebas/yosiftware-doble/yosiftware-doble.js';
 import { MensajeDelCanal } from '../../interfaces/platform-spaces';
-import { YosiftwareSdkDouble } from '../auth/yosiftware-sdk.testing';
 import { PlatformSpacesService } from './platform-spaces.service';
 
 describe('PlatformSpacesService', () => {
     function create() {
-        const sdk = new YosiftwareSdkDouble();
+        // El doble oficial del SDK (kit 1.85, `pruebas/yosiftware-doble/`): los canales de los espacios son suyos.
+        const doble = crearDobleYosiftware({ cuenta: { id: 'cuenta-a', alias: 'a' } });
         const session = {
             generation: 1,
             isCurrentGeneration(value: number) { return value === session.generation; },
-            platformSdk: async () => sdk
+            platformSdk: async () => doble.yosiftware
         };
         const api = jasmine.createSpyObj('PlatformApiService', ['get', 'post', 'put', 'patch', 'delete']);
         api.get.and.returnValue(of({}));
@@ -20,7 +21,7 @@ describe('PlatformSpacesService', () => {
         const access = { gate: (_scope: unknown, _creation: unknown, request: Observable<unknown>) => request };
         const zone = { run: (fn: () => void) => fn() } as unknown as NgZone;
         const service = new PlatformSpacesService(api, session as never, access as never, zone);
-        return { service, api, sdk, session };
+        return { service, api, doble, session };
     }
 
     it('entra en un club abierto con la ruta del espacio y recuerda la entrada para esperar al feed', () => {
@@ -92,33 +93,36 @@ describe('PlatformSpacesService', () => {
     });
 
     it('abre el canal del espacio con el SDK, descarta lo que llega con otra cuenta y lo cierra al cambiarla', fakeAsync(() => {
-        const { service, sdk, session } = create();
+        const { service, doble, session } = create();
+        const canal = spyOn(doble.yosiftware.espacios, 'canal').and.callThrough();
         const received: MensajeDelCanal[] = [];
 
         service.openChannel(9, message => received.push(message));
         flushMicrotasks();
-        expect(sdk.espacios.canal).toHaveBeenCalledOnceWith(9, jasmine.any(Function));
+        expect(canal).toHaveBeenCalledOnceWith(9, jasmine.any(Function));
         expect(service.openChannels).toBe(1);
+        expect(doble.control.canalesAbiertos(9)).toBe(1);
 
-        sdk.canal(9, { tipo: 'mensaje', espacio: 9, secuencia: 1, idExterno: 'a', datos: { tipo: 'club.updated', ClubId: 4 }, fecha: '' });
-        expect(received.length).toBe(1);
+        doble.control.publicarEnCanal(9, 'a', { tipo: 'club.updated', ClubId: 4 });
+        expect(received.map(message => message.tipo)).toEqual(['abierto', 'mensaje']);
 
         session.generation = 2;
-        sdk.canal(9, { tipo: 'mensaje', espacio: 9, secuencia: 2, idExterno: 'b', datos: { tipo: 'club.updated', ClubId: 4 }, fecha: '' });
-        expect(received.length).toBe(1);
+        doble.control.publicarEnCanal(9, 'b', { tipo: 'club.updated', ClubId: 4 });
+        expect(received.length).toBe(2);
 
         service.clear();
         expect(service.openChannels).toBe(0);
-        expect(sdk.canalesAbiertos).toBe(0);
+        expect(doble.control.canalesAbiertos(9)).toBe(0);
     }));
 
     it('un canal que se cierra antes de que cargue el SDK no se llega a abrir', fakeAsync(() => {
-        const { service, sdk } = create();
+        const { service, doble } = create();
+        const canal = spyOn(doble.yosiftware.espacios, 'canal').and.callThrough();
 
         service.openChannel(9, () => undefined).close();
         flushMicrotasks();
 
-        expect(sdk.espacios.canal).not.toHaveBeenCalled();
+        expect(canal).not.toHaveBeenCalled();
         expect(service.openChannels).toBe(0);
     }));
 

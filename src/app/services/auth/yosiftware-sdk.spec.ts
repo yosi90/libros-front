@@ -3,7 +3,8 @@ import { HOJA_ESTILOS_SDK, YosiftwareSdk, cargarSdkDesdeLaPlataforma, esCambioDe
 describe('carga del SDK de la plataforma', () => {
     function fakeDocument(existing?: YosiftwareSdk) {
         const head = document.createElement('div');
-        const view = { yosiftware: existing } as unknown as Window & { yosiftware?: YosiftwareSdk };
+        // Sin `Window`: en las pruebas, el contrato del SDK del doble (`pruebas/yosiftware-doble/yosiftware.d.ts`) ya declara su `yosiftware`.
+        const view = { yosiftware: existing } as { yosiftware?: YosiftwareSdk };
         const doc = {
             defaultView: view,
             head,

@@ -1,5 +1,5 @@
 import { expect, test as base } from '@playwright/test';
-import { installYosiftwareSdkDouble } from '../support/yosiftware-sdk-double';
+import { installYosiftwareDouble } from '../support/yosiftware-doble';
 
 interface DiagnosticsFixture {
     diagnostics: void;
@@ -46,8 +46,8 @@ export const test = base.extend<DiagnosticsFixture>({
         if (baseURL
             && /https?:\/\/(?:127\.0\.0\.1|localhost)/.test(baseURL)
             && process.env['PLAYWRIGHT_REAL_QA'] !== 'true') {
-            // La cuenta es la de la plataforma Yosiftware: un doble de su SDK, sin sesión salvo que la prueba diga otra cosa.
-            await installYosiftwareSdkDouble(page);
+            // La cuenta es la de la plataforma Yosiftware: el doble oficial de su SDK, sin sesión salvo que la prueba diga otra cosa.
+            await installYosiftwareDouble(page);
         }
         await page.addInitScript(() => {
             const originalError = console.error.bind(console);
