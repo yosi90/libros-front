@@ -1,7 +1,6 @@
 package es.yosiftware.libros
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -25,14 +24,15 @@ import es.yosiftware.libros.datos.modelos.Universo
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.rememberVentana
 import es.yosiftware.libros.ui.biblioteca.BibliotecaViewModel
-import es.yosiftware.libros.ui.biblioteca.Disponibilidad
 import es.yosiftware.libros.ui.biblioteca.CapasDeBiblioteca
+import es.yosiftware.libros.ui.biblioteca.Disponibilidad
 import es.yosiftware.libros.ui.biblioteca.PantallaBiblioteca
 import es.yosiftware.libros.ui.biblioteca.Vista
 import es.yosiftware.libros.ui.componentes.AnfitrionDeAvisos
 import es.yosiftware.libros.ui.componentes.Avisos
 import es.yosiftware.libros.ui.componentes.LocalAvisos
 import es.yosiftware.libros.ui.navegacion.Armazon
+import es.yosiftware.libros.ui.tema.ActividadDeLibros
 import es.yosiftware.libros.ui.tema.TemaLibros
 import es.yosiftware.libros.ui.tema.TemaMobile
 
@@ -48,7 +48,7 @@ import es.yosiftware.libros.ui.tema.TemaMobile
  * abiertas), `plegados`, `filtros`, `estados`, `busqueda` (con el chip «autor: san»), `modal` (el editor de la primera
  * obra), `aviso` (un aviso de éxito), `revelar` («Ver en biblioteca» de «Los jardines de la luna»), `antologia` (sus secciones, del progreso de la colección), `vacia` y `cargando`.
  */
-class MuestrasDeBiblioteca : ComponentActivity() {
+class MuestrasDeBiblioteca : ActividadDeLibros() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)

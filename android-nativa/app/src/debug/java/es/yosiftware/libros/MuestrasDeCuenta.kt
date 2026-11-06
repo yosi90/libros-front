@@ -2,7 +2,6 @@ package es.yosiftware.libros
 
 import android.app.Activity
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -31,6 +30,7 @@ import es.yosiftware.libros.ui.cuenta.PantallaDeNormasDeLibros
 import es.yosiftware.libros.ui.cuenta.PantallaSinConfiguracion
 import es.yosiftware.libros.ui.cuenta.PerfilesViewModel
 import es.yosiftware.libros.ui.navegacion.Armazon
+import es.yosiftware.libros.ui.tema.ActividadDeLibros
 import es.yosiftware.libros.ui.tema.TemaLibros
 import es.yosiftware.libros.ui.tema.TemaMobile
 import es.yosiftware.sesion.Cuenta
@@ -54,7 +54,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * pantalla de entrar con la sesión de verdad, que lanza «Entrar con Google» al abrirse, como el botón (para comprobar
  * que el selector de cuentas de Google aparece).
  */
-class MuestrasDeCuenta : ComponentActivity() {
+class MuestrasDeCuenta : ActividadDeLibros() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)

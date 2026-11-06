@@ -1,7 +1,6 @@
 package es.yosiftware.libros
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -39,6 +38,7 @@ import es.yosiftware.libros.ui.componentes.LocalAvisos
 import es.yosiftware.libros.ui.navegacion.Armazon
 import es.yosiftware.libros.ui.navegacion.Destino
 import es.yosiftware.libros.ui.navegacion.NavegacionViewModel
+import es.yosiftware.libros.ui.tema.ActividadDeLibros
 import es.yosiftware.libros.ui.tema.TemaLibros
 import es.yosiftware.libros.ui.tema.TemaMobile
 import org.json.JSONObject
@@ -55,7 +55,7 @@ import org.json.JSONObject
  * («El imperio final»), `ficha-libro-fuera-coleccion` («El hobbit»), `ficha-antologia` («Arcanum ilimitado»),
  * `hoja-saga`, `peticion`, `cargando`, `error` y `aviso` (el de «Añadido a tu biblioteca»).
  */
-class MuestrasDeCatalogo : ComponentActivity() {
+class MuestrasDeCatalogo : ActividadDeLibros() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)

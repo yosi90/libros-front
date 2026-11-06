@@ -1,7 +1,6 @@
 package es.yosiftware.libros
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -19,11 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import es.yosiftware.libros.datos.rtfATexto
 import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
 import es.yosiftware.libros.datos.rtf.EnlacesNarrativos
 import es.yosiftware.libros.datos.rtf.TipoDeEnlace
+import es.yosiftware.libros.datos.rtfATexto
 import es.yosiftware.libros.ui.editor.EditorRtf
+import es.yosiftware.libros.ui.tema.ActividadDeLibros
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.TemaLibros
 import es.yosiftware.libros.ui.tema.TemaMobile
@@ -37,7 +37,7 @@ import es.yosiftware.libros.ui.tema.Textos
  * adb shell am start -n es.yosiftware.libros.qa/es.yosiftware.libros.MuestrasDeEditor --es tema oscuro
  * ```
  */
-class MuestrasDeEditor : ComponentActivity() {
+class MuestrasDeEditor : ActividadDeLibros() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)

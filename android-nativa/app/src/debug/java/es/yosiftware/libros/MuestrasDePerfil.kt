@@ -1,7 +1,6 @@
 package es.yosiftware.libros
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -27,6 +26,7 @@ import es.yosiftware.libros.ui.perfil.PantallaPerfil
 import es.yosiftware.libros.ui.perfil.PerfilViewModel
 import es.yosiftware.libros.ui.perfil.SeccionDelPerfil
 import es.yosiftware.libros.ui.preferencias.PantallaPreferencias
+import es.yosiftware.libros.ui.tema.ActividadDeLibros
 import es.yosiftware.libros.ui.tema.TemaLibros
 import es.yosiftware.libros.ui.tema.TemaMobile
 import org.json.JSONArray
@@ -43,7 +43,7 @@ import org.json.JSONObject
  * Vistas: `resumen`, `perfil`, `peticiones`, `peticiones-vacias`, `reportes` y `reportes-vacios`, y `preferencias` (las
  * Preferencias, que se ven igual sin cuenta).
  */
-class MuestrasDePerfil : ComponentActivity() {
+class MuestrasDePerfil : ActividadDeLibros() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)

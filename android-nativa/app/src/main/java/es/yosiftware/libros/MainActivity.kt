@@ -2,15 +2,15 @@ package es.yosiftware.libros
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import es.yosiftware.libros.push.AperturaDeAviso
 import es.yosiftware.libros.ui.AppLibros
+import es.yosiftware.libros.ui.tema.ActividadDeLibros
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ActividadDeLibros() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // De borde a borde: el contenido respeta las zonas del sistema con sus insets. El tema ajusta luego los colores
         // de las barras (ui/tema/Tema.kt).

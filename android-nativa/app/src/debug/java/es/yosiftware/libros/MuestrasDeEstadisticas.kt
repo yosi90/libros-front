@@ -1,7 +1,6 @@
 package es.yosiftware.libros
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -29,6 +28,7 @@ import es.yosiftware.libros.ui.estadisticas.ResumenDelCatalogo
 import es.yosiftware.libros.ui.navegacion.Armazon
 import es.yosiftware.libros.ui.navegacion.Destino
 import es.yosiftware.libros.ui.navegacion.NavegacionViewModel
+import es.yosiftware.libros.ui.tema.ActividadDeLibros
 import es.yosiftware.libros.ui.tema.TemaLibros
 import es.yosiftware.libros.ui.tema.TemaMobile
 import java.time.Instant
@@ -45,7 +45,7 @@ import java.time.temporal.ChronoUnit
  * Vistas: `personal`, `general` y `error` (no cargó ninguna métrica). Las cifras del catálogo que no se ven en las
  * capturas son de QA y pueden no coincidir: lo que se compara es el aspecto.
  */
-class MuestrasDeEstadisticas : ComponentActivity() {
+class MuestrasDeEstadisticas : ActividadDeLibros() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)

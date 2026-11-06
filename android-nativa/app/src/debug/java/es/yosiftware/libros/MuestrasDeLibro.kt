@@ -1,7 +1,6 @@
 package es.yosiftware.libros
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -16,17 +15,18 @@ import es.yosiftware.libros.datos.modelos.Nota
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.rememberVentana
 import es.yosiftware.libros.ui.componentes.Avisador
-import es.yosiftware.libros.ui.libro.ContenidoDelLibro
-import es.yosiftware.libros.ui.libro.BusquedaViewModel
 import es.yosiftware.libros.ui.elementos.ElementosViewModel
+import es.yosiftware.libros.ui.libro.BusquedaViewModel
 import es.yosiftware.libros.ui.libro.CapituloViewModel
+import es.yosiftware.libros.ui.libro.ContenidoDelLibro
 import es.yosiftware.libros.ui.libro.Elemento
 import es.yosiftware.libros.ui.libro.IslaDelLector
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.NotasViewModel
-import es.yosiftware.libros.ui.libro.VistaDelLibro
 import es.yosiftware.libros.ui.libro.PantallaLibro
 import es.yosiftware.libros.ui.libro.TipoDeGrupo
+import es.yosiftware.libros.ui.libro.VistaDelLibro
+import es.yosiftware.libros.ui.tema.ActividadDeLibros
 import es.yosiftware.libros.ui.tema.TemaLibros
 import es.yosiftware.libros.ui.tema.TemaMobile
 import org.json.JSONObject
@@ -48,7 +48,7 @@ import org.json.JSONObject
  * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 3 de «Siega», con sus escenas plegadas y la última desplegada), `capitulo-reparto` (con la hoja de reparto abierta), `capitulo-datos` (con los datos del capítulo desplegados), `capitulo-nuevo`, `minimizado` (la isla del lector), `elementos-lista` (los personajes de «Siega»), `elementos-ficha`
  * (la de Citra) y `elementos-alta` (una organización nueva).
  */
-class MuestrasDeLibro : ComponentActivity() {
+class MuestrasDeLibro : ActividadDeLibros() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
