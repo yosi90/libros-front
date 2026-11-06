@@ -136,7 +136,7 @@ fun HojaDeReparto(vm: CapituloViewModel, libro: Libro, escena: EscenaEditable?, 
             if (paraCrear != null) {
                 val ocupado = creador.creando != null
                 Row(
-                    Modifier.fillMaxWidth().heightIn(min = 56.dp).alpha(if (ocupado) 0.5f else 1f)
+                    Modifier.fillMaxWidth().heightIn(min = 44.dp).alpha(if (ocupado) 0.5f else 1f)
                         .clickable(enabled = !ocupado, role = Role.Button) {
                             creador.crear(libro, paraCrear) { id ->
                                 primero = primero + id
@@ -147,7 +147,7 @@ fun HojaDeReparto(vm: CapituloViewModel, libro: Libro, escena: EscenaEditable?, 
                     horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CirculoDeCrear(36.dp)
+                    CirculoDeCrear(28.dp)
                     Text(if (creador.creando == paraCrear) "Creando «$paraCrear»…" else "Crear «$paraCrear»", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.primario), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -178,19 +178,18 @@ private fun CirculoDeCrear(tamano: Dp) {
 }
 
 /**
- * Una fila de la lista: la inicial, el nombre y los dos iconos, en escena y @ ([actual] dice cuál está encendido; `null`,
+ * Una fila de la lista: el nombre y los dos iconos, en escena y @ ([actual] dice cuál está encendido; `null`,
  * ninguno). Pulsar uno lo enciende y apaga el otro; pulsar el encendido lo apaga.
  */
 @Composable
 private fun FilaDePersonaje(personaje: Personaje, actual: PersonajeEnEscena?, alPulsar: (nombrado: Boolean) -> Unit) {
     val colores = LocalColores.current
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 56.dp)
+        Modifier.fillMaxWidth().heightIn(min = 44.dp)
             .drawBehind { drawRect(colores.superficieAlta, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) },
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
+        horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Inicial(personaje.nombre, 36.dp)
         Text(personaje.nombre, style = Textos.cuerpo.copy(fontWeight = FontWeight.SemiBold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
         Row {
             IconoDeReparto(Iconos.person, "${personaje.nombre}, en escena", encendido = actual?.nombrado == false) { alPulsar(false) }
@@ -199,21 +198,21 @@ private fun FilaDePersonaje(personaje: Personaje, actual: PersonajeEnEscena?, al
     }
 }
 
-/** Uno de los dos iconos de la fila: 36 dp a la vista (relleno del primario si está encendido), 44 de objetivo. */
+/** Uno de los dos iconos de la fila: 28 dp a la vista (relleno del primario si está encendido), 40 de objetivo. */
 @Composable
 private fun IconoDeReparto(icono: Int, descripcion: String, encendido: Boolean, alPulsar: () -> Unit) {
     val colores = LocalColores.current
     Box(
-        Modifier.size(44.dp).clip(CircleShape)
+        Modifier.size(40.dp).clip(CircleShape)
             .clickable(role = Role.RadioButton, onClick = alPulsar)
             .semantics { contentDescription = descripcion; selected = encendido },
         contentAlignment = Alignment.Center,
     ) {
         Box(
-            Modifier.size(36.dp).clip(CircleShape).background(if (encendido) colores.primario else Color.Transparent)
+            Modifier.size(28.dp).clip(CircleShape).background(if (encendido) colores.primario else Color.Transparent)
                 .border(1.dp, if (encendido) colores.primario else colores.contorno, CircleShape),
             contentAlignment = Alignment.Center,
-        ) { Icon(painterResource(icono), contentDescription = null, tint = if (encendido) colores.sobrePrimario else colores.tintaSuave, modifier = Modifier.size(20.dp)) }
+        ) { Icon(painterResource(icono), contentDescription = null, tint = if (encendido) colores.sobrePrimario else colores.tintaSuave, modifier = Modifier.size(16.dp)) }
     }
 }
 
