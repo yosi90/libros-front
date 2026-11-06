@@ -91,6 +91,17 @@ Revisor en modo `corregir` sobre lo que la adhesión añade a la web (`478fc8e..
   - **Peligros si se mantiene como estaba:** pruebas verdes con un doble que ya no se comporta como el SDK.
   - **Peligros del cambio:** depende de la plataforma; mientras no exista, el doble de Playwright sigue siendo el que manda en las pruebas del cambio de cuenta.
 
+## Lo nuevo de los rediseños Web (rama `web/redisenos`, 6/11/2026)
+
+Revisor en modo `corregir` sobre `main..60199408` (escenas plegadas, reparto con dos iconos, @ en el editor RTF y «Tu lectura» en casillas). Lo seguro se aplicó en la rama (commits `e2d0b642` a `7481872f`); esto queda como propuesta. Las líneas citadas son las de `7481872f`.
+
+- [ ] **11. Un solo campo de búsqueda Web (primitive `web.search-field`)**
+  - **Descripción:** el campo con lupa (contenedor flex con borde, anillo de foco con `:focus-within` y `input` transparente sin borde) está copiado en siete hojas Web: `web-book-notes-view` (`.search`, l. 56), `web-book-search-view` (`.search`, l. 29), `web-chapter-view` (`.search`, l. 369, el panel de personajes y el reparto), `web-narrative-entity-view` (`.search`, l. 315), `web-community-view` (`.search`, l. 79), `web-manager-list-view` (`.manager__search`, l. 60) y `web-scoped-search` (`.web-search`, l. 7). Cambian la altura (36–48 px), el relleno, el radio y el tamaño de letra; el resto es igual. El rediseño del capítulo añadió un segundo uso en la misma hoja (el buscador del reparto) sin crear otra copia, pero la familia sigue sin primitive.
+  - **Por qué se necesita:** el foco, los colores y el `input` sin borde de los buscadores se cambian hoy en siete sitios; `SASS_REUSE_AUDIT.md` pide extraer en el segundo uso semántico real y aquí hay siete.
+  - **Qué se espera lograr:** `@mixin search-field($height: 40px, $radius: var(--web-radius-md))` en `src/assets/css/web/_primitives.sass` con el contenedor, el foco, el icono y el `input`; cada vista conserva su ancho, márgenes y lo que añada (botón de limpiar, chips de ámbito).
+  - **Peligros si se mantiene como estaba:** buscadores que divergen en el foco o en el contraste al tocar uno solo (ya difieren en `outline` frente a `outline-strong` y en si llevan `background`).
+  - **Peligros del cambio:** son siete pantallas con capturas `@visual`; hay que comparar el CSS compilado de cada una antes y después (Dart Sass) y repasar sus capturas de Playwright. `web-scoped-search` envuelve chips y sugerencias: puede quedarse solo con el foco y el `input`.
+
 ## Fuera de alcance (se retira con la adhesión)
 
 Se citan para que nadie los porte a Kotlin:
