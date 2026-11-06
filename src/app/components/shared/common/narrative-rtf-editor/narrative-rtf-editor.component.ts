@@ -689,7 +689,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
         const root = this.editor?.nativeElement;
         if (!mention || !root || this.readonly || this.disabled)
             return;
-        const start = this.findCharacterAtOffset(root, mention.start);
+        const start = this.findPositionAtOffset(root, mention.start, true);
         const end = this.findPositionAtOffset(root, mention.end);
         if (!start || !end)
             return;
@@ -768,7 +768,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
 
     /** Dónde está la @ en la pantalla (su carácter), o el editor si el navegador no lo sabe. */
     private mentionPoint(root: HTMLElement, start: number): { x: number; y: number; height: number } {
-        const from = this.findCharacterAtOffset(root, start);
+        const from = this.findPositionAtOffset(root, start, true);
         const to = this.findPositionAtOffset(root, start + 1);
         let rect: DOMRect | null = null;
         if (from && to) {
@@ -1297,33 +1297,21 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
         return offset;
     }
 
-    private findPositionAtOffset(root: Node, targetOffset: number): { node: Node; offset: number } | null {
+    /**
+     * El nodo de texto y la posición de `targetOffset`. En el borde entre dos nodos da el final del anterior (y, más allá
+     * del texto, el final del editor); con `atCharacter`, justo delante del carácter que hay ahí, en su propio nodo (que
+     * puede ser otro párrafo o un enlace), o `null` si ahí no hay ninguno.
+     */
+    private findPositionAtOffset(root: Node, targetOffset: number, atCharacter = false): { node: Node; offset: number } | null {
         let offset = 0;
         const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
         while (walker.nextNode()) {
             const node = walker.currentNode;
             const length = node.textContent?.length ?? 0;
-            if (offset + length >= targetOffset)
+            if (atCharacter ? targetOffset < offset + length : offset + length >= targetOffset)
                 return { node, offset: Math.max(0, targetOffset - offset) };
             offset += length;
         }
-        return { node: root, offset: root.childNodes.length };
-    }
-
-    /**
-     * Justo delante del carácter que hay en `targetOffset`, en su propio nodo (`findPositionAtOffset` da el final del
-     * nodo anterior cuando cae en el borde, que puede ser otro párrafo o un enlace).
-     */
-    private findCharacterAtOffset(root: Node, targetOffset: number): { node: Node; offset: number } | null {
-        let offset = 0;
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-        while (walker.nextNode()) {
-            const node = walker.currentNode;
-            const length = node.textContent?.length ?? 0;
-            if (targetOffset < offset + length)
-                return { node, offset: targetOffset - offset };
-            offset += length;
-        }
-        return null;
+        return atCharacter ? null : { node: root, offset: root.childNodes.length };
     }
 }
