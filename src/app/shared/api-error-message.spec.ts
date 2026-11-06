@@ -17,12 +17,13 @@ describe('api error helpers', () => {
     });
 
     it('translates club limits into a product state', () => {
-        expect(getProductStateMessage({ code: 'club_owner_limit_reached' })).toBe('Ya administras un club propio. Solo puedes crear uno.');
+        expect(getProductStateMessage({ code: 'club_owner_limit_reached', error: 'Ya administras un club propio. Solo puedes crear uno.' })).toBe('Ya administras un club propio. Solo puedes crear uno.');
+        expect(getProductStateMessage({ code: 'club_owner_limit_reached' }, 'Texto de la pantalla')).toBe('Texto de la pantalla');
     });
 
     it('explains stale anthology section relationships', () => {
-        expect(getProductStateMessage({ code: 'anthology_not_in_collection' })).toBe('Esta antología ya no está en tu biblioteca.');
-        expect(getProductStateMessage({ code: 'anthology_section_relation_not_found' })).toBe('Esta sección ya no pertenece a la antología.');
+        expect(getProductStateMessage({ code: 'anthology_not_in_collection', error: 'Esta antología ya no está en tu biblioteca.' })).toBe('Esta antología ya no está en tu biblioteca.');
+        expect(getProductStateMessage({ code: 'anthology_section_relation_not_found', error: 'Esta sección ya no pertenece a la antología.' })).toBe('Esta sección ya no pertenece a la antología.');
     });
 
     it('explica lo limitado por la moderación de Yosiftware y hasta cuándo, en la hora local', () => {
@@ -48,12 +49,7 @@ describe('api error helpers', () => {
 
     it('trata las normas de Libros pendientes como un aviso de normas, no como un error', () => {
         expect(isPolicyAcceptanceBlock({ code: 'platform_rules_acceptance_required' })).toBeTrue();
-        expect(getProductStateMessage({ code: 'platform_rules_acceptance_required' })).toBe('Acepta las normas de Libros para seguir.');
-    });
-
-    it('explains that QA deliberately refuses to generate full backups', () => {
-        expect(getProductStateMessage({ code: 'admin_backup_unavailable_in_qa' }))
-            .toBe('La descarga de backups no está disponible en el entorno de pruebas.');
+        expect(getProductStateMessage({ code: 'platform_rules_acceptance_required', error: 'Acepta las normas de Libros para seguir.' })).toBe('Acepta las normas de Libros para seguir.');
     });
 
     it('muestra solo `error` del backend, nunca `debug` ni el código', () => {

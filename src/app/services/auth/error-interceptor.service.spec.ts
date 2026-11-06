@@ -31,13 +31,13 @@ describe('ErrorInterceptorService', () => {
 
     it('replaces stale collection state after a typed anthology rejection and preserves the error', fakeAsync(() => {
         const { interceptor, store } = create();
-        const error = new HttpErrorResponse({ status: 409, error: { code: 'anthology_section_collection_forbidden' } });
+        const error = new HttpErrorResponse({ status: 409, error: { code: 'anthology_section_collection_forbidden', error: 'Esta sección se gestiona dentro de su antología.' } });
 
         const received = fail(interceptor, error);
         flushMicrotasks();
 
         expect(received).toHaveBeenCalledWith(error);
-        // Sin frase del backend, el código de estado de producto conserva su texto propio.
+        // La frase es la de la API (sin tabla de frases en la web).
         expect(getProductStateMessage(error)).toBe('Esta sección se gestiona dentro de su antología.');
         expect(store.setUniverses).toHaveBeenCalledOnceWith([]);
     }));
