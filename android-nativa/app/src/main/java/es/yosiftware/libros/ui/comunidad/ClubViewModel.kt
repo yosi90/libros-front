@@ -1,5 +1,7 @@
 package es.yosiftware.libros.ui.comunidad
 
+import es.yosiftware.libros.sonido.Sonido
+import es.yosiftware.libros.sonido.Sonador
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -78,6 +80,8 @@ class ClubViewModel(
     /** El canal del espacio del club, por el socket del tiempo real; sin él, solo REST. */
     private val canal: CanalesDeEspacios? = null,
     private val tanda: Long = 150,
+    /** Los sonidos: el progreso guardado y los borrados confirmados. */
+    private val sonar: Sonador = Sonador.MUDO,
 ) : ViewModelDeCuenta(ambito) {
     /** Al perder el acceso o salir: se cierra el club, con el aviso que haya. */
     var alSalir: (String?) -> Unit = {}
@@ -666,6 +670,7 @@ class ClubViewModel(
                 eliminando = false
                 eliminado = nombre
                 club = null
+                sonar.reproducir(Sonido.BORRAR)
             }
         }
     }
@@ -801,6 +806,7 @@ class ClubViewModel(
             errorDeProgreso = mensajeDelClub(fallo, "No se ha podido guardar el progreso.")
         }) {
             guardandoProgreso = false
+            sonar.reproducir(Sonido.PAGINA)
             cargarProgreso()
         }
     }
@@ -875,7 +881,10 @@ class ClubViewModel(
             errorDeCalendario = ""
             cargar({ clubes.borrarEvento(id, evento.id) }, alFallar = { fallo ->
                 errorDeCalendario = mensajeDelClub(fallo, "No se ha podido eliminar el evento.")
-            }) { cargarCalendario() }
+            }) {
+                sonar.reproducir(Sonido.BORRAR)
+                cargarCalendario()
+            }
         }
     }
 

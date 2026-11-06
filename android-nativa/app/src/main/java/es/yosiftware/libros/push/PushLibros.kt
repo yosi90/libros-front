@@ -1,5 +1,9 @@
 package es.yosiftware.libros.push
 
+import es.yosiftware.libros.R
+import android.net.Uri
+import android.media.AudioAttributes
+import android.content.ContentResolver
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -28,8 +32,13 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  * (apagada en el manifiesto) ni nada más de Firebase.
  */
 object PushLibros {
-    /** Lo que te pasa en Libros, y los mensajes del chat: dos canales, para silenciar el chat aparte. */
-    const val CANAL_AVISOS = "avisos"
+    /**
+     * Lo que te pasa en Libros, y los mensajes del chat: dos canales, para silenciar el chat aparte. El de los avisos
+     * suena con el sonido propio de la app (sonido/Sonidos.kt, `res/raw/notificacion`) desde el 6/11/2026: el sonido de
+     * un canal no cambia una vez creado, así que es un canal nuevo y el antiguo («avisos») se borra con los que sobran.
+     * El push es solo de datos y el canal lo elige la app ([ServicioPush]): la plataforma no fija ninguno.
+     */
+    const val CANAL_AVISOS = "avisos-con-sonido"
     const val CANAL_MENSAJES = "mensajes"
 
     /** El del servicio de entrada con Google (cuenta/ServicioDeEntrada.kt). */
@@ -96,6 +105,10 @@ object PushLibros {
             NotificationChannel(CANAL_AVISOS, "Avisos", NotificationManager.IMPORTANCE_HIGH).apply {
                 description = "Lo que te pasa en Libros: tus peticiones, tus clubes y tus reportes."
                 lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
+                setSound(
+                    Uri.Builder().scheme(ContentResolver.SCHEME_ANDROID_RESOURCE).authority(contexto.packageName).appendPath(R.raw.notificacion.toString()).build(),
+                    AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build(),
+                )
             },
         )
         gestor.createNotificationChannel(

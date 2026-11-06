@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.biblioteca
 
+import es.yosiftware.libros.sonido.CuandoSuena
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -206,6 +207,7 @@ class BibliotecaViewModel(
             guardando = false
             ponerUniversos(nuevos)
             avisos.exito("Biblioteca personal actualizada")
+            CuandoSuena.alGuardarEstado(actual.valores.estado, actual.original.estado, entra = false)?.let(avisos::sonar)
             cerrarEditor()
         }
     }
@@ -305,6 +307,7 @@ class BibliotecaViewModel(
             ponerDetalle(detalle, actual.antologiaId)
             edicionDeSeccion = null
             avisos.exito("Sección actualizada")
+            CuandoSuena.alGuardarEstado(cambio.estado, actual.original.estado, entra = false)?.let(avisos::sonar)
         }
     }
 

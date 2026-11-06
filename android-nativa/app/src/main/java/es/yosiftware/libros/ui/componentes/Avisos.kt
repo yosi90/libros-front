@@ -55,6 +55,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import es.yosiftware.libros.datos.ErrorDeLibros
+import es.yosiftware.libros.sonido.Sonador
+import es.yosiftware.libros.sonido.Sonido
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.tema.Alturas
@@ -73,9 +75,9 @@ import kotlin.math.abs
 /**
  * Los avisos de la app (`AppToastService` y `SnackbarModule`): uno por app, en [LocalAvisos]. `exito`, `error`… son
  * `openSnackBar(…, 'successBar' | 'errorBar' …)`, y [deError] es `openApiError`: título genérico de la pantalla y el
- * mensaje concreto del servidor.
+ * mensaje concreto del servidor. Cada error suena (el único sitio del sonido de error) y [sonar] da voz a lo demás.
  */
-class Avisos : Avisador {
+class Avisos(private val sonador: Sonador = Sonador.MUDO) : Avisador {
     internal val cola = ColaDeAvisos()
 
     /** Cambia con cada aviso nuevo o quitado: lo que mira el anfitrión para repintar. */
@@ -104,6 +106,8 @@ class Avisos : Avisador {
     override fun informar(mensaje: String, titulo: String?, clave: String?) = info(mensaje, titulo, clave)
 
     override fun avisarDelSistema(mensaje: String, titulo: String?, clave: String?) = sistema(mensaje, titulo, clave)
+
+    override fun sonar(sonido: Sonido) = sonador.reproducir(sonido)
 
     override fun deError(error: ErrorDeLibros, generico: String) {
         if (error.bloqueoPorNormas) return
@@ -137,7 +141,9 @@ class Avisos : Avisador {
         accion: AccionDeAviso? = null,
         duracionMs: Long? = null,
     ) {
-        if (cola.mostrar(tipo, mensaje, SystemClock.elapsedRealtime(), titulo, clave, icono, accion, duracionMs) != null) version++
+        if (cola.mostrar(tipo, mensaje, SystemClock.elapsedRealtime(), titulo, clave, icono, accion, duracionMs) == null) return
+        version++
+        if (tipo == TipoDeAviso.ERROR) sonador.reproducir(Sonido.ERROR)
     }
 }
 

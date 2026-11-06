@@ -1,5 +1,7 @@
 package es.yosiftware.libros.ui.mensajes
 
+import es.yosiftware.libros.sonido.Sonido
+import es.yosiftware.libros.sonido.Sonador
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.red.Llegada
 import es.yosiftware.libros.datos.repositorios.RepositorioChat
@@ -62,6 +64,7 @@ class ConversacionViewModelTest {
         val eventos: MutableSharedFlow<Llegada>,
         val escribiendo: MutableList<Long>,
         val crear: () -> ConversacionViewModel,
+        val sonados: MutableList<Sonido>,
     )
 
     private var reloj = Instant.parse("2026-10-25T10:05:00Z")
@@ -85,13 +88,14 @@ class ConversacionViewModelTest {
         val eventos = MutableSharedFlow<Llegada>(extraBufferCapacity = 16)
         val escribiendo = mutableListOf<Long>()
         var siguiente = 0
+        val sonados = mutableListOf<Sonido>()
         val crear = {
             ConversacionViewModel(
                 ambito, 7, p.chat, bandeja, eventos, { escribiendo += it }, carpeta.root,
-                ahora = { reloj }, nuevoIdCliente = { "cliente-${++siguiente}" },
+                ahora = { reloj }, nuevoIdCliente = { "cliente-${++siguiente}" }, sonar = Sonador { sonados += it },
             )
         }
-        return Montaje(p, sesion, bandeja, eventos, escribiendo, crear)
+        return Montaje(p, sesion, bandeja, eventos, escribiendo, crear, sonados)
     }
 
     @Test
@@ -170,6 +174,35 @@ class ConversacionViewModelTest {
         m.eventos.emit(Llegada.Evento(8, "chat.mensaje", JSONObject("""{"conversacion": 99, "accion": "creado", "mensaje": ${mensaje(50, "B", "De otra")}}"""), null))
         runCurrent()
         assertFalse(vm.mensajes.any { it.id == 1L || it.id == 50L })
+    }
+
+    @Test
+    fun suenaAlEnviarYAlLlegarUnMensajeDeOtraPersonaConLaConversacionALaVista() = runTest {
+        val m = montar()
+        val vm = m.crear()
+        runCurrent()
+        // Cargar el historial no suena; lo que llega con la conversación sin ver, tampoco.
+        assertTrue(m.sonados.isEmpty())
+        fun llega(secuencia: Long, accion: String, crudo: String) =
+            Llegada.Evento(secuencia, "chat.mensaje", JSONObject("""{"conversacion": 7, "accion": "$accion", "mensaje": $crudo}"""), null)
+        m.eventos.emit(llega(1, "creado", mensaje(3, "B", "Sin ver")))
+        runCurrent()
+        assertTrue(m.sonados.isEmpty())
+
+        vm.alVerse(true)
+        m.eventos.emit(llega(2, "creado", mensaje(4, "B", "Hola otra vez")))
+        // Ni el eco de uno propio, ni un susurro, ni una edición.
+        m.eventos.emit(llega(3, "creado", mensaje(5, "A", "Mío")))
+        m.eventos.emit(llega(4, "creado", mensaje(6, "B", "Bajito", ""","susurro": true""")))
+        m.eventos.emit(llega(5, "editado", mensaje(4, "B", "Hola de nuevo")))
+        runCurrent()
+        assertEquals(listOf(Sonido.MENSAJE_RECIBIDO), m.sonados)
+
+        m.plataforma.respuestas["POST /v1/chat/conversaciones/7/mensajes"] = mensaje(7, "A", "Enviado", ""","propio": true, "idCliente": "cliente-1"""")
+        vm.escribir("Enviado")
+        vm.enviar()
+        runCurrent()
+        assertEquals(listOf(Sonido.MENSAJE_RECIBIDO, Sonido.MENSAJE_ENVIADO), m.sonados)
     }
 
     @Test

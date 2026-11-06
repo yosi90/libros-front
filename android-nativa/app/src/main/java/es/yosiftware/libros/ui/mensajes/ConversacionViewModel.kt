@@ -1,5 +1,7 @@
 package es.yosiftware.libros.ui.mensajes
 
+import es.yosiftware.libros.sonido.Sonido
+import es.yosiftware.libros.sonido.Sonador
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -49,6 +51,8 @@ class ConversacionViewModel(
     private val borradores: File?,
     private val ahora: () -> Instant = Instant::now,
     private val nuevoIdCliente: () -> String = { UUID.randomUUID().toString() },
+    /** Los sonidos: lo enviado, lo que llega de otra persona con la conversación a la vista y lo borrado. */
+    private val sonar: Sonador = Sonador.MUDO,
 ) : ViewModelDeCuenta(ambito) {
     private val yo: String? = ambito.identidad.value?.cuentaId
 
@@ -308,6 +312,7 @@ class ConversacionViewModel(
                 mensajes = mensajes.filterNot { it.id == clave }
             }
             val mensaje = traducir(enviado)
+            sonar.reproducir(Sonido.MENSAJE_ENVIADO)
             envios = envios + (mensaje.id to EstadoDeEnvio.ENVIADO)
             if (mensajes.any { it.id == mensaje.id }) sustituir(mensaje) else insertar(mensaje)
             marcarLeido()
@@ -357,6 +362,7 @@ class ConversacionViewModel(
         val mensaje = borrarPendiente ?: return
         borrarPendiente = null
         cargar({ chat.borrar(id, mensaje.id) }, alFallar = { fallo -> errorDeAccion = fallo.mensajeO("No se ha podido borrar el mensaje.") }) {
+            sonar.reproducir(Sonido.BORRAR)
             sustituir(mensaje.copy(eliminado = true, texto = "", reacciones = ReaccionesDelChat(), permisos = PermisosDeMensaje.NINGUNO))
         }
     }
@@ -460,6 +466,7 @@ class ConversacionViewModel(
                 if (crudo != null && crudo.opt("id") is Number) {
                     val mensaje = traducir(MensajeDePlataforma.de(crudo))
                     mensaje.remitenteId?.let(::ocultarEscribiendo)
+                    if (suenaAlLlegar(datos.optString("accion"), mensaje)) sonar.reproducir(Sonido.MENSAJE_RECIBIDO)
                     insertar(mensaje)
                     marcarLeido()
                 } else {
@@ -626,6 +633,13 @@ class ConversacionViewModel(
     }
 
     // --- Lo común. ---
+
+    /**
+     * Si suena lo que llega: un mensaje nuevo de otra persona (ni el eco de uno propio, ni un aviso del chat, ni un
+     * susurro, del que no se avisa), con la conversación a la vista. Un mensaje editado o ya cargado no suena.
+     */
+    private fun suenaAlLlegar(accion: String, mensaje: MensajeDelChat): Boolean =
+        aLaVista && accion == "creado" && !mensaje.propio && !mensaje.sistema && !mensaje.susurro && mensajes.none { it.id == mensaje.id }
 
     private fun traducir(mensaje: MensajeDePlataforma): MensajeDelChat = TextosDelChat.mensaje(mensaje, yo, puedeEscribir, ahora())
 

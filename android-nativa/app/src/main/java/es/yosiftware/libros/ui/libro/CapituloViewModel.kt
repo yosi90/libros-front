@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.sonido.Sonido
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -138,7 +139,9 @@ class CapituloViewModel(
         return true
     }
 
+    /** «Eliminar escena» (en su menú, que hace de confirmación): suena al quitarla. */
     fun quitarEscena(clave: Long) {
+        if (capitulo?.escenas?.any { it.clave == clave } == true) avisos.sonar(Sonido.BORRAR)
         cambiar { capitulo ->
             val escena = capitulo.escenas.firstOrNull { it.clave == clave } ?: return@cambiar capitulo
             capitulo.copy(escenas = capitulo.escenas - escena, borradas = if (escena.id > 0) capitulo.borradas + escena.id else capitulo.borradas)
@@ -291,7 +294,11 @@ class CapituloViewModel(
         var actual = capitulo ?: return
         resultado.capitulo?.let { nuevo ->
             guardado = guardado.copy(capitulo = resultado.envioDelCapitulo)
-            if (actual.esNuevo) actual = actual.copy(id = nuevo.id)
+            if (actual.esNuevo) {
+                actual = actual.copy(id = nuevo.id)
+                // Un capítulo nuevo es lo que avanza la lectura (sus páginas): suena una vez, al crearlo.
+                avisos.sonar(Sonido.PAGINA)
+            }
         }
         val ids = resultado.escenas.associate { (clave, escena, _) -> clave to escena.id }
         actual = actual.copy(

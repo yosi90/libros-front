@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.sonido.Sonido
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -201,6 +202,7 @@ class NotasViewModel(
             porBorrar = null
             if (editor?.id == id) editor = null
             avisos.exito("Nota eliminada")
+            avisos.sonar(Sonido.BORRAR)
         }
     }
 

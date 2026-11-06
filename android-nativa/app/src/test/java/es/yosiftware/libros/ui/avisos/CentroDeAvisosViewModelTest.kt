@@ -3,6 +3,7 @@ package es.yosiftware.libros.ui.avisos
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.modelos.AvisoDelCentro
 import es.yosiftware.libros.datos.red.Llegada
+import es.yosiftware.libros.sonido.Sonido
 import es.yosiftware.libros.datos.repositorios.RepositorioAvisos
 import es.yosiftware.libros.ui.cuenta.SesionFalsa
 import es.yosiftware.libros.ui.cuenta.conSesion
@@ -34,7 +35,7 @@ class CentroDeAvisosViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private class Montaje(val sesion: SesionFalsa, val llamadas: MutableList<String>, val respuestas: MutableMap<String, String>, val fallos: MutableMap<String, ErrorSesion>, val eventos: MutableSharedFlow<Llegada>, val vm: CentroDeAvisosViewModel)
+    private class Montaje(val sesion: SesionFalsa, val llamadas: MutableList<String>, val respuestas: MutableMap<String, String>, val fallos: MutableMap<String, ErrorSesion>, val eventos: MutableSharedFlow<Llegada>, val vm: CentroDeAvisosViewModel, val sonados: MutableList<Sonido>)
 
     private fun aviso(id: Int, leida: Boolean = false, acciones: String = "[]", resuelta: String = "null") =
         """{"id": $id, "web": {"clave": "libros", "nombre": "Libros", "icono": "/v1/webs/libros/imagenes/icono?v=2"}, "tipo": {"clave": "peticion.resuelta"},
@@ -66,7 +67,8 @@ class CentroDeAvisosViewModelTest {
             respuestas[clave].orEmpty()
         }
         val eventos = MutableSharedFlow<Llegada>(extraBufferCapacity = 8)
-        return Montaje(sesion, llamadas, respuestas, fallos, eventos, CentroDeAvisosViewModel(ambito, repositorio, eventos))
+        val sonados = mutableListOf<Sonido>()
+        return Montaje(sesion, llamadas, respuestas, fallos, eventos, CentroDeAvisosViewModel(ambito, repositorio, eventos) { sonados += it }, sonados)
     }
 
     @Test
@@ -150,6 +152,32 @@ class CentroDeAvisosViewModelTest {
         runCurrent()
         assertFalse(m.vm.abierto)
         assertTrue(m.vm.lista.isEmpty())
+    }
+
+    @Test
+    fun unLogroDeLibrosRecienConseguidoSuena() = runTest {
+        val m = montar()
+        runCurrent()
+        fun logro(web: String, marca: String? = null, tipo: String = "logro.conseguido"): JSONObject {
+            val deMarca = if (marca == null) "null" else "{\"clave\": \"$marca\"}"
+            return JSONObject(
+                """{"notificacion": {"id": 4, "web": {"clave": "$web", "nombre": "W"}, "tipo": {"clave": "$tipo"}, "titulo": "Logro",
+                    "marca": $deMarca, "logro": {"imagen": "/img"}}}""",
+            )
+        }
+        m.eventos.emit(Llegada.Evento(1, "notificacion.creada", logro("libros"), null))
+        runCurrent()
+        assertEquals(listOf(Sonido.LOGRO), m.sonados)
+        // De otra web, otra notificación de Libros, un cambio (leída…) o sin la notificación: nada.
+        m.eventos.emit(Llegada.Evento(2, "notificacion.creada", logro("otra"), null))
+        m.eventos.emit(Llegada.Evento(3, "notificacion.creada", logro("libros", tipo = "peticion.resuelta"), null))
+        m.eventos.emit(Llegada.Evento(4, "notificacion.cambiada", logro("libros"), null))
+        m.eventos.emit(Llegada.Evento(5, "notificacion.creada", JSONObject(), null))
+        runCurrent()
+        assertEquals(listOf(Sonido.LOGRO), m.sonados)
+        // En nombre de Libros (`marca`), sí; en nombre de otra, no.
+        assertTrue(esLogroDeLibros(logro("social", marca = "libros")))
+        assertFalse(esLogroDeLibros(logro("libros", marca = "otra")))
     }
 
     @Test

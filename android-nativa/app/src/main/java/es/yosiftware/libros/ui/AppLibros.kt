@@ -1,5 +1,7 @@
 package es.yosiftware.libros.ui
 
+import es.yosiftware.libros.sonido.Sonador
+import es.yosiftware.libros.sonido.CuandoSuena
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -150,12 +152,15 @@ fun AppLibros(app: LibrosApp) {
     val perfiles: PerfilesViewModel = viewModel {
         PerfilesViewModel(app.datos.ambito, acceso?.cuentas ?: MutableStateFlow(emptyList()), app.datos.perfiles, app.datos.apiPlataforma)
     }
+    // Los sonidos de la app (sonido/), solo con ella a la vista: lo que llegue en segundo plano no suena.
+    val sonidos = remember(app) { Sonador { sonido -> if (app.aLaVista) app.datos.sonidos.reproducir(sonido) } }
     // Los avisos flotantes de toda la app (app-toast-host), y la Biblioteca y el Catálogo (hito 8), que son de la cuenta.
-    val avisos = remember { Avisos() }
+    val avisos = remember { Avisos(sonidos) }
     // Un push de la cuenta activa con la app delante: un aviso flotante con «Abrir» en vez del aviso del sistema (D4).
     LaunchedEffect(Unit) {
         app.avisoRecibido.collect { push ->
             avisos.exitoConAccion(push.cuerpo ?: push.titulo, AccionDeAviso("Abrir") { app.aperturas.value = AperturaDeAviso.de(push) }, titulo = push.titulo)
+            CuandoSuena.alLlegarUnPush(push)?.let(sonidos::reproducir)
         }
     }
     val biblioteca: BibliotecaViewModel = viewModel {
@@ -183,7 +188,7 @@ fun AppLibros(app: LibrosApp) {
     val actividad: ActividadViewModel = viewModel { ActividadViewModel(app.datos.ambito, app.datos.novedades) }
     val mensajes: MensajesViewModel = viewModel { MensajesViewModel(app.datos.ambito, app.datos.bandeja, app.datos.chat) }
     val centroDeAvisos: CentroDeAvisosViewModel = viewModel {
-        CentroDeAvisosViewModel(app.datos.ambito, app.datos.avisos, app.datos.tiempoReal?.eventos ?: emptyFlow())
+        CentroDeAvisosViewModel(app.datos.ambito, app.datos.avisos, app.datos.tiempoReal?.eventos ?: emptyFlow(), sonidos)
     }
     // El contador de la campana: al volver a la app y cada minuto con ella delante.
     val cicloDeLaApp = LocalLifecycleOwner.current.lifecycle
@@ -441,6 +446,7 @@ fun AppLibros(app: LibrosApp) {
                                                                 eventos = app.datos.tiempoReal?.eventos ?: emptyFlow(),
                                                                 avisarEscribiendo = { app.datos.tiempoReal?.escribiendo(it) },
                                                                 borradores = File(app.filesDir, "borradores"),
+                                                                sonar = sonidos,
                                                             )
                                                         }
                                                         conversacion.alPerderAcceso = mensajes::cerrar
@@ -460,6 +466,7 @@ fun AppLibros(app: LibrosApp) {
                                                             app.datos.ambito, id, app.datos.clubes, app.datos.espacios, app.datos.estadisticas, centroDeAcceso,
                                                             miId = { app.datos.usuario.miId() }, universos = { biblioteca.universos },
                                                             canal = app.datos.tiempoReal,
+                                                            sonar = sonidos,
                                                         )
                                                     }
                                                     club.alSalir = { aviso ->

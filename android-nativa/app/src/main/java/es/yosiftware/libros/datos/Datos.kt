@@ -31,13 +31,14 @@ import es.yosiftware.libros.datos.repositorios.RepositorioPeticiones
 import es.yosiftware.libros.datos.repositorios.RepositorioReportes
 import es.yosiftware.libros.datos.repositorios.RepositorioUsuario
 import es.yosiftware.libros.push.PushDeLaCuenta
+import es.yosiftware.libros.sonido.Sonidos
 import es.yosiftware.libros.ui.mensajes.BandejaDeChat
 import es.yosiftware.sesion.SesionYosiftware
 import kotlinx.coroutines.CoroutineScope
 
 /**
  * Los datos de la app, uno por proceso (`LibrosApp.datos`): el ámbito de la cuenta, el único cliente de la API de
- * Libros, el de la plataforma, el estado de la red y los repositorios por área. Sin sesión configurada (sin el
+ * Libros, el de la plataforma, el estado de la red, los repositorios por área y los sonidos. Sin sesión configurada (sin el
  * `google-services.json`), las llamadas a la API fallan con `sin_sesion` y no hay cliente de la plataforma.
  */
 class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScope) {
@@ -112,4 +113,7 @@ class Datos(contexto: Context, sesion: SesionYosiftware?, alcance: CoroutineScop
 
     /** El push de las cuentas en este móvil (push/). */
     val push = PushDeLaCuenta(contexto, sesion, ambito, dispositivos, entorno)
+
+    /** Los sonidos de la app (sonido/), precargados una vez. */
+    val sonidos = Sonidos(contexto)
 }

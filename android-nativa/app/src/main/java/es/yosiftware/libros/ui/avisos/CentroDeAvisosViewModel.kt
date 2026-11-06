@@ -1,5 +1,9 @@
 package es.yosiftware.libros.ui.avisos
 
+import es.yosiftware.libros.push.FiltroDePush
+import org.json.JSONObject
+import es.yosiftware.libros.sonido.Sonido
+import es.yosiftware.libros.sonido.Sonador
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -19,12 +23,13 @@ import kotlinx.coroutines.launch
  * La campana y su panel: el centro de notificaciones de la plataforma (`NOTIFICACIONES.md`, «Tu propio centro»), con el
  * aspecto del centro de la APK de Capacitor (decisión D3: un panel bajo la app bar). Es de la cuenta: al cambiar se
  * vacía. Los contadores se releen al volver a la app, cada minuto con ella delante (lo pide la pantalla), al llegar un
- * push y con los eventos `notificacion.*` del tiempo real.
+ * push y con los eventos `notificacion.*` del tiempo real. Un logro de Libros recién conseguido suena ([esLogroDeLibros]).
  */
 class CentroDeAvisosViewModel(
     ambito: AmbitoDeCuenta,
     private val avisos: RepositorioAvisos,
     eventos: Flow<Llegada>,
+    private val sonar: Sonador = Sonador.MUDO,
 ) : ViewModelDeCuenta(ambito) {
     var contadores by mutableStateOf(Contadores.CERO)
         private set
@@ -55,7 +60,10 @@ class CentroDeAvisosViewModel(
         viewModelScope.launch {
             eventos.collect { llegada ->
                 when {
-                    llegada is Llegada.Evento && llegada.tipo.startsWith("notificacion.") -> alCambiarEnLaPlataforma()
+                    llegada is Llegada.Evento && llegada.tipo.startsWith("notificacion.") -> {
+                        if (llegada.tipo == "notificacion.creada" && esLogroDeLibros(llegada.datos)) sonar.reproducir(Sonido.LOGRO)
+                        alCambiarEnLaPlataforma()
+                    }
                     llegada is Llegada.Conectado && llegada.reconexion -> alCambiarEnLaPlataforma()
                 }
             }
@@ -206,4 +214,14 @@ class CentroDeAvisosViewModel(
         const val TEXTO_SIN_LEER = "No hemos podido leer tus notificaciones."
         const val NO_SE_HA_PODIDO = "No se ha podido hacer."
     }
+}
+
+/**
+ * Si `notificacion.creada` trae un logro de Libros (`logro.conseguido`, LOGROS.md): de su web o en su nombre (`marca`).
+ * Los que Libros concede con su fecha antigua (los de hace más de un día) no crean aviso: solo suena el recién conseguido.
+ */
+internal fun esLogroDeLibros(datos: JSONObject): Boolean {
+    val notificacion = datos.optJSONObject("notificacion") ?: return false
+    val aviso = runCatching { AvisoDelCentro.de(notificacion) }.getOrNull() ?: return false
+    return aviso.tipo == "logro.conseguido" && (aviso.marca ?: aviso.web) == FiltroDePush.WEB
 }

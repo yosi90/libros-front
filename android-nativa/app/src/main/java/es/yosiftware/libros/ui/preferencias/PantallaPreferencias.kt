@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.preferencias
 
+import es.yosiftware.libros.sonido.PreferenciaDeSonidos
 import es.yosiftware.libros.ui.libro.EscenaAlAbrir
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.selection.toggleable
@@ -133,33 +134,49 @@ private fun Privacidad(alAbrir: () -> Unit) {
     if (gratuidad) EncimaDeTodo(alCerrar = { gratuidad = false }) { HojaDeGratuidad(abierta = true, alCerrar = { gratuidad = false }) }
 }
 
-/** «Lectura y escritura»: la escena del título al abrir un libro (IA2), encendida por defecto, y el dictado (IA3). Son del móvil, no de la cuenta. */
+/**
+ * «Lectura y escritura»: la escena del título al abrir un libro (IA2), los sonidos de la app y el dictado (IA3). Son
+ * del móvil, no de la cuenta; la escena y los sonidos, encendidos por defecto.
+ */
 @Composable
 private fun Lectura() {
-    val colores = LocalColores.current
     val contexto = LocalContext.current
-    var encendida by remember { mutableStateOf(EscenaAlAbrir.encendida(contexto)) }
+    var escena by remember { mutableStateOf(EscenaAlAbrir.encendida(contexto)) }
+    Interruptor(
+        "Escena al abrir un libro",
+        "Si el libro tiene tu título con cabecera animada, se ve a pantalla completa unos segundos al abrirlo. Toca para entrar antes.",
+        escena,
+    ) {
+        escena = it
+        EscenaAlAbrir.cambiar(contexto, it)
+    }
+    var sonidos by remember { mutableStateOf(PreferenciaDeSonidos.encendidos(contexto)) }
+    Interruptor("Sonidos", null, sonidos) {
+        sonidos = it
+        PreferenciaDeSonidos.cambiar(contexto, it)
+    }
+    DictadoPorVoz()
+}
+
+/** Una preferencia que se enciende y se apaga: toda la fila es el interruptor; [explicacion], solo si hace falta. */
+@Composable
+private fun Interruptor(titulo: String, explicacion: String?, encendida: Boolean, alCambiar: (Boolean) -> Unit) {
+    val colores = LocalColores.current
     Row(
         Modifier.fillMaxWidth().heightIn(min = 68.dp).clip(RoundedCornerShape(Radios.sm))
-            .toggleable(value = encendida, role = Role.Switch) {
-                encendida = it
-                EscenaAlAbrir.cambiar(contexto, it)
-            }
+            .toggleable(value = encendida, role = Role.Switch, onValueChange = alCambiar)
             .padding(vertical = Espacios.e3),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Escena al abrir un libro", color = colores.tinta, style = Textos.cuerpo.copy(fontSize = rem(0.84), fontWeight = FontWeight.Bold))
-            Text(
-                "Si el libro tiene tu título con cabecera animada, se ve a pantalla completa unos segundos al abrirlo. Toca para entrar antes.",
-                color = colores.tintaSuave,
-                style = Textos.cuerpo.copy(fontSize = rem(0.76), lineHeight = rem(0.76 * 1.45)),
-            )
+            Text(titulo, color = colores.tinta, style = Textos.cuerpo.copy(fontSize = rem(0.84), fontWeight = FontWeight.Bold))
+            if (explicacion != null) {
+                Text(explicacion, color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.76), lineHeight = rem(0.76 * 1.45)))
+            }
         }
         Switch(checked = encendida, onCheckedChange = null)
     }
-    DictadoPorVoz()
 }
 
 /** «Permisos del móvil» (`mobile-app-permissions`), solo con las notificaciones, que se vuelven a mirar al volver a la app. */

@@ -1,6 +1,7 @@
 package es.yosiftware.libros.ui.componentes
 
 import es.yosiftware.libros.datos.ErrorDeLibros
+import es.yosiftware.libros.sonido.Sonido
 
 /** Lo que los ViewModels usan de [Avisos], para poder probarlos sin Android. */
 interface Avisador {
@@ -18,6 +19,9 @@ interface Avisador {
 
     /** Un aviso del sistema (`showSystem`), como «Cambios recuperados». */
     fun avisarDelSistema(mensaje: String, titulo: String? = null, clave: String? = null) = exito(mensaje)
+
+    /** Un sonido por algo que ha salido bien (un libro terminado, un borrado…); los errores ya suenan con [error]. */
+    fun sonar(sonido: Sonido) = Unit
 
     /** Sin avisos (las muestras y las pruebas que no los miran). */
     object Mudo : Avisador {

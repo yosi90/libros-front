@@ -1,5 +1,7 @@
 package es.yosiftware.libros.ui.catalogo
 
+import es.yosiftware.libros.sonido.Sonido
+import es.yosiftware.libros.sonido.CuandoSuena
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -360,10 +362,9 @@ class CatalogoViewModel(
             guardandoEdiciones = false
             ponerEdiciones(obra, respuesta)
             releerColeccion()
-            avisos.exito(
-                if (respuesta.ediciones.firstOrNull { it.id == elegida.id }?.enMiBiblioteca == true) "Edición añadida a tu biblioteca"
-                else "Edición retirada; la obra y su historial permanecen en tu biblioteca",
-            )
+            val anadida = respuesta.ediciones.firstOrNull { it.id == elegida.id }?.enMiBiblioteca == true
+            avisos.exito(if (anadida) "Edición añadida a tu biblioteca" else "Edición retirada; la obra y su historial permanecen en tu biblioteca")
+            if (anadida) avisos.sonar(Sonido.ESTANTERIA)
         }
     }
 
@@ -382,6 +383,7 @@ class CatalogoViewModel(
             alCambiarLaColeccion(universos)
             ponerEstado(obra, nuevo, buscarEnLaColeccion(universos, obra))
             avisarDeAlta(obra)
+            CuandoSuena.alGuardarEstado(nuevo, null, entra = true)?.let(avisos::sonar)
         }
     }
 
@@ -444,6 +446,7 @@ class CatalogoViewModel(
             guardando = false
             alCambiarLaColeccion(universos)
             if (estaba) avisos.exito("Biblioteca personal actualizada") else avisarDeAlta(obra)
+            CuandoSuena.alGuardarEstado(actual.valores.estado, actual.original.estado, entra = !estaba)?.let(avisos::sonar)
             cerrarEditor()
             cargarCatalogo()
         }
@@ -555,6 +558,7 @@ class CatalogoViewModel(
             }
             alCambiarLaColeccion(universos)
             avisos.exito("Edición añadida a tu biblioteca")
+            avisos.sonar(Sonido.ESTANTERIA)
         }
     }
 

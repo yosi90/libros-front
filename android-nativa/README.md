@@ -61,6 +61,10 @@ Clonadas de `mobile-statistics-view`, `statistics.component.ts` y `app-stat-rows
 - Rediseños en prueba (rama `apk/redisenos-prueba`, 6/11/2026): el capítulo con «Escenas plegadas» (`PantallaCapitulo`), la hoja de reparto y la @ del texto (`HojaDeReparto`, `RepartoDeEscena` y `editor/Menciones.kt`) y «Tu lectura» como panel denso (`PanelDeLectura` y `PantallaResumenDelLibro`).
 - Muestras de depuración: `MuestrasDeLibro` (la lista de vistas está en su documentación; `capitulo`, `capitulo-reparto`, `capitulo-datos` y `resumen-con-datos` enseñan los rediseños).
 
+## Los sonidos (`sonido/`)
+
+`Sonidos` (en `Datos`) precarga en un `SoundPool` los efectos de `res/raw/` (de `Libros API/scripts/ia_sonidos_apk.py`, ElevenLabs, 6/11/2026): logro, libro terminado, capítulo nuevo y progreso del club, alta en la biblioteca, chat, borrados confirmados y avisos de error; solo con la app a la vista, la preferencia «Sonidos» encendida y el timbre normal. El canal de avisos del push (`avisos-con-sonido`) suena con `notificacion`.
+
 ## Compilar
 
 Con el JDK 21 y el SDK de Android (en `local.properties`, `sdk.dir=…`, que no se versiona):
