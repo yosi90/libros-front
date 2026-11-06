@@ -36,11 +36,10 @@ class ErrorDeLibros(
 
     /**
      * La frase con el texto propio de la pantalla si el servidor no trajo la suya, como `getApiErrorMessage` y
-     * `getProductStateMessage` de la web: primero el `error` del servidor; después la tabla de códigos; sin conexión, el
+     * `getProductStateMessage` de la web: primero el `error` del servidor; sin conexión, el
      * aviso de conexión; y si no, [porDefecto].
      */
     fun mensajeO(porDefecto: String): String = textoDelServidor
-        ?: MensajesDeError.deCodigo(codigo)
         ?: if (sinConexion) mensaje else porDefecto
 
     override fun toString(): String = "ErrorDeLibros(codigo=$codigo, estadoHttp=$estadoHttp, campo=$campo)"
@@ -61,7 +60,7 @@ class ErrorDeLibros(
             val texto = json?.textoNoVacio("error")
             return ErrorDeLibros(
                 codigo = codigo,
-                mensaje = texto ?: MensajesDeError.deCodigo(codigo) ?: MensajesDeError.GENERICO,
+                mensaje = texto ?: MensajesDeError.GENERICO,
                 campo = json?.textoNoVacio("field"),
                 estadoHttp = estadoHttp,
                 idPeticion = json?.optJSONObject("debug")?.textoNoVacio("requestId"),

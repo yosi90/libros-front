@@ -117,12 +117,13 @@ class ClienteLibrosTest {
     }
 
     @Test
-    fun sinErrorSeUsaLaFraseDeSuCodeEnLaTablaDeLaApk() = runTest {
+    fun sinErrorDelServidorSeUsaElTextoDeLaPantalla() = runTest {
+        // Sin tabla de frases por `code`: la frase es la del `error` de la API (punto 12 de los duplicados).
         servidor.enqueue(respuesta(409, """{"success": false, "code": "anthology_section_collection_forbidden"}"""))
         val error = falla { cliente().patch("coleccion/libros/3/resena", JSONObject()) }
-        assertEquals("Esta sección se gestiona dentro de su antología.", error.mensaje)
+        assertEquals(MensajesDeError.GENERICO, error.mensaje)
         assertNull(error.textoDelServidor)
-        assertEquals("Esta sección se gestiona dentro de su antología.", error.mensajeO("Otra frase"))
+        assertEquals("Otra frase", error.mensajeO("Otra frase"))
     }
 
     @Test

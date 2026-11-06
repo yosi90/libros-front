@@ -99,7 +99,8 @@ Solo propuestas y peticiones a la plataforma (`C:\Users\Yosi\Desktop\administrac
 
 Solo propuestas: no se tocan ni la web ni el backend.
 
-- [ ] **12. Los textos de error por código, tercera copia**
+- [x] **12. Los textos de error por código, tercera copia**
+  - **Hecho (06/11/2026):** una sola fuente, la API de Libros. Sus frases pasan a ser las buenas de las tablas, con tildes (21 frases en 6 controladores: el club, sus lecturas, hitos, eventos, encuestas y miembros, publicar, las secciones de antología y la cuenta borrada); las que decían lo que hace la pantalla («Se ha actualizado el club») se quedan sin esa parte, que es de cada app. Fuera `productStateMessages` de la web y la tabla de `MensajesDeError.kt` de la APK: sin frase del servidor, la de la pantalla. El tiempo real propio de Libros, que era lo que llegaba sin `error`, se retiró con la adhesión.
   - **Descripción:** `datos/MensajesDeError.kt` (21-44) copia 22 frases de `src/app/shared/api-error-message.ts` de la web (punto 6 de `common/ROADMAP_ACTIVO_duplicados-frontend.md`), y el backend ya manda su `error`, con otro texto: `club_owner_limit_reached` es «Solo puedes crear un club» en `controllers/club_controller.py` (284) y «Ya administras un club propio. Solo puedes crear uno.» en las dos apps. La tabla solo se usa si la respuesta llega sin `error` (ERRORES.md).
   - **Por qué se necesita:** el mismo error, tres textos en tres repositorios.
   - **Qué se espera lograr:** decidir una fuente (la frase del backend) y quitar las tablas de la web y de la APK, o llevar sus frases al backend. Resolverlo junto con el punto 6 de la web.

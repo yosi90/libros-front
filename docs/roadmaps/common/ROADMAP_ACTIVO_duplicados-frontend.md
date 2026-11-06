@@ -50,7 +50,8 @@ Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y meno
 
 Solo propuestas: no se toca el backend.
 
-- [ ] **6. Catálogo de mensajes de error repetido en el frontend**
+- [x] **6. Catálogo de mensajes de error repetido en el frontend**
+  - **Hecho (06/11/2026):** una sola fuente, la API de Libros. Sus frases pasan a ser las buenas de las tablas, con tildes (21 frases en 6 controladores: el club, sus lecturas, hitos, eventos, encuestas y miembros, publicar, las secciones de antología y la cuenta borrada); las que decían lo que hace la pantalla («Se ha actualizado el club») se quedan sin esa parte, que es de cada app. Fuera `productStateMessages` de la web y la tabla de `MensajesDeError.kt` de la APK: sin frase del servidor, la de la pantalla. El tiempo real propio de Libros, que era lo que llegaba sin `error`, se retiró con la adhesión.
   - **En parte (29/10/2026):** fuera 34 de los 65 textos, los de códigos que ya no emite nadie (ni la API de Libros ni la plataforma: sanciones y moderación propias, chat y grupos propios, normas de uso antiguas, preferencias de notificaciones y la copia de seguridad del panel retirado); `isPolicyAcceptanceBlock` solo mira ya las normas de la plataforma. Los 31 que quedan son códigos vivos de la API, que ya manda su frase: la tabla solo se usa si llega sin ella. Quitarla del todo sigue pendiente de lo mismo que decía la propuesta.
   - **Descripción:** `src/app/shared/api-error-message.ts` (3-81) guarda unos 80 textos por `code` que el backend ya devuelve en `error` (ERRORES.md: «el backend garantiza que `error` es una frase final en español»). Solo se usan en `getProductStateMessage`, para errores que llegan sin frase (tiempo real). Muchos son de áreas que se retiran (sesión, chat, moderación, cuentas).
   - **Por qué se necesita:** el mismo texto vive en dos repositorios y puede divergir.

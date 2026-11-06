@@ -1,39 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-const productStateMessages: Record<string, string> = {
-    account_deleted: 'Tu cuenta de Yosiftware se ha borrado.',
-    platform_rules_acceptance_required: 'Acepta las normas de Libros para seguir.',
-    anthology_section_collection_forbidden: 'Esta sección se gestiona dentro de su antología.',
-    anthology_not_in_collection: 'Esta antología ya no está en tu biblioteca.',
-    anthology_section_relation_not_found: 'Esta sección ya no pertenece a la antología.',
-    club_owner_limit_reached: 'Ya administras un club propio. Solo puedes crear uno.',
-    club_post_target_unavailable: 'No puedes publicar en ese club o ya no está disponible.',
-    invalid_comment_spoiler: 'El contexto de spoiler del comentario no es válido.',
-    invalid_comment_spoiler_range: 'El rango de páginas del spoiler no es válido.',
-    invalid_comment_spoiler_chapter: 'El capítulo indicado no pertenece al libro del spoiler.',
-    comment_spoiler_incompatible_with_post: 'El spoiler del comentario debe respetar el contexto de la publicación.',
-    club_access_unavailable: 'Este club ya no está disponible para tu cuenta.',
-    club_moderator_required: 'Esta acción requiere permisos de moderación del club.',
-    club_owner_required: 'Esta acción requiere ser propietario del club.',
-    club_poll_closed: 'La encuesta ya está cerrada y se muestra en solo lectura.',
-    club_poll_vote_conflict: 'Tu voto cambió en otro momento. Revisa la encuesta antes de volver a votarla.',
-    club_reading_not_found: 'La lectura seleccionada ya no existe. Se ha actualizado el club.',
-    club_milestone_not_found: 'El hito ya no existe. Se ha actualizado el club.',
-    club_event_not_found: 'El evento ya no existe. Se ha actualizado el club.',
-    club_member_not_found: 'El miembro ya no pertenece al club. Se ha actualizado el listado.',
-    community_report_group_already_resolved: 'La denuncia ya había sido resuelta. Se ha actualizado la bandeja.',
-    invalid_admin_users_query: 'Los filtros o el cursor de usuarios no son válidos. Revisa la búsqueda.',
-    invalid_admin_user_detail_query: 'El cursor del expediente no es válido. Vuelve a abrir la ficha.',
-    invalid_admin_audit_query: 'Los filtros o el cursor de auditoría no son válidos.',
-    admin_user_not_found: 'La cuenta ya no existe. Se actualizará el listado.',
-    admin_role_self_change_forbidden: 'No puedes modificar tu propio rol.',
-    last_active_admin_required: 'Debe permanecer otra cuenta administradora activa.',
-    admin_role_required: 'Selecciona un rol válido.',
-    admin_role_reason_required: 'Explica el motivo del cambio de rol.',
-    admin_role_not_found: 'El rol seleccionado ya no está disponible.',
-    admin_backup_unavailable_in_qa: 'La descarga de backups no está disponible en el entorno de pruebas.',
-};
-
 export function getApiErrorCode(error: unknown): string | null {
     if (!error)
         return null;
@@ -189,6 +155,6 @@ export function getProductStateMessage(error: unknown, fallback: string = 'Esta 
     const backendText = getBackendErrorText(error);
     if (backendText)
         return backendText;
-    const code = getApiErrorCode(error);
-    return (code && productStateMessages[code]) || getApiErrorMessage(error, fallback);
+    // La frase es la de la API (una sola fuente; punto 12 de los duplicados): sin ella, la de la pantalla.
+    return getApiErrorMessage(error, fallback);
 }
