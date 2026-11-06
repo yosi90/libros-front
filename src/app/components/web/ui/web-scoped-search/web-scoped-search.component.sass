@@ -5,33 +5,15 @@
     width: min(100%, 440px)
 
 .web-search
+    @include web.search-field($font: "400 14px/1.4 var(--web-font-ui)", $outline: var(--web-color-outline), $color: var(--web-color-ink-subtle), $input-min-width: 120px)
     position: relative
-    display: flex
     flex-wrap: wrap
-    align-items: center
-    gap: var(--web-space-2)
     box-sizing: border-box
     width: 100%
     min-height: 42px
     padding: 4px var(--web-space-3)
-    color: var(--web-color-ink-subtle)
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline)
-    border-radius: var(--web-radius-md)
-
-    &:focus-within
-        border-color: var(--web-color-primary)
-        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
 
     input
-        flex: 1
-        min-width: 120px
-        color: var(--web-color-ink)
-        font: 400 14px/1.4 var(--web-font-ui)
-        background: transparent
-        border: 0
-        outline: 0
-
         &::placeholder
             color: var(--web-color-ink-subtle)
 

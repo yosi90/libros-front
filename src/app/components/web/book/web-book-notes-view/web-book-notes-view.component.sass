@@ -54,29 +54,10 @@
     gap: var(--web-space-2)
 
 .search
-    display: flex
-    align-items: center
-    gap: var(--web-space-2)
+    @include web.search-field
     min-width: min(280px, 100%)
     min-height: 40px
     padding: 0 var(--web-space-3)
-    color: var(--web-color-ink-muted)
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline-strong)
-    border-radius: var(--web-radius-md)
-
-    &:focus-within
-        border-color: var(--web-color-primary)
-        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
-
-    input
-        flex: 1
-        min-width: 0
-        color: var(--web-color-ink)
-        font: 14px/1 var(--web-font-ui)
-        background: transparent
-        border: 0
-        outline: 0
 
 // ---------- Editor ----------
 

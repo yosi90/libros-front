@@ -14,7 +14,7 @@ Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y meno
   - **Peligros si se mantiene como estaba:** que una pantalla nueva llame a la variante equivocada o se olvide de una de las dos.
   - **Peligros del cambio:** toca la API pública de dos servicios y sus pruebas; los llamadores que solo trabajan con libros (`book.component`, `floating-reading`, `book-statistics`) tendrían que pasar el tipo.
 
-- [ ] **2. Una base común para los getters de presentación de los containers**
+- [x] **2. Una base común para los getters de presentación de los containers**
   - **Se queda (29/10/2026):** ya sin Capacitor, son 23 getters de una línea sobre `PresentationModeService` y sus plantillas los leen con nombres distintos (`isWebView`, `mobileController`, `controller`). Quitarlos pediría tocar 23 contenedores y sus plantillas por una línea cada uno; como dice la propuesta, no compensa.
   - **Descripción:** 25 containers repiten `isMobilePresentation`, `isWebPresentation` y `mobileController` (getters de una línea sobre `PresentationModeService`). Propuesta: exponerlos desde una pieza común (por ejemplo, señales del servicio usadas directamente en las plantillas) y retirar las copias.
   - **Por qué se necesita:** es la misma decisión de presentación repetida en cada ruta.
@@ -30,7 +30,7 @@ Las líneas citadas son las de la base `5dc3120`. Orden: de más ganancia y meno
   - **Peligros si se mantiene como estaba:** un campo nuevo que llegue a libros y no a antologías por olvido.
   - **Peligros del cambio:** los tipos los distingue el contrato (`Tipo`, `Secciones`, `SeccionesProgreso`); hay que revisarlo contra `docs/backend/openapi.yaml` para no unir lo que el backend separa.
 
-- [ ] **4. Borrador de búsqueda por ámbitos en Biblioteca y Catálogo**
+- [x] **4. Borrador de búsqueda por ámbitos en Biblioteca y Catálogo**
   - **Se queda (29/10/2026):** `CatalogComponent` ya hereda de `PublicDetailHost`, así que no puede compartir una clase base con la Biblioteca, y unirlas por composición obligaría a tocar las seis vistas (Web, Wood y Mobile de las dos) por unas 25 líneas; además, cada una confirma el borrador a su manera (la Biblioteca en su almacén, el Catálogo recargando del servidor).
   - **Descripción:** `books.component.ts` y `catalog.component.ts` repiten `onDraftQueryInput`, `textFilterChips`, `getScopeLabel`, `onSearchInputBlur` y `toggleFilters` (unas 25 líneas), con estados distintos detrás (`LibrarySearchStateService` frente a `searchTerms` propios).
   - **Por qué se necesita:** el mismo comportamiento de búsqueda vive en dos containers.
@@ -67,7 +67,8 @@ Solo propuestas: no se toca el backend.
   - **Peligros si se mantiene como estaba:** divergencia silenciosa, como la de las fechas con hora.
   - **Peligros del cambio:** la validación local sigue haciendo falta para no esperar al servidor; lo que se unifica es la regla y sus casos de prueba, no el código.
 
-- [ ] **8. Catálogos de dominio: estados de lectura y grupos de personajes**
+- [x] **8. Catálogos de dominio: estados de lectura y grupos de personajes**
+  - **Se queda (06/11/2026):** el contrato ya los fija como enumeraciones cerradas (`docs/backend/openapi.yaml` de la API: los estados, `enum: [0, 1, 2, 3, 4, 5]`; `Grupo`, los seis nombres), así que la web no repite un catálogo que pueda cambiar sin avisar: añadir uno sería un cambio de contrato para la web y la APK a la vez. Lo que sí es de la web (los iconos y el orden narrativo) es presentación.
   - **Descripción:** `readingStatusOptions` (`shared/reading-status.ts` 14-21) repite `GET /estados`, y `CHARACTER_GROUP_ORDER` (`shared/character-groups.ts`, de esta auditoría) repite el orden de grupos del backend.
   - **Por qué se necesita:** si el backend añade un estado o un grupo, el frontend no lo sabrá.
   - **Qué se espera lograr:** cargar los catálogos del backend al iniciar, con los actuales como respaldo, o fijarlos en el contrato como enumeraciones cerradas.
@@ -87,6 +88,7 @@ Revisor en modo `corregir` sobre lo que la adhesión añade a la web (`478fc8e..
   - **Peligros del cambio:** son guardias de dos líneas con matices (el tiempo real se para y arranca con su propia generación; los ajustes lanzan `cambio_de_cuenta` para cortar el reintento): unificarlas sin cuidado cambiaría cuándo se descarta algo. Hacerlo con las pruebas de `account-switch.spec.ts` delante.
 
 - [ ] **10. Dos dobles del SDK de la plataforma (Karma y Playwright)**
+  - **Pedido a la plataforma (06/11/2026):** `administracion yosiftware/docs/peticiones/un-doble-oficial-del-sdk-web-para-las-pruebas.md`. Cuando el kit lo traiga, se retiran las dos imitaciones.
   - **Descripción:** `src/app/services/auth/yosiftware-sdk.testing.ts` (clase con espías de Jasmine) y `e2e/support/yosiftware-sdk-double.ts` (módulo que se inyecta como guion en la página) imitan cada uno el mismo SDK: estado y `alCambiar`, tokens (y uno por cuenta), `ajustes` con versión y conflicto, canales de los espacios y tiempo real. No se pueden unir dentro del proyecto sin escribir el doble en JavaScript plano y cargarlo en los dos sitios.
   - **Por qué se necesita:** cada cambio del SDK (kit nuevo) obliga a tocar dos imitaciones que pueden divergir del SDK y entre sí.
   - **Qué se espera lograr:** un doble oficial del SDK en el kit (`ecosistema-kit/`), con su comportamiento probado por la plataforma, que Libros cargue en Karma y en Playwright. Es lo que el kit debería dar: pedirlo con una petición a la plataforma antes de rehacerlo aquí.
@@ -97,7 +99,8 @@ Revisor en modo `corregir` sobre lo que la adhesión añade a la web (`478fc8e..
 
 Revisor en modo `corregir` sobre `main..60199408` (escenas plegadas, reparto con dos iconos, @ en el editor RTF y «Tu lectura» en casillas). Lo seguro se aplicó en la rama (commits `e2d0b642` a `7481872f`); esto queda como propuesta. Las líneas citadas son las de `7481872f`.
 
-- [ ] **11. Un solo campo de búsqueda Web (primitive `web.search-field`)**
+- [x] **11. Un solo campo de búsqueda Web (primitive `web.search-field`)**
+  - **Hecho (06/11/2026):** `@mixin search-field($font, $radius, $outline, $background, $color, $input-min-width)` en `src/assets/css/web/_primitives.sass` (con `null` no emite el fondo, el borde o el radio, para quien los toma de `web.card`), usado por las siete hojas; cada una conserva su alto, relleno, ancho, icono, placeholder y botón de limpiar. Las siete compilan con Dart Sass a las mismas reglas que antes (comparadas como conjuntos de selector, propiedad y valor): no cambia nada en pantalla.
   - **Descripción:** el campo con lupa (contenedor flex con borde, anillo de foco con `:focus-within` y `input` transparente sin borde) está copiado en siete hojas Web: `web-book-notes-view` (`.search`, l. 56), `web-book-search-view` (`.search`, l. 29), `web-chapter-view` (`.search`, l. 369, el panel de personajes y el reparto), `web-narrative-entity-view` (`.search`, l. 315), `web-community-view` (`.search`, l. 79), `web-manager-list-view` (`.manager__search`, l. 60) y `web-scoped-search` (`.web-search`, l. 7). Cambian la altura (36–48 px), el relleno, el radio y el tamaño de letra; el resto es igual. El rediseño del capítulo añadió un segundo uso en la misma hoja (el buscador del reparto) sin crear otra copia, pero la familia sigue sin primitive.
   - **Por qué se necesita:** el foco, los colores y el `input` sin borde de los buscadores se cambian hoy en siete sitios; `SASS_REUSE_AUDIT.md` pide extraer en el segundo uso semántico real y aquí hay siete.
   - **Qué se espera lograr:** `@mixin search-field($height: 40px, $radius: var(--web-radius-md))` en `src/assets/css/web/_primitives.sass` con el contenedor, el foco, el icono y el `input`; cada vista conserva su ancho, márgenes y lo que añada (botón de limpiar, chips de ámbito).
