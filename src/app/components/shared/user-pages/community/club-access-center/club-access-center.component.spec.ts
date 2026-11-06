@@ -88,7 +88,7 @@ describe('ClubAccessCenterComponent (espacios de la plataforma)', () => {
         component.accept(component.rows[0]);
 
         expect(component.errorAction).toBe('cambiar_cuenta');
-        expect(component.error).toContain('Entra con la cuenta');
+        expect(component.error).toBe('Es para otro correo.');
         expect(clubAccess.refresh).toHaveBeenCalledTimes(1);
         component.switchAccount();
         expect(session.cambiarCuenta).toHaveBeenCalled();
@@ -106,7 +106,7 @@ describe('ClubAccessCenterComponent (espacios de la plataforma)', () => {
 
     it('invitación caducada o ya usada: lo dice y recarga la bandeja', () => {
         const { component, spaces, clubAccess } = create();
-        spaces.accept.and.returnValue(throwError(() => new HttpErrorResponse({ status: 404, error: { code: 'invitacion_no_encontrada' } })));
+        spaces.accept.and.returnValue(throwError(() => new HttpErrorResponse({ status: 404, error: { code: 'invitacion_no_encontrada', error: 'Esta invitación ya no vale: caducó, la retiraron o ya se usó.' } })));
 
         component.accept(component.rows[0]);
 
