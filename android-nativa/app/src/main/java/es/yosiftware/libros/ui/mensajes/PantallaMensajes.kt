@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.FilaDeLista
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
@@ -190,30 +191,21 @@ private fun FormularioDeGrupo(vm: MensajesViewModel) {
 @Composable
 private fun FilaDeConversacion(conversacion: ConversacionDelChat, alPulsar: () -> Unit) {
     val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 64.dp).clip(forma).background(colores.superficie)
-            .border(1.dp, colores.contorno, forma)
-            .clickable(role = Role.Button, onClick = alPulsar)
-            .padding(Espacios.e3),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-    ) {
-        Box(Modifier.size(42.dp).clip(CircleShape).background(colores.contenedorPrimario), contentAlignment = Alignment.Center) {
-            Icon(painterResource(TextosDelChat.icono(conversacion)), contentDescription = null, tint = colores.primario)
-        }
-        Column(Modifier.weight(1f)) {
-            Text(TextosDelChat.titulo(conversacion), color = colores.tinta, style = Textos.filaPrincipal, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(
-                conversacion.vistaPrevia?.takeIf { it.isNotEmpty() } ?: "Sin mensajes aún",
-                Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria,
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-            )
+    FilaDeLista(
+        TextosDelChat.titulo(conversacion),
+        Modifier.fillMaxWidth(),
+        secundario = conversacion.vistaPrevia?.takeIf { it.isNotEmpty() } ?: "Sin mensajes aún",
+        icono = TextosDelChat.icono(conversacion),
+        borde = true,
+        lineasDelTitulo = 2,
+        alPulsar = alPulsar,
+        debajo = {
             val fecha = FechasDeClubes.diaYHora(conversacion.fechaUltimoMensaje)
             if (fecha.isNotEmpty()) {
                 Text(fecha, Modifier.padding(top = Espacios.e1), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.68)))
             }
-        }
+        },
+    ) {
         if (conversacion.noLeidos > 0) {
             Text(
                 if (conversacion.noLeidos > 99) "99+" else "${conversacion.noLeidos}",
