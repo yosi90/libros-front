@@ -30,7 +30,7 @@ import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { defaultEntryDescriptionText, isFeminineNarrativeEntity, narrativeEntityDisplayName } from '../../../../shared/narrative-entity-names';
-import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { plainTextToRtf, rtfToPlainText, rtfToSingleLineText } from '../../../../shared/rtf/rtf-text';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileNarrativeEntityViewComponent } from '../../../mobile/book/mobile-narrative-entity-view/mobile-narrative-entity-view.component';
@@ -490,7 +490,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     getItemDescription(item: any): string {
-        return this.cleanDescription(item.Entradas?.[0]?.Descripcion ?? item.Descripcion ?? '');
+        return rtfToSingleLineText(item.Entradas?.[0]?.Descripcion ?? item.Descripcion);
     }
 
     getItemMeta(item: any): string {
@@ -2516,10 +2516,6 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     private capitalize(value: string): string {
         return value.charAt(0).toUpperCase() + value.slice(1);
-    }
-
-    private cleanDescription(value: string): string {
-        return rtfToPlainText(value ?? '').replace(/\s+/g, ' ').trim();
     }
 
     private extractEntityIds(items: Array<number | { Id: number }> | undefined): number[] {

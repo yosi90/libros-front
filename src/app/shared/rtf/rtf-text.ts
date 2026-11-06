@@ -106,6 +106,11 @@ export function rtfToPlainText(value: string): string {
     return htmlToText(rtfToHtml(value)).trim();
 }
 
+/** El texto sin formato en una sola línea (saltos y espacios seguidos, uno): extractos de listas y búsquedas. */
+export function rtfToSingleLineText(value: string | null | undefined): string {
+    return rtfToPlainText(value ?? '').replace(/\s+/g, ' ').trim();
+}
+
 export function rtfToHtml(value: string): string {
     if (!value.trim().startsWith('{\\rtf'))
         return textToHtml(value);

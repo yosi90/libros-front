@@ -1,7 +1,7 @@
 import { Book } from '../interfaces/book';
 import { Character } from '../interfaces/character';
 import { SceneCharacterDetail } from '../interfaces/scene';
-import { rtfToPlainText } from './rtf/rtf-text';
+import { rtfToSingleLineText } from './rtf/rtf-text';
 import { findNarrativeEntityName } from './narrative-entity-names';
 import { foldText } from './text';
 
@@ -346,7 +346,7 @@ function buildChapterItems(book: Book): IndexedSearchItem[] {
             field('Orden', String(chapter.Orden ?? '')),
             ...((chapter.Escenas ?? []).flatMap(scene => [
                 field('Escena', scene.Nombre),
-                field('Texto de escena', toPlainText(scene.Descripcion)),
+                field('Texto de escena', rtfToSingleLineText(scene.Descripcion)),
                 field('Localización', scene.Localizacion?.Nombre ?? ''),
                 field('Personajes', getSceneCharacterNames(book, scene.PersonajesDetalle ?? scene.Personajes).join(', '))
             ]))
@@ -471,7 +471,7 @@ function getEntityFields(book: Book, category: Exclude<AdvancedSearchCategory, '
 function entryFields(entries: Array<{ Nombre?: string; Descripcion?: string }> | undefined): IndexedField[] {
     return (entries ?? []).flatMap(entry => [
         field('Título de entrada', entry.Nombre ?? ''),
-        field('Texto de entrada', toPlainText(entry.Descripcion ?? ''))
+        field('Texto de entrada', rtfToSingleLineText(entry.Descripcion))
     ]);
 }
 
@@ -509,10 +509,6 @@ function field(label: string, rawValue: string): IndexedField {
 
 function compactFields(fields: IndexedField[]): IndexedField[] {
     return fields.filter(field => !!field.normalized);
-}
-
-function toPlainText(value: string): string {
-    return rtfToPlainText(value ?? '').replace(/\s+/g, ' ').trim();
 }
 
 function compactSearchText(value: string): string {

@@ -1,10 +1,16 @@
-import { htmlToRtf, plainTextToRtf, rtfToHtml, rtfToPlainText } from './rtf-text';
+import { htmlToRtf, plainTextToRtf, rtfToHtml, rtfToPlainText, rtfToSingleLineText } from './rtf-text';
 
 describe('rtf-text', () => {
     it('keeps legacy plain RTF readable as plain text', () => {
         const rtf = plainTextToRtf('Linea uno\nLinea dos');
 
         expect(rtfToPlainText(rtf)).toBe('Linea uno\nLinea dos');
+    });
+
+    it('flattens RTF to a single line for excerpts and search', () => {
+        expect(rtfToSingleLineText(plainTextToRtf('  Linea uno\n\nLinea   dos '))).toBe('Linea uno Linea dos');
+        expect(rtfToSingleLineText(null)).toBe('');
+        expect(rtfToSingleLineText(undefined)).toBe('');
     });
 
     it('converts basic RTF inline formatting to editor HTML', () => {

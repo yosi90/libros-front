@@ -25,7 +25,7 @@ import { PendingChangesComponent } from '../../../../guards/pending-changes.guar
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { defaultEntryDescriptionText, findNarrativeEntityName } from '../../../../shared/narrative-entity-names';
-import { htmlToRtf, plainTextToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { htmlToRtf, plainTextToRtf, rtfToHtml, rtfToPlainText, rtfToSingleLineText } from '../../../../shared/rtf/rtf-text';
 import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileChapterViewComponent } from '../../../mobile/book/mobile-chapter-view/mobile-chapter-view.component';
@@ -834,7 +834,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     getScenePreview(sceneGroup: AbstractControl): string {
         if (this.isDefaultSceneDescription(sceneGroup))
             return '';
-        return rtfToPlainText(sceneGroup.get('descripcion')?.value ?? '').replace(/\s+/g, ' ').trim();
+        return rtfToSingleLineText(sceneGroup.get('descripcion')?.value);
     }
 
     /** La localización de la escena para su tarjeta plegada; «Sin localización» no se enseña. */
