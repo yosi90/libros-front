@@ -198,6 +198,5 @@ class CatalogoTest {
         assertNull(json.largo("d"))
         assertNull(json.largo("e"))
         assertNull(json.largo("f"))
-        assertEquals(3_000_000_000L, Espacio.de(JSONObject("""{"id": 3000000000, "conversacion": 3000000001}""")).id)
     }
 }

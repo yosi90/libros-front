@@ -16,8 +16,8 @@ import es.yosiftware.libros.datos.leerFecha
  * El correo sin confirmar (kit 1.80, librería 1.9.0; `ecosistema-kit/APK.md`, «La librería 1.9.0»): la cuenta creada
  * con correo entra sin confirmarlo, la plataforma pide recordarlo (`ConSesion.recordarCorreo`) y, a los 7 días sin
  * confirmarlo, la borra. Hasta entonces lo social de la plataforma (el chat, los clubes) responde
- * `403 correo_sin_confirmar`: [ClientePlataforma][es.yosiftware.libros.datos.red.ClientePlataforma] lo avisa con
- * [pedir] y la app abre la hoja del código. Lo social propio de Libros (publicar una reseña, denunciarla) se limita
+ * `403 correo_sin_confirmar`: [errorDeLaPlataforma][es.yosiftware.libros.datos.red.errorDeLaPlataforma] (lo de
+ * `ClientePlataforma` y lo de `sesion.espacios`) lo avisa con [pedir] y la app abre la hoja del código. Lo social propio de Libros (publicar una reseña, denunciarla) se limita
  * igual antes de llamar a la API ([exigirConfirmado]).
  */
 object CorreoSinConfirmar {

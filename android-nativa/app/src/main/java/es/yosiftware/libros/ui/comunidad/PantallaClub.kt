@@ -53,6 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.datos.modelos.DetalleDeClub
+import es.yosiftware.libros.datos.modelos.visible
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
@@ -80,14 +81,12 @@ import java.time.format.DateTimeFormatter
 // El detalle del club en la APK: src/app/components/mobile/social/mobile-club-detail-view/, con el Sass de la APK de
 // Capacitor (5dc3120). Las secciones son tarjetas plegables (`<details>`), la de Lecturas abierta al entrar.
 
-/** Lo que el detalle necesita de fuera: volver, la web social (los dos pasos), el chat y el avatar de una persona. */
+/** Lo que el detalle necesita de fuera: volver, la web social (los dos pasos) y el chat. */
 class AccionesDelClub(
     val volver: () -> Unit,
     val abrirWebSocial: (String) -> Unit,
     /** «Abrir chat»: la conversación del club en el chat de la plataforma (hito 12). */
     val abrirChat: (Long) -> Unit,
-    /** La miniatura de una persona de la plataforma, completa (la ruta es relativa a su API). */
-    val avatar: (String?) -> String?,
 )
 
 @Composable
@@ -297,7 +296,7 @@ private fun SeccionesDelClub(vm: ClubViewModel, club: DetalleDeClub, acciones: A
     }
     SeccionPlegable(Iconos.forum, "Debates", "Conversaciones persistentes") { Debates(vm, ancha) }
     SeccionPlegable(Iconos.poll, "Encuestas", "Decisiones compartidas") { Encuestas(vm) }
-    SeccionPlegable(Iconos.groups, "Miembros", "Personas que leen juntas") { Miembros(vm, club, acciones, ancha) }
+    SeccionPlegable(Iconos.groups, "Miembros", "Personas que leen juntas") { Miembros(vm, club, ancha) }
 }
 
 /** `.m-club-section`: la cabecera con el icono, el título, el subtítulo y la flecha; el cuerpo, al abrirla. */
@@ -646,7 +645,7 @@ private fun ColumnScope.Encuestas(vm: ClubViewModel) {
 }
 
 @Composable
-private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesDelClub, ancha: Boolean) {
+private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, ancha: Boolean) {
     val colores = LocalColores.current
     if (vm.puedeInvitar) {
         FilaConBoton { modifier ->
@@ -663,7 +662,8 @@ private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, accione
         }
         vm.personas.forEach { persona ->
             val clave = "cuenta:${persona.id}"
-            FilaDePersona(persona.visible, "@${persona.alias}", acciones.avatar(persona.avatar)) {
+            // La miniatura de la librería ya es una dirección completa de la API de la plataforma.
+            FilaDePersona(persona.visible, "@${persona.alias}", persona.avatar?.miniatura) {
                 Boton(if (clave in vm.invitando) "Enviando…" else "Invitar", { vm.invitarPersona(persona) }, variante = VarianteDeBoton.Tonal, habilitado = clave !in vm.invitando)
             }
         }
@@ -675,7 +675,7 @@ private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, accione
         if (vm.invitacionesEnviadas.isNotEmpty()) {
             BloqueDePendientes("Invitaciones pendientes") {
                 vm.invitacionesEnviadas.forEach { invitacion ->
-                    Pendiente(vm.destinoDe(invitacion), invitacion.caduca?.let { "Caduca el ${FechasDeClubes.dia(it)}" }) {
+                    Pendiente(vm.destinoDe(invitacion), invitacion.caduca.takeIf(String::isNotBlank)?.let { "Caduca el ${FechasDeClubes.dia(it)}" }) {
                         Boton("Retirar", { vm.retirarInvitacion(invitacion) }, variante = VarianteDeBoton.Contorno, habilitado = invitacion.id !in vm.retirandoInvitaciones)
                     }
                 }

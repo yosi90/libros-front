@@ -19,6 +19,9 @@ import org.json.JSONObject
  * Los errores llegan como [ErrorSesion] con el `code` de la plataforma (`docs/publica/ERRORES.md`): por ejemplo,
  * `dos_pasos_necesarios` si el espacio exige la verificación en dos pasos y la cuenta no la tiene (ábrele
  * `sesion.direccionWebSocial("seguridad")`).
+ *
+ * Desde la 1.10.0, cada llamada es de la cuenta activa al empezar: si la persona cambia de cuenta (o sale) antes de que
+ * termine, la respuesta se descarta y llega `cuenta_cambiada`. No hace falta comprobarlo en la app.
  */
 class EspaciosYosiftware internal constructor(private val sesion: SesionYosiftware) {
 
@@ -72,11 +75,42 @@ class EspaciosYosiftware internal constructor(private val sesion: SesionYosiftwa
         leer("DELETE", "/v1/espacios/$id/miembros/yo")
     }
 
-    private suspend fun leer(metodo: String, ruta: String, cuerpo: JSONObject? = null): JSONObject {
-        val respuesta = sesion.llamarConToken(metodo, ruta, cuerpo)
-        if (!respuesta.correcta) throw respuesta.error()
-        return respuesta.json
+    /**
+     * Pide entrar en un espacio de entrada `solicitud` (1.10.0), con un [mensaje] opcional de hasta 500 caracteres.
+     * Repetirla devuelve la pendiente.
+     */
+    suspend fun pedirEntrar(id: Long, mensaje: String? = null): SolicitudDeEntrada = SolicitudDeEntrada.de(
+        leer("POST", "/v1/espacios/$id/solicitudes", JSONObject().put("mensaje", mensaje?.trim()?.takeIf { it.isNotEmpty() } ?: JSONObject.NULL)),
+    )
+
+    /** Retira la petición de entrar de la persona (1.10.0). */
+    suspend fun retirarSolicitud(id: Long) {
+        leer("DELETE", "/v1/espacios/$id/solicitudes/mia")
     }
+
+    /** Quién pide entrar, para quien puede invitar (1.10.0). */
+    suspend fun solicitudes(id: Long): List<SolicitudDeEntrada> = SolicitudDeEntrada.lista(leer("GET", "/v1/espacios/$id/solicitudes"))
+
+    /** Aprueba una petición de entrar: la persona pasa a ser miembro (1.10.0). */
+    suspend fun aprobarSolicitud(id: Long, idSolicitud: Long) {
+        leer("POST", "/v1/espacios/$id/solicitudes/$idSolicitud/aprobar")
+    }
+
+    suspend fun rechazarSolicitud(id: Long, idSolicitud: Long) {
+        leer("POST", "/v1/espacios/$id/solicitudes/$idSolicitud/rechazar")
+    }
+
+    /** Las invitaciones pendientes que ha enviado el espacio, para quien puede invitar (1.10.0). */
+    suspend fun invitacionesEnviadas(id: Long): List<InvitacionEnviada> = InvitacionEnviada.lista(leer("GET", "/v1/espacios/$id/invitaciones"))
+
+    /** Retira una invitación pendiente: quien la envió o quien puede invitar (1.10.0). */
+    suspend fun retirarInvitacion(id: Long, idInvitacion: Long) {
+        leer("DELETE", "/v1/espacios/$id/invitaciones/$idInvitacion")
+    }
+
+    // Desde la 1.10.0, atadas a la cuenta activa: si cambia mientras tanto, `cuenta_cambiada` y nada de la anterior.
+    private suspend fun leer(metodo: String, ruta: String, cuerpo: JSONObject? = null): JSONObject =
+        sesion.leerDeLaCuenta(metodo, ruta, cuerpo)
 
     companion object {
         /**
@@ -256,5 +290,63 @@ data class InvitacionAEspacio(
 
         /** Las de `{ "invitaciones": [...] }`. */
         fun lista(json: JSONObject): List<InvitacionAEspacio> = json.optJSONArray("invitaciones").objetos().map(::de)
+    }
+}
+
+/** Una petición de entrar en un espacio (1.10.0): la de la persona ([EspaciosYosiftware.pedirEntrar]) o las que ve quien puede invitar. */
+data class SolicitudDeEntrada(
+    val id: Long,
+    val cuenta: String,
+    val alias: String,
+    /** `null` si su perfil es privado o no lo tiene. */
+    val nombre: String?,
+    val mensaje: String?,
+    val creada: String,
+) {
+    companion object {
+        /** Una solicitud de `POST /v1/espacios/{idEspacio}/solicitudes` o de su lista. */
+        fun de(json: JSONObject) = SolicitudDeEntrada(
+            id = json.getLong("id"),
+            cuenta = json.getString("cuenta"),
+            alias = json.optString("alias"),
+            nombre = json.cadena("nombre"),
+            mensaje = json.cadena("mensaje"),
+            creada = json.optString("creada"),
+        )
+
+        /** Las de `{ "solicitudes": [...] }`. */
+        fun lista(json: JSONObject): List<SolicitudDeEntrada> = json.optJSONArray("solicitudes").objetos().map(::de)
+    }
+}
+
+/** Una invitación pendiente que ha enviado el espacio (1.10.0): a una persona ([cuenta] y [alias]) o a un correo. */
+data class InvitacionEnviada(
+    val id: Long,
+    /** En las de una persona; nunca en las de un correo. */
+    val cuenta: String?,
+    val alias: String?,
+    /** En las de un correo, enmascarado («a•••@gmail.com»). */
+    val correo: String?,
+    val rol: String?,
+    /** La cuenta que invitó. */
+    val de: String,
+    val creada: String,
+    val caduca: String,
+) {
+    companion object {
+        /** Una invitación de `GET /v1/espacios/{idEspacio}/invitaciones`. */
+        fun de(json: JSONObject) = InvitacionEnviada(
+            id = json.getLong("id"),
+            cuenta = json.cadena("cuenta"),
+            alias = json.cadena("alias"),
+            correo = json.cadena("correo"),
+            rol = json.cadena("rol"),
+            de = json.optString("de"),
+            creada = json.optString("creada"),
+            caduca = json.optString("caduca"),
+        )
+
+        /** Las de `{ "invitaciones": [...] }`. */
+        fun lista(json: JSONObject): List<InvitacionEnviada> = json.optJSONArray("invitaciones").objetos().map(::de)
     }
 }

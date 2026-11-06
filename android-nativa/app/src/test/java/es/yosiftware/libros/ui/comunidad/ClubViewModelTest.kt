@@ -7,7 +7,7 @@ import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.red.ApiFalsa
 import es.yosiftware.libros.datos.repositorios.RepositorioClubes
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
-import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
+import es.yosiftware.libros.datos.repositorios.espaciosFalsos
 import es.yosiftware.libros.datos.repositorios.RepositorioEstadisticas
 import es.yosiftware.libros.datos.repositorios.RepositorioLibro
 import es.yosiftware.libros.ui.cuenta.SesionFalsa
@@ -73,7 +73,7 @@ class ClubViewModelTest {
         val api = ApiFalsa()
         val plataforma = mutableMapOf<String, String>()
         val llamadas = mutableListOf<String>()
-        val espacios = RepositorioEspacios { metodo, ruta, _ ->
+        val espacios = espaciosFalsos { metodo, ruta, _ ->
             llamadas += "$metodo $ruta"
             plataforma["$metodo $ruta"] ?: throw ErrorSesion.deLaPlataforma(404, """{"error": "No", "code": "espacio_no_encontrado"}""")
         }
@@ -102,7 +102,7 @@ class ClubViewModelTest {
         val m = montar()
         m.api.responde("GET /clubes-lectura/8", club())
         m.api.conSecciones()
-        m.plataforma["GET /v1/espacios/41"] = """{"id": 41, "idExterno": "club-8", "nombre": "Club QA", "entrada": "abierto", "yo": {"estado": "activo", "propietario": true, "capacidades": {"invitar": true, "chat": "escribir"}}}"""
+        m.plataforma["GET /v1/espacios/41"] = """{"id": 41, "idExterno": "club-8", "web": {"clave": "libros", "nombre": "Libros"}, "nombre": "Club QA", "entrada": "abierto", "yo": {"estado": "activo", "propietario": true, "capacidades": {"invitar": true, "chat": "escribir"}}}"""
         m.plataforma["GET /v1/espacios/41/invitaciones"] = """{"invitaciones": []}"""
         m.vm.recargar()
         runCurrent()
@@ -123,7 +123,7 @@ class ClubViewModelTest {
         val m = montar(canal = canal)
         m.api.responde("GET /clubes-lectura/8", club())
         m.api.conSecciones()
-        m.plataforma["GET /v1/espacios/41"] = """{"id": 41, "idExterno": "club-8", "nombre": "Club QA", "entrada": "abierto", "yo": {"estado": "activo", "propietario": true, "capacidades": {"invitar": true, "chat": "escribir"}}}"""
+        m.plataforma["GET /v1/espacios/41"] = """{"id": 41, "idExterno": "club-8", "web": {"clave": "libros", "nombre": "Libros"}, "nombre": "Club QA", "entrada": "abierto", "yo": {"estado": "activo", "propietario": true, "capacidades": {"invitar": true, "chat": "escribir"}}}"""
         m.plataforma["GET /v1/espacios/41/invitaciones"] = """{"invitaciones": []}"""
         m.vm.recargar()
         runCurrent()
@@ -170,7 +170,7 @@ class ClubViewModelTest {
         assertTrue(m.api.pedidasA("GET /clubes-lectura/8/lecturas").isEmpty())
         assertEquals(1, m.api.pedidasA("GET /estadisticas/comunidad/clubes/8").size)
 
-        m.plataforma["POST /v1/espacios/41/entrar"] = """{"id": 41, "idExterno": "club-8", "nombre": "Club QA", "entrada": "abierto", "yo": {"estado": "activo", "capacidades": {"invitar": false, "chat": "escribir"}}}"""
+        m.plataforma["POST /v1/espacios/41/entrar"] = """{"id": 41, "idExterno": "club-8", "web": {"clave": "libros", "nombre": "Libros"}, "nombre": "Club QA", "entrada": "abierto", "yo": {"estado": "activo", "capacidades": {"invitar": false, "chat": "escribir"}}}"""
         m.vm.unirseOSolicitar()
         runCurrent()
         assertEquals("Ya eres miembro de Club QA. Libros tarda unos segundos en abrirte el club.", m.vm.mensajeDeAccion)
@@ -235,7 +235,7 @@ class ClubViewModelTest {
         runCurrent()
         m.vm.unirseOSolicitar()
         assertTrue(m.vm.hojaDeSolicitud)
-        m.plataforma["POST /v1/espacios/41/solicitudes"] = "{}"
+        m.plataforma["POST /v1/espacios/41/solicitudes"] = """{"id": 3, "cuenta": "c7", "alias": "ana", "mensaje": "Hola", "creada": "2026-10-25T10:00:00Z"}"""
         m.vm.escribirMensajeDeSolicitud("Hola")
         m.vm.enviarSolicitud()
         runCurrent()

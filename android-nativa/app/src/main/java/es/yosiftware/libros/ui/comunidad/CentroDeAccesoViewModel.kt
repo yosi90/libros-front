@@ -8,11 +8,13 @@ import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
 import es.yosiftware.libros.datos.cuenta.intentar
-import es.yosiftware.libros.datos.modelos.Espacio
-import es.yosiftware.libros.datos.modelos.InvitacionEnviada
-import es.yosiftware.libros.datos.modelos.InvitacionRecibida
-import es.yosiftware.libros.datos.modelos.SolicitudDeEntrada
+import es.yosiftware.libros.datos.modelos.clubId
+import es.yosiftware.libros.datos.modelos.visible
 import es.yosiftware.libros.datos.repositorios.RepositorioEspacios
+import es.yosiftware.sesion.EspacioDeYosiftware
+import es.yosiftware.sesion.InvitacionAEspacio
+import es.yosiftware.sesion.InvitacionEnviada
+import es.yosiftware.sesion.SolicitudDeEntrada
 import java.time.Instant
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -27,8 +29,8 @@ enum class DireccionDeAcceso(val etiqueta: String) { RECIBIDAS("Recibidas"), ENV
 /** El club de un espacio en las bandejas (`ClubAccessClub`); [id] es `null` si el espacio no dice su club. */
 data class ClubDeAcceso(val espacioId: Long, val id: Int?, val nombre: String, val dosPasos: Boolean) {
     companion object {
-        fun de(espacio: Espacio) = ClubDeAcceso(espacio.id, espacio.clubId, espacio.nombre, espacio.dosPasos)
-        fun de(invitacion: InvitacionRecibida) = ClubDeAcceso(invitacion.espacioId, invitacion.clubId, invitacion.espacio, invitacion.dosPasos)
+        fun de(espacio: EspacioDeYosiftware) = ClubDeAcceso(espacio.id, espacio.clubId, espacio.nombre, espacio.dosPasos)
+        fun de(invitacion: InvitacionAEspacio) = ClubDeAcceso(invitacion.espacio, invitacion.clubId, invitacion.nombre, invitacion.dosPasos)
     }
 }
 
@@ -37,7 +39,7 @@ data class SolicitudPropia(val club: ClubDeAcceso, val mensaje: String?, val cre
 
 /** Las pendientes de la persona, de todos sus clubes (`ClubAccessInbox`). */
 data class BandejaDeAcceso(
-    val invitacionesRecibidas: List<InvitacionRecibida> = emptyList(),
+    val invitacionesRecibidas: List<InvitacionAEspacio> = emptyList(),
     val invitacionesEnviadas: List<Pair<ClubDeAcceso, InvitacionEnviada>> = emptyList(),
     val solicitudesRecibidas: List<Pair<ClubDeAcceso, SolicitudDeEntrada>> = emptyList(),
     val parcial: Boolean = false,
@@ -125,17 +127,17 @@ class CentroDeAccesoViewModel(
             val bandeja = bandeja ?: return emptyList()
             return when {
                 tipo == TipoDeAcceso.INVITACIONES && direccion == DireccionDeAcceso.RECIBIDAS -> bandeja.invitacionesRecibidas.map {
-                    FilaDeAcceso("ir-${it.id}", it.id, ClubDeAcceso.de(it), it.de?.let { de -> "Te invita $de" } ?: "Te han invitado",
-                        it.nombreRol?.let { rol -> "Como ${rol.lowercase()}" }, null, null, it.caduca)
+                    FilaDeAcceso("ir-${it.id}", it.id, ClubDeAcceso.de(it), it.deNombre.takeIf(String::isNotBlank)?.let { de -> "Te invita $de" } ?: "Te han invitado",
+                        it.nombreRol?.let { rol -> "Como ${rol.lowercase()}" }, null, null, it.caduca.siHay())
                 }
                 tipo == TipoDeAcceso.INVITACIONES -> bandeja.invitacionesEnviadas.map { (club, invitacion) ->
                     FilaDeAcceso("ie-${club.espacioId}-${invitacion.id}", invitacion.id, club,
                         invitacion.alias?.let { "@$it" } ?: invitacion.correo ?: SIN_PERSONA,
-                        invitacion.correo.takeIf { invitacion.alias != null }, null, invitacion.creada, invitacion.caduca)
+                        invitacion.correo.takeIf { invitacion.alias != null }, null, invitacion.creada.siHay(), invitacion.caduca.siHay())
                 }
                 direccion == DireccionDeAcceso.RECIBIDAS -> bandeja.solicitudesRecibidas.map { (club, solicitud) ->
                     FilaDeAcceso("sr-${club.espacioId}-${solicitud.id}", solicitud.id, club, solicitud.visible,
-                        solicitud.nombre?.takeIf { it.isNotBlank() }?.let { "@${solicitud.alias}" }, solicitud.mensaje, solicitud.creada, null)
+                        solicitud.nombre?.takeIf { it.isNotBlank() }?.let { "@${solicitud.alias}" }, solicitud.mensaje, solicitud.creada.siHay(), null)
                 }
                 else -> solicitudesPropias.values.map { propia ->
                     FilaDeAcceso("se-${propia.club.espacioId}", propia.club.espacioId, propia.club, "Tu solicitud", null, propia.mensaje, propia.creada, null)
@@ -324,6 +326,9 @@ class CentroDeAccesoViewModel(
         const val SIN_PERSONA = "Persona no disponible"
         const val ENTRADA_RECIENTE_MS = 10 * 60_000L
         private const val CONCURRENCIA = 3
+
+        /** Las fechas de la librería son `""` si faltan; la fila no enseña una fecha vacía. */
+        private fun String.siHay(): String? = takeIf { it.isNotBlank() }
 
         fun accionPara(error: ErrorDeLibros): AccionDeError? = when (error.codigo) {
             MensajesDeEspacios.CORREO_DE_OTRA_CUENTA -> AccionDeError.CAMBIAR_DE_CUENTA

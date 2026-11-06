@@ -144,6 +144,10 @@ data class Tokens(
  *   (1.9.0), y `demasiadas_peticiones`, `correo_ya_confirmado` y `sin_contrasena` al pedir otro código;
  * - `correo_sin_confirmar` (403): una acción social (amistades, chat, comentar, espacios, denunciar) con el correo aún
  *   sin confirmar; la sesión sigue. Ofrece confirmarlo ([SesionYosiftware.confirmarCorreo]);
+ * - `cuenta_restringida` (403): la cuenta tiene limitado eso por moderación. [mensaje] ya dice qué y hasta cuándo, en
+ *   hora de Madrid, y adónde ir para verlo: enséñalo tal cual. [restriccion] lo trae leído (1.10.0);
+ * - `cuenta_cambiada` (1.10.0): la cuenta activa ha cambiado mientras se hacía la llamada de [EspaciosYosiftware] o de
+ *   [SocialYosiftware]. Lo que traía era de la cuenta anterior y se ha descartado: no lo enseñes;
  * - `respuesta_no_valida`: la respuesta no tiene el formato esperado.
  */
 class ErrorSesion(
@@ -152,8 +156,17 @@ class ErrorSesion(
     val campo: String? = null,
     val estadoHttp: Int? = null,
     causa: Throwable? = null,
+    /**
+     * El `detalle` de la plataforma, tal cual, en los errores que lo documentan (`docs/publica/ERRORES.md`): por
+     * ejemplo, `cuenta_restringida` o `cuenta_suspendida`. `null` en los demás (1.10.0).
+     */
+    val detalle: JSONObject? = null,
 ) : Exception("$codigo: $mensaje", causa) {
     fun comoMotivo() = Motivo(codigo, mensaje)
+
+    /** Con `cuenta_restringida`, qué está limitado y hasta cuándo (1.10.0); `null` en los demás errores. */
+    val restriccion: RestriccionDeCuenta?
+        get() = if (codigo != "cuenta_restringida") null else detalle?.let(RestriccionDeCuenta::de)
 
     companion object {
         /**
@@ -167,7 +180,7 @@ class ErrorSesion(
             val codigo = json.cadena("code")?.takeIf { it.isNotEmpty() }
                 ?: if (estadoHttp >= 500) "plataforma_no_disponible" else "respuesta_no_valida"
             val mensaje = json.cadena("error") ?: "Algo ha fallado en Yosiftware. Inténtalo de nuevo."
-            return ErrorSesion(codigo, mensaje, json.cadena("field"), estadoHttp)
+            return ErrorSesion(codigo, mensaje, json.cadena("field"), estadoHttp, detalle = json.optJSONObject("detalle"))
         }
 
         /**
@@ -176,5 +189,24 @@ class ErrorSesion(
          */
         fun sinConexion(causa: Throwable? = null): ErrorSesion =
             ErrorSesion("sin_conexion", "No se ha podido conectar con Yosiftware. Comprueba la conexión.", causa = causa)
+
+        internal fun cuentaCambiada(): ErrorSesion =
+            ErrorSesion("cuenta_cambiada", "Has cambiado de cuenta mientras se cargaba. Vuelve a intentarlo.")
+    }
+}
+
+/**
+ * Lo limitado de una cuenta por moderación, del `detalle` de `403 cuenta_restringida` (1.10.0). La frase para la persona
+ * es el [ErrorSesion.mensaje], que ya lo dice.
+ */
+data class RestriccionDeCuenta(
+    /** `comunidad`, `chat`, `publicacion` o `creacion` (`docs/publica/MODERACION.md`). */
+    val alcance: String,
+    /** Hasta cuándo, en ISO 8601 y UTC; `null` si es permanente. */
+    val hasta: String?,
+) {
+    companion object {
+        /** `{ "alcance", "hasta" }`. */
+        fun de(json: JSONObject) = RestriccionDeCuenta(json.optString("alcance"), json.cadena("hasta"))
     }
 }
