@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
+import es.yosiftware.libros.datos.conLaPaginaSiguiente
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
@@ -145,8 +146,7 @@ class CentroDeAvisosViewModel(
         }) { pagina ->
             cargandoMas = false
             if (filtro != soloSinLeer) return@cargar
-            val conocidas = lista.map { it.id }.toSet()
-            lista = lista + pagina.avisos.filterNot { it.id in conocidas }
+            lista = lista.conLaPaginaSiguiente(pagina.avisos) { it.id }
             cursor = pagina.cursor
             contadores = pagina.contadores
         }

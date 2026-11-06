@@ -3,6 +3,7 @@ package es.yosiftware.libros.ui.comunidad
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import es.yosiftware.libros.datos.conLaPaginaSiguiente
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.cuenta.Identidad
 import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
@@ -73,8 +74,7 @@ class ActividadViewModel(
             cargandoMas = false
             error = fallo.mensajeO("No se ha podido cargar más actividad.")
         }) { pagina ->
-            val ids = lista.map { it.id }.toSet()
-            lista = lista + pagina.elementos.filterNot { it.id in ids }
+            lista = lista.conLaPaginaSiguiente(pagina.elementos) { it.id }
             cursor = pagina.cursor
             cargandoMas = false
         }
