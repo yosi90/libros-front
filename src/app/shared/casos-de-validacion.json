@@ -1,0 +1,36 @@
+{
+  "nota": "Casos compartidos de las validaciones de ISBN y de fecha de publicación: los leen las pruebas de la web (isbn.spec.ts, publication-date.spec.ts) y las de la APK (CasosDeValidacionTest.kt), para que las dos sigan la misma regla. La fecha vacía no está: cada pantalla decide antes si el campo es obligatorio.",
+  "isbn": [
+    { "valor": "9788466658898", "normalizado": "9788466658898", "valido": true },
+    { "valor": "978-84-666-5889-8", "normalizado": "9788466658898", "valido": true },
+    { "valor": " 978 0 306 40615 7 ", "normalizado": "9780306406157", "valido": true },
+    { "valor": "0306406152", "normalizado": "0306406152", "valido": true },
+    { "valor": "080442957x", "normalizado": "080442957X", "valido": true },
+    { "valor": "9788466658899", "normalizado": "9788466658899", "valido": false },
+    { "valor": "9778466658898", "normalizado": "9778466658898", "valido": false },
+    { "valor": "0306406153", "normalizado": "0306406153", "valido": false },
+    { "valor": "0000000000", "normalizado": "0000000000", "valido": false },
+    { "valor": "978846665889", "normalizado": "978846665889", "valido": false },
+    { "valor": "97884666588981", "normalizado": "97884666588981", "valido": false },
+    { "valor": "X306406152", "normalizado": "X306406152", "valido": false },
+    { "valor": "isbn", "normalizado": "ISBN", "valido": false }
+  ],
+  "fecha": [
+    { "valor": "2016", "valida": true },
+    { "valor": "2016-11", "valida": true },
+    { "valor": "2016-11-22", "valida": true },
+    { "valor": "2008-02-29", "valida": true },
+    { "valor": "2016-12-31", "valida": true },
+    { "valor": "2008-02-30", "valida": false },
+    { "valor": "2007-02-29", "valida": false },
+    { "valor": "2016-04-31", "valida": false },
+    { "valor": "2016-13", "valida": false },
+    { "valor": "2016-00", "valida": false },
+    { "valor": "2016-11-00", "valida": false },
+    { "valor": "2016-1", "valida": false },
+    { "valor": "22/11/2016", "valida": false },
+    { "valor": "2016/11", "valida": false },
+    { "valor": "16", "valida": false },
+    { "valor": "2016-11-22T10:00", "valida": false }
+  ]
+}

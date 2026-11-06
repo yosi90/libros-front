@@ -59,7 +59,8 @@ Solo propuestas: no se toca el backend.
   - **Peligros si se mantiene como estaba:** textos distintos para el mismo error según llegue por HTTP o por tiempo real.
   - **Peligros del cambio:** hace falta una petición al backend para los eventos de tiempo real que hoy llegan sin `error`.
 
-- [ ] **7. Validación de ISBN y de fecha de publicación en las dos partes**
+- [x] **7. Validación de ISBN y de fecha de publicación en las dos partes**
+  - **Hecho (06/11/2026), las validaciones:** la regla se queda en cada parte (la validación local hace falta para no esperar al servidor), pero con los mismos casos: `src/app/shared/casos-de-validacion.json` (ISBN-13 e ISBN-10, separadores, la X, prefijos y dígitos de control; fechas parciales, bisiestos y formatos que no valen), leído por `isbn.spec.ts` y `publication-date.spec.ts` de la web y por `CasosDeValidacionTest` de la APK. La fecha vacía no está: cada pantalla decide antes si el campo es obligatorio (la web la da por no válida y la APK por válida, y las dos lo tratan antes). La API (`utils/google_books.py`, `utils/editorial_metadata.py`) sigue con sus propias pruebas: está en otro repositorio.
   - **Descripción:** `src/app/shared/isbn.ts` (3-18) repite `normalize_isbn`/`is_valid_isbn` de `utils/google_books.py` (35-40), y `src/app/shared/publication-date.ts` (creado en esta auditoría a partir de `all-books` y `catalog`) repite `parse_publication_date` de `utils/editorial_metadata.py` (30). El backend acepta además fechas con hora (`T…`), que el frontend rechaza en el editor.
   - **Por qué se necesita:** una regla que cambie en una parte y no en la otra da errores que la persona no entiende.
   - **Qué se espera lograr:** documentar las reglas en `docs/backend/api/` (o exponer `/catalogo/validaciones`) y que el frontend y la APK Kotlin las sigan con las mismas pruebas.

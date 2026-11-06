@@ -1,7 +1,13 @@
 import { FormControl } from '@angular/forms';
 import { isIsoPublicationDate, publicationDateInput, publicationDatePayload, publicationDateValidator } from './publication-date';
+import casos from './casos-de-validacion.json';
 
 describe('fecha de publicación', () => {
+    it('sigue los casos compartidos con la APK (casos-de-validacion.json)', () => {
+        for (const caso of casos.fecha)
+            expect(isIsoPublicationDate(caso.valor)).withContext(caso.valor).toBe(caso.valida);
+    });
+
     it('acepta año, mes y año o fecha completa y los envía como pide el backend', () => {
         expect(publicationDatePayload('2016')).toBe('2016');
         expect(publicationDatePayload('11/2016')).toBe('2016-11');
