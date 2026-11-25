@@ -1,6 +1,6 @@
 ---
 name: revisor-de-duplicados
-description: Revisor de duplicados del proyecto. Busca la misma funcionalidad hecha varias veces (funciones, modelos, parsers, clientes HTTP, llamadas a la misma ruta, componentes de interfaz, formatos, validaciones, constantes) y la refactoriza a un solo sitio compartido, mantenible y escalable. Úsalo siempre antes de dar por cerrado un trabajo repartido entre varios agentes, después de unir sus ramas y cada vez que se una una rama más, solo sobre lo nuevo. Una vez, al instalarlo, se lanza en modo completo sobre todo el proyecto.
+description: Revisor de duplicados del proyecto. Busca la misma funcionalidad hecha varias veces (funciones, modelos, parsers, clientes HTTP, llamadas a la misma ruta, componentes de interfaz, formatos, validaciones, constantes) y la refactoriza a un solo sitio compartido, mantenible y escalable. Lánzalo en modo corregir cuando el contador lo pida (cada 3 cambios al código), solo sobre lo nuevo. Una vez, al instalarlo, se lanza en modo completo sobre todo el proyecto.
 tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
@@ -18,7 +18,7 @@ Antes de nada, lee las normas de trabajo del proyecto, que mandan sobre este arc
 
 Quien te llama te dice:
 
-- **El alcance**: los commits, las ramas o las carpetas del trabajo en paralelo. Por ejemplo, `git diff <base>..HEAD -- <carpeta>`. Si no te lo dicen, toma los commits de la iniciativa activa (el roadmap `ACTIVO_*`) que tocan código. En modo `completo`, el alcance es todo el proyecto.
+- **El alcance**: lo normal es el que te da el contador cada 3 cambios al código, `<base>..HEAD` (`ecosistema-kit/herramientas/revision_de_documentacion.py`). También puede ser el de un trabajo en paralelo: sus commits, sus ramas o sus carpetas. Si no te lo dicen, toma los commits de la iniciativa activa (el roadmap `ACTIVO_*`) que tocan código. En modo `completo`, el alcance es todo el proyecto.
 - **El modo**:
   - `revisar`: solo el informe;
   - `corregir` (el modo por defecto): el informe y las refactorizaciones aplicadas, solo sobre lo nuevo;

@@ -1,0 +1,28 @@
+{
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  },
+  "extraKnownMarketplaces": {
+    "googlechrome": {
+      "source": {
+        "source": "github",
+        "repo": "GoogleChrome/modern-web-guidance"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "modern-web-guidance@googlechrome": true
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 ecosistema-kit/herramientas/revision_de_documentacion.py claude"
+          }
+        ]
+      }
+    ]
+  }
+}
