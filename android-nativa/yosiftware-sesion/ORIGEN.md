@@ -1,6 +1,8 @@
 # Origen de este módulo
 
-Es la librería de la sesión nativa de la plataforma Yosiftware (paquete `es.yosiftware.sesion`, versión 1.10.0), copiada **sin cambios** de `ecosistema-kit/android/sesion/` del kit 1.83, el 2026-11-06: los archivos versionados de la revisión `59ea2a9` de la plataforma (`git archive 59ea2a9 ecosistema-kit/android/sesion`), sin `build/`. Comprobado con `diff -rq` contra ese archivo: sin diferencias.
+Es la librería de la sesión nativa de la plataforma Yosiftware (paquete `es.yosiftware.sesion`, versión 1.11.0), copiada **sin cambios** de `ecosistema-kit/android/sesion/` del kit 1.107, el 2026-11-25: los archivos versionados de la revisión `e9f0a9d` de la plataforma (`git archive e9f0a9d ecosistema-kit/android/sesion`), sin `build/`. Comprobado con `diff -rq` contra ese archivo: sin diferencias.
+
+La 1.11.0 (kit 1.106) añade `sesionDeOtraApp()`: la sesión de la primera app del ecosistema que conteste, sin esperar a las demás. Libros la ofrece como un solo «Continuar como @alias · Con tu cuenta Yosiftware», sin decir de qué app viene (decisión del propietario, 2026-11-22); `sesionesEnOtrasApps()` queda obsoleta y Libros ya no la usa.
 
 La 1.10.0 (kit 1.83, a petición de Libros) cubre lo que la app aún rehacía con su propio cliente, y Libros ya no lo rehace:
 - `ErrorSesion.detalle` (el JSON tal cual) y, con `403 cuenta_restringida`, `restriccion` (`RestriccionDeCuenta(alcance, hasta)`). El `mensaje` de la plataforma ya dice qué está limitado, hasta cuándo y dónde verlo: Libros lo enseña tal cual y retiró su `Restricciones.kt`.

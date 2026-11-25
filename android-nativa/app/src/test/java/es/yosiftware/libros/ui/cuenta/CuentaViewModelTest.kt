@@ -119,39 +119,39 @@ class CuentaViewModelTest {
 
     @Test
     fun continuarComoSoloAlTocar() = runTest {
-        val ana = OtraApp("ana", "Yosircana")
-        val sesion = SesionFalsa().apply { otras = listOf(ana) }
+        val ana = OtraApp("ana")
+        val sesion = SesionFalsa().apply { otra = ana }
         val vm = CuentaViewModel(sesion)
-        vm.buscarOtrasApps()
+        vm.buscarOtraApp()
         // Buscar no entra: solo ofrece.
-        assertEquals(listOf(ana), vm.otrasApps)
-        assertEquals(listOf("otrasApps"), sesion.llamadas)
+        assertEquals(ana, vm.otraApp)
+        assertEquals(listOf("otraApp"), sesion.llamadas)
         vm.continuarCon(ana)
-        assertEquals(listOf("otrasApps", "continuarCon:ana"), sesion.llamadas)
-        assertTrue(vm.otrasApps.isEmpty())
+        assertEquals(listOf("otraApp", "continuarCon:ana"), sesion.llamadas)
+        assertNull(vm.otraApp)
     }
 
     @Test
     fun siFallaContinuarComoQuedaElFormularioConElMensaje() = runTest {
-        val ana = OtraApp("ana", null)
+        val ana = OtraApp("ana")
         val sesion = SesionFalsa().apply {
-            otras = listOf(ana)
+            otra = ana
             fallo = ErrorSesion("ticket_no_valido", "La sesión de la otra app ya no vale.")
         }
         val vm = CuentaViewModel(sesion)
-        vm.buscarOtrasApps()
+        vm.buscarOtraApp()
         vm.continuarCon(ana)
         assertEquals("La sesión de la otra app ya no vale.", vm.error)
-        assertEquals(listOf(ana), vm.otrasApps)
+        assertEquals(ana, vm.otraApp)
     }
 
     @Test
     fun alEntrarSeOlvidanLasOtrasApps() = runTest {
-        val sesion = SesionFalsa().apply { otras = listOf(OtraApp("ana", null)) }
+        val sesion = SesionFalsa().apply { otra = OtraApp("ana") }
         val vm = CuentaViewModel(sesion)
-        vm.buscarOtrasApps()
+        vm.buscarOtraApp()
         sesion.estado.value = conSesion("A")
-        assertTrue(vm.otrasApps.isEmpty())
+        assertNull(vm.otraApp)
     }
 
     // Los pasos de entrar
@@ -258,7 +258,7 @@ class CuentaViewModelTest {
         val vm = CuentaViewModel(null, alEmpezarGoogle = { empezado = true })
         vm.entrarConContrasena("ana@correo.es", "clave")
         vm.entrarConGoogle(Activity())
-        vm.buscarOtrasApps()
+        vm.buscarOtraApp()
         vm.salirDeTodas()
         assertFalse(vm.ocupado)
         assertFalse(empezado)

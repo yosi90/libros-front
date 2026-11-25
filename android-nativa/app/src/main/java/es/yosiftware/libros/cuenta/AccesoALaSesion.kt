@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
  * de otra app»). [app] es `null` si la persona oculta que usa esa app. La de la librería no se puede crear fuera de
  * ella, así que las pantallas usan esta, que la lleva dentro.
  */
-class OtraApp(val alias: String, val app: String?, internal val deLaLibreria: SesionEnOtraApp? = null) {
-    override fun toString() = "OtraApp(alias=$alias, app=$app)"
+class OtraApp(val alias: String, internal val deLaLibreria: SesionEnOtraApp? = null) {
+    override fun toString() = "OtraApp(alias=$alias)"
 }
 
 /**
@@ -28,7 +28,8 @@ interface AccesoALaSesion {
 
     suspend fun entrarConContrasena(correo: String, contrasena: String)
     suspend fun entrarConGoogle(actividad: Activity)
-    suspend fun sesionesEnOtrasApps(): List<OtraApp>
+    /** La sesión de la primera app del ecosistema que conteste, o `null` (librería 1.11.0). */
+    suspend fun sesionDeOtraApp(): OtraApp?
     suspend fun continuarCon(otra: OtraApp)
     suspend fun completarAlta(alias: String)
     suspend fun enviarCodigo(codigo: String)
@@ -67,7 +68,7 @@ interface AccesoALaSesion {
 
         override suspend fun entrarConContrasena(correo: String, contrasena: String) = sesion.entrarConContrasena(correo, contrasena)
         override suspend fun entrarConGoogle(actividad: Activity) = sesion.entrarConGoogle(actividad)
-        override suspend fun sesionesEnOtrasApps() = sesion.sesionesEnOtrasApps().map { OtraApp(it.alias, it.app, it) }
+        override suspend fun sesionDeOtraApp() = sesion.sesionDeOtraApp()?.let { OtraApp(it.alias, it) }
 
         override suspend fun continuarCon(otra: OtraApp) {
             sesion.continuarCon(otra.deLaLibreria ?: return)

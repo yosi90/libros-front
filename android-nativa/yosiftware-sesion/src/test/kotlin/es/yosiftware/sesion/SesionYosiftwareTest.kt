@@ -967,6 +967,56 @@ class SesionYosiftwareTest {
         assertTrue(sesion.sesionesEnOtrasApps().isEmpty())
     }
 
+    /** Apps que contestan cuando se les dice: la que el móvil no arranca no contesta nunca. */
+    private class VecinasLentas : Vecinas {
+        val respuestas = linkedMapOf<String, CompletableDeferred<Oferta?>>()
+        val canceladas = mutableListOf<String>()
+        override suspend fun buscar() = respuestas.keys.toList()
+        override suspend fun pedir(paquete: String, api: String): Oferta? = try {
+            respuestas.getValue(paquete).await()
+        } catch (error: kotlinx.coroutines.CancellationException) {
+            canceladas += paquete
+            throw error
+        }
+        override fun huellas(paquete: String) = listOf("h-$paquete")
+    }
+
+    @Test
+    fun `se queda con la primera sesion que llega, sin esperar a las demas, y las cancela`() = runTest {
+        val lentas = VecinasLentas()
+        val conLentas = SesionYosiftware(configuracion, almacen, red, { ahora }, { esperas += it }, lentas)
+        conLentas.iniciar()
+        lentas.respuestas["es.yosiftware.muda"] = CompletableDeferred()
+        lentas.respuestas["es.yosiftware.sin"] = CompletableDeferred(Oferta("sin_sesion"))
+        lentas.respuestas["es.yosiftware.otro.entorno"] = CompletableDeferred(Oferta("otro_entorno"))
+        lentas.respuestas["com.mazoslorcana.app"] = CompletableDeferred()
+        lentas.respuestas["es.yosiftware.rol.companion"] = CompletableDeferred()
+
+        val busqueda = async { conLentas.sesionDeOtraApp() }
+        lentas.respuestas.getValue("com.mazoslorcana.app").complete(oferta("t1"))
+        val otra = busqueda.await()
+
+        assertEquals("6f1c", otra?.idCuenta)
+        assertEquals("yosi", otra?.alias)
+        assertEquals(listOf("es.yosiftware.muda", "es.yosiftware.rol.companion"), lentas.canceladas)
+        assertTrue(red.llegadas.isEmpty())
+
+        red.responder("/v1/sesion/nativa/traspaso/canje", 200, conSesion(1))
+        conLentas.continuarCon(otra!!)
+        assertEquals("com.mazoslorcana.app", red.cuerpo("/v1/sesion/nativa/traspaso/canje").getJSONObject("de").getString("paquete"))
+        assertNull(conLentas.sesionDeOtraApp())
+    }
+
+    @Test
+    fun `sin ninguna app con sesion, null cuando han contestado todas`() = runTest {
+        sesion.iniciar()
+        assertNull(sesion.sesionDeOtraApp())
+        vecinas.ofertas["es.yosiftware.sin"] = mutableListOf(Oferta("sin_sesion"))
+        vecinas.ofertas["es.yosiftware.muda"] = mutableListOf(null)
+        assertNull(sesion.sesionDeOtraApp())
+        assertEquals(setOf("es.yosiftware.sin", "es.yosiftware.muda"), vecinas.pedidas.map { it.first }.toSet())
+    }
+
     @Test
     fun `continua con la sesion de otra app con un toque y deja la sesion abierta`() = runTest {
         sesion.iniciar()

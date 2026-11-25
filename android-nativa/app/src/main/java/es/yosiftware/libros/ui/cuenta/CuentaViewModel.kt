@@ -33,7 +33,7 @@ const val MAXIMO_DE_CUENTAS = 5
  *   es un error. Ninguna acción espera para siempre ([limiteMs], por encima de los 3 minutos de Google).
  * - Entrar con Google enciende el servicio en primer plano corto ([alEmpezarGoogle]) y lo apaga al terminar, pase lo que
  *   pase ([alTerminarGoogle]).
- * - «Continuar como @alias» ([otrasApps]) se busca sin bloquear la pantalla y solo se usa con el toque de la persona.
+ * - «Continuar como @alias» ([otraApp]) se busca sin bloquear la pantalla y solo se usa con el toque de la persona.
  * - [anadiendo]: se está entrando con otra cuenta para añadirla; se vuelve a la de antes con [cancelarAnadir].
  *
  * [mostrarCodigos]: en QA, el error lleva su código, para diagnosticar en los móviles que no dejan leer su registro.
@@ -54,7 +54,7 @@ class CuentaViewModel(
     var aviso by mutableStateOf<String?>(null)
         private set
 
-    var otrasApps by mutableStateOf<List<OtraApp>>(emptyList())
+    var otraApp by mutableStateOf<OtraApp?>(null)
         private set
 
     var anadiendo by mutableStateOf(false)
@@ -92,7 +92,7 @@ class CuentaViewModel(
                     // Al entrar con la nueva, ya no se está añadiendo, y lo que ofrecían otras apps ya no vale.
                     if (estado is EstadoSesion.ConSesion) {
                         anadiendo = false
-                        otrasApps = emptyList()
+                        otraApp = null
                     }
                     if (estado !is EstadoSesion.SinSesion) busqueda?.cancel()
                     when {
@@ -119,11 +119,14 @@ class CuentaViewModel(
         aviso = null
     }
 
-    /** En la pantalla de entrar, sin bloquearla: puede tardar unos segundos y nunca lanza errores. */
-    fun buscarOtrasApps() {
+    /**
+     * En la pantalla de entrar, sin bloquearla: la primera app que conteste con su sesión, sin esperar a las demás ni
+     * decir de cuál viene (kit 1.106). Nunca lanza errores.
+     */
+    fun buscarOtraApp() {
         val s = sesion ?: return
         busqueda?.cancel()
-        busqueda = viewModelScope.launch { otrasApps = s.sesionesEnOtrasApps() }
+        busqueda = viewModelScope.launch { otraApp = s.sesionDeOtraApp() }
     }
 
     /** Con el toque de la persona: nunca se entra sin él (decisión del propietario, APK.md). */
@@ -131,7 +134,7 @@ class CuentaViewModel(
         aviso = null
         accion {
             continuarCon(otra)
-            otrasApps = otrasApps - otra
+            if (otraApp == otra) otraApp = null
         }
     }
 
@@ -188,7 +191,7 @@ class CuentaViewModel(
     fun anadirCuenta() = accion {
         anadirCuenta()
         anadiendo = true
-        otrasApps = emptyList()
+        otraApp = null
     }
 
     fun cancelarAnadir() = accion {

@@ -86,7 +86,7 @@ class MuestrasDeCuenta : ActividadDeLibros() {
         when (vista) {
             "entrar-cuentas" -> {
                 muestra.cuentas.value = conCuentas.map { it.copy(activa = false) }.filterNot { it.id == "a" }
-                muestra.otras = listOf(OtraApp("lectora", "Yosircana"))
+                muestra.otra = OtraApp("lectora")
                 muestra.estado.value = EstadoSesion.SinSesion(Motivo("sesion_no_valida", "Tu sesión se ha cerrado desde otro dispositivo."))
             }
             "anadir" -> {
@@ -174,11 +174,11 @@ class MuestrasDeCuenta : ActividadDeLibros() {
 private class SesionDeMuestra : AccesoALaSesion {
     override val estado = MutableStateFlow<EstadoSesion>(EstadoSesion.SinSesion())
     override val cuentas = MutableStateFlow<List<CuentaGuardada>>(emptyList())
-    var otras: List<OtraApp> = emptyList()
+    var otra: OtraApp? = null
 
     override suspend fun entrarConContrasena(correo: String, contrasena: String) = Unit
     override suspend fun entrarConGoogle(actividad: Activity) = Unit
-    override suspend fun sesionesEnOtrasApps() = otras
+    override suspend fun sesionDeOtraApp() = otra
     override suspend fun continuarCon(otra: OtraApp) = Unit
     override suspend fun completarAlta(alias: String) = Unit
     override suspend fun enviarCodigo(codigo: String) = Unit

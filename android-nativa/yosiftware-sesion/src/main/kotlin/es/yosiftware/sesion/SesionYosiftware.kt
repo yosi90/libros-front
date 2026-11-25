@@ -4,12 +4,17 @@ import android.app.Activity
 import android.content.Context
 import java.io.IOException
 import java.util.UUID
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -424,12 +429,13 @@ class SesionYosiftware internal constructor(
      * hay ninguna o con cualquier fallo. No lanza errores. También al añadir una cuenta ([anadirCuenta]), sin las que ya
      * están guardadas aquí.
      */
+    @Deprecated(
+        "Desde la 1.11.0, sesionDeOtraApp(): la primera que conteste, sin esperar a todas ni decir de qué app viene.",
+        ReplaceWith("sesionDeOtraApp()"),
+    )
     suspend fun sesionesEnOtrasApps(): List<SesionEnOtraApp> {
         if (estadoActual.value !is EstadoSesion.SinSesion) return emptyList()
-        val guardadas = cerrojo.withLock {
-            cargarIndice()
-            entradas.filter { !it.caducada }.mapNotNull { it.id }.toSet()
-        }
+        val guardadas = cuentasGuardadas()
         val respuestas = try {
             coroutineScope {
                 vecinas.buscar().map { paquete -> async { paquete to vecinas.pedir(paquete, configuracion.api) } }.awaitAll()
@@ -440,6 +446,47 @@ class SesionYosiftware internal constructor(
         return respuestas.mapNotNull { (paquete, oferta) -> oferta?.let { otraApp(paquete, it) } }
             .distinctBy { it.idCuenta }
             .filter { it.idCuenta !in guardadas }
+    }
+
+    /**
+     * Desde la 1.11.0. Desde [EstadoSesion.SinSesion], antes de pedir la contraseña: **la sesión de la primera app del
+     * ecosistema de este móvil que conteste con una**, para ofrecer un solo «Continuar como @alias», con «Con tu cuenta
+     * Yosiftware» debajo y sin decir de qué app viene (decisión del propietario, 2026-11-22). Pregunta a todas a la vez y,
+     * en cuanto una da su sesión, deja de esperar a las demás: algunos móviles no arrancan una app que despierta otra, y
+     * esperar a todas tardaba hasta 15 s. Solo del mismo entorno y de una cuenta que no esté ya guardada aquí (al añadir
+     * otra, [anadirCuenta]). `null` si ninguna la da, cuando han contestado todas o ha vencido su tiempo. No bloquees la
+     * pantalla de entrar mientras tanto. No lanza errores. Se usa con [continuarCon].
+     */
+    suspend fun sesionDeOtraApp(): SesionEnOtraApp? {
+        if (estadoActual.value !is EstadoSesion.SinSesion) return null
+        val guardadas = cuentasGuardadas()
+        return try {
+            coroutineScope {
+                val primera = CompletableDeferred<SesionEnOtraApp?>()
+                val preguntas = vecinas.buscar().map { paquete ->
+                    launch {
+                        val otra = vecinas.pedir(paquete, configuracion.api)?.let { otraApp(paquete, it) }
+                        if (otra != null && otra.idCuenta !in guardadas) primera.complete(otra)
+                    }
+                }
+                launch {
+                    preguntas.joinAll()
+                    primera.complete(null)
+                }
+                // Con la primera, las demás se cancelan y sueltan su conexión con la otra app.
+                primera.await().also { coroutineContext.cancelChildren() }
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: RuntimeException) {
+            null
+        }
+    }
+
+    /** Las cuentas guardadas aquí y sin caducar: la sesión de otra app no ofrece ninguna de ellas. */
+    private suspend fun cuentasGuardadas(): Set<String> = cerrojo.withLock {
+        cargarIndice()
+        entradas.filter { !it.caducada }.mapNotNull { it.id }.toSet()
     }
 
     /**
