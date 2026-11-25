@@ -1,22 +1,18 @@
 # Notificaciones
 
-## Direccion
+## Dirección
 
-- Usar un host global de toast para avisos efimeros de la aplicacion.
-- Mantener compatibilidad temporal con la API legacy `SnackbarModule.openSnackBar(...)`.
-- Separar los toasts efimeros del centro duradero de notificaciones sociales.
+- Las notificaciones, su centro, la campana y el push son de la plataforma (`<yosi-notificaciones>`): Libros no tiene centro ni avisos persistentes propios.
+- Los avisos efímeros de la interfaz (errores y confirmaciones) usan el host global de toast, compatible con `SnackbarModule.openSnackBar(...)`; los errores de la API, con `openApiError`.
 
 ## Deuda relevante
 
-- El sistema anterior dependia de `MatSnackBar` y clases globales ajustadas con `::ng-deep`.
-- Hay muchas llamadas existentes a `openSnackBar(...)`; no conviene migrarlas una a una en la primera fase.
+- Quedan muchas llamadas a `openSnackBar(...)`; no se migran una a una.
 
-## Lineas activas
+## Líneas activas
 
 - Ninguna.
-- El centro persistente, los badges realtime y el push web se desarrollaron dentro de `community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`.
 
-## Referencias historicas utiles
+## Referencias útiles
 
-- `C:\Users\yosi\Desktop\GUIA_PORTAR_SISTEMA_TOAST.md` fue la guia de origen para portar el sistema.
-- La consolidación del historial de sesión, los avisos accionables, la campana compartida y Preferencias se cerró en `ROADMAP_FINALIZADO_notificaciones-sesion-y-preferencias.md`.
+- `ROADMAP_FINALIZADO_notificaciones-sesion-y-preferencias.md`.
