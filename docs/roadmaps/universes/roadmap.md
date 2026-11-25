@@ -1,24 +1,20 @@
 # Universos
 
-## Direccion
+## Dirección
 
-- Tratar la vertical de universos como biblioteca: catalogo canonico compartido, coleccion personal del usuario y vista agrupada por universos.
-- Mantener los contratos del front alineados con `docs/backend/api/ENDPOINTS.md` y `docs/backend/openapi.yaml`.
+- La vertical de universos es la biblioteca: catálogo canónico compartido, colección personal y vista agrupada por universos.
+- Los contratos del front siguen `docs/backend/api/ENDPOINTS.md` y `docs/backend/openapi.yaml`.
+- El catálogo canónico se edita en el plugin de administración de la plataforma; desde la web se propone desde el Catálogo (`/peticiones/catalogo`).
 
 ## Deuda relevante
 
-- La pantalla de coleccion ya consume `/coleccion/universos`, pero necesita verificaciones manuales con datos reales para cerrar la migracion.
-- El front usa un store local para relaciones; las rutas de edicion deben poder recuperarse aunque el store no este precargado.
-- Los gestores actuales mezclan listado e insercion de catalogo; la insercion canonica debe limitarse a admin/moderador.
-- Backend ya documento catalogos auxiliares de idioma/estilo, lugares de origen como autocomplete paginado y `Sagas[]` en `/coleccion/universos`.
+- El front usa un store local para relaciones; las rutas de edición deben poder recuperarse aunque el store no esté precargado.
 
-## Lineas activas
+## Líneas activas
 
-- La migración de ISBN, ediciones y posesión de ejemplares está planificada en `../api-contract/ROADMAP_FINALIZADO_ediciones-isbn-y-avisos-agente.md`.
-- Revisar los pendientes de verificación manual del catálogo canónico y la biblioteca personal antes del cierre de la migración de ediciones.
-- Ajustar incidencias de integracion que aparezcan con datos reales y roles `usuario`, `moderador` y `administrador`.
+- Ajustar las incidencias de integración que aparezcan con datos reales.
 
-## Referencias historicas utiles
+## Referencias útiles
 
-- `docs/backend/api/ENDPOINTS.md`, sección `Catálogo canónico y colección personal`.
+- `docs/backend/api/ENDPOINTS.md`, sección «Catálogo canónico y colección personal».
 - `docs/backend/openapi.yaml`, schemas `CatalogItem`, `CollectionItem`, `CollectionUniverse` y `CatalogRequest`.
