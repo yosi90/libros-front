@@ -1,75 +1,66 @@
 # Auditoría de reutilización Sass
 
-> Corte revisado: 28 de agosto de 2026. Alcance: los 93 archivos `.sass`/`.scss` bajo `src/`. Esta auditoría orienta refactors incrementales; no autoriza mezclar Wood y Mobile ni reescribir en bloque superficies estables.
-
-- **Primitives Web (25/9):** `src/assets/css/web/_primitives.sass` reúne mixins sin emisión (eyebrow, foco, botón y variantes, botón icónico, segmentado, estado de lectura, progreso y spinner). Primer consumidor: la Biblioteca Web; las siguientes vistas Web deben partir de ellos.
-- **Diálogo Web (26/9):** `web.dialog($width)` emite velo, superficie, cabecera y pie de los modales Web. Lo extraen Comunidad (redactor) y el libro (parte o interludio); los modales Web nuevos deben usarlo.
+> Auditoría viva del Sass de `src/`. Orienta refactors incrementales; no autoriza mezclar Wood y Mobile ni reescribir en bloque superficies estables. Se actualiza cuando se resuelve uno de sus candidatos o aparece una familia nueva relevante.
 
 ## Criterio
 
-- Se compararon archivos idénticos, bloques consecutivos de declaraciones repetidos, imports, `@include`, `@extend`, tamaños y familias visuales.
+- Se comparan archivos idénticos, bloques consecutivos de declaraciones repetidos, imports, `@include`, `@extend`, tamaños y familias visuales.
 - Una coincidencia de `display: flex/grid` no basta para crear un mixin. Solo se extrae cuando coinciden intención, presentación y ciclo de cambio.
 - La prioridad favorece CSS idéntico demostrable, varios consumidores reales y reducción de fuente sin aumentar emisión ni especificidad.
-- Light/dark, el selector de tema y sus fallbacks retirados no reciben abstracciones nuevas salvo que sean necesarias para eliminarlos con seguridad en H12.
+- Una extracción se comprueba compilando cada consumidor antes y después con Dart Sass: el CSS normalizado debe ser el mismo.
 
-## Ejecutado en esta auditoría
+## Lo común que ya existe
 
-- **Editores CRUD Wood legacy:** autor, universo, saga, antología y libro repetían el mismo frame, card y composición entre altas y ediciones. Diez consumidores pasan a `src/assets/css/wood/_legacy-entity-editors.sass` con cuatro mixins semánticos y solo un parámetro real para la anchura de autor. *(24/10/2026: retirados los diez editores, sin rutas desde que las altas viven en Administración, y con ellos el parcial.)*
-- **Resultado de fuente:** los diez consumidores pasan de 432 a 26 líneas; el parcial común añade 113, con una reducción neta de 293 líneas.
-- **Equivalencia:** se compiló cada consumidor antes/después mediante Dart Sass y el CSS normalizado fue idéntico en los diez casos.
-- **`@extend`:** se eliminaron sus dos únicos usos. Mobile comparte `.m-surface, .m-card` mediante una primitive explícita sin aumentar el CSS; el libro agrupa `.drawer-toggle, .book-back`, incluida la touch target MDC. Ambas salidas se compararon con su versión anterior y son idénticas.
-- **Autenticación pública:** H7 centralizó el layout público Mobile en `MobileAuthPageComponent` y sus patrones repetidos de formulario en `src/assets/css/mobile/_public-auth.sass`, emitidos una sola vez bajo `.mobile-ui`. Los imports legacy de las vistas Wood quedaron reunidos en `src/assets/css/wood/_public-auth-view.sass`; cada feature conserva únicamente su composición específica.
-- **Editor RTF compartido:** H10 conserva un único núcleo funcional para Wood/Mobile, pero la variante táctil dejó de depender de los temas retirados `light/dark`. Sus reglas de superficie, foco, toolbar, triggers/valores Material, menús y touch targets se activan exclusivamente mediante `data-presentation-active="mobile|native-mobile"` y consumen tokens Mobile; la base Wood no cambia. La compactación posterior permanece en este núcleo porque escenas y las seis entidades comparten exactamente la toolbar: Mobile usa una fila horizontal y Wood conserva su composición envolvente.
-- **Entidades narrativas Mobile:** H10 reúne personajes, organizaciones, eventos, localizaciones, conceptos y citas en una sola vista parametrizada. Consume las primitives globales `.m-card`, `.m-button` y `.m-icon-button`; foco y `prefers-reduced-motion` permanecen emitidos una sola vez por `_primitives.sass`. Búsqueda, filas, relaciones y composición de formularios siguen locales porque aún no existe un segundo consumidor con la misma semántica completa.
-- **Comunidad y mensajería Mobile:** H11 reutiliza `.m-card`, `.m-button`, `.m-icon-button`, `.m-list-item`, `.m-chip`, tipografía y tokens en perfil, clubes, bandeja, conversación y notificaciones. La composición de formularios permanece local: creador de chat, gestión de club y compositor de mensajes difieren en ciclo, densidad y comportamiento de teclado, por lo que una abstracción común exigiría parametrizar casi todas sus reglas. Foco y reducción de movimiento continúan emitidos una sola vez por `_primitives.sass`.
-- **Retirada definitiva de light/dark:** H12 eliminó el selector, sus servicios, los tokens alternativos y 3.507 líneas de bloques Sass muertos repartidos en 28 componentes. No se creó una abstracción para código retirado ni se alteró la cascada activa Wood/Mobile; una barrera QA impide reintroducir `data-theme`, almacenamiento local de tema o consumidores de esos servicios.
-- **Lector nativo y país:** *(24/10/2026: el autocomplete de país se retiró sin consumidores.)* La píldora del lector permanece local porque solo existe en `native-mobile`. No se ha creado una primitive transversal para una única superficie ni se ha filtrado su composición a Wood.
-- **Autenticación Mobile adaptable:** `MobileAuthPageComponent` admite ahora, mediante custom properties con fallback, ajustar separación de columnas, ancho y alineación del panel sin duplicar su grid ni afectar a las demás rutas. La cita compacta se activa mediante un input explícito y Login la combina con el catálogo corto para conservar una altura predecible. La superficie fullscreen de correo/teléfono permanece local al Login mientras no exista un segundo consumidor; el atributo funcional `data-native-back-overlay` sí queda como contrato reutilizable del runtime Android.
-- **Herencia de apariencia Mobile:** los tokens light se siguen emitiendo en cada raíz `.mobile-ui`, pero una raíz anidada bajo `html[data-mobile-theme='dark']` recibe también el mixin oscuro. Esto evita que shells y overlays cercanos vuelvan a sobrescribir con light los tokens canónicos del documento.
-- **Búsqueda por ámbitos Mobile:** Biblioteca y Catálogo comparten `MobileScopedSearchComponent` para campo, chips, sugerencias y acciones táctiles. Cada vertical conserva su motor y limita los ámbitos a los datos reales que recibe; no se duplican reglas de popup, foco, ellipsis ni scroll horizontal.
-- **Perfil Mobile:** la portada, resumen, actividad y destinos dejan de consumir visualmente `ProfileUniverseMetricsComponent`, cuya composición sigue siendo Wood. La vista Mobile reutiliza tokens y primitives globales de botones, iconos y listas; su editor compartido mantiene la lógica existente pero recibe una capa light/dark propia y formato fullscreen solo en Android/compact.
-- **Superficies fullscreen Mobile:** ficha pública de catálogo y selector contextual de antologías comparten ahora la primitive `.m-fullscreen-surface` (lienzo, capas y app bar con safe areas). Cada vertical conserva scroll, hero, acciones y contenido propios; el contrato `data-native-back-overlay` permite cerrarlas antes de navegar con Atrás en Android.
-- **Shell de lectura Mobile:** la navegación inferior, el drawer de índice y la composición de Estadísticas permanecen dentro de la vertical Libro: el shell ya los comparte entre todas sus subrutas y no existe un segundo consumidor fuera del lector que justifique emitir otra primitive global. Botones, targets, tokens y reducción de movimiento reutilizan las primitives Mobile canónicas. Los gestos cancelables de Índice y Elementos comparten umbral dentro del componente, pero conservan ejes y superficies distintos; no se extraen todavía como primitive hasta que exista un tercer consumidor estable.
-- **Controles narrativos Mobile:** los formularios de entidades aún consumen `mobile-outlined-field-tokens`; capítulo usa campos HTML locales para igualar su composición y ambos reutilizan `mobile-option-panel` para los overlays accesibles. No se extrae todavía el campo nativo de capítulo: su autocomplete de escena y el control Material del gestor no comparten markup, aunque sí tokens y panel.
-- **Foco con teclado Android:** la corrección de viewport es comportamiento nativo global y vive en `NativeKeyboardFocusService`, no en Sass repetido por formulario. Las vistas conservan un único propietario de scroll; el servicio añade y restaura espacio solo en ese propietario durante el teclado.
-- **Altas repetibles Mobile:** escenas y entradas comparten `scrollMobileFormBlockIntoView` para esperar al DOM, centrar el bloque nuevo y respetar movimiento reducido. Los avisos explicativos reutilizan el tipo `info`; sus colores azul claro/oscuro viven como tokens Mobile y el icono es una opción semántica del toast, no una variante Sass por formulario.
-- **Canvas Mobile completo:** el color de fondo no se replica por feature: la raíz Mobile y los dos routers neutrales garantizan el canvas completo, mientras las vistas de Libro solo lo reiteran donde poseen scroll propio. Esto elimina bandas Wood sin crear una utility de altura ni mezclar las presentaciones.
+- **Web:** `src/assets/css/web/_primitives.sass` reúne mixins sin emisión (eyebrow, foco, botón y variantes, botón icónico, segmentado, estado de lectura, progreso, spinner, `web.card`, `web.field`, `web.state`, `web.switch`, `web.settings-page`, `web.search-field` y `web.dialog($width)`, que emite velo, superficie, cabecera y pie de los modales). Las vistas y los modales Web nuevos parten de ellos. `web/_classes.sass` emite una vez, con `:where()`, botones, iconos, antetítulos y estados: un bloque que solo haría `@include` de una primitive no se copia en el componente; se usa la clase global.
+- **Wood:** `wood/_primitives.sass` (botón, botón fantasma y `material-fields`), `wood/_global.sass` (emite `material-fields` una vez), `wood/_profile.sass` y `wood/_catalog-modal.sass` (velo, superficie, cierre y menú «Añadir» del modal, sin emisión; los consumen `WoodPublicDetailModalComponent`, la petición de catálogo y la hoja de alta rápida).
+- **Mobile:** `mobile/_primitives.sass` con `.m-card`/`.m-surface` (primitive explícita, sin `@extend`), `.m-button`, `.m-icon-button`, `.m-list-item`, `.m-chip`, `.m-fullscreen-surface` (lienzo, capas y app bar con safe areas: ficha pública y selector de antologías), `.m-sheet`, `mobile-sheet-scrim($z-index)`, `mobile-option-panel` y `mobile-outlined-field-tokens`. El foco y `prefers-reduced-motion` se emiten una sola vez. Biblioteca y Catálogo comparten `MobileScopedSearchComponent`.
+- **Tema Mobile:** los tokens claros se emiten en cada raíz `.mobile-ui`, y una raíz anidada bajo `html[data-mobile-theme='dark']` recibe también el mixin oscuro, para que shells y overlays cercanos no sobrescriban con claro los tokens del documento.
+- **Editor RTF:** un único núcleo funcional; la capa Mobile se activa con `data-presentation-active="mobile"` y consume tokens Mobile, la Web tiene la suya y la base Wood no cambia. Escenas y las seis entidades comparten la misma toolbar: Mobile en una fila horizontal y Wood con su composición envolvente.
+- **Altas repetibles:** escenas y entradas comparten `scrollMobileFormBlockIntoView` (esperar al DOM, centrar el bloque nuevo y respetar movimiento reducido). Los avisos explicativos son el tipo `info` del toast, con sus tokens Mobile; el icono es una opción del toast, no una variante Sass.
+- **Canvas Mobile:** el fondo lo garantizan la raíz Mobile y los dos routers neutrales; las vistas de Libro solo lo repiten donde tienen scroll propio.
+- No hay `@extend`.
+
+## Se queda local, y por qué
+
+- **Entidades narrativas Mobile:** búsqueda, filas, relaciones y composición de formularios, porque no hay un segundo consumidor con la misma semántica completa.
+- **Comunidad y mensajería Mobile:** la composición de formularios (creador de chat, gestión de club y compositor), porque difieren en ciclo, densidad y teclado.
+- **Shell de lectura Mobile:** la navegación inferior, el drawer del índice y Estadísticas viven en la vertical Libro, que ya los comparte entre sus subrutas. Los gestos de Índice y Elementos comparten umbral dentro del componente; no se extraen hasta que haya un tercer consumidor estable.
+- **Controles narrativos Mobile:** el campo nativo del capítulo no se extrae: su autocomplete de escena y el control Material del gestor no comparten markup, aunque sí tokens y panel.
+- **Perfil Mobile:** su vista no consume `ProfileUniverseMetricsComponent`, cuya composición es Wood; reutiliza tokens y primitives Mobile.
+- **«Ver ediciones» en la Biblioteca Mobile:** composición local secundaria (texto de 12 px, target de 44 px, sin borde ni relleno) sobre `m-button` y el foco global; un solo consumidor.
+- **El velo de los clubes** conserva el suyo: difiere en capa, centrado y color de `mobile-sheet-scrim`.
 
 ## Candidatos confirmados
 
-### Prioridad alta — extraer al tocar la vertical
+### Prioridad alta: extraer al tocar la vertical
 
-1. **Controles Wood sociales.** El botón dorado (`#f2c77c → #b87932`, borde claro y tinta oscura) aparece al menos 13 veces en ocho hojas de perfil, comunidad, clubes y chat. Los campos oscuros con borde dorado aparecen repetidos en comunidad, club y conversación. Deben vivir en `src/assets/css/wood/` como mixins pequeños de acción y control; altura, padding y radio permanecen locales cuando tengan semántica distinta.
-2. **Tokens MDC Wood.** Los mismos grupos `--mdc-outlined-text-field-*`, `--mat-select-*` y `--mat-option-*` se repiten en capítulo, entidades narrativas, object manager y administración de libros. Extraer mixins por familia de control, sin agruparlos en un único megamixin Material.
-3. **Superficie narrativa Wood.** Capítulo, estadísticas de libro y entidades comparten exactamente el fondo de `fondo_desplegable.png`, sus tres capas, borde, radio y sombra. Crear una surface Wood semántica para bloques narrativos cuando H10 vuelva a tocar los tres consumidores.
-4. **Selector segmentado de dos estados.** Biblioteca/libros, catálogo, object manager y preferencias repiten pista, indicador absoluto y desplazamiento al segundo estado. Consolidar geometría y transición; cada feature conserva labels, estado y anchuras necesarias.
-5. **Cabeceras y acciones administrativas.** *(25/9: la cabecera de sección —icono, antetítulo, título y texto— vive ya en `src/assets/css/wood/_admin.sass` y la consume Backup. La misma hoja reúne desde el 25/9 los mixins de las gestiones de catálogo (toolbar, tabla, acciones, paginación, panel lateral y campos Material), consumidos por Gestión de libros y por las gestiones de autores, universos y sagas.)* Las pantallas de administración ya consumen `modern-admin`, pero conservan bloques Wood duplicados para título, botón dorado, tabla y estados. Añadir primitives Wood administrativas en el próximo cambio de esa vertical, sin extender `modern-admin` a Wood.
+1. **Controles Wood sociales.** El botón dorado (`#f2c77c → #b87932`, borde claro y tinta oscura) aparece al menos 13 veces en hojas de perfil, comunidad, clubes y chat, y los campos oscuros con borde dorado, en comunidad, club y conversación. Deben vivir en `src/assets/css/wood/` como mixins pequeños de acción y control; altura, padding y radio quedan locales cuando tengan semántica distinta.
+2. **Tokens Material Wood.** Los mismos grupos `--mat-select-*` y `--mat-option-*` se repiten en capítulo, entidades narrativas, libro, catálogo, perfil y object manager. Extraer mixins por familia de control, sin un megamixin Material.
+3. **Superficie narrativa Wood.** Capítulo, estadísticas del libro y entidades comparten el fondo de `fondo_desplegable.png`, sus tres capas, borde, radio y sombra. Crear una surface Wood semántica cuando se vuelva a tocar los tres consumidores.
+4. **Selector segmentado de dos estados.** Biblioteca, catálogo, object manager y preferencias repiten pista, indicador absoluto y desplazamiento al segundo estado. Consolidar geometría y transición; cada feature conserva labels, estado y anchuras.
 
-### Prioridad media — compartir solo con evidencia de uso
+### Prioridad media: compartir solo con evidencia de uso
 
-1. **Ellipsis de una línea.** `overflow/text-overflow/white-space` aparece en al menos nueve lugares. Es candidato a mixin neutral porque no expresa identidad, pero solo debe importarse en archivos que ya necesiten un parcial neutral; crear un import para una sola regla puede empeorar la legibilidad.
-2. **Texto solo para lectores de pantalla.** El patrón de 1px/clip aparece en catálogo, selector retirado y administración. Crear una utility global accesible cuando sobrevivan al retiro de light/dark los consumidores definitivos.
-3. **Cajas de icono.** Se repiten tamaños 18, 22, 30, 32, 36 y 38px. No crear un mixin parametrizable genérico; app bar, botón icónico, avatar y acción de tabla tienen semánticas distintas. Compartir dentro de cada familia cuando exista su componente/primitive.
-4. **Imports de autenticación Wood — resuelto en H7.** Login, registro, recuperación, reset, onboarding y verificación consumen `src/assets/css/wood/_public-auth-view.sass`; no volver a copiar los tres imports legacy en vistas nuevas.
-5. **Snackbar/forms con `::ng-deep`.** Su import repetido emite reglas encapsuladas en numerosos componentes. Antes de globalizar hay que verificar overlays, scope y orden; moverlos sin esa prueba puede cambiar MDC de forma transversal.
+1. **Ellipsis de una línea.** Candidato a mixin neutral, pero solo en archivos que ya importen un parcial neutral: crear un import para una sola regla puede empeorar la legibilidad.
+2. **Texto solo para lectores de pantalla.** El patrón de 1 px/clip se repite; candidato a utility global accesible.
+3. **Cajas de icono.** Tamaños repetidos sin semántica común (app bar, botón icónico, avatar, acción de tabla). No crear un mixin genérico: compartir dentro de cada familia cuando exista su primitive.
 
 ## Archivos de mayor deuda
 
-- `narrative-entity-placeholder.component.sass`: 1902 líneas.
-- `user-profile.component.sass`: 1510 líneas.
-- `catalog.component.sass`: 1371 líneas.
-- `object-manager.component.sass`: 1244 líneas.
-- `community.component.sass`: 1234 líneas.
-- `book.component.sass`: 1113 líneas.
+- `narrative-entity-placeholder.component.sass`: unas 1850 líneas.
+- `book.component.sass`: unas 1100.
+- `community.component.sass`: unas 1050.
+- `user-profile.component.sass`: unas 780.
+- `catalog.component.sass`: unas 690.
+- `object-manager.component.sass`: unas 520.
 
-Estos archivos no deben convertirse en un parcial gigante. Se dividirán por presentación y responsabilidad al pasar por H8-H11: tokens/primitives comunes, composición Wood, composición Mobile y overrides Material claramente separados.
+No se convierten en un parcial gigante: se dividen por presentación y responsabilidad cuando se toquen (tokens y primitives comunes, composición Wood, composición Mobile y overrides Material separados).
 
 ## Patrones que no se extraen
 
 - Alineaciones flex/grid genéricas sin semántica compartida.
 - Radios parecidos con componentes o densidades diferentes.
 - Reglas que solo coinciden entre Wood y Mobile pero pertenecen a identidades distintas.
-- Código light/dark que será retirado en H12.
 - Un único consumidor futuro o una parametrización que replique todas las propiedades originales.
 
 ## Puerta para cambios futuros
@@ -80,12 +71,4 @@ Antes de añadir Sass:
 2. buscar tokens, mixins y primitives existentes en la presentación;
 3. consultar esta auditoría para la familia afectada;
 4. extraer en el segundo uso semántico real;
-5. comparar build, CSS emitido/budget y Playwright de las superficies tocadas.
-
-La auditoría se actualiza cuando se resuelve uno de sus candidatos o aparece una familia nueva relevante.
-- **Clases compartidas y parciales globales (26/9):** `web/_classes.sass` (botones, iconos, antetítulos, estados con `:where()`), capa de Administración emitida una vez en el panel, `wood/_primitives.sass` (botón, botón fantasma, campos Material) y `wood/_global.sass`. Retirados `_snackbar.sass` y `_frame.sass` por no usarse. Regla: un bloque que solo hace `@include` de una primitive no debe copiarse en componentes; usar la clase global.
-
-- **Acción Ediciones en Biblioteca Mobile (1/10):** reutiliza m-button/outline y foco global, con composición local secundaria (texto de 12 px, target 44 px, sin borde ni relleno primario). El selector acotado a card/body prevalece sobre las primitives globales sin cambiar botones de otras superficies. Un único consumidor compartido por libros y antologías; no se crea una primitive global nueva.
-- **Hoja de alta rápida de las entidades narrativas (26/10/2026):** cada presentación la monta con lo que ya había. Web, con `web.dialog(520px)`; Mobile, con la primitive `.m-sheet` y el velo, que estaba copiado en el capítulo y en el libro y pasa a `mobile-sheet-scrim($z-index)` en `mobile/_primitives.sass` (los tres consumidores emiten el mismo CSS que antes; el de los clubes conserva el suyo porque difiere en capa, centrado y color); Wood, con `backdrop`, `surface` y `close-button` de `wood/_catalog-modal.sass`, y sus campos entran en el `material-fields` global de `wood/_global.sass`. Los datos básicos son una sola plantilla por vista, que usan la hoja y la ficha.
-- **Parciales sin consumidor (24/10/2026, auditoría de duplicados):** retirados `_hr-decorated.sass`, `_modern-public.sass` y `wood/_legacy-entity-editors.sass`; ningún componente ni entrada global los importaba.
-- **Ficha pública Wood (24/10/2026, auditoría de duplicados):** el modal de la ficha estaba copiado en Catálogo y en el gestor del Perfil, que además importaba el Sass entero del Catálogo. Pasa a `WoodPublicDetailModalComponent`, con sus reglas `.public-*`; velo, superficie, cierre y menú «Añadir» del modal viven en `src/assets/css/wood/_catalog-modal.sass` (mixins sin emisión) y los consumen la ficha y la petición de catálogo. El CSS compilado del Catálogo es el de antes menos las 62 reglas que se lleva la ficha, y la ficha no añade ninguna; la captura Wood es idéntica píxel a píxel.
+5. comparar build, CSS emitido y budget, y Playwright de las superficies tocadas.
