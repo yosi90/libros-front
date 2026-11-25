@@ -119,4 +119,4 @@ La CSP vive en `firebase.json` (producción; QA la deriva con `scripts/qa/prepar
 
 - La web se publica en Firebase Hosting. Versiones de la cadena: Angular 22.1 con Node 24.15.0 (`.node-version`); la matriz y los puntos de retorno de la migración, en `docs/roadmaps/common/ANGULAR_22_COMPATIBILITY.md`.
 - El GitHub Environment `qa` contiene `QA_API_BASE_URL` y los cinco secretos compartidos con el host QA. Sus valores se copiaron directamente desde el entorno cargado en el servidor y nunca pasan por archivos ni logs del frontend.
-- En el Honor plegado, la captura de pantalla por adb del display 0 sale negra: usar el display `4630946324137792644`.
+- En el Honor, la captura por adb se pide por display: la pantalla interior es `4630946846403687043` (`android-nativa/README.md`); con el móvil plegado, el display 0 sale negro y se usó `4630946324137792644` (1/10/2026, con la APK de Capacitor).
