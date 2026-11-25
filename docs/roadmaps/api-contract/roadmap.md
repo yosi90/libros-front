@@ -18,4 +18,4 @@
 ## Referencias útiles
 
 - `docs/backend/api/ENDPOINTS.md`, `docs/backend/openapi.yaml` y `docs/backend/README.md`.
-- `ROADMAP_FINALIZADO_paridad-app-escritorio.md` y `docs/backend/CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md`.
+- `ROADMAP_FINALIZADO_paridad-app-escritorio.md`.
