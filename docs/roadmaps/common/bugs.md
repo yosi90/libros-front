@@ -1,295 +1,88 @@
 # Common - Bugs y mejoras acotadas
 
-> Las entradas visuales finalizadas son historial de cambios. Los criterios de estilo vigentes viven en `docs/GUIA_ESTILOS.md`.
+> Los criterios de estilo vigentes viven en `docs/GUIA_ESTILOS.md`.
 
 ## Pendiente
 
-- [x] APK Kotlin, la pantalla de entrar (29/10/2026, lo señaló el propietario): en un móvil corriente ocupaba demasiado y había que desplazar. En la ventana compacta ya solo lleva el titular, en una línea, y el panel; los campos van sin la etiqueta encima (el texto de ejemplo dice qué es y la etiqueta queda para la accesibilidad), y «con tu sesión de…» va en una línea. Comprobado en el Xiaomi a 853, 780 y 731 dp de alto, con el botón «Continuar como…»: cabe entera sin desplazar.
-
-- [x] APK Kotlin (27/10/2026, vistos en el Xiaomi):
-  - Al minimizar el libro mientras se escribía en una escena, el teclado se quedaba abierto y el foco en el editor, que ya no se veía: lo que se tecleara iba a la escena sin verlo. Ahora se cierra el teclado al minimizar o cerrar el libro (`PantallaLibro`).
-  - En el Catálogo, con un chip de búsqueda, los botones de filtros y de pedir un libro bajaban 48 px respecto al campo, y el chip quedaba pegado al borde. Los botones van ahora en la fila del campo y los chips llevan margen, como en la Biblioteca.
-
-- [ ] Campaña de QA nocturna (26/10/2026). Fallaba cada noche desde el 10/10. Arreglada; solo falta registrar la tarea:
-  - [x] El contrato de la campaña (`scripts/qa/campaign-control.mjs` y `e2e/support/qa-environment.ts`) exigía el gateway, NATS y los workers del tiempo real propio, Firebase y el WebSocket, retirados con la adhesión. También esperaba 37 fixtures; con la adhesión quedan 26, así que ahora se comprueban los alias básicos.
-  - [x] `/qa/reset` daba 500: la foto `qa_baseline` era anterior a las columnas nuevas (fechas de alta, título de cada persona) y a las tablas de la IA. El reset restaura ahora solo las columnas comunes (API `c6b5e9e`). La foto de `libros_qa` se rehízo con los rellenos de fechas y los scripts IA 02-04.
-  - [x] La medida de Home salía 0 a veces porque leía la navegación antes de que acabara el evento load.
-  - [x] Una respuesta que no es JSON ahora dice quién contestó.
-  - [x] Desde GitHub, `qa-api.yosiftware.es` responde con un desafío de Cloudflare (`cf-mitigated=challenge`, run `40421656569`), así que el runner no pasa de `/verify`. El propietario eligió lanzarla desde el servidor (27/10): `scripts/qa/nocturna-servidor.ps1`, con registros en `.runtime/qa-nocturna/` y aviso por Notificapp si falla. Pasa entera en Chromium y Firefox. `qa-nightly.yml` se queda con `qa:ci` y `qa:browsers`.
-  - [ ] Registrar la tarea programada «Libros QA nocturna» con `scripts/qa/registrar-nocturna-servidor.ps1`. El modo automático del agente no puede hacerlo, así que lo hace el propietario.
-
-- [x] Clubes en la vista móvil de la web (25/10/2026, al especificar el clon Kotlin). Corregidos en la web y en la APK, con 613 unitarias. Fallos:
-  - «Mis clubes» se queda en los 3 del resumen, y «Eventos», en 5 y sin «Cargar más».
-  - Se enseñan valores crudos (`disponible`, `propietario`, `abierto`, `pagina`), y «1 votos».
-  - La tarjeta «Invitaciones a clubes» lleva a Descubrir, no al centro de acceso.
-  - Volver del club lleva al Resumen, no a Clubes.
-  - A quien no es miembro de un club abierto se le piden las secciones privadas: sale el error de la última. Además, se le ofrecen el debate, el voto y «Revelar spoilers», y un `club_access_unavailable` le saca del club sin explicación (`clubAccessRevoked` no lo lee nadie).
-  - Crear un debate y comentar se pueden enviar dos veces.
-  - Las métricas usan una rejilla de tres columnas para dos tarjetas.
-  - Las descripciones y los debates pierden los saltos de línea.
-  - Crear club exige un libro, aunque la API acepta antologías.
-  - El icono `outgoing_mail` no existe en la fuente y sale como texto.
-  - Arreglo en la web: las etiquetas están en `shared/club-labels.ts`; Mis clubes y Eventos se leen al abrir su pestaña; a quien no es miembro solo se le piden los autores más leídos; perder el acceso vuelve a Clubes con el aviso; volver y abandonar llevan a Clubes; `pre-line` en los textos; métricas en dos columnas; `forward_to_inbox`.
-
-- [x] Perfil, «Mis peticiones» y «Actividad reciente» (25/10/2026, al especificar el clon Kotlin). Tres fallos corregidos:
-  - Una petición devuelta de tipo «Otra petición» no se podía reenviar: la respuesta iba en `Payload.Comentario` y la API solo admite `Texto` y `Titulo` en esas peticiones, así que respondía siempre `400 invalid_other_request_payload`. Ahora la respuesta se añade al texto (`catalogRequestResponsePayload`, con su prueba).
-  - El botón «Reenviar» de la vista móvil no se desactivaba mientras se enviaba, así que se podía enviar dos veces.
-  - Las antologías de «Actividad reciente» enlazaban a `/antology/{id}`, que no existe, y acababan en la Biblioteca sin abrirlas. Ahora llevan a `/dashboard/books?antologia={id}`.
-  - Sigue pendiente, como mejora tras el clon: reenviar una petición devuelta no deja corregir sus campos (el ISBN, por ejemplo), solo añadir un comentario.
-
-- [x] Editor del texto narrativo (25/10/2026, lo señaló el propietario): la fuente y el tamaño de la barra no seguían al texto; con escenas de distintas épocas del escritorio, enseñaba los valores por defecto. La sincronización ya existía, pero la barra solo se recalculaba con `keyup` y `mouseup`, que en el móvil no siempre llegan, y el desplegable de tamaños se quedaba en blanco con los medios puntos de RichEdit (`s21`, 10,5 pt), porque solo enseña valores de su lista. Ahora se recalcula con cada `selectionchange` dentro del editor, y el tamaño del texto se añade a las opciones. Prueba unitaria con un RTF de cuatro fuentes y tamaños; 609 unitarias.
-- [x] Autoguardado (25/10/2026): el propietario perdió media escena al cerrar del todo la APK tras escribir un capítulo. El capítulo solo se enviaba 1,8 s después de dejar de escribir; el borrador local solo se apartaba al cambiar de cuenta; nada guardaba al pasar a segundo plano, y la validación de una escena incompleta bloqueaba el envío de todo el capítulo. Ahora el capítulo aparta su borrador en el dispositivo 0,4 s después de cada cambio y, al ocultarse la página (`visibilitychange` o `pagehide`), lo aparta al momento y lo envía sin esperar. El borrador se retira cuando el servidor tiene los cambios y se recupera al volver a abrir el capítulo; un capítulo nuevo no deja atrás el borrador de «nuevo». La ficha de las entidades, que solo guardaba al salir o con «Guardar», aparta igual su borrador local. 608 unitarias.
-- [x] Al usar «Ver en biblioteca» tras añadir un libro o antología, abrir su universo y saga y desplazar la vista hasta su tarjeta en Web y Wood. La orden se guarda antes de navegar y la vista clásica identifica cada tarjeta; verificado con Playwright Chromium en ambas presentaciones y 611 unitarias (29/9/2026).
-- [x] Peticiones de libro y antología (29/9): aceptar año de publicación sin exigir mes y día, con validación de año, mes y fecha completa; enviar la sinopsis en su campo propio y mostrar sinopsis y comentarios extensos en una fila de lectura con el nombre primero en «Mis peticiones». Verificado con build, 609 unitarias y Playwright Chromium/Firefox en compact y escritorio.
-- [x] Gate QA (29/9): la comprobación de rutas heredadas reconoce `params.get('addBook')` como lectura de un parámetro de URL del catálogo. Conserva el rechazo de rutas antiguas y permite pasar `qa:ci` con la acción de añadir un libro desde una notificación.
-- [x] Navegación Web claro/oscuro (28/9): la campana vuelve a la barra lateral de escritorio con texto y se reduce a icono al plegarla. Medium conserva el carril y compact la barra superior. Verificado en Chromium y Firefox con ambos temas.
-- [x] Administración (28/9): los campos de peticiones y reportes se preparan una vez al recibirlos y las filas usan claves estables; así la vista de pendientes no reconstruye continuamente el DOM al mostrar una petición. Verificado con una petición de campos anidados en Chromium y Firefox, incluida navegación de ida y vuelta.
-
-- [x] Perfil Web claro/oscuro (28/9): al pulsar el avatar, la fila de imagen y «Cambiar» quedan resaltados en Identidad pública y el foco llega al botón. «Cambiar» abre un selector de archivo en la misma fila, muestra el nombre y permite guardar la nueva imagen. Verificado con build, typecheck E2E y Playwright en Chromium/Firefox para claro y oscuro.
-
-- [x] Editor RTF en Web claro (27/9): los RTF del escritorio guardan colores de texto explícitos claros (`#F6E6C9`) que desaparecían sobre el fondo claro. `shared/rtf/rtf-ink.ts` marca con `data-rtf-ink` los tramos sin resaltado cuyo color no se lee en un tema (claro u oscuro) y `web/_classes.sass` los pinta con la tinta Web; el color guardado no cambia y el escritorio sigue viéndolo igual.
-
-- [x] Normas pendientes (27/9): el aviso de decisión solo tenía estilo Wood y ahora sigue el tema Web claro/oscuro (E2E `web-policy-notice.spec.ts`). Añadir o cambiar libros de la biblioteca, o abrir un libro, con normas pendientes ya no se presenta como fallo: `openApiError` y `bookLoadGuard` callan el error y el interceptor abre el aviso con lo que se intentaba («Para abrir tus libros, acepta primero las normas de uso») y «Revisar ahora», en cada intento; los bloqueos en segundo plano siguen avisando una vez por sesión.
-
-- [x] Onboarding: si la política de uso no cargaba (producción respondía `503 usage_policy_unavailable` porque no había política publicada; el propietario publicó la 1.0 el 27/9), el botón «Crear mi biblioteca» no hacía nada. Ahora las tres vistas explican que sin política no hay alta, ofrecen «Reintentar» y desactivan el envío.
-
-- [x] Primera visita: la bienvenida «Elige tu estilo» y el aviso de normas pendientes podían abrirse a la vez. `ThemeWelcomeService` decide la bienvenida desde el arranque y `DecisionNoticeService` retiene los avisos mientras está pendiente o abierta (quedan en la campana) y los presenta al elegir el estilo. E2E `web-first-visit-order.spec.ts`.
-
-- [x] Loader Web: el texto «Recuperando tu biblioteca…» quedaba en 4,35:1 en claro porque el fondo era un 92 % opaco y la página de debajo lo oscurecía; la auditoría WCAG del smoke alojado fallaba de forma intermitente (`36332316987`). Fondo opaco con `--web-color-canvas`: 5,13:1 en claro y 8,55:1 en oscuro (27/9).
-
-- [x] Consola: `GET /comunidad/capacidades` muestra un 401 periódico. Es el primer intento tras caducar el token de acceso (15 min); el interceptor lo renueva y repite. Resuelto en 750e643 (26/9): `SessionService` renueva un minuto antes de caducar y al volver a primer plano; cubierto por unitarias desde el 27/9.
-
-- [x] Formularios: usar `field` de `ErrorResponse` (docs/backend/api/ERRORES.md) para marcar en rojo el control concreto que el backend rechaza, además de mostrar `error`. Aprobado por el propietario el 26/9. `markBackendFieldError` (cc5f5da) cubría Administración y notas; el 27/9 se extiende a Perfil (alias, nombre visible, bio y país en Web, Wood y Mobile), Onboarding (alias), alta de personaje y entidades narrativas. E2E `web-backend-field-error.spec.ts` en Chromium, Firefox y WebKit.
-
-- [x] Biblioteca (Wood): abrir una antología navegaba a `/antology/:id`, ruta inexistente. Wood tiene ahora su panel lateral de secciones (26/9), como Web y Mobile.
-
-- [x] Comunidad (Wood): el botón «Reintentar» de los estados de error (Comunidad, Resumen social y perfil) usa el nuevo mixin `wood.button` de `assets/css/wood/_primitives.sass` (26/9).
-
-## En curso
-
-- [x] Diagnosticar la demora del loader «Recuperando tu biblioteca…», mostrar el dragón y priorizar IPv4 con fallback IPv6 real y feedback aleatorio.
-  - Medición de solo lectura en el Honor (21/9): IPv4 responde a `/runtime-config` en 207 ms; IPv6 agota 18 s sin conectar. Una sonda Android `HttpURLConnection` con los mismos timeouts del transporte de sesión tarda 30.642 ms en el primer `GET /auth/session/csrf` sin credenciales y 135 ms reutilizando conexión. DNS entrega primero dos IPv6; el retraso de conexión de 30.368 ms concuerda con dos intentos de 15 s. No se ha medido todavía el `refresh` autenticado ni se ha modificado la configuración de red del usuario.
-  - La restauración espera configuración pública (caché en Android), CSRF y refresh; la descarga de biblioteca/autores es posterior. El login explícito además duplica cargas entre `AppComponent.restoreLibrary` y `LoginComponent.loadLibrary`.
-  - Publicado e instalado en producción 1.0.5/código 6: transporte HTTP Android con IPv4 primero/IPv6 alternativo, conexión de 3 s por dirección, cookies/HTTPS preservados y cuerpos sin reenvío tras envío. Feedback real de IPv6 con frases aleatorias del dragón. 471 pruebas Angular, 13 JVM, build productivo, compilación APK y Chromium/Firefox pasan. En el mismo Honor, la sonda del cliente nuevo tarda 348 ms/94 ms frente a 30.642 ms/135 ms; serialización nativa de JSON/formulario/binario/multipart comprobada contra fixtures. Web `35660612276` y Android `35660612638` verdes. El refresh autenticado completo queda para aceptación del usuario: no se abrió la app durante la llamada activa.
-  - Reabierto tras aceptación física: sesión y fallback inicial resuelven en menos de 3 s, pero el loader posterior de `restoreLibrary` quedó más de 3 min. Reproducido tras reinicio: dos conexiones IPv4 establecidas y loader todavía activo a 54 s; la salida posterior fue solicitada por el sistema/usuario, no un crash. Corrección en curso: biblioteca separada del catálogo auxiliar, timeout total nativo y trazas sanitizadas por ruta; conservar un único dragón al cambiar de fase.
-  - Detectado al desbloquear tras 1.0.6: el manejador histórico de cualquier error de biblioteca llamaba a `logout`, aunque la sesión ya estuviera autenticada. La sesión válida se perdió en la prueba 1.0.5. Se corrige para que solo errores terminales de auth cierren sesión; la carga de datos conserva acceso y ofrece reintento.
-
-- [x] Compactar los formularios Mobile del espacio de libro: retirar la cabecera redundante del capítulo, mantener páginas/orden en una fila compacta, corregir el estirado de personajes nombrados, reducir tipografía operativa y centralizar la confirmación efímera de guardado en la app bar. Build productivo, 466 unitarias, typecheck E2E y comprobación de layout real en Chromium/Firefox pasan; el indicador compartido se valida con temporización de 3 s y orden previo a Estadísticas.
-
-- [x] Dar al toast Android medium una cota inferior con recorrido descendente suficiente, sin alterar la posición ya aceptada en compact.
-  - Implementado: medium reserva 104 px sobre la safe area; la lógica y el umbral descendente de 64 px permanecen iguales. Pendiente aceptación física.
-- [x] Rediseñar Perfil Mobile como portada de identidad, resumen y actividad propia, con jerarquía táctil compact/medium y tokens light/dark; Wood permanece intacto.
-  - Implementado: portada de identidad, métricas compactas, actividad y destinos táctiles; el editor es fullscreen en compact/Android y modal en medium. Chromium y Firefox quedan sin overflow horizontal en 390×844 y 800×900. Pendiente aceptación física.
-- [x] Completar el diagnóstico físico del login Google Android: Credential Manager ya abre con rapidez en `1.0.53-qa`, pero el flujo no finaliza después de seleccionar la cuenta.
-  - Se retiró el timeout JS de 30 s que abandonaba sin cancelar una operación Java aún viva. El secreto QA de `google-services.json` se sincronizó con Firebase para incluir el OAuth Android de la firma de distribución `f23e…d8e8`; Firebase confirma que SHA-1 y SHA-256 están registrados. `1.0.54-qa` siguió pendiente en la red doméstica y completó Google tras cambiar de IP. El 20/9, la candidata productiva `1.0.1` inició sesión dos veces desde cero mediante Credential Manager en el Honor Magic V3 sobre Wi-Fi, cerrando únicamente su propia sesión entre intentos; ambos accesos cargaron Biblioteca. El caso QA en la otra red sigue abierto como diagnóstico de red, sin bloquear la validación productiva.
-- [x] Mantener encendida la pantalla mientras la actividad Android esté en primer plano y liberar la petición al pausarla.
-  - Implementado mediante `FLAG_KEEP_SCREEN_ON` en `onResume`/`onPause`; pendiente comprobación física prolongada.
-- [x] Cerrar antes que el historial cualquier superficie Mobile fullscreen modelada como estado local (ficha pública, detalle de gestor y diálogos equivalentes) al usar Atrás nativo.
-- [x] Intercambiar Estadísticas y Preferencias en el rail medium: Estadísticas junto a los destinos principales y Preferencias al pie.
-- [x] Trasladar Normas y Moderación desde Perfil a Cuenta y seguridad, incluidos enlaces profundos y acciones de apelación/aceptación.
-- [x] Abrir desde el avatar de Perfil Android el selector nativo de cámara o galería y subir directamente la imagen, sin modal web intermedio.
-- [ ] Manejar `anthology_section_collection_forbidden` y reconciliar la biblioteca autoritativa. Backend ya define filtrado canónico; pendientes su publicación QA y saneado persistente.
-  - Implementación frontend completada y prueba focalizada verde el 5/9. El cierre conjunto espera publicación/saneado backend. El servicio Android data-only compila y sus tres pruebas JVM pasan; la aceptación física permanece abierta.
+- [ ] Registrar la tarea programada «Libros QA nocturna» con `scripts/qa/registrar-nocturna-servidor.ps1`. Depende del propietario: el modo automático del agente no puede registrarla. La campaña ya pasa entera desde el servidor (`scripts/qa/nocturna-servidor.ps1`, registros en `.runtime/qa-nocturna/`, aviso por Notificapp si falla). Desde GitHub no se puede: Cloudflare desafía al runner (`cf-mitigated=challenge`), y `qa-nightly.yml` solo corre `qa:ci` y `qa:browsers`.
+- [ ] Mejora tras el clon: reenviar una petición devuelta no deja corregir sus campos (el ISBN, por ejemplo), solo añadir un comentario.
+- [ ] Regenerar con Docker la referencia Linux de `chapter-editor` (Wood): cambió la alineación de los iconos de prefijo al compartir la paleta de campos.
 
 ## Pausado
 
-- Verificacion manual desktop del redisenio visual de home, auth, shell autenticado y vista inicial de universos/libros.
+- Verificación manual de escritorio del rediseño visual de Home, el shell autenticado y la vista inicial de universos y libros (`docs/pruebas/common/[pendiente][redisenio-visual-biblioteca].md`).
 
 ## Finalizado
 
-- [x] Editor narrativo (todas las presentaciones, 26/9): la barra mostraba siempre la fuente preferida del libro (p. ej. Luckiest Guy) y el tamaño por defecto aunque el texto tuviera otros; solo se corregía al hacer clic en el texto. Ahora, con texto ya escrito, refleja la fuente y el tamaño de su primer fragmento; la preferida solo rige en editores vacíos.
-- [x] Sass compartido (26/9): la capa Web de Administración se emite una vez desde el panel en lugar de en 10 secciones; botones, iconos, antetítulos y estados Web pasan a clases globales `:where()` (`web/_classes.sass`, 34 copias retiradas de 13 componentes); se eliminan `_snackbar.sass` (CSS muerto de MatSnackBar, importado 12 veces) y `_frame.sass` (clases sin uso); la paleta Wood de campos Material pasa a `wood/_global.sass`. Total publicado: de 8,39 MB a 8,16 MB (−227 kB); entidades narrativas de 61,8 a 58 kB. Nuevos parciales `wood/_primitives.sass` y `wood/_global.sass`.
-- [ ] Referencia Linux de `chapter-editor` (Wood) pendiente de regenerar con Docker: cambió la alineación de los iconos de prefijo al compartir la paleta de campos.
-- [x] Accesibilidad Web (26/9): nueva prueba `web-accessibility.spec.ts` con axe en claro y oscuro (Biblioteca, Perfil, capítulo, resumen, notas y entidades). Corregido el contraste del token `--web-color-ink-subtle` (#626b66 en claro y #9aa59f en oscuro, ≥ 4,5:1 sobre los fondos habituales) y el nombre accesible del editor narrativo (`ariaLabel`).
-- [x] Errores de campo (26/9): `markBackendFieldError` lee el `field` del error del backend y marca ese control en rojo con su texto; se retira al editar el campo. Aplicado al editor de libros y antologías, a autores/universos/sagas de Administración y a las notas del libro.
-- [x] Ventana «Estabas leyendo» también en Wood (26/9), con su paleta.
-- [x] Avisos (26/9): título y mensaje repetían el mismo texto. `SnackbarModule.openApiError` usa el texto genérico de la pantalla como título («Error al actualizar el libro») y el del backend como mensaje («Revisa el título.»); las 52 llamadas `openSnackBar(getApiErrorMessage(…))` pasan a usarlo. Si título y mensaje coinciden, el aviso y el historial muestran solo el título.
-- [x] Error frente a vacío (26/9): el Catálogo mostraba «Sin resultados… pide el título que falta» y Estadísticas guiones y «Aún no hay lecturas» cuando la carga fallaba. Ambos muestran ahora un estado de error con «Reintentar» en Web, Wood y Mobile; Estadísticas conserva el aviso parcial cuando solo fallan algunas métricas.
-- [x] Sesión (26/9): el token de acceso (900 s) solo se renovaba tras un 401, de ahí los 401 periódicos de `comunidad/capacidades`. Ahora se renueva un minuto antes de caducar y al volver a una pestaña en segundo plano si ya tocaba.
-- [x] Mensajes (26/9): en la navegación Web se resaltaban a la vez Comunidad y Mensajes. Además, la ventana flotante de chats solo existía en Wood y no había forma de abrirla desde Mensajes: ahora funciona también en la Web de escritorio (lista y conversaciones con estilo Web) y Mensajes ofrece «Abrir en ventana» en Web y Wood, para la lista y para cada conversación.
-- [x] Web, Biblioteca (26/9): las sagas cerradas parecían universos cuando un universo tenía muchas. Ahora cuelgan de una línea guía bajo el título «Sagas», con icono propio, filas más finas, contador en píldora y mini-pila de portadas. El mismo desplegable se porta a Mobile/APK en lugar del de tonos por universo.
-- [x] Web, paneles laterales en pantalla pequeña (26/9): la ficha de libro (Catálogo, Biblioteca, Perfil), el panel de antología, los personajes del capítulo y el índice del libro se cierran también arrastrándolos hacia su borde (`SwipeToCloseDirective`, solo con dedo o lápiz).
-- [x] Catálogo en plegable abierto (26/9): Web y Mobile estiraban una sola tarjeta a todo el ancho. Las rejillas admiten tarjetas desde 250 px y muestran dos columnas en cuanto caben (también la Biblioteca Web).
-- [x] Port de la píldora del lector a la Web (26/9): al salir de un libro al panel, `ReadingReturnService` recuerda dónde estabas. En pantallas grandes aparece la ventana «Estabas leyendo» (plegable a píldora) y en la Web de móvil una chip como la de la APK; ambas vuelven al punto exacto.
-- [x] Port a Mobile/APK (26/9): iconos en múltiplos de 4 px (contrato ampliado a Mobile), catálogo a dos columnas y desplegable de universos Web. Llegará a la APK con la próxima versión.
-- [x] QA: `mobile-design-system.spec.ts` (Firefox, tablet) fallaba de forma intermitente porque la campana del laboratorio consultaba `/notificaciones` en la API real (CORS 401). La prueba simula ahora esa ruta (26/9).
-- [x] Web: al cargar se veía Wood de fondo (sobre todo con el loader). La presentación partía siempre de Wood hasta la primera navegación. Ahora un script en `index.html` aplica el tema del dispositivo antes de Angular en `/dashboard` y `/book` (respeta Wood en escritorio, la APK y el interruptor local de pruebas), `WebRouteSupportService` parte de la URL inicial y el loader usa los colores del tema Web.
-- [x] Web: los tooltips de ApexCharts mostraban el texto oscuro sobre fondo oscuro. Estilo global para los gráficos en la presentación Web con los tokens del tema.
-- [x] Tras editar un libro en Administración (p. ej. el total de páginas de «Siega»), la Biblioteca y el libro seguían con los datos anteriores hasta recargar: `BookStoreService` guardaba el último libro abierto y `UniverseStoreService` la biblioteca. `LibrarySyncService` los invalida tras cada alta o edición del catálogo.
-- [x] Estadísticas del libro tras una publicación (26/9): una pestaña abierta con la versión anterior pedía un módulo bajo demanda (ApexCharts) que ya no existía; Firebase respondía el `index.html` y Firefox lo bloqueaba por tipo MIME. `ChunkLoadRecoveryErrorHandler` reconoce ese error (mensajes de Firefox, Chromium y Safari) y recarga una sola vez por minuto para traer la versión nueva. Además, la fuente de lectura Web deja de pedir «Book Antiqua», que la protección antihuella de Firefox bloquea y anotaba en consola.
-- [x] Iconos «cortados» arriba y abajo en la Web (26/9): no los recortaba la CSS. Con escalado de pantalla del 125 %, un icono de 18 px ocupa 22,5 píxeles físicos y Firefox ajusta el glifo a la rejilla, achatándolo. Los iconos de las vistas Web pasan a múltiplos de 4 px (18→20, 14→16, 22→24) y `final-contracts.test.mjs` lo exige. Además, el texto de «+ Capítulo / Parte / Interludio» del índice sube un píxel para alinearse con el icono.
-- [x] Administración en Web claro/oscuro (26/9): el menú lateral mostraba las descripciones apretadas y encogía los textos; ahora solo muestra el título con su icono. Los botones de la leyenda de la cola del Resumen pierden el borde y el relleno de botón. «Backup de datos» y el centro de los anillos del Resumen conservaban fondos Wood; la capa `web/_admin.sass` cubre ya avisos, iconos de sección y antetítulos.
-- [x] Administración: cambiar la portada de un libro o antología del catálogo fallaba (26/9, «Reencarnación»): se subía aparte por `/image/set/cover/{name}`, que solo admite portadas propias, después de guardar los datos. El backend aceptó `docs/peticiones/respondidas/ACEPTADA_portadas-desde-administracion.md`: la portada viaja ahora en la misma escritura `multipart/form-data` de `/catalogo/admin/*` y se guarda con los datos en una única transacción.
-- [x] Administración, campo «Publicación» en Wood: el marcador de ejemplo se veía encima de la etiqueta (Wood fuerza los placeholders visibles). Se quita el marcador y los formatos admitidos pasan a la ayuda del campo.
-- [x] Web de escritorio: abrir un chat desde un perfil o desde Personas no mostraba nada. `ChatFloatingCoordinatorService` decidía por tamaño de pantalla abrir una ventana flotante, pero esas ventanas solo se pintan en Wood. Ahora, fuera de Wood, abre la página de Mensajes.
-- [x] Barra lateral Web con desplazamiento horizontal y una «x» escondida tras «Cerrar sesión»: el botón de plegar usaba `left_panel_close`/`left_panel_open`, que no existen en la fuente Material Icons (son de Material Symbols), y el nombre se pintaba como texto. Pasa a `first_page`/`last_page` y la barra oculta el desbordamiento horizontal. Se corrigen otros iconos inexistentes (`person_book`, `monitoring`, `progress_activity`) y `final-contracts.test.mjs` comprueba ahora que los iconos de las plantillas existen en la fuente.
-- [x] Perfil Wood (26/9, revisión del propietario): (1) no había selector de tema en producción porque la presentación Web estaba apagada; se activa. (2) La foto de perfil se salía del marco en portátiles de poca altura (el marco bajaba a 88 px y la imagen seguía a 118 px); ahora es relativa al marco. (3) «Perfil» se editaba con modales; ahora cada dato, la privacidad y la imagen se editan desplegando el formulario en su fila. (4) y (5) Cuenta y seguridad y Preferencias sacaban del Perfil, la primera sin desplazamiento y la segunda sin forma de volver; ahora son apartados del Perfil con pestañas y el mismo lenguaje visual (mixins `src/assets/css/wood/_profile.sass`). La confirmación de identidad pasa a pedirse al guardar el cambio, como en Mobile y Web.
-- [x] Administración, «Gestión de libros»: guardar un libro con fecha de publicación fallaba. El formulario recortaba la fecha al año («2016») y la enviaba así, pero `CatalogAdminWrite.FechaPublicacion` exige `AAAA-MM-DD`, así que el backend respondía 400. El campo pasa a «Fecha de publicación» (fecha completa) y solo se envía un valor `AAAA-MM-DD`. Comprobado con el PATCH capturado en Playwright. El 26/9 backend aceptó la petición de mensajes (`docs/peticiones/respondidas/ACEPTADA_mensajes-de-error-para-el-usuario.md`) y amplió `FechaPublicacion` a año, año-mes o fecha completa; el campo pasa a «Publicación» y admite «2016», «11/2016» o «22/11/2016».
-- [x] Catálogo Wood: en «Proponer corrección», la etiqueta del buscador («Libro») se solapaba con su placeholder («Busca por nombre»), porque Wood forzaba el placeholder visible. Ahora solo aparece cuando la etiqueta ha subido (clase `mat-form-field-hide-placeholder` de Material).
-- [x] Biblioteca: al cerrar la saga o el universo del libro en marcha, abrir otro y hacer scroll, todo se cerraba y volvía a abrirse el libro en marcha. Cada scroll guardaba la posición en el estado de búsqueda y eso refiltraba la biblioteca y reaplicaba la expansión automática; además, en Wood los paneles no marcaban el gesto como manual. El estado solo refiltra ahora si cambian búsqueda o disponibilidad, y Wood distingue el gesto del usuario de la apertura aplicada desde el estado. Regresión en `e2e/library-expansion.spec.ts`, que falla sin el arreglo.
-- [x] Backend desplegó el 25/9 el arreglo de `GET /antologias/{id}` (200 en las cuatro antologías) y el detalle público con `Universo`/`Saga`; la gestión de antologías de Administración precarga ya su ubicación en producción. `POST /peticiones/catalogo` acepta `TipoEntidad: otro` (comprobado con la validación `invalid_other_request_text`, sin crear datos).
-- [x] Gráficas de recuentos con ejes enteros (`src/app/shared/chart-axis.ts`): personajes por capítulo y más presentes del libro ya no repiten marcas (0, 1, 1, 2…) ni muestran «0.0», y los libros leídos por mes ya no usan fracciones. «Quiero leer» deja de compartir color con «En espera».
-- [x] En Wood, «Instalar aplicación» pasa a la barra lateral encima de «Cerrar sesión»; el botón flotante, que tapaba paginación y tarjetas, queda solo para Mobile.
-- [x] Ningún aviso muestra ya el mensaje técnico de `HttpErrorResponse` («Http failure response for https://…: 0 Unknown Error»): `getApiErrorMessage` usa el texto de cada pantalla o, sin conexión, un aviso de conexión en español. Afectaba a Comunidad y a cualquier pantalla que delegara en ese mensaje.
-- [x] El icono de «Backup de datos» se mostraba como texto (`database` no existe en la fuente de iconos): pasa a `storage`.
-- [x] El Perfil Wood ya no lanza `Cannot read properties of undefined (reading 'image')` cuando se pinta antes de disponer de los datos del usuario.
-- [x] Tooltips de acento sin el rosa heredado (`$active: #c2185b`): fondo cuero oscuro con texto y borde dorados.
-- [x] La cabecera del Catálogo Wood ya no desborda por debajo de 1600 px (46 px a 1440 y 206 px a 1280): los filtros pasan a su propia fila.
-- [x] Backend aceptó escenas con personajes solo nombrados y partes con final abierto (`OrdenFinal = 0`); el frontend ya aplicaba ambas reglas. Guardar una parte que se solapa muestra ahora un mensaje específico para `409 part_order_conflict` en lugar del error genérico.
-- [x] Estadísticas globales dejan de caer enteras cuando falla una métrica: producción devolvía 500 en `GET /antologias/secciones/leidas` y el `forkJoin` cancelaba las otras diez peticiones. Cada métrica se degrada por separado a «Sin dato» (Wood) o «—» (Mobile) y un aviso distingue el fallo parcial del total. La causa backend se resolvió (`docs/peticiones/respondidas/ACEPTADA_corregir-500-contador-secciones-antologia-leidas.md`); producción devuelve ya el recuento real.
-- [x] Los campos Material vuelven a respetar sus colores de presentación: diez hojas usaban tokens `--mdc-*` que Angular Material dejó de leer, de modo que contorno, label y caret caían en la paleta por defecto (salmón `#ffb787` al enfocar en el login Wood). Se migran a `--mat-form-field-outlined-*`, `--mat-slide-toggle-*`, `--mat-icon-button-*` y `--mat-button-outlined-*`; `final-contracts.test.mjs` impide reintroducir `--mdc-*`.
-- [x] Fechas y números en español en toda la interfaz mediante `LOCALE_ID es-ES`; Perfil muestra «28 de junio de 2026» en lugar de «28 June 2026» y los decimales usan coma.
-- [x] Los gestores Wood ya no repiten su propia magnitud en las métricas: Universos sustituye el segundo «universos» por sagas, Libros retira «libros asociados», Antologías cuenta secciones, y la rejilla se adapta al número de tarjetas.
+Lo cerrado de la APK de Capacitor, Firebase, la sesión y el login propios, la página de administración, las normas y la moderación propias se retiró con la adhesión (etiqueta `apk-capacitor-final`); su historial está en Git.
 
-- [x] Cerrar los bloqueos web de las campañas `34319682897` y `35472091029`: el plegado compact ya actualiza la vista tras cambiar universo o saga, y el selector de Perfil, el panel medium y la decodificación de `fondo_router.png` pasan en la campaña alojada [`35474529953`](https://github.com/yosi90/libros-front/actions/runs/35474529953), sobre `294dd5a`.
-- [x] Evitar que la validación del artefacto QA agote o contamine el intercambio Firebase: los estados localhost omitidos no se generan, los escenarios backend cerrados se ejecutan una vez, realtime conserva Chromium/Firefox y los rechazos de sesión informan HTTP y código contractual sanitizado. La integración del artefacto pasó en `35474529953`.
-- [x] Alinear las pruebas alojadas Mobile con el shell medium vigente y el plegado manual. La campaña `35474529953` completó todas las etapas, incluidas superficies alojadas y restauración de baseline. Hubo seis pruebas de superficies y una del smoke que necesitaron reintento, principalmente por timeouts de navegación Firefox; el resultado final es verde, aunque esa intermitencia sigue bajo observación.
-- [x] Validar físicamente el acceso Google del candidato productivo Android `1.0.1`: instalación limpia junto a QA en Honor Magic V3, dos inicios de sesión nuevos mediante Credential Manager con Biblioteca cargada y cierre de la sesión actual entre intentos. La APK pública de [`android-v1.0.1`](https://github.com/yosi90/libros-front/releases/tag/android-v1.0.1) se instaló después conservando datos y sesión, y Biblioteca cargó tras reiniciar. La prueba se hizo sobre Wi-Fi; no acredita el comportamiento de la APK QA en la otra red.
-- [x] Actualizar la dependencia transitiva `hono` de `4.13.4` a `4.13.7` para cerrar las tres advisories moderadas detectadas por el gate npm del 9/9, sin ampliar dependencias ni alterar runtime. `npm audit --audit-level=low`, typecheck E2E y build QA pasan en local.
-- [x] Estabilizar la regresión visual Wood autenticada tras el cierre narrativo: Cuenta y seguridad usa fixtures locales para normas, moderación y bloqueos; las tolerancias quedan acotadas a 200 px para el icono activo del rail y 100 px para el valor calculado de tamaño RTF. Las dos capturas focalizadas pasan en Chromium.
-- [x] Rematar edición narrativa Android: tamaño RTF con panel de 2 px, descripciones canónicas autoseleccionadas y corrección mínima del foco frente al teclado virtual.
-- [x] El contenido del router principal Android medium respeta la safe area superior sin reintroducir la app bar; el rail lateral conserva deliberadamente altura completa.
-- [x] Backend restauró «Sin localización» como localización global inmutable (`id=1`) y la sirve en los detalles narrativos correspondientes; petición contractual aceptada y archivada.
-- [x] Rematar controles narrativos Android: paneles RTF amplios y abribles fuera del scroll, capítulo sin cabecera vacía, campos HTML coherentes, acciones de alta unificadas y autocompletes de localización/personajes.
-- [x] Rematar la densidad de la toolbar RTF Mobile a 28/13 px, ancho intrínseco alineado a la derecha cuando cabe y scroll limitado al ancho disponible cuando no cabe.
-- [x] Hacer inequívocos los autocompletes de Localización de Evento y Personaje de Cita: apertura al foco/toque, indicador de despliegue, búsqueda, opción activa y estado vacío explícito.
-- [x] Rediseñar capítulo Mobile como formulario plano light/dark: sin cabeceras redundantes ni cards de primer nivel, con secciones y escenas separadas, conservando RTF, validación, personajes y guardado.
-- [x] Estabilizar el login Google Android al alternar cuentas o redes: `@capacitor-firebase/authentication 8.5.1` aporta el flujo de botón corregido para Credential Manager; la APK deja de solicitar el access token legacy que no consume y descarta la pista de restauración solo ante respuestas 4xx definitivas, no ante red, rate limit o 5xx.
-- [x] Integrar el handoff del 5/9 para chat FCM data-only. La APK `1.0.51-qa` quedó validada con pantalla bloqueada/desbloqueada, segundo plano, proceso destruido, apertura exacta y ausencia de duplicados; backend restauró después el baseline y liberó la lease.
-- [x] Priorizar el cierre del panel «Más» ante Atrás nativo y rematar la jerarquía Mobile de Biblioteca con iconos de universo/saga y una cascada continua entre sagas cerradas consecutivas.
-- [x] Trasladar el cierre de sesión del panel «Más» Mobile a Cuenta y seguridad, conservando una acción explícita para la sesión actual y separándola de la revocación de todas las sesiones.
-- [x] Reconciliar el lector Android cuando el coordinador conserva `expanded/idle` fuera de una ruta `/book`. El toque llegaba a `open()`, pero el cierre previo navegaba al mismo dashboard y abortaba; ahora la sesión pasa a `minimized` antes de restaurar y también al detectar futuras navegaciones externas al dashboard.
-- [x] Sustituir en Android el aviso web de versión preparada por una barrera interna que activa automáticamente los recursos y recarga la WebView. Web conserva su confirmación; un fallo nativo libera la barrera sin recargar, y la instalación de una APK continúa bajo control de Android.
-- [x] Conservar la instancia completa del libro y su subruta al minimizar/restaurar en Android, sin loader ni recarga API mientras vive el proceso. Validado dos veces sobre `1.0.20-qa` por identidad DOM y traza de red vacía.
-- [x] Recuperar la apertura táctil del lector desde la tarjeta Android y completar nombre/portada de la píldora. La prueba física de `1.0.17-qa`, con sesión y libro recién creados, valida apertura, minimización y recuperación tras reinicio.
-- [x] Ejecutar inmediatamente la apertura del lector Android y conservar el frame diferido únicamente en web. La prueba física posterior descartó que esta medida, por sí sola, resolviera la apertura táctil; el seguimiento continúa en «En curso».
-- [x] Evitar que la recuperación persistida del lector Android sobrescriba una apertura iniciada durante el arranque y completar la sesión minimizada al tocar de nuevo su ficha.
-- [x] Completar nombre y portada de la píldora en la primera minimización del lector Android, entregando los metadatos al coordinador antes de navegar y sin persistirlos en almacenamiento local.
-- [x] Exponer `/dashboard/account-security` como destino explícito en la navegación autenticada de escritorio y en el panel “Más” de compact, además de sus accesos secundarios desde Perfil.
-- [x] Integrar y validar en producción la confirmación explícita para vincular una identidad Google cuyo correo difiere del principal, sin cambiar el correo de cuenta ni persistir la prueba Firebase.
+### APK Kotlin
 
-- [x] Cerrada la regresión Firebase/PWA del smoke Google real. `/__/auth/**` queda fuera del fallback Angular, cerrar el popup libera el loader y la campaña `32746025039` más el OAuth manual quedaron verdes. Las dos ventanas conservaban el worker defectuoso anterior y requirieron `Ctrl+F5` una sola vez; una prueba alojada controlada por el worker actual verifica que el handler devuelve `handler.js` y no la SPA.
+- [x] Pantalla de entrar (29/10/2026): en compacto, solo el titular y el panel; campos sin etiqueta visible (el ejemplo dice qué es) y «con tu sesión de…» en una línea. Cabe sin desplazar.
+- [x] Al minimizar o cerrar el libro se cierra el teclado (`PantallaLibro`); en el Catálogo, los filtros y «pedir un libro» van en la fila del campo y los chips llevan margen (27/10/2026).
+- [x] Píldora del libro minimizado (26/10/2026): altura intrínseca de 56 dp (el cierre con `fillMaxHeight` la estiraba); el contenido le deja sitio; se esconde con la hoja «Más», la campana, las cuentas y las pantallas completas, y reaparece al volver.
+- [x] En horizontal, el contenido respeta las barras del sistema por los cuatro lados y la barra lateral se desplaza entre ellas (26/10/2026).
+- [x] Estadísticas › General: en compacto, el botón de «Compartir mis lecturas» va debajo del texto (26/10/2026).
+- [x] Hoja de alta rápida (26/10/2026): sube justo encima del teclado, lleva «Nuevo personaje» con su X y los selectores obligatorios vacíos enseñan su error tras un intento fallido.
+- [x] Chat como WhatsApp (petición del propietario, 25/10/2026): tocar abre las reacciones, mantener añade responder, copiar, editar, denunciar y borrar, y deslizar a la derecha responde. Reacciones pequeñas sobre el borde inferior de la burbuja. La conversación baja sola si ya estabas al final y siempre al enviar.
+- [x] Comunidad: en la tarjeta de invitación, los botones pasan a la línea siguiente si no caben.
 
-- [x] Mover el estado operativo de `GET /verify` al Resumen de Administración, mostrando el estado general y el detalle de API, SQL Server y realtime sin volver a exponerlo en Home.
-- [x] Impedir que la ruta de libro monte el shell vacío cuando la API no puede cargar su detalle.
-- [x] Evitar el ciclo de renderizado del resumen administrativo conservando datasets y leyendas entre detecciones de cambios.
-- [x] Precargar ApexCharts junto con los datos para que Estadísticas no deje paneles vacíos mientras resuelve el módulo dinámico.
-- [x] Mantener las ventanas flotantes visibles al abrir tooltips y menús no bloqueantes del shell.
-- [x] Actualizar la posición minimizada desde la ubicación actual y resolver únicamente colisiones reales entre burbujas.
-- [x] Hacer desplazable el menú interno de Perfil y agrupar Normas, Moderación y Mis reportes dentro de Seguridad.
-- [x] Evitar el ciclo de renderizado del resumen social conservando la identidad de sus tarjetas y enlaces tras cargar los datos.
-- [x] Limitar las ventanas minimizadas por su tamaño visible para que puedan moverse hasta los bordes derecho e inferior sin perder su geometría restaurada.
-- [x] Conservar la instancia de cada ventana flotante al cambiar su foco para que la captura del puntero no se pierda y el encabezado permita arrastrarla.
-- [x] Rediseñar gestión de usuarios con tabla editorial, acciones locales de baneo/reactivación y selector de rol preparado para el contrato administrativo futuro; retirar el alta de administradores del panel.
-- [x] Actualizar formularios de libros y antologias para guardar ISBN, paginas, ano de publicacion y estilos normalizados.
-- [x] Terminar gestion administrativa de libros con listado global paginado, tabla compacta y modal de edicion canonica.
-- [x] Validar duplicados globales en alta de autor antes del submit para evitar errores de API y cierre de sesión.
-- [x] Montar administracion dentro del router del dashboard para que no salga del panel principal.
-- [x] Conectar perfil con peticiones/reportes propios del backend, integrar actividad reciente en resumen y separar edicion de apartados de perfil.
-- [x] Migrar perfil a vista con menu lateral interno, reservar secciones de mis peticiones/reportes y corregir contador de autores de coleccion.
-- [x] Separar peticiones y reportes de moderacion en administracion, respetar la navbar y sustituir JSON crudo por datos legibles.
-- [x] Redisenar la pantalla de administracion con navegacion lateral y mejorar la presentacion de solicitudes de catalogo en admin.
-- [x] Modularizar el modal de peticiones de catálogo entre altas de libro/antología y correcciones inferidas.
-- [x] Sustituir acciones de índice por `Poner en marcha` hasta que el libro esté en estado En marcha.
-- [x] Permitir abrir libros de colección aunque no tengan narrativa personal previa, confiando en el aislamiento backend.
-- [x] Sustituir el modal invasivo de alta desde catálogo por un menú compacto de estados.
-- [x] Quitar el botón duplicado de añadir a colección en cards de catálogo y ajustar el estado-botón para que no recorte icono.
-- [x] Corregir activación del menú entre colección y gestor de libros, y limitar Mis autores a la colección personal.
-- [x] Actualizar colección vacía para orientar al catálogo y hacer que los gestores sin permisos oculten el formulario.
-- [x] Evitar que cuentas con email pendiente de verificación muestren la navegación privada o carguen el shell de biblioteca.
-- [x] Cachear portadas de libros y antologías en navegador para evitar descargas repetidas en colección, catálogo, perfil y gestores.
-- [x] Añadir búsqueda avanzada local de libro con fallback difuso conservador y navegación a resultados.
-- [x] Permitir agregar fecha de compra desde estadísticas de libro y mostrar el estado actual cuando no hay fecha de lectura.
-- [x] Aplicar justificacion de chips narrativos solo en vista mezclada, no en grupos por libro.
-- [x] Unificar organizaciones, localizaciones, eventos, citas y conceptos con el diseno de chips, agrupacion por libro y cabecera del listado de personajes.
-- [x] Justificar la parrilla de botones de personajes repartiendo espacio libre sin fijar el ancho de los chips.
-- [x] Ordenar la vista mezclada de personajes por estado/grupo del libro actual en vez de por origen.
-- [x] Ajustar cabecera de personajes con total centrado y selector segmentado visible solo con personajes de libros previos.
-- [x] Mostrar el nombre real del libro previo en listados narrativos usando `LibrosPrevios` del detalle de libro.
-- [x] Sustituir iconos Material no disponibles en personajes muertos y asesinados por iconos renderizados propios.
-- [x] Ajustar posicion inferior y padding final de grupos historicos de personajes.
-- [x] Ajustar cabecera, orden e iconografia del listado de personajes.
-- [x] Redisenar listado de personajes con agrupacion por origen y chips por tipo/estado.
-- [x] Ajustar icono de guardado y unificar separaciones de 10px en la vista de libro.
-- [x] Anadir valores por defecto a escenas nuevas y compactar el guardado de nuevo capitulo.
-- [x] Igualar el alto e inset vertical del indice y el contenido principal de la vista de libro.
-- [x] Corregir placeholders y hints oscuros en los campos de nuevo capitulo y escena.
-- [x] Sustituir el color violeta Material en estados active/focus de los campos de capitulo y escena.
-- [x] Acotar el hover de los botones de edicion en cabeceras de partes e interludios del indice de libro para que no invada acciones vecinas.
-- [x] Ajustar gestor de universos para mostrar autores servidos por la colección y sustituir la columna de ubicación redundante.
-- [x] Ajustar gestor de autores para mostrar idioma nativo, lugar de origen y métricas/objetos asociados correctos.
-- [x] Mostrar solo el primer estilo en cards del catalogo.
-- [x] Evitar que el catalogo reparta el espacio vertical y deforme cards con pocos resultados.
-- [x] Mover peticiones pendientes y reportes de resenas desde catalogo a administracion.
-- [x] Ajustar presentacion, paginacion y plegado de resenas en detalle de catalogo.
-- [x] Reordenar modal de detalle del catalogo y mostrar resenas personales/publicas.
-- [x] Evitar que metadatos largos del catalogo ensanchen u oculten contenido de la card.
-- [x] Ajustar cards del catalogo: portada mas ancha, sin rotulo de tipo y metadatos compactos.
-- [x] Corregir Firebase Hosting para desplegar `dist/book-front/browser` en vez de la carpeta `public` generica.
-- [x] Quitar el botón de modo claro/oscuro de la vista de colección.
-- [x] Eliminar la dependencia incompatible `@dchtools/ngx-loading-v18` tras confirmar que el loader global de dragones usa implementacion propia.
-- [x] Actualizar en tiempo real el listado de personajes desde la respuesta backend de guardado de escenas y ocultar guardado manual en capitulos existentes.
-- [x] Implementar autosave de capitulos existentes, guardado al salir de ruta y aviso de cierre con cambios pendientes.
-- [x] Compactar cabecera de escenas en nuevo capitulo, centrar titulo y dejar nueva escena como boton iconico.
-- [x] Compactar metricas de estadisticas, eliminar card de capitulo mas poblado y limitar graficos de libro a top 10.
-- [x] Ajustar estadisticas de libro: retirar cabecera redundante, compactar metricas y hacer mas tolerante la lectura de fechas de estados.
-- [x] Compactar cabecera de partes/interludios y ampliar hover de portada hasta el ancho interior del indice de libro.
-- [x] Ajustar indice lateral de libro: alto natural de partes/interludios, iconos en cabecera, titulo centrado y hover ampliado de portada.
-- [x] Ajustar menu de orden en gestores: boton cuadrado alineado con filtros, panel sin scroll interno, chips compactos y toggle Ascendente/Descendente con burbuja desplazable.
-- [x] Afinar formulario de gestores: portada mas alta, universo/saga a media anchura, ancho intermedio y sin subtitulo auxiliar.
-- [x] Reencajar formulario de libros/antologias: portada compacta junto a campos principales y botones Guardar/Limpiar en una sola fila.
-- [x] Ajustar gestor de libros y antologias: mas ancho para formulario, dos campos por fila y prefijos de inputs alineados.
-- [x] Pulir gestores de objetos: columnas condicionales, paginacion, colores de inputs y chips de estado coherentes con la vista de coleccion.
-- [x] Reordenar la sidebar principal: perfil, listado de universos, altas de universo/saga/antología/libro, estadísticas, y mover administración/logout al bloque inferior.
-- [x] Separar iconos de texto en formularios de modificacion y quitar botones repetidos del bloque de perfil.
-- [x] Pulir colores y selector de pais en el modal de identidad publica del perfil.
-- [x] Pulido visual del perfil: cabecera compacta, centrado vertical, contadores mas cohesionados y edicion rapida mediante modal propio.
-- [x] Corregir iluminacion de cards de libro para evitar bloques rectangulares y variar tonalidades de fondo.
-- [x] Quitar tamano explicito de `fondo_router.png` y `fondo_menu.png` en el shell.
-- [x] Eliminar referencias activas a `fondo.png` y sustituirlas por texturas nuevas.
-- [x] Retirar cabecera local de la vista de libros para ganar altura util.
-- [x] Extender borde editorial al router y aleatorizar luces de cards con cache por entidad.
-- [x] Pulir borde de sidebar, diferenciar estados Leido/En marcha y variar iluminacion de cards.
-- [x] Aplicar texturas de cuero como patrones repetidos al router, menu, desplegables y libros manteniendo overlays de legibilidad.
-- [x] Compactar de nuevo la sidebar y recentrar avatar, botones y separadores.
-- [x] Afinar sidebar: mas estrecha, separadores dorados, avatar mayor, iconos compactos y activo con sombra 3D.
-- [x] Enlazar tres puntos de libros/antologias a edicion y ajustar menu lateral/avatar/radios.
-- [x] Afinar cards de libro: portada a sangre, sin tooltip duplicado, menu alineado y parrilla mas compacta.
-- [x] Contener rutas internas del dashboard para que no se salgan por izquierda ni por arriba al hacer scroll.
-- [x] Corregir solape de sidebar con contenido y anadir accion de nueva antologia en coleccion.
-- [x] Ajustar composicion desktop de home: titulo, CTAs, footer y cita decorativa.
-- [x] Sustituir citas fijas del auth publico por una cita aleatoria compartida.
-- [x] Implementar redisenio visual desktop de home, auth, shell autenticado y vista inicial de universos/libros.
-- [x] Mostrar frases aleatorias especificas de libro y frases extra de humor en el loader global.
-- [x] Mostrar el loader de libro antes de iniciar la navegacion desde el listado para evitar una pausa sin feedback.
-- [x] Hacer mas evidente el loader global con los GIF de dragon durante operaciones lentas, incluyendo login y carga de libro.
-- [x] Reposicionar la navbar desktop sin sesion para que no quede pegada al borde superior de la home.
-- [x] Evitar que el salto a libros pendientes de compra desplace el shell completo fuera del viewport.
-- [x] Ajustar la navbar desktop para que la imagen de perfil pueda sobresalir visualmente sin aumentar la altura de la barra.
-- [x] Cambiar el menu de libro a drawer lateral no superpuesto sin alterar estilos.
-- [x] Elevar el avatar de perfil sobre el contenido inferior sin cambiar layout ni tamano.
-- [x] Simplificar el menu lateral de libro a portada, titulo, acciones de capitulo/parte/interludio y listado de capitulos.
-- [x] Corregir recorte vertical en iconos compactos del menu principal y controles de universos.
-- [x] Evitar que el avatar ensanche la sidebar principal y descentre iconos.
-- [x] Recentrar botones de sidebar tras liberar el avatar del ancho de barra.
-- [x] Centrar glifos Material dentro de los botones de sidebar.
-- [x] Completar el grafico circular de estadisticas con los seis estados de lectura actuales de libros y antologias.
-- [x] Unificar los toggles grandes de colección con tipografía regular y registrar el patrón como norma visual por defecto.
-- [x] Adaptar índice, estructura, búsqueda y estadísticas del workspace de libro a light/dark desde compact hasta ultrawide, preservando wood en escritorio.
-- [x] Adaptar capítulos, escenas, asignación de personajes y editor RTF a touch y teclado virtual desde 320 px hasta ultrawide, preservando autosave y wood.
-- [x] Convertir el icono de persona de la app bar Mobile en acceso directo a Perfil y separar la apertura del menú Más.
-- [x] Recuperar el selector claro/oscuro exclusivamente para Mobile/Android, persistido mediante la preferencia de interfaz sin exponer Wood.
-- [x] Reducir la tipografía de universos/sagas y reforzar su pertenencia con un acento HSL estable por universo, fondo translúcido y divisores inferiores.
-- [x] Actualizar la matriz responsive de Login para localizar el correo por su nombre accesible al sustituir Mobile y Wood.
-- [x] Reconciliar inmediatamente el contador global de mensajes al abrir una conversación desde una notificación, para que el aro rojo del avatar desaparezca al confirmar el backend que ya no quedan mensajes sin leer. La confirmación del cursor actualiza el store de forma inmediata, revalida por REST y `message.read` propio aplica su `NoLeidos` sin esperar una recarga global.
-- [x] Recuperar los tres dragones del cargador y sus frases (2026-10-25, aviso del propietario). La web dejó uno fijo en septiembre (09ec6f8) para que no cambiara entre fases, y la APK nativa no lo tenía: las capturas de referencia no lo recogían. Ahora, en las dos, uno de los tres al azar en cada arranque y el mismo en todas sus cargas; en la APK, al comprobar la sesión si tarda, al recuperar la biblioteca y al abrir un libro.
-- [x] El despliegue de la web fallaba desde la Actividad (2026-10-25, 21:06): un icono de 18 px en la vista web de la Actividad rompía el contrato de iconos múltiplos de 4 (scripts/qa/final-contracts.test.mjs). Corregido a 20 px (ed5d042).
-- [x] «Tu cuenta de Yosiftware tiene limitada el chat»: la frase de lo limitado por la moderación no concordaba con el chat. Ahora «limitado el chat» y «limitada la comunidad» (9c66276); la APK compone la misma frase con el `detalle` de `cuenta_restringida`.
-- [x] APK nativa, chat: cada mensaje llevaba una fila de botones (reaccionar, responder, borrar…). A petición del propietario (2026-10-25) funciona como WhatsApp: tocar el mensaje abre la barra de reacciones, mantenerlo pulsado añade responder, copiar, editar, denunciar y borrar, y deslizarlo a la derecha lo responde. Las reacciones van montadas sobre el borde de abajo de la burbuja, del lado de dentro del chat y en pequeño.
-- [x] APK nativa, chat: la conversación no bajaba sola al llegar o enviar un mensaje. Ahora baja si ya estabas al final y siempre al enviar uno propio.
-- [x] APK nativa, Comunidad: en la tarjeta de una invitación, «Rechazar» se partía letra a letra cuando no cabía junto a «Aceptar». Los botones pasan a la línea siguiente.
-- [x] APK nativa, en horizontal (barra lateral con poca altura, 26/10/2026): el contenido no dejaba sitio a la barra de gestos ni al recorte de la cámara (el cuadro de escribir del chat quedaba bajo la raya de gestos), y la barra lateral, al desplazarse, pasaba por debajo de la barra de estado. Ahora el hueco del contenido respeta las barras del sistema por los cuatro lados y la barra lateral se desplaza entre ellas.
-- [x] APK nativa, la píldora del libro minimizado (26/10/2026, aviso del propietario): se estiraba hasta ser un óvalo que tapaba casi toda la pantalla, porque el botón de cerrar usaba `fillMaxHeight` en una fila sin altura máxima. Ahora la fila tiene su altura intrínseca (56 dp). Además, con un libro minimizado el contenido deja libre el sitio de la píldora: antes tapaba el cuadro de escribir del chat (también en la APK de Capacitor).
-- [x] APK nativa, la píldora del libro minimizado (26/10/2026, visto en el Xiaomi): se pintaba encima de la hoja «Más» (tapaba «Errores y propuestas») y de las pantallas completas sin barra inferior, como la ficha pública (tapaba las cifras de «Comunidad lectora», también al final del scroll). Ahora se esconde con la hoja «Más», la campana o las cuentas abiertas y bajo la antología, la ficha, la saga, los editores y las peticiones; al volver, reaparece.
-- [x] APK nativa, Estadísticas › General (26/10/2026): en la tarjeta «Compartir mis lecturas», el botón al lado dejaba el texto en una columna estrecha en el móvil. En compacto, el botón va debajo del texto.
-- [x] APK nativa, la hoja de alta rápida (26/10/2026, probada en el Xiaomi): con el teclado abierto, los botones «Crear y otro» y «Crear» quedaban debajo; la hoja no tenía título ni X y la etiqueta del primer campo salía cortada; y sin sexo o género solo salía «Completa los campos obligatorios», sin marcar el campo. Ahora la hoja inferior sube justo encima del teclado (también dentro del libro, que acaba sobre su barra de abajo), lleva «Nuevo personaje» con su X, y tras un intento fallido los selectores obligatorios vacíos enseñan su error, como el `mat-error` de la web.
+### Web y APK
+
+- [x] Dragones del cargador (2026-10-25, aviso del propietario): uno de los tres al azar en cada arranque y el mismo en todas sus cargas, con sus frases.
+- [x] «Tu cuenta de Yosiftware tiene limitado el chat» / «limitada la comunidad» (`9c66276`); la APK compone la frase con el `detalle` de `cuenta_restringida`.
+- [x] Clubes en la vista móvil (25/10/2026, corregidos en web y APK): etiquetas legibles en `shared/club-labels.ts`; Mis clubes y Eventos completos al abrir su pestaña; a quien no es miembro solo se le piden los autores más leídos y no se le ofrecen debate, voto ni spoilers; perder el acceso vuelve a Clubes con aviso; volver y abandonar llevan a Clubes; sin dobles envíos; `pre-line` en los textos; métricas en dos columnas; crear club admite antologías; `forward_to_inbox`.
+- [x] Perfil (25/10/2026): una «Otra petición» devuelta se reenvía añadiendo la respuesta al texto (`catalogRequestResponsePayload`); «Reenviar» se desactiva mientras envía; las antologías de «Actividad reciente» llevan a `/dashboard/books?antologia={id}`.
+- [x] Editor narrativo: la barra refleja la fuente y el tamaño del texto (la preferida del libro solo rige en editores vacíos); se recalcula con cada `selectionchange` y el tamaño del texto se añade a las opciones (medios puntos de RichEdit) (26/9 y 25/10/2026).
+- [x] Autoguardado (25/10/2026; el propietario perdió media escena al cerrar del todo la APK): el capítulo aparta su borrador 0,4 s después de cada cambio y, al ocultarse la página (`visibilitychange`, `pagehide`), lo aparta y lo envía al momento. El borrador se retira cuando el servidor tiene los cambios y se recupera al reabrir. La ficha de las entidades hace lo mismo.
+
+### Web
+
+- [x] El despliegue fallaba por un icono de 18 px en la Actividad (contrato de múltiplos de 4 px, `scripts/qa/final-contracts.test.mjs`); corregido en `ed5d042` (25/10/2026).
+- [x] «Ver en biblioteca» tras añadir un libro o antología abre su universo y saga y desplaza hasta su tarjeta en Web y Wood (29/9).
+- [x] Peticiones de libro y antología: año de publicación sin exigir mes y día; la sinopsis va en su campo y «Mis peticiones» la muestra en una fila de lectura (29/9).
+- [x] Gate QA: la comprobación de rutas heredadas reconoce `params.get('addBook')` (29/9).
+- [x] Navegación Web: la campana va en la barra lateral de escritorio con texto y se reduce a icono al plegarla; medium conserva el carril y compact la barra superior (28/9).
+- [x] Editor RTF en claro: `shared/rtf/rtf-ink.ts` marca con `data-rtf-ink` los tramos cuyo color guardado no se lee en el tema y `web/_classes.sass` los pinta con la tinta Web; el color guardado no cambia (27/9).
+- [x] Primera visita: `ThemeWelcomeService` decide la bienvenida «Elige tu estilo» desde el arranque y `DecisionNoticeService` retiene los avisos hasta que se elige el estilo.
+- [x] Loader Web con fondo opaco `--web-color-canvas` (contraste 5,13:1 en claro y 8,55:1 en oscuro) (27/9).
+- [x] Errores de campo: `markBackendFieldError` marca en rojo el control del `field` de `ErrorResponse` y se retira al editarlo, en libros, notas, alta de personaje y entidades narrativas (aprobado por el propietario el 26/9).
+- [x] Biblioteca Wood: las antologías abren su panel lateral de secciones, como Web y Mobile (26/9).
+- [x] Comunidad Wood: «Reintentar» usa el mixin `wood.button` de `assets/css/wood/_primitives.sass` (26/9).
+- [x] Sass compartido (26/9): botones, iconos, antetítulos y estados Web en clases globales `:where()` (`web/_classes.sass`); la paleta Wood de campos Material en `wood/_global.sass`; fuera `_snackbar.sass` y `_frame.sass`.
+- [x] Accesibilidad: `web-accessibility.spec.ts` con axe en claro y oscuro; `--web-color-ink-subtle` a #626b66 (claro) y #9aa59f (oscuro), ≥ 4,5:1; nombre accesible del editor narrativo (26/9).
+- [x] «Estabas leyendo» también en Wood (26/9). `ReadingReturnService` recuerda dónde estabas: ventana plegable a píldora en pantallas grandes y chip en la Web de móvil.
+- [x] Avisos: `SnackbarModule.openApiError` usa el texto genérico de la pantalla como título y el del backend como mensaje; si coinciden, solo el título (26/9).
+- [x] Error frente a vacío: Catálogo y Estadísticas muestran un estado de error con «Reintentar»; Estadísticas conserva el aviso parcial (26/9).
+- [x] Mensajes: en la navegación Web ya no se resaltan a la vez Comunidad y Mensajes; la ventana flotante de chats funciona en la Web de escritorio y Mensajes ofrece «Abrir en ventana» (26/9).
+- [x] Biblioteca Web: las sagas cerradas cuelgan de una línea guía bajo «Sagas», con icono propio, contador en píldora y mini-pila de portadas (26/9).
+- [x] Paneles laterales en pantalla pequeña: se cierran arrastrándolos hacia su borde (`SwipeToCloseDirective`, solo dedo o lápiz) (26/9).
+- [x] Catálogo y Biblioteca en plegable abierto: tarjetas desde 250 px, dos columnas en cuanto caben (26/9).
+- [x] QA: `mobile-design-system.spec.ts` simula `/notificaciones` (26/9).
+- [x] Sin Wood de fondo al cargar: el tema del dispositivo se aplica antes de Angular (`src/tema-inicial.js`), `WebRouteSupportService` parte de la URL inicial y el loader usa los colores del tema Web.
+- [x] Tooltips de ApexCharts con los tokens del tema Web.
+- [x] `LibrarySyncService` invalida el libro y la biblioteca guardados tras cada alta o edición del catálogo.
+- [x] Tras una publicación, `ChunkLoadRecoveryErrorHandler` reconoce el módulo bajo demanda que ya no existe y recarga una vez por minuto; la fuente Web no pide «Book Antiqua» (la bloquea la protección antihuella de Firefox) (26/9).
+- [x] Iconos achatados con escalado del 125 %: iconos Web en múltiplos de 4 px, exigido por `final-contracts.test.mjs` (26/9).
+- [x] Web de escritorio: abrir un chat fuera de Wood abre la página de Mensajes (`ChatFloatingCoordinatorService`).
+- [x] Iconos inexistentes en la fuente Material Icons (`left_panel_close`, `person_book`, `monitoring`, `progress_activity`…): `final-contracts.test.mjs` comprueba que los iconos de las plantillas existen.
+- [x] Perfil Wood: foto relativa al marco; Cuenta y seguridad y Preferencias son pestañas del Perfil (mixins `src/assets/css/wood/_profile.sass`) (26/9).
+- [x] Catálogo Wood: el placeholder solo aparece cuando la etiqueta ha subido (`mat-form-field-hide-placeholder`).
+- [x] Biblioteca: el scroll ya no refiltra ni reaplica la expansión automática; Wood distingue el gesto del usuario (`e2e/library-expansion.spec.ts`).
+- [x] Gráficas de recuentos con ejes enteros (`src/app/shared/chart-axis.ts`); «Quiero leer» con color propio.
+- [x] Wood: «Instalar aplicación» en la barra lateral, encima de «Cerrar sesión».
+- [x] `getApiErrorMessage` nunca muestra el mensaje técnico de `HttpErrorResponse`: usa el texto de la pantalla o un aviso de conexión.
+- [x] Tooltips de acento: fondo cuero oscuro con texto y borde dorados.
+- [x] Cabecera del Catálogo Wood: los filtros pasan a su propia fila por debajo de 1600 px.
+- [x] `409 part_order_conflict` con mensaje propio al solapar partes.
+- [x] Estadísticas globales: cada métrica se degrada por separado a «Sin dato» (Wood) o «—» (Mobile).
+- [x] Campos Material con `--mat-*` en lugar de `--mdc-*`; `final-contracts.test.mjs` impide reintroducir `--mdc-*`.
+- [x] Fechas y números en español con `LOCALE_ID es-ES`.
+- [x] Gestores Wood sin magnitudes repetidas en sus métricas.
+- [x] `anthology_section_collection_forbidden`: `error-interceptor.service.ts` reconcilia la colección con la respuesta autoritativa (contrato en `docs/backend/api/SECCIONES_ANTOLOGIA_FRONT.md`).
+- [x] Contador global de mensajes reconciliado al abrir una conversación desde una notificación.
+- [x] Mantener las ventanas flotantes visibles con tooltips y menús, sus posiciones minimizadas y su foco sin perder la captura del puntero.
+- [x] Firebase Hosting despliega `dist/book-front/browser`.
+- [x] Fuera `@dchtools/ngx-loading-v18`: el loader de dragones es propio.
+
+Ajustes visuales anteriores al 26/9 (gestores, catálogo, índice del libro, barra lateral, listados de personajes y entidades, texturas Wood): están en el historial de Git de este archivo.
