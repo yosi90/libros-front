@@ -7,8 +7,8 @@
 - `docs/GUIA_ESTILOS.md` es la fuente de verdad para criterios visuales, layout, modales, paleta y patrones UI. Antes de tocar estilos o UI, revisa esa guía.
 
 ### Resumen del producto
-- Este repositorio es el frontend Angular de una aplicación personal para gestionar lecturas de libros.
-- El frontend consume una API externa documentada en `docs/backend/`.
+- Este repositorio es el frontend de una aplicación personal para gestionar lecturas de libros: la web Angular y la APK nativa en Kotlin (`android-nativa/`).
+- Las dos consumen una API externa (`../Libros API`) documentada en `docs/backend/`.
 
 ### Validación visual con Playwright
 - El proyecto ya incluye `@playwright/test`, `playwright.config.ts` y los binarios locales de Chromium y Firefox; no los reinstales en cada tarea.
