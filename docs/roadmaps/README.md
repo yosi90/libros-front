@@ -1,45 +1,27 @@
 # Roadmaps
 
-Indice de verticales documentadas.
+Índice de verticales documentadas. La convención (vertical, `roadmap.md`, `bugs.md`, roadmaps dedicados y checklists) está en `docs/codex/PROJECT_WORKING_NOTES.md`. La guía visual vigente es `docs/GUIA_ESTILOS.md`; los roadmaps no son la fuente de verdad de estilos.
 
-La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan contexto histórico, pero no son la fuente de verdad de estilos.
-
-- `auth/`: autenticacion, registro y validaciones asociadas.
-- `home/`: pantalla de inicio publica; el estado operativo vive en Administracion.
-- `api-contract/`: alineación transversal del front con el contrato documentado de la API; migración de ediciones e ISBN y avisos de agente.
-- `notifications/`: sistema global de toasts y compatibilidad con avisos legacy.
-- `community/`: comunidad lectora, perfiles sociales, relaciones, feed, chat, clubes, notificaciones persistentes y realtime.
-- `universes/`: coleccion de universos, libros, sagas y antologias.
-- `common/`: componentes compartidos de shell, navegacion y superficies comunes.
-- `narrative-entities/`: mantenimiento de personajes, localizaciones, conceptos, organizaciones, eventos y citas dentro de libros.
-- `qa/`: estrategia transversal, automatizacion y campañas integrales de calidad del frontend.
-- `ecosistema/`: adhesión a la plataforma común Yosiftware (cuenta única, chat, notificaciones, espacios) y APK nativa en Kotlin.
+- `auth/`: acceso y sesión, hoy de la plataforma Yosiftware.
+- `home/`: la portada pública.
+- `api-contract/`: alineación del front con el contrato documentado de la API.
+- `notifications/`: avisos efímeros de la interfaz (las notificaciones son de la plataforma).
+- `community/`: comunidad lectora y clubes.
+- `universes/`: biblioteca: catálogo canónico, colección personal, universos, sagas y antologías.
+- `common/`: shell, navegación, presentaciones y superficies comunes.
+- `narrative-entities/`: personajes, localizaciones, organizaciones, eventos, conceptos y citas dentro de los libros.
+- `qa/`: estrategia transversal, automatización y campañas de calidad.
+- `ecosistema/`: adhesión a la plataforma común Yosiftware y APK nativa en Kotlin.
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_duplicados-frontend.md`: las propuestas de la auditoría de duplicados del frontend, activas desde el 29/10/2026 (el propietario, mientras llega la IA1 del 1 de noviembre). Lo que quedó de la adhesión está en `../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`.
+- `common/ROADMAP_ACTIVO_duplicados-frontend.md`: las propuestas de las auditorías de duplicados del frontend, activo desde el 29/10/2026 por decisión del propietario. Sus 11 propuestas están cerradas.
 
 ## Roadmaps pausados
 
 - `common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: implementación cerrada; queda la checklist manual de presentación, navegación y regresión.
-- `ecosistema/ROADMAP_PAUSADO_duplicados-apk-kotlin.md`: propuestas de la auditoría completa de duplicados de la APK Kotlin (26/10/2026).
+- `ecosistema/ROADMAP_PAUSADO_duplicados-apk-kotlin.md`: propuestas de la auditoría de duplicados de la APK Kotlin; quedan las 8 y 11.
 
 ## Roadmaps finalizados
 
-- `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`: adhesión de la web a Yosiftware y clon de la APK en Kotlin (`android-nativa/`), del 24/10/2026; corte en producción el 25/10, APK 2.0.0 publicada el 26/10 y cerrado el 29/10/2026 con el visto bueno del propietario. Maestro y backend en `../Libros API/docs/roadmaps/FINALIZADO_adhesion-yosiftware/`.
-- `api-contract/ROADMAP_FINALIZADO_ediciones-isbn-y-avisos-agente.md`: migración de ediciones/ISBN y posesión, peticiones, administración y avisos de agente; QA aceptada y producción web/Android 1.0.18 verificada el 1/10/2026.
-
-- `common/ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md`: finalizado el 27/9/2026 (pendientes Android confirmados por el propietario en uso real); su Hito 4 queda sustituido y su Hito 5 se transfiere al roadmap Web.
-- `common/ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`: restauración fiel de Wood para escritorio/ultrawide, presentación Mobile Angular independiente, APK Android mediante Capacitor y QA integral final completadas.
-- `common/ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md`: Hitos 0-14 aceptados como historial funcional; la dirección light/dark se sustituyó y su Hito 15 se transfirió sin declararlo ejecutado.
-- `qa/ROADMAP_FINALIZADO_qa-integral-front.md`: iniciativa cerrada por consolidación; conserva la aceptación histórica y transfiere sus pendientes al último hito del roadmap responsive.
-- `narrative-entities/ROADMAP_FINALIZADO_paridad-rtf-winforms.md`: compatibilidad semántica web/RichEdit validada contra 1.317 RTF locales sin modificar WinForms ni SQL.
-- `common/ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`: centro de acceso a clubes y resolución humana transversal de referencias técnicas.
-- `notifications/ROADMAP_FINALIZADO_notificaciones-sesion-y-preferencias.md`: consolidación de toasts, avisos accionables, campana compartida y preferencias de cuenta.
-- `community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`: integracion del stack social, notificaciones, chat, clubes, moderacion, realtime, cumplimiento y lanzamiento progresivo.
-- `community/ROADMAP_FINALIZADO_avisos-operativos-y-normas.md`: avisos accionables para peticiones y reportes, navegación de gestión y administración visible de las normas de comunidad.
-- `universes/ROADMAP_FINALIZADO_catalogo-canonico-biblioteca-personal.md`: migracion de la biblioteca a catalogo canonico compartido, coleccion personal, peticiones y moderacion.
-- `common/ROADMAP_FINALIZADO_redisenio-visual-biblioteca.md`: redisenio visual desktop y alineacion progresiva del shell/perfil/autenticacion/catalogo con el contrato multiusuario de la API.
-- `common/ROADMAP_FINALIZADO_pruebas-manuales-mejoras-visuales.md`: ronda iterativa de hallazgos manuales y mejoras visuales del shell y superficies comunes.
-- `narrative-entities/ROADMAP_FINALIZADO_crud-entidades-narrativas.md`: CRUD completo de entidades narrativas y contrato backend asociado.
-- `narrative-entities/ROADMAP_FINALIZADO_editor-rtf-enlaces-entidades.md`: editor RTF con enlaces calculados a entidades narrativas en escenas y entradas.
+En su vertical, con el prefijo `ROADMAP_FINALIZADO_`. El último, `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (cerrado el 29/10/2026); lo que dejó abierto está en `../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`.
