@@ -201,7 +201,7 @@ fun PantallaDeEntrar(
     val puedeEntrar = !vm.ocupado && correo.isNotBlank() && contrasena.isNotEmpty()
     val entrar = { if (puedeEntrar) vm.entrarConContrasena(correo, contrasena) }
 
-    LaunchedEffect(Unit) { vm.buscarOtrasApps() }
+    LaunchedEffect(Unit) { vm.buscarOtraApp() }
     BackHandler(enabled = vm.anadiendo, onBack = vm::cancelarAnadir)
 
     PaginaDeAcceso(
@@ -244,9 +244,10 @@ fun PantallaDeEntrar(
             }
         }
 
-        // Si otra app del ecosistema ya tiene sesión en este móvil, entrar con un toque (APK.md, «La sesión de otra app»).
-        vm.otrasApps.forEach { otra ->
-            BotonDeOtraApp(otra.alias, otra.app, habilitado = !vm.ocupado) { vm.continuarCon(otra) }
+        // Si otra app del ecosistema ya tiene sesión en este móvil, entrar con un toque: un solo botón y sin decir de
+        // qué app viene (APK.md, «La sesión de otra app»; kit 1.106).
+        vm.otraApp?.let { otra ->
+            BotonDeOtraApp(otra.alias, habilitado = !vm.ocupado) { vm.continuarCon(otra) }
         }
 
         BotonDeGoogle(alPulsar = { actividad?.let(vm::entrarConGoogle) }, habilitado = !vm.ocupado)
@@ -289,7 +290,7 @@ fun PantallaDeEntrar(
  * ecosistema delante (es la cuenta de Yosiftware) y la segunda línea en pequeño.
  */
 @Composable
-private fun BotonDeOtraApp(alias: String, app: String?, habilitado: Boolean, alPulsar: () -> Unit) {
+private fun BotonDeOtraApp(alias: String, habilitado: Boolean, alPulsar: () -> Unit) {
     val colores = LocalColores.current
     Row(
         Modifier
@@ -305,16 +306,14 @@ private fun BotonDeOtraApp(alias: String, app: String?, habilitado: Boolean, alP
         Icon(painterResource(Iconos.simboloYosiftware), contentDescription = null, tint = colores.sobreContenedorPrimario, modifier = Modifier.size(22.dp))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Continuar como @$alias", color = colores.sobreContenedorPrimario, style = Textos.boton)
-            if (app != null) {
-                Text(
-                    "con tu sesión de $app",
-                    Modifier.padding(top = 4.dp),
-                    color = colores.sobreContenedorPrimario,
-                    style = Textos.filaSecundaria,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            Text(
+                "Con tu cuenta Yosiftware",
+                Modifier.padding(top = 4.dp),
+                color = colores.sobreContenedorPrimario,
+                style = Textos.filaSecundaria,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

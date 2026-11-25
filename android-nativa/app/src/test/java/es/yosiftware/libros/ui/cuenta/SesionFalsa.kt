@@ -29,7 +29,7 @@ class SesionFalsa : AccesoALaSesion {
     val llamadas = mutableListOf<String>()
     var fallo: ErrorSesion? = null
     var espera: CompletableDeferred<Unit>? = null
-    var otras: List<OtraApp> = emptyList()
+    var otra: OtraApp? = null
     var normas = Normas(1, 2, "Normas de uso", "# Normas\n\nTexto.")
 
     private suspend fun hacer(nombre: String) {
@@ -41,9 +41,9 @@ class SesionFalsa : AccesoALaSesion {
     override suspend fun entrarConContrasena(correo: String, contrasena: String) = hacer("contrasena:$correo:$contrasena")
     override suspend fun entrarConGoogle(actividad: Activity) = hacer("google")
 
-    override suspend fun sesionesEnOtrasApps(): List<OtraApp> {
-        llamadas += "otrasApps"
-        return otras
+    override suspend fun sesionDeOtraApp(): OtraApp? {
+        llamadas += "otraApp"
+        return otra
     }
 
     override suspend fun continuarCon(otra: OtraApp) = hacer("continuarCon:${otra.alias}")

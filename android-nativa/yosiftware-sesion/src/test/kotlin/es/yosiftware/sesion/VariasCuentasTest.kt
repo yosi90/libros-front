@@ -327,4 +327,16 @@ class VariasCuentasTest {
         assertEquals(listOf("z"), ofrecidas.map { it.alias })
         assertFalse(ofrecidas.any { it.idCuenta == "id-a" })
     }
+
+    @Test
+    fun `al anadir, la primera sesion de otra app es la de una cuenta que no esta guardada`() = runTest {
+        sesion.iniciar()
+        entrar("a")
+        vecinas.ofertas["es.yosiftware.rol"] = Oferta(Oferta.OFERTA, "t-a", 60, "id-a", "a", "3.5 Companion")
+        assertNull(sesion.sesionDeOtraApp())
+        sesion.anadirCuenta()
+        assertNull(sesion.sesionDeOtraApp())
+        vecinas.ofertas["es.yosiftware.lorcana"] = Oferta(Oferta.OFERTA, "t-z", 60, "id-z", "z", "Yosircana")
+        assertEquals("z", sesion.sesionDeOtraApp()?.alias)
+    }
 }
