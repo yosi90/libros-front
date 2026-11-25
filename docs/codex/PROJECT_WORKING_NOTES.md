@@ -104,6 +104,7 @@ Este repositorio es `book-front`: la web Angular de una aplicación personal par
 - Playwright 1.62.1 pide Chromium 1234: está su `chromium_headless_shell-1234`, así que las pasadas sin cabeza de `--project=chromium` arrancan; con cabeza, solo está el Chromium 1228, y hace falta una configuración temporal e ignorada (`.runtime/`) con `launchOptions.executablePath` a él.
 - Playwright local: `.runtime/playwright.local.config.ts` (ignorado) con `LOCAL_PROJECT=chromium|compact-390` y el artefacto de `ng build --configuration development`.
 - Las pruebas locales usan el doble oficial del SDK (`pruebas/yosiftware-doble/`, guía en `ecosistema-kit/PRUEBAS.md`): Karma lo importa con `crearDobleYosiftware` y Playwright lo sirve con `e2e/support/yosiftware-doble.ts`. No pinta los elementos del SDK (`<yosi-acceso>`… son etiquetas vacías) ni comunica las pestañas.
+- El evento `request` de Playwright llega a la prueba con un retraso variable. Para comprobar el orden de las peticiones frente a un cambio de cuenta, se registran dentro de la página, con su cuenta y su tramo, como hace `e2e/account-switch.spec.ts` (lección de la revocación que fallaba a ratos, 25/10/2026).
 
 ## CSP
 
