@@ -2,32 +2,17 @@
 
 ## Pendiente
 
-- [ ] 2026-10-24: el modal «Pedir nuevo libro» del Catálogo (en `catalog.component.html`) sale con el estilo Wood oscuro también en las presentaciones Web y Mobile con tema claro. Se vio al sacar las capturas de referencia de la APK. Causa: deuda técnica; el modal nació en Wood y nunca se le hicieron las variantes clara y oscura (propietario). Corrección prevista: tokens claro y oscuro de la presentación activa, según `docs/GUIA_ESTILOS.md`.
-
-## En curso
-
-- Ninguno registrado.
+- [ ] El modal «Pedir nuevo libro» del Catálogo (`catalog.component.html`) sale con el estilo Wood oscuro también en Web y Mobile con tema claro (visto el 24/10/2026). Nació en Wood y nunca tuvo las variantes clara y oscura (deuda técnica, según el propietario). Corrección prevista: los tokens claro y oscuro de la presentación activa, según `docs/GUIA_ESTILOS.md`.
 
 ## Finalizado
 
-- [x] (24/10/2026, auditoría de duplicados) El editor de estado, puntuación y reseña que se abre desde la ficha del Catálogo y de los gestores del Perfil reenviaba siempre el estado, aunque no cambiara: cada `POST /coleccion/{libros|antologias}/{id}/estado` crea un histórico, así que añadir o cambiar solo la reseña duplicaba el estado actual en el historial (y su actividad). Al vaciar la puntuación de una reseña guardada, además, la ficha la daba por borrada sin decírselo al servidor. Ahora comparte con la Biblioteca `shared/collection-state.ts`: solo envía lo que cambia y avisa de que la reseña necesita puntuación.
-- [x] Mostrar `/universos/metricas` en el resumen del perfil propio con totales, hitos y compras de la colección privada, manteniendo carga, vacío, error y reintento independientes.
-- [x] Mejorar el formulario del gestor de libros y antologias: layout canonico, preview de portada, ISBN, sinopsis, estilos, busqueda Google Books con portada como imagen, alta rapida de autores, envio multipart y retirada del estado inicial.
-- [x] Reservar cabecera fija en catalogo y coleccion para mantener titulo, filtros y controles visibles durante el scroll.
-- [x] Permitir guardar reseña junto a la puntuación personal y exponer el reporte/moderación de reseñas desde catálogo/biblioteca.
-- [x] Centrar controles iconicos del acordeon de coleccion y anadir apertura enfocada a libros en marcha.
-- [x] Mantener `Sin universo` como primer panel del listado de colección y ordenar el resto alfabéticamente.
-- [x] Adaptar frontend al contrato con `Subtitulo` en sagas y `PaginaFinal` en capítulos/interludios, retirando el cálculo de páginas por capítulo siguiente.
-- [x] Ajustar ficha publica de catalogo: retirar cabecera/tipo redundantes, corregir boton de cierre, quitar cards de estadisticas duplicadas y revisar deteccion de biblioteca personal desde `MiColeccion`.
-- [x] Evitar que la vista de coleccion muestre "Aun no tienes libros" antes de recibir la respuesta de universos al restaurar sesion.
-- [x] Evitar que el salto a libros pendientes de compra desplace el shell completo fuera del viewport.
-- [x] Alinear `UniverseService` con endpoints de detalle y secciones de universo.
-- [x] Enviar payload minimo `UniverseWrite` en alta y actualizacion.
-- [x] Corregir lectura de id de ruta en edicion de universo.
-- [x] Evitar que el loader quede activo si no se seleccionan autores.
-- [x] Mostrar errores inline del selector de autores.
-- [x] Mostrar los subtitulos de sagas en la misma linea que el nombre en la coleccion.
-- [x] Redisenar modal de estado, puntuacion y resena de coleccion.
-- [x] Afinar cierre, estados iconicos y estrellas del modal de coleccion.
-- [x] Mostrar barra de complecion en cards de libros de la coleccion.
-- [x] Reubicar y reforzar la barra de complecion de cards de libro.
+- [x] El editor de estado, puntuación y reseña de la ficha del Catálogo y de los gestores del Perfil comparte con la Biblioteca `shared/collection-state.ts`: solo envía lo que cambia (cada `POST …/estado` crea un histórico) y avisa de que la reseña necesita puntuación (24/10/2026).
+- [x] `/universos/metricas` en el resumen del perfil propio, con carga, vacío, error y reintento independientes.
+- [x] Cabecera fija en Catálogo y colección: título, filtros y controles visibles durante el scroll.
+- [x] Reseña junto a la puntuación personal y reporte de reseñas desde Catálogo y Biblioteca.
+- [x] `Sin universo` es el primer panel de la colección y el resto va en orden alfabético.
+- [x] Contrato con `Subtitulo` en sagas (en la misma línea que el nombre) y `PaginaFinal` en capítulos e interludios.
+- [x] La colección no dice «Aún no tienes libros» antes de recibir los universos al restaurar la sesión.
+- [x] Barra de compleción en las tarjetas de libros de la colección.
+
+Los ajustes anteriores de los gestores y sus formularios de alta (retirados: el catálogo se edita en el plugin de administración) están en el historial de Git.

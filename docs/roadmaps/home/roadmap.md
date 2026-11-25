@@ -1,18 +1,14 @@
 # Home
 
-## Direccion
+## Dirección
 
-- Mantener la pantalla de inicio como acceso simple a registro e inicio de sesion.
-- Mostrar informacion operativa imprescindible sin convertir la home en un panel tecnico.
+- La portada es un acceso simple: «Crear mi biblioteca» y «Ya tengo cuenta» abren el acceso de Yosiftware, y enlaza las normas y la privacidad sin entrar (`docs/GUIA_ESTILOS.md`, «Zona pública y autenticación»).
+- No muestra información operativa: no es un panel técnico.
 
 ## Deuda relevante
 
 - Ninguna registrada.
 
-## Lineas activas
+## Líneas activas
 
-- Redisenio visual desktop coordinado desde `docs/GUIA_ESTILOS.md`.
-
-## Referencias historicas utiles
-
-- El estado de `GET /verify` se presenta en el Resumen de Administracion; Home permanece como acceso simple a registro e inicio de sesion.
+- Ninguna.

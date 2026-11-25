@@ -1,31 +1,23 @@
 # Common
 
-## Direccion
+## Dirección
 
-- En la etapa de uso real posterior a Android `1.0.1`, corregir bugs y mejorar sistemas existentes directamente en producción tras su validación; desarrollar y aceptar primero en QA las funcionalidades y los sistemas nuevos. Separar ambos alcances cuando coincidan en una petición.
-- Mantener los componentes compartidos de navegacion y shell consistentes entre pantallas.
-- Evitar que decisiones esteticas locales alteren la estructura base de la aplicacion.
-- Usar `docs/GUIA_ESTILOS.md` como referencia unica de criterios visuales activos.
+- Bugs y mejoras de lo que ya existe, directamente en producción tras validarlos; funcionalidades y sistemas nuevos, primero en QA hasta su aceptación. Si una petición mezcla ambos, se separan (`docs/codex/PROJECT_WORKING_NOTES.md`).
+- Mantener los componentes compartidos de navegación y shell consistentes entre pantallas.
+- Evitar que decisiones estéticas locales alteren la estructura base de la aplicación.
+- `docs/GUIA_ESTILOS.md` es la referencia única de los criterios visuales.
 
 ## Deuda relevante
 
-- La navbar combina clases Bootstrap con estilos propios, lo que puede provocar efectos de layout no intencionados si los hijos no tienen cajas acotadas.
-- La migración Firebase, el corte productivo y su smoke final están aceptados; se entregó a backend el visto bueno para ejecutar la retirada post-corte de `usuarios.password` con las guardas del runbook.
-- La presentación Wood fue alterada al compartir demasiado HTML/Sass con light/dark y debe restaurarse semánticamente desde su referencia histórica sin revertir lógica moderna.
-- La presentación Mobile necesita árboles de componentes propios y fachadas de estado que eviten duplicar servicios, rutas o llamadas.
-- La cookie de sesión web, Firebase nativo, push y App Links deben superar un spike Capacitor antes de comprometer la APK completa.
-- Bootstrap queda como dependencia legacy: no debe ampliarse su uso en temas, shells ni componentes nuevos.
+- La navbar Wood combina clases Bootstrap con estilos propios, lo que puede provocar efectos de layout no intencionados si los hijos no tienen cajas acotadas.
+- Bootstrap queda como dependencia legacy: no se amplía su uso en temas, shells ni componentes nuevos.
 
-## Lineas activas
+## Líneas activas
 
-- Lector persistente exclusivo de Android, selector canónico de país y pulido visual multisoporte desarrollados en `ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md` (finalizado el 27/9/2026).
-- Presentación Web claro/oscuro, Wood elegible y navegación reorganizada en `ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`; queda su checklist manual.
-- Redisenio visual transversal documentado en `docs/GUIA_ESTILOS.md`; los roadmaps dedicados quedan como historial de implementacion.
-- Autenticación Firebase y Angular 22.1.3 permanecen como baseline técnico aceptado; no se revertirán al recuperar Wood.
-- El criterio transversal de referencias humanas y el centro de acceso a clubes están finalizados en `ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.
-- Restauración Wood, presentación Mobile Angular y cliente Android Capacitor finalizados en `ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`, incluida su regresión integral y primera release Android.
+- `ROADMAP_ACTIVO_duplicados-frontend.md`: las propuestas de las auditorías de duplicados del frontend.
+- `ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: presentación Web claro/oscuro, Wood elegible y navegación reorganizada; queda su checklist manual.
 
-## Referencias historicas utiles
+## Referencias útiles
 
-- `src/app/components/shared/common/navbar/` contiene la navbar desktop y el acceso al menu mobile.
-- `ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md` conserva como historial los Hitos 0-14 y explica por qué light/dark dejaron de ser la dirección vigente.
+- `src/app/components/shared/common/navbar/`: la navbar.
+- Roadmaps finalizados de la vertical (Wood, Mobile, responsive, lector persistente, referencias humanas, rediseño): en esta carpeta, con el prefijo `ROADMAP_FINALIZADO_`.

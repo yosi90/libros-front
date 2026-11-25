@@ -1,6 +1,6 @@
 # Referencias visuales Wood
 
-Capturas reproducibles del commit `272376f497ec189241a35d3353a95af1b018c639`, usado exclusivamente como baseline visual del roadmap de restauración Wood.
+Capturas reproducibles del commit `272376f497ec189241a35d3353a95af1b018c639`, usado exclusivamente como baseline visual de la restauración Wood (`docs/roadmaps/common/ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`).
 
 ## Procedencia
 
@@ -19,5 +19,3 @@ Capturas reproducibles del commit `272376f497ec189241a35d3353a95af1b018c639`, us
 | Biblioteca vacía | `authenticated/library-1440x900.webp` | `authenticated/library-1920x1080.webp` | `authenticated/library-2560x1080.webp` |
 
 Estas imágenes son referencias de identidad, composición y escala; no son snapshots que deban copiar contratos o controles legacy. Los controles posteriores al baseline se conservan según `INVENTARIO_RESTAURACION_WOOD.md`.
-
-Las superficies restantes se capturarán justo antes de restaurar su vertical, con fixtures de dominio específicos. Así la referencia será significativa y el baseline antiguo no necesitará conectarse a servicios actuales.

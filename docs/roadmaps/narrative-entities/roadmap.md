@@ -1,22 +1,20 @@
 # Entidades narrativas
 
-## Direccion
+## Dirección
 
-Centralizar el mantenimiento de personajes, localizaciones, conceptos, organizaciones, eventos y citas dentro de la vista de libro, usando el libro cargado como fuente de verdad tras cada escritura.
+Centralizar el mantenimiento de personajes, localizaciones, conceptos, organizaciones, eventos y citas en la vista del libro, con el libro cargado como fuente de verdad tras cada escritura. La especificación funcional de la vista móvil, la que clonó la APK, está en `docs/roadmaps/ecosistema/ESPECIFICACION_elementos-narrativos.md`.
 
 ## Deuda relevante
 
-- El backend documentado solo expone altas para varias entidades narrativas y no cubre todavia edicion/desasociacion completa de entidad raiz.
-- La pantalla compartida de entidades nacio como placeholder y debe consolidarse como gestor unificado.
-- Personajes conserva una pantalla propia legacy para rutas directas, pero el mantenimiento reciente se concentra en el gestor unificado.
+- Un solo componente (`narrative-entity-placeholder`) sirve los seis tipos y sus tres modos; su Sass es el de mayor deuda (`common/SASS_REUSE_AUDIT.md`).
+- Las rarezas conocidas de la web están en §8 de la especificación; la APK corrige parte de ellas.
 
-## Lineas cerradas
+## Líneas cerradas
 
-- CRUD completo de entidades narrativas preparado en frontend contra la peticion aceptada `docs/peticiones/respondidas/ACEPTADA_crud-entidades-narrativas.md`.
-- Formulario unificado de modificacion completado con sublistados editables de relaciones/apodos en personajes y relaciones de personajes/localizaciones en organizaciones.
-- Editor RTF con enlaces calculados a entidades finalizado y verificado manualmente.
-- Paridad semántica RTF finalizada mediante el harness RichEdit aislado y 1.317 documentos locales de solo lectura en Chromium y Firefox.
+- CRUD completo de entidades narrativas contra `docs/peticiones/respondidas/ACEPTADA_crud-entidades-narrativas.md`, con formulario unificado y sublistados editables (relaciones y apodos de personajes; personajes y localizaciones de organizaciones).
+- Editor RTF con enlaces calculados a entidades.
+- Paridad semántica RTF con el harness RichEdit aislado y 1.317 documentos locales de solo lectura.
 
 ## Siguiente seguimiento
 
-- Revisar el contrato final cuando backend implemente la peticion y ajustar rutas/payloads si difieren.
+- La verificación manual de `PATCH` y de la desasociación por libro (`bugs.md`).

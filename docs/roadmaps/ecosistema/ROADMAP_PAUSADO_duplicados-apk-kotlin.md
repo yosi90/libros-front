@@ -1,68 +1,21 @@
 # Duplicados pendientes de la APK Kotlin
 
-**Pausado desde su apertura (26/10/2026); las propuestas 1 a 4 se hicieron el 29/10/2026, con el roadmap activo de duplicados del frontend:** recoge lo que la auditoría completa de duplicados de la APK (hito 14 de `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, rama `revisor/auditoria-completa-apk-2026-10-26`, base `6826083`) no aplicó. Son cambios delicados (el autoguardado), cambios que hay que ver en el móvil o que dependen de la plataforma o del backend. Solo puede haber un roadmap activo: se retoma cuando el propietario lo decida, idealmente junto a las mejoras del hito 15.
+**Pausado.** Recoge lo que la auditoría completa de duplicados de la APK (hito 14 de `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, base `6826083`, 26/10/2026) no aplicó: cambios delicados (el autoguardado), que hay que ver en el móvil o que dependen de la plataforma o del backend. Quedan los puntos 8 y 11. Se retoma cuando el propietario lo decida.
 
-Alcance: `android-nativa/app/`. La librería `android-nativa/yosiftware-sesion/` no se toca nunca; lo que le falta va como petición a la plataforma. Las líneas citadas son las de la base `6826083`, rutas bajo `android-nativa/app/src/main/java/es/yosiftware/libros/`. Orden: de más ganancia y menos coste a menos.
+Alcance: `android-nativa/app/`, rutas bajo `android-nativa/app/src/main/java/es/yosiftware/libros/`. La librería `android-nativa/yosiftware-sesion/` no se toca nunca; lo que le falta va como petición a la plataforma (`C:\Users\Yosi\Desktop\administracion yosiftware\docs\peticiones\`).
 
 ## Dentro de la APK
 
-- [x] **1. La fecha corta de las reseñas de la ficha**
-  - **Hecho (29/10/2026):** una sola `fechaCorta` en `datos/Fechas.kt`, en la zona del móvil como el `date:'dd/MM/yyyy'` de la web Mobile (que pinta así las reseñas); la usan la ficha y el resumen del libro. Una reseña de las 23:30 UTC sale ya con el mismo día que en la web.
-  - **Descripción:** hay dos `fechaCorta` con el mismo nombre y el mismo formato (`dd/MM/yyyy`): `ui/catalogo/PantallaFicha.kt` (333-336) recorta el texto ISO con una expresión regular, sin zona, y `ui/libro/ResumenDelLibro.kt` (72) pasa la fecha a la zona del móvil, como el `date` de Angular. Una reseña de `2026-10-20T23:30:00Z` sale «20/10/2026» en la ficha y «21/10/2026» con la otra en Madrid.
-  - **Por qué se necesita:** el mismo formato con dos resultados según la pantalla.
-  - **Qué se espera lograr:** que la ficha use la de ResumenDelLibro (o `leerFecha` con su formato) y quitar la suya, tras comprobar en la web qué día pinta la reseña.
-  - **Peligros si se mantiene como estaba:** reseñas de última hora con el día anterior.
-  - **Peligros del cambio:** cambia lo que se ve en la ficha (un día en las reseñas cercanas a medianoche): por eso no se aplicó en la auditoría.
-
-- [x] **2. Los botones de los diálogos**
-  - **Hecho (29/10/2026):** `BotonesDeDialogo(accion, alAceptar, alCancelar, habilitado, arriba)` en `ui/componentes/Superficies.kt`, en las cinco copias (también la confirmación y la edición de un mensaje). El margen de cada una se conserva con `arriba`: nada se mueve.
-  - **Descripción:** la fila «Cancelar» (contorno) más la acción, a la derecha y con 20 dp encima, se repite en los diálogos: la denuncia y la solicitud de acceso de `ui/comunidad/PantallaClub.kt` (796-799 y 816-819) y la denuncia de `ui/mensajes/PantallaConversacion.kt` (749-752); la confirmación ya es `DialogoDeConfirmacion`. Propuesta: `BotonesDeDialogo(alCancelar, accion, alAceptar, habilitado)` en `ui/componentes/Superficies.kt`.
-  - **Por qué se necesita:** el pie de `.m-dialog` escrito en cada diálogo.
-  - **Qué se espera lograr:** un pie común; los diálogos nuevos lo heredan.
-  - **Peligros si se mantiene como estaba:** poco: tres copias de cuatro líneas.
-  - **Peligros del cambio:** la solicitud tiene 12 dp encima, no 20: o el parámetro o se iguala tras verlo en el móvil.
-
-- [x] **3. El nombre visible de una persona de la plataforma**
-  - **Hecho (29/10/2026):** `nombreVisible(nombre, alias)` en `datos/modelos/Espacios.kt`. El de `CentroDeAccesoViewModel` es otra regla (la segunda línea, `@alias` solo si hay nombre) y se queda.
-  - **Descripción:** «el nombre o `@alias`» (`clubPersonName`) está en `SolicitudDeEntrada.visible` y `PersonaDeYosiftware.visible` (`datos/modelos/Espacios.kt`, 138 y 154), y `ui/comunidad/CentroDeAccesoViewModel.kt` (138) arma `@alias` a mano. Propuesta: una función `nombreVisible(nombre, alias)` en `datos/modelos/Espacios.kt`.
-  - **Por qué se necesita / Qué se espera lograr:** una regla de presentación en un solo sitio.
-  - **Peligros:** ninguno relevante; es pequeño.
-
-- [x] **4. El campo de la búsqueda de la Biblioteca y del Catálogo**
-  - **Hecho (29/10/2026):** `CampoDeBusquedaConAmbitos` (`ui/biblioteca/PantallaBiblioteca.kt`), con el marcador, la descripción y el color de la X como parámetros: se conservan tal cual. Visto en el Honor en las dos pantallas (foco, sugerencias por ámbito y X).
-  - **Descripción:** `ui/biblioteca/PantallaBiblioteca.kt` (209-238) y `ui/catalogo/PantallaCatalogo.kt` (150-182) pintan el mismo campo (lupa, `BasicTextField` con su marcador, la X de limpiar y los chips). Cambian el marcador, la descripción, el color de la X (tinta en la Biblioteca, primario en el Catálogo) y los márgenes de los chips. Las sugerencias ya son `SugerenciasDeAmbito`.
-  - **Por qué se necesita:** el mismo `m-scoped-search` en dos pantallas.
-  - **Qué se espera lograr:** un `CampoDeBusquedaConAmbitos` con esos parámetros.
-  - **Peligros si se mantiene como estaba:** que el buscador se comporte distinto en cada pantalla (el foco, la X).
-  - **Peligros del cambio:** las diferencias de color y margen vienen de la APK de Capacitor; decidir si son a propósito (comparar con las capturas) antes de igualarlas.
-
-- [x] **5. Las filas de lista: ampliar `FilaDeLista` y usarla**
-  - **Hecho (06/11/2026):** `FilaDeLista` gana `borde`, `inicio` (la foto en lugar del icono), `lineasDelTitulo` y `debajo` (una línea más), y la usan la fila de participante del chat, la de persona del club y la de conversación de la bandeja. Comparadas en el Xiaomi antes y después, píxel a píxel, en la bandeja, la gestión de un grupo y los miembros y la búsqueda de un club: diferencia máxima de 6 sobre 255 (el suavizado del icono). `FilaDeClub` (`.m-club-row`) y las dos filas del panel de cuenta son otras clases de la web y se quedan.
-  - **De paso, a petición del propietario (que no se gaste una línea por botón):** en el club, el campo y su botón (buscar persona, invitar a un correo) van siempre en una fila, también en el móvil; «Invitar como» con su selector en otra; los botones de la cabecera, en una fila repartida; las pendientes, con sus botones a la derecha; los formularios de dos campos cortos (inicio y final, página y capítulo…), en dos columnas, con la fecha en una línea (`dd/MM/yy HH:mm`); y «Eliminar club» o «Abandonar club», al final de la sección de miembros.
-  - **Descripción:** `ui/componentes/FilaDeLista.kt` (`.m-list-item`) solo se usa una vez; las pantallas tienen sus copias: `FilaDeParticipante` (`ui/mensajes/PantallaConversacion.kt` 682), `FilaDePersona` y `FilaDeClub` (`ui/comunidad/PantallaClub.kt` 729 y 338), `FilaDeAccion` y `FilaDeEnlace` (`ui/cuenta/PanelDeCuentas.kt` 226 y 275) y `FilaDeConversacion` (`ui/mensajes/PantallaMensajes.kt` 190). Casi todas son `.m-list-item` con un borde, un avatar en lugar del icono o dos líneas de título.
-  - **Por qué se necesita:** la fila de lista es la primitiva más repetida de Mobile.
-  - **Qué se espera lograr:** `FilaDeLista` con `borde`, `inicio` (icono o avatar) y `lineasDelTitulo`, y las copias retiradas.
-  - **Peligros si se mantiene como estaba:** cada fila nueva copia la anterior y el aspecto diverge.
-  - **Peligros del cambio:** son píxeles: hay que comparar cada pantalla en el Honor (sin emulador) antes y después.
-
-- [x] **6. Los estilos de texto repetidos en línea**
-  - **Se queda (06/11/2026):** cada combinación habría que buscarla en el Sass Mobile para saber si es una clase o una coincidencia, y unir dos que coinciden por casualidad haría que cambiar una arrastre a la otra. Las más repetidas son tamaños sueltos (`rem(0.72)` 26 veces, `rem(0.75)` 25) en contextos distintos. Se hace caso a caso cuando se toque cada pantalla.
-  - **Descripción:** muchos `Textos.cuerpo.copy(…)` se repiten con los mismos valores en varias pantallas: `fontSize = rem(0.72), fontWeight = ExtraBold` en tinta suave (5), `rem(0.68)` (5), `rem(0.75)` en el color de error (4), `fontWeight = Bold` en la tinta (14, que es `Textos.filaPrincipal`)… La auditoría solo cambió los siete que eran la línea secundaria de una fila (`Textos.filaSecundaria`).
-  - **Por qué se necesita:** los tokens de `ui/tema/Tipografia.kt` son los de `_primitives.sass`; lo que se copia en línea no sigue a la guía.
-  - **Qué se espera lograr:** buscar cada combinación en el Sass Mobile (`src/assets/css/mobile/`) y, si es una clase (`.m-…`), darle su token; si no, dejarla.
-  - **Peligros si se mantiene como estaba:** bajo.
-  - **Peligros del cambio:** unir por casualidad dos textos que en la web son clases distintas.
-
-- [x] **7. La carga por páginas con cursor**
-  - **Hecho en parte (06/11/2026):** lo que de verdad se repetía era añadir la página siguiente sin repetir lo ya cargado: `conLaPaginaSiguiente` (`datos/Listas.kt`, con `ListasTest`) en los avisos, la actividad, el descubrimiento y los eventos de Clubes, las publicaciones del club y el chat (con `delante`, que carga hacia atrás). El «ya está cargando» y el cursor se quedan en cada ViewModel: tienen los matices de abajo, y un estado común cambiaría mucha interfaz por poco.
-  - **Descripción:** «si hay cursor y no se está cargando, pedir la página siguiente y añadirla» está escrito a mano en `ui/avisos/CentroDeAvisosViewModel.kt` (130-143), `ui/comunidad/ActividadViewModel.kt` (69-80, y otra vez en los comentarios, 105-113), `ui/mensajes/ConversacionViewModel.kt` (198-220), `ui/comunidad/ClubViewModel.kt` (886-895) y `ui/comunidad/ClubesViewModel.kt` (125-150, dos veces).
-  - **Por qué se necesita:** es la «carga paginada» de la lista de lógica de estado repetida.
-  - **Qué se espera lograr:** un pequeño estado común (`ListaConCursor`: elementos, cursor, cargando, cargandoMás) con «primera página» y «más», sobre `cargar` de `ViewModelDeCuenta`.
-  - **Peligros si se mantiene como estaba:** que una lista nueva olvide el «ya está cargando» o el cambio de cuenta.
-  - **Peligros del cambio:** cada copia tiene matices a propósito: el chat pagina hacia atrás y conserva el cursor si ya había anteriores; Clubes quita los repetidos; los avisos vuelven a la primera página con `cursor_no_valido`. Hacerlo con las pruebas de cada ViewModel delante.
+- [x] **1.** Una sola `fechaCorta` (`datos/Fechas.kt`), en la zona del móvil como la web Mobile (29/10/2026).
+- [x] **2.** `BotonesDeDialogo` en `ui/componentes/Superficies.kt`, con el margen de cada diálogo en `arriba` (29/10/2026).
+- [x] **3.** `nombreVisible(nombre, alias)` en `datos/modelos/Espacios.kt`; el de `CentroDeAccesoViewModel` es otra regla y se queda (29/10/2026).
+- [x] **4.** `CampoDeBusquedaConAmbitos` (`ui/biblioteca/PantallaBiblioteca.kt`) para la Biblioteca y el Catálogo (29/10/2026).
+- [x] **5.** `FilaDeLista` con `borde`, `inicio`, `lineasDelTitulo` y `debajo`, usada por las filas del chat, del club y de la bandeja; `FilaDeClub` y las filas del panel de cuenta son otras clases de la web y se quedan (06/11/2026). De paso, a petición del propietario, el club no gasta una línea por botón.
+- [x] **6.** Se queda: los estilos de texto repetidos en línea se revisan caso a caso al tocar cada pantalla, porque unir dos que coinciden por casualidad arrastraría a la otra (06/11/2026).
+- [x] **7.** `conLaPaginaSiguiente` (`datos/Listas.kt`) añade la página siguiente sin repetir; el cursor y el «ya está cargando» se quedan en cada ViewModel por sus matices (06/11/2026).
 
 - [ ] **8. El borrador local con espera de la ficha y del capítulo**
-  - **Descripción:** `ui/elementos/ElementosViewModel.kt` (175-181, 504-538) y `ui/libro/CapituloViewModel.kt` (177-185, 316-389) repiten la misma maquinaria: `borradorPendiente`, un trabajo que espera `esperaDelBorrador` y escribe el borrador, `abandonado`, escribirlo al cambiar de cuenta y en `onCleared`, y recuperarlo al abrir.
+  - **Descripción:** `ui/elementos/ElementosViewModel.kt` y `ui/libro/CapituloViewModel.kt` repiten la misma maquinaria: `borradorPendiente`, un trabajo que espera `esperaDelBorrador` y escribe el borrador, `abandonado`, escribirlo al cambiar de cuenta y en `onCleared`, y recuperarlo al abrir.
   - **Por qué se necesita:** es la regla de «autoguardado sin pérdidas» escrita dos veces.
   - **Qué se espera lograr:** un `BorradorConEspera` junto a `datos/BorradoresLocales.kt`, con sus pruebas, que usen los dos.
   - **Peligros si se mantiene como estaba:** arreglar un fallo del autoguardado en uno y no en el otro.
@@ -70,64 +23,25 @@ Alcance: `android-nativa/app/`. La librería `android-nativa/yosiftware-sesion/`
 
 ## Lo que ya da (o debería dar) la librería de la sesión
 
-Solo propuestas y peticiones a la plataforma (`C:\Users\Yosi\Desktop\administracion yosiftware\docs\peticiones\`): la librería no se edita.
-
-- [x] **9. Los espacios: las rutas y los modelos de la librería**
-  - Petición a la plataforma del 06/11/2026, junto con los puntos 9, 10 y 13: `administracion yosiftware/docs/peticiones/que-la-libreria-de-la-sesion-cubra-lo-que-las-apps-nativas-aun-rehacen.md`.
-  - **Hecho (06/11/2026), con la librería 1.10.0 (kit 1.83, rama `apk/libreria-1-10`):** `RepositorioEspacios` ya no escribe ninguna ruta: todo va por `sesion.espacios` y `sesion.social` (también las solicitudes, las invitaciones enviadas, la búsqueda de personas y el resumen social), detrás de `EspaciosDeLaPlataforma` para probarlo sin la sesión (`EspaciosFalsos` en las pruebas). Los modelos son los de la librería; de `datos/modelos/Espacios.kt` solo quedan `clubDeEspacio`, `nombreVisible` y las extensiones `clubId` y `visible`. La `PersonaDeYosiftware` de Libros (chat, avisos y novedades, que leen otras rutas) pasa a `datos/modelos/Personas.kt` sin cambios; la búsqueda del club usa la de la librería, cuya miniatura ya es la dirección completa (el club deja de pasarla por `imagenDeLaPlataforma`). Cada llamada es de la cuenta activa al empezar: `cuenta_cambiada` se convierte en `RespuestaDeOtraCuenta` (`errorDeLaPlataforma`, en `ClientePlataforma.kt`) y no se enseña nunca. Con `correo_sin_confirmar` se abre la hoja del código, como con el resto de la plataforma. Pruebas: `RepositorioEspaciosTest` (también `cuenta_cambiada`, el correo y sin sesión) y `CentroDeAccesoViewModelTest.loDeOtraCuentaNoSeEnsena`.
-  - **Descripción:** `datos/repositorios/RepositorioEspacios.kt` (40-49 y 91-104) rehace rutas que `sesion.espacios` (`EspaciosYosiftware`, librería 1.7.1) ya da: `mios`, `espacio`, `entrar`, `salir`, `invitaciones`, `aceptar`, `rechazar`, `porCodigo`, `aceptarPorCodigo`; y `datos/modelos/Espacios.kt` (20-108) tiene sus propias `Espacio`, `YoEnEspacio` e `InvitacionRecibida`, que son `EspacioDeYosiftware`, `YoEnElEspacio` e `InvitacionAEspacio` (la 1.7.0 los hizo públicos «para que una app que llama a otras rutas de los espacios con su propio cliente no los vuelva a escribir»). Las propias se quedaron porque la librería no tiene las solicitudes (`pedirEntrar`, `retirarMiSolicitud`, `solicitudes`, `resolverSolicitud`), las invitaciones enviadas y su retirada, la búsqueda de personas ni el resumen social, y porque así todo pasa por `ClientePlataforma` con la generación de la cuenta.
-  - **Por qué se necesita:** es lo que la plataforma pide no rehacer (decisión 4 del propietario).
-  - **Qué se espera lograr:** primero, leer con los modelos de la librería (`EspacioDeYosiftware.de`…) y añadir `clubId` como extensión; después, pedir a la plataforma las rutas que faltan y que `EspaciosYosiftware` respete una generación (o un `Job`) para descartar lo de otra cuenta, y retirar las copias.
-  - **Peligros si se mantiene como estaba:** dos lecturas del mismo JSON que divergen cuando la plataforma cambie un campo.
-  - **Peligros del cambio:** la lectura de la librería exige campos (`getString`) que la de Libros toma por defecto: un JSON incompleto que hoy se pinta fallaría. Pruebas de `RepositorioEspaciosTest` y de Comunidad delante.
-
-- [x] **10. El `detalle` de los errores de la plataforma**
-  - Petición a la plataforma del 06/11/2026, junto con los puntos 9, 10 y 13: `administracion yosiftware/docs/peticiones/que-la-libreria-de-la-sesion-cubra-lo-que-las-apps-nativas-aun-rehacen.md`.
-  - **Hecho (06/11/2026), con la librería 1.10.0:** la plataforma ya redacta la frase de `cuenta_restringida` (qué, hasta cuándo en hora de Madrid y dónde verlo), y la librería trae el `detalle` (`ErrorSesion.detalle` y `restriccion`). `Restricciones.kt` y su prueba se retiraron; `ClientePlataforma.errorDe` devuelve el error de la plataforma con su `mensaje` tal cual.
-  - **Descripción:** `datos/red/Restricciones.kt` (15-50) vuelve a leer el cuerpo de la respuesta para componer la frase de `403 cuenta_restringida` (`detalle: { alcance, hasta }`), porque `ErrorSesion` no conserva el `detalle`; `ClientePlataforma.errorDe` rehace el error con esa frase.
-  - **Por qué se necesita:** cada app nativa del ecosistema escribiría lo mismo.
-  - **Qué se espera lograr:** petición a la plataforma: `ErrorSesion.detalle` (el JSON) o, mejor, la frase de la restricción hecha por la librería como `describePlatformRestriction` del SDK web.
-  - **Peligros si se mantiene como estaba:** que el texto de la APK diverja del de la web.
-  - **Peligros del cambio:** ninguno en Libros hasta que llegue la librería nueva.
+- [x] **9.** Los espacios van por `sesion.espacios` y `sesion.social` de la librería 1.10.0 (kit 1.83), detrás de `EspaciosDeLaPlataforma`; `cuenta_cambiada` se convierte en `RespuestaDeOtraCuenta` y no se enseña nunca (06/11/2026).
+- [x] **10.** El `detalle` de los errores lo trae la librería (`ErrorSesion.detalle` y `restriccion`); fuera `Restricciones.kt` (06/11/2026).
 
 - [ ] **11. El cliente HTTP propio**
-  - **Descripción:** `datos/red/Red.kt` (31-82) monta un OkHttp con lo mismo que la librería (fast fallback, sin `Origin`, agente propio) porque su `TransporteHttp` es interno. `ClientePlataforma` usa `conTokenDePlataforma` para el token y el reintento, que es lo correcto.
+  - **Descripción:** `datos/red/Red.kt` monta un OkHttp con lo mismo que la librería (fast fallback, sin `Origin`, agente propio) porque su `TransporteHttp` es interno. `ClientePlataforma` usa `conTokenDePlataforma` para el token y el reintento, que es lo correcto.
   - **Qué se espera lograr:** si la plataforma expone su cliente (o su configuración), usarla; si no, dejarlo como está, que ya es uno solo para la API de Libros, la plataforma y las portadas.
   - **Peligros:** bajos en los dos sentidos. Prioridad baja.
 
-## Entre la APK, la web y el backend (`../Libros API`, revisión `3fd9eef`)
+## Entre la APK, la web y el backend
 
-Solo propuestas: no se tocan ni la web ni el backend.
-
-- [x] **12. Los textos de error por código, tercera copia**
-  - **Hecho (06/11/2026):** una sola fuente, la API de Libros. Sus frases pasan a ser las buenas de las tablas, con tildes (21 frases en 6 controladores: el club, sus lecturas, hitos, eventos, encuestas y miembros, publicar, las secciones de antología y la cuenta borrada); las que decían lo que hace la pantalla («Se ha actualizado el club») se quedan sin esa parte, que es de cada app. Fuera `productStateMessages` de la web y la tabla de `MensajesDeError.kt` de la APK: sin frase del servidor, la de la pantalla. El tiempo real propio de Libros, que era lo que llegaba sin `error`, se retiró con la adhesión.
-  - **Descripción:** `datos/MensajesDeError.kt` (21-44) copia 22 frases de `src/app/shared/api-error-message.ts` de la web (punto 6 de `common/ROADMAP_ACTIVO_duplicados-frontend.md`), y el backend ya manda su `error`, con otro texto: `club_owner_limit_reached` es «Solo puedes crear un club» en `controllers/club_controller.py` (284) y «Ya administras un club propio. Solo puedes crear uno.» en las dos apps. La tabla solo se usa si la respuesta llega sin `error` (ERRORES.md).
-  - **Por qué se necesita:** el mismo error, tres textos en tres repositorios.
-  - **Qué se espera lograr:** decidir una fuente (la frase del backend) y quitar las tablas de la web y de la APK, o llevar sus frases al backend. Resolverlo junto con el punto 6 de la web.
-  - **Peligros si se mantiene como estaba:** textos distintos según por dónde llegue el error.
-  - **Peligros del cambio:** los errores sin `error` (el tiempo real) necesitan que el backend lo añada antes.
-
-- [x] **13. Los textos de los errores de los espacios**
-  - Petición a la plataforma del 06/11/2026, junto con los puntos 9, 10 y 13: `administracion yosiftware/docs/peticiones/que-la-libreria-de-la-sesion-cubra-lo-que-las-apps-nativas-aun-rehacen.md`.
-  - **Hecho en la APK (06/11/2026), kit 1.83:** el backend declara que los espacios de Libros se llaman «clubes» (`ESPACIOS.md`, «Cómo los llamas») y la plataforma ya redacta así sus errores. `MensajesDeEspacios` pierde la tabla de frases y enseña el `mensaje` de la plataforma (y, si no llega, el texto de la pantalla); se quedan los códigos que deciden qué hacer (`dos_pasos_necesarios`, `correo_de_otra_cuenta`, `ya_es_miembro`, `solicitud_no_encontrada`, `invitacion_no_encontrada`) y el texto propio de `sin_sesion`, que no es de la plataforma. La tabla de la web la retira su propia rama.
-  - **Descripción:** `ui/comunidad/MensajesDeEspacios.kt` (19-40) copia `SPACE_ERROR_MESSAGES` de `src/app/shared/club-spaces.ts` (33) para códigos de la plataforma (`dos_pasos_necesarios`, `espacio_lleno`…), y los pone por delante de la frase que manda la plataforma.
-  - **Por qué se necesita:** los textos de errores de la plataforma deberían salir de la plataforma (o del kit), no de cada web y cada app.
-  - **Qué se espera lograr:** petición a la plataforma para que su `mensaje` diga lo que hoy dice la tabla (en clave de club, si la marca de la web lo pide), y retirar las dos tablas.
-  - **Peligros si se mantiene como estaba:** que la plataforma cambie un código y las tablas no se enteren.
-  - **Peligros del cambio:** perder el «club» de los textos si la plataforma habla de «espacio».
-
-- [x] **14. Las estadísticas que calculan las dos apps**
-  - **Hecho (06/11/2026), las validaciones:** la regla se queda en cada parte (la validación local hace falta para no esperar al servidor), pero con los mismos casos: `src/app/shared/casos-de-validacion.json` (ISBN-13 e ISBN-10, separadores, la X, prefijos y dígitos de control; fechas parciales, bisiestos y formatos que no valen), leído por `isbn.spec.ts` y `publication-date.spec.ts` de la web y por `CasosDeValidacionTest` de la APK. La fecha vacía no está: cada pantalla decide antes si el campo es obligatorio (la web la da por no válida y la APK por válida, y las dos lo tratan antes). La API (`utils/google_books.py`, `utils/editorial_metadata.py`) sigue con sus propias pruebas: está en otro repositorio.
-  - **Las estadísticas se quedan (06/11/2026):** las dos apps ya tienen la colección cargada cuando las enseñan; calcularlas en la API añadiría una petición y una espera (y fallaría sin conexión) para lo mismo. Si llegan a divergir, el remedio es el de las validaciones: una colección de ejemplo y lo esperado, en un archivo que lean las dos pruebas.
-  - **Descripción:** `ui/estadisticas/Estadisticas.kt` repite en Kotlin `src/app/shared/library-stats.ts` (recuentos, «más tiempo en espera», los más repetidos) sobre la colección entera, y `ui/catalogo/Peticiones.kt` (81-101) las validaciones de ISBN y fecha (punto 7 de la web).
-  - **Qué se espera lograr:** lo que dependa solo de la colección, calculado por el backend en `estadisticas/` (ya hace las métricas generales) y leído por las dos; las validaciones, con sus casos de prueba compartidos en `docs/backend/api/`.
-  - **Peligros:** bajos; prioridad baja, tras el clon.
+- [x] **12.** Los textos de error por código salen de la API de Libros; fuera las tablas de la web y de la APK: sin frase del servidor, la de la pantalla (06/11/2026).
+- [x] **13.** Los errores de los espacios enseñan el `mensaje` de la plataforma, que ya los llama «clubes»; se quedan los códigos que deciden qué hacer y el texto propio de `sin_sesion` (06/11/2026).
+- [x] **14.** Las validaciones de ISBN y fecha comparten casos (`src/app/shared/casos-de-validacion.json`, leído por la web y por `CasosDeValidacionTest`). Las estadísticas se quedan en cada app: ya tienen la colección cargada, y calcularlas en la API añadiría una espera; si divergen, el remedio es el mismo, casos compartidos (06/11/2026).
 
 ## Dejado a propósito (no es duplicado)
 
-- `BusquedaEnElLibro.normalizar` (`ui/libro/BusquedaEnElLibro.kt` 101) frente a `plegar` (`datos/Texto.kt`): la web también tiene dos (`normalizeSearchText` y `foldText`), quitan rangos de marcas distintos (`U+0300–036F` frente a `\p{M}`) y la búsqueda además deja solo letras y números.
+- `BusquedaEnElLibro.normalizar` frente a `plegar` (`datos/Texto.kt`): la web también tiene dos (`normalizeSearchText` y `foldText`), quitan rangos de marcas distintos (`U+0300–036F` frente a `\p{M}`) y la búsqueda además deja solo letras y números.
 - `TextosDelChat.instante` lee las fechas sin zona como UTC (para ordenar y para la ventana de edición), y `instanteDe` como hora local: así lo hacen la web del chat y la de Libros. Comparten `leerFecha`.
 - Las barras de arriba: la del libro (`.m-book-bar`), la del editor de estado, la de las páginas públicas y la del shell son clases distintas de la web; solo la de la ficha y la de la antología eran la misma (`MarcoDeBarraDePantallaCompleta`).
 - `FichaEditable` y `CapituloEditable` leen su JSON con `getString`/`getInt` estrictos: es el borrador propio, no la API, y uno roto se descarta.
-- Las tablas de etiquetas (`Perfil`, `EtiquetasDeClubes`, `MensajesDeError`) se parecen en la forma (un `mapOf`), pero son de dominios distintos.
-- La librería `yosiftware-sesion/` y la APK de Capacitor (`android/`, retirada): fuera de alcance.
+- Las tablas de etiquetas (`Perfil`, `EtiquetasDeClubes`) se parecen en la forma (un `mapOf`), pero son de dominios distintos.
+- La librería `yosiftware-sesion/`: fuera de alcance.

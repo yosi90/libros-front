@@ -1,204 +1,38 @@
 # Web claro/oscuro, Wood opcional y reorganización de navegación
 
-**Pausado el 30/9/2026:** los hitos de implementación constan completados, pero la checklist manual `docs/pruebas/common/[pausado][web-claro-oscuro-y-navegacion].md` sigue pendiente. Se cede el único foco activo a la migración transversal de ediciones e ISBN. Al retomarlo, completar y registrar esas comprobaciones antes de darlo por finalizado.
+**Pausado el 30/9/2026:** la implementación está completa y el propietario aceptó la versión 1.0 el 27/9/2026, pero falta la checklist manual `docs/pruebas/common/[pausado][web-claro-oscuro-y-navegacion].md`. Al retomarlo, completar y registrar esas comprobaciones antes de darlo por finalizado.
 
 ## Objetivo
 
-Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, limpia y centrada en la usabilidad y la lectura, sin renunciar a la estética—, conservar **Wood** como alternativa estética y rompedora elegible solo en escritorio, y reorganizar la navegación web alrededor del perfil y de la administración. La APK Android no cambia.
+Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, limpia y centrada en la usabilidad y la lectura, sin renunciar a la estética—, conservar **Wood** como alternativa estética elegible solo en escritorio y reorganizar la navegación web alrededor del perfil. La APK no cambia.
 
-## Decisiones fijadas (25/9/2026, propietario)
+## Decisiones del propietario (25/9/2026)
 
-- **Tres presentaciones independientes:**
-  - `native-mobile`: APK Android. Se considera terminada; esta iniciativa no toca sus vistas, tokens, navegación ni comportamiento.
-  - `web`: navegador a cualquier ancho, desde 320 px hasta ultrawide. Temas claro y oscuro. Árbol de vistas propio; no depende de Mobile ni de Wood.
-  - `wood`: navegador por encima de 1050 px, elegible. Apariencia única.
-- **Tema por dispositivo.** Cada navegador recuerda su elección (Claro, Oscuro o Wood). La preferencia de cuenta (`/usuarios/me/preferencias-interfaz`, que ya acepta `wood|light|dark`) solo aporta el valor inicial de un dispositivo sin elección propia; un cambio en otro dispositivo no sobrescribe la elección local.
-- **Wood por debajo de 1051 px** se sustituye por Claro sin perder la elección: al volver a escritorio se recupera Wood.
-- **Selector de tema en Preferencias**, con las tres opciones y Wood deshabilitado con explicación por debajo de 1051 px.
-- **Administración** existe en la Web con cualquier tema, no solo en Wood.
-- **Navegación (Web y Wood):**
-  - La navbar deja de enlazar Autores, Universos, Sagas, Libros y Antologías; esos listados se alcanzan desde el Perfil.
-  - Los formularios de alta embebidos hoy en esos gestores salen a vistas propias, accesibles desde el panel de Administración.
-  - Cuenta y seguridad y Preferencias se alcanzan desde el Perfil. (En la APK siguen siendo destinos de primer nivel, como hoy.)
-- La paleta Mobile gusta como punto de partida para Web claro/oscuro, pero Web tendrá tokens propios en un parcial independiente.
-- Funcionalidad nueva: se desarrolla y valida en QA; producción no cambia hasta la aceptación.
-
-## Decisiones pendientes
-
-- [x] **Propuestas de usuarios sin rol de administración** (resuelta el 25/9): las propuestas viven en Catálogo, que ya ofrece «Pedir nuevo libro» y «Pedir nueva antología» y se amplía a autores, universos y sagas. Las altas directas quedan en Administración. No requiere petición: `/peticiones/catalogo` ya acepta `TipoEntidad` `autor|universo|saga|libro|antologia`.
+- **Presentaciones independientes:** `web` en el navegador a cualquier ancho (320 px a ultrawide), claro y oscuro, con árbol de vistas propio que no depende de Mobile ni de Wood; `wood` elegible por encima de 1050 px, con apariencia única. La APK no se toca.
+- **Tema por dispositivo:** cada navegador recuerda su elección (Claro, Oscuro o Wood). Con la cuenta de Yosiftware no se guarda en la cuenta (`docs/GUIA_ESTILOS.md`, «Modos de presentación»).
+- **Wood por debajo de 1051 px** se sustituye por Claro sin perder la elección.
+- **Selector de tema en Preferencias**, con las tres opciones y Wood deshabilitado, con su motivo, por debajo de 1051 px.
+- **Navegación (Web y Wood):** la navegación principal no enlaza Autores, Universos, Sagas, Libros ni Antologías; son listados de solo consulta en el Perfil (`/dashboard/<gestor>` lleva a `/dashboard/profile?section=<tipo>`). Cuenta y seguridad y Preferencias se alcanzan desde el Perfil; en la APK siguen siendo destinos de primer nivel.
+- **Propuestas desde Catálogo:** «Pedir nuevo libro» y «Más peticiones» (antología, autor, universo, saga, «Proponer corrección» y «Otro») sobre `/peticiones/catalogo`. Las altas directas son del plugin de administración de la plataforma.
+- La paleta Mobile es el punto de partida de Web, pero Web tiene tokens propios en un parcial independiente.
 
 ## Contexto de datos reales
 
 - Muchos libros antiguos no tienen página final registrada. La barra de progreso de libros, sagas y universos se basa en el total de páginas, así que muestra menos progreso del real. Es un dato incompleto, no un bug visual; no debe «corregirse» visualmente.
 - La biblioteca del propietario tiene muchos universos y sagas. Su estado abierto por defecto es «Sin universo» con la saga de la lectura actual desplegada; cualquier diseño de biblioteca debe probarse con ese volumen.
 
-## Hito 0 — Dirección y documentación
+## Hitos
 
-- [x] **Pausar el roadmap anterior**
-  - **Descripción:** pausar `ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md`, sustituir su Hito 4 y transferir su Hito 5 aquí.
-  - **Por qué se necesita:** solo puede existir un roadmap activo.
-  - **Qué se espera lograr:** los pendientes Android quedan intactos y localizables.
-  - **Peligros si se mantiene como estaba:** dos iniciativas amplias compitiendo por el mismo árbol web.
-  - **Peligros del cambio:** olvidar validaciones físicas Android; quedan explícitas en el roadmap pausado.
+- [x] **Hito 0, dirección:** `docs/GUIA_ESTILOS.md`, `CONTRATO_PRESENTACIONES_WEB.md` y el laboratorio local `/__web-design/:screen` (`src/app/components/pages/web-design-preview/`). El propietario delegó el diseño (25/9).
+- [x] **Hito 1, presentación y tema:** `PresentationModeService` resuelve `web` o `wood`; `WebThemeService` guarda la elección del dispositivo; sección «Apariencia» en Preferencias; tokens en `src/assets/css/web/_tokens.sass` y tema Material Web en `src/assets/css/_material-themes.scss`, overlays incluidos.
+- [x] **Hito 2, navegación:** listados personales, Cuenta y seguridad y Preferencias desde el Perfil; propuestas desde Catálogo.
+- [x] **Hito 3, shell Web:** `WebNavigationComponent` (`src/app/components/web/ui/web-navigation/`): lateral plegable en escritorio, rail en medium y app bar con cajón en compact.
+- [x] **Hito 4, vistas Web:** estadísticas (en dos pestañas, «Personal» y «General»), biblioteca, catálogo, espacio de libro, perfil, preferencias, cuenta y seguridad, notas del libro, comunidad, clubes, mensajes, bienvenida de estilo, paleta Ctrl+K, «Estabas leyendo» ampliada, sagas encadenadas y zona pública. `final-contracts.test.mjs` impide en las vistas Web las clases que Bootstrap define globalmente (`row`, `progress`…), tras dos choques visuales.
+- [x] **Hito 5, pulido Wood:** el propietario lo dio por terminado el 27/9.
+- [x] **Hito 6, regresión y aceptación:** transición por ruta retirada; APK QA 1.0.82 revisada en el Honor y aceptación del propietario (27/9).
 
-- [x] **Guía de estilos y contrato de presentaciones**
-  - **Descripción:** reescribir `docs/GUIA_ESTILOS.md` y `CONTRATO_PRESENTACIONES_WOOD_MOBILE.md` con las tres presentaciones, la resolución por ancho/plataforma/preferencia, el tema por dispositivo y la nueva navegación.
-  - **Por qué se necesita:** la guía vigente fija «desktop = Wood» y «navegador pequeño = Mobile».
-  - **Qué se espera lograr:** una fuente de verdad coherente antes de escribir código.
-  - **Peligros si se mantiene como estaba:** implementaciones que siguen la guía antigua.
-  - **Peligros del cambio:** reabrir decisiones Mobile aceptadas; la guía debe dejar Mobile/APK intacto.
-  - **Hecho (25/9):** `docs/GUIA_ESTILOS.md` describe las tres presentaciones con un aviso de transición, añade la sección Web y limita las reglas Mobile a la APK tras el cierre. `CONTRATO_PRESENTACIONES_WEB.md` fija selección, tema por dispositivo, patrón de feature, transición con `webPresentationEnabled` y puertas; el contrato anterior queda como histórico para el navegador.
+## Pendiente
 
-- [x] **Muestra visual Web aprobada**
-  - **Descripción:** laboratorio local `/__web-design/:screen` (como el de Mobile) con biblioteca, libro/capítulo y perfil en claro y oscuro a 390, 1440 y 1920 px.
-  - **Por qué se necesita:** fijar el lenguaje Web antes de multiplicarlo por todas las pantallas.
-  - **Qué se espera lograr:** aprobación explícita del propietario sobre tipografía, color, densidad y navegación.
-  - **Peligros si se mantiene como estaba:** rediseños tardíos sobre muchas vistas ya construidas.
-  - **Peligros del cambio:** coste de una muestra desechable; se limita a tres pantallas.
-  - **Estado (25/9):** laboratorio implementado en `src/app/components/pages/web-design-preview/` con tokens propios en `src/assets/css/web/_tokens.sass` (aún sin emisión global). Biblioteca, capítulo y perfil en claro/oscuro; sin overflow ni errores a 390, 1440 y 1920 px en Chromium. El propietario delega el diseño (25/9); se adoptan índice desplegable en compact y fuentes del sistema.
-
-## Hito 1 — Infraestructura de presentación y tema
-
-- [x] **Presentación `web` y resolución**
-  - **Descripción:** añadir `web` a `PresentationModeService`: APK → `native-mobile`; navegador → `wood` si la elección del dispositivo es Wood y el ancho supera 1050 px, si no `web`. Atributos raíz `data-presentation-active` y `data-web-theme`.
-  - **Por qué se necesita:** hoy el ancho decide la presentación y no existe la Web.
-  - **Qué se espera lograr:** una única fuente de decisión, sin dos árboles DOM ni suscripciones duplicadas.
-  - **Peligros si se mantiene como estaba:** no hay forma de ofrecer claro/oscuro en escritorio.
-  - **Peligros del cambio:** alterar la APK; `native-mobile` debe resolverse exactamente igual que hoy.
-  - **Hecho (25/9):** `PresentationModeService` conoce la elección Web (`isWebPresentation`, `webThemeChoice`) y admite el modo `web` tras el token `WEB_VIEWS_READY` (apagado hasta el Hito 3). Mientras tanto publica el mismo destino que antes, porque varias hojas compartidas dependen de `data-presentation-target`. La dependencia se invierte (`attachWebTheme`) para evitar ciclos de módulos.
-
-- [x] **Tema por dispositivo**
-  - **Descripción:** persistencia local por usuario y dispositivo; preferencia de cuenta solo como valor inicial; ignorar eventos realtime de otros dispositivos para la elección local.
-  - **Por qué se necesita:** decisión del propietario (Wood en escritorio, oscuro en otro dispositivo).
-  - **Qué se espera lograr:** cada navegador conserva su tema entre sesiones.
-  - **Peligros si se mantiene como estaba:** cambiar el tema en un dispositivo cambiaría todos.
-  - **Peligros del cambio:** perder la elección en navegación privada; se degrada a la preferencia de cuenta.
-  - **Hecho (25/9):** `WebThemeService` guarda la elección en `libros:web-theme:<userId>` y `libros:web-theme:last`, adopta el tema de cuenta solo sin elección local y lo actualiza como valor inicial. En transición, `MobileThemeService` refleja el tema del dispositivo en el navegador y su sol/luna lo modifica; la APK no cambia.
-
-- [x] **Selector en Preferencias**
-  - **Descripción:** tres opciones con muestra visual en las Preferencias Web y Wood; Wood deshabilitado con motivo por debajo de 1051 px.
-  - **Por qué se necesita:** hoy no existe selector web.
-  - **Qué se espera lograr:** cambio de tema inmediato, sin recarga ni pérdida de borradores.
-  - **Peligros si se mantiene como estaba:** Wood es la única experiencia de escritorio.
-  - **Peligros del cambio:** perder estado al sustituir la vista; la fachada debe capturarlo antes.
-  - **Hecho (25/9):** sección «Apariencia» con Claro, Oscuro y Wood (deshabilitado por debajo de 1051 px) y aviso de transición en escritorio. Validado en QA local (Chromium/Firefox) a 1440 y 390 px; oculto sin flag.
-
-- [x] **Tokens y tema Material Web**
-  - **Descripción:** `src/assets/css/web/_tokens.sass` y `_primitives.sass` propios; tema Material claro/oscuro para `web` en `_material-themes.scss`, incluido el overlay container.
-  - **Por qué se necesita:** Web no debe depender de Mobile ni de Wood.
-  - **Qué se espera lograr:** controles Material coherentes en ambos temas.
-  - **Peligros si se mantiene como estaba:** colores por defecto de Material filtrándose.
-  - **Peligros del cambio:** duplicar valores Mobile; se aceptan como punto de partida en un archivo independiente.
-  - **Hecho (25/9):** `styles.sass` emite los tokens Web bajo `html[data-presentation-active='web']` (y `.web-ui`), con la variante oscura por `data-web-theme`. `_material-themes.scss` genera el tema Material `color-scheme` y sobrescribe sus colores de sistema con los tokens Web, de modo que un único bloque sirve para claro y oscuro, overlays incluidos. Comprobado forzando el atributo: `--mat-sys-primary` resuelve a `#0b6b5e` en claro y `#7fd6c4` en oscuro. Coste: +7,5 kB de CSS global sin comprimir (≈1 kB gzip); el presupuesto inicial ya se superaba antes del cambio.
-
-- [x] **Transición controlada**
-  - **Descripción:** flag de entorno `webPresentationEnabled` (activo en QA, apagado en producción). Mientras una ruta no tenga vista Web, Claro/Oscuro usan Wood en escritorio y Mobile en pantalla pequeña.
-  - **Por qué se necesita:** construir por pantallas sin romper producción.
-  - **Qué se espera lograr:** QA siempre navegable; producción idéntica hasta el cierre.
-  - **Peligros si se mantiene como estaba:** una rama larga imposible de validar por partes.
-  - **Peligros del cambio:** fallback incoherente; se documenta y se retira al cierre.
-  - **Hecho (25/9):** `webPresentationEnabled` activo solo en `environment.qa.ts`. Desde el 25/9 la transición es por ruta (`data: { webView: true }`) en lugar de global.
-  - **26/9:** activo también en producción. El propietario no encontraba el selector de tema, que solo existe con la flag encendida. Las rutas sin vista Web siguen en Wood (escritorio) o Mobile.
-
-## Hito 2 — Reorganización de navegación (Web y Wood)
-
-- [x] **Gestores desde el Perfil**
-  - **Descripción:** retirar de la navbar Autores, Universos, Sagas, Libros y Antologías y enlazarlos desde el Perfil.
-  - **Por qué se necesita:** la navbar acumula dieciséis iconos sin agrupación.
-  - **Qué se espera lograr:** navegación principal centrada en leer; los listados propios viven con la identidad del usuario.
-  - **Peligros si se mantiene como estaba:** navegación saturada y difícil de descubrir.
-  - **Peligros del cambio:** romper enlaces profundos; las rutas `/dashboard/<gestor>` se conservan.
-  - **Hecho en Wood (25/9):** la barra lateral conserva Biblioteca, Catálogo, Estadísticas, Comunidad, Mensajes, notificaciones, Administración y cierre de sesión. El menú del Perfil añade «Tu biblioteca» (Autores, Universos, Sagas, Libros, Antologías) y se compacta en portátiles de poca altura para caber sin desplazamiento a 1366×768. La vista Web lo heredará en el Hito 4. Referencia visual `account-security` regenerada en Windows; la de Linux queda pendiente (la campaña nocturna la compara).
-
-- [x] **Gestión del catálogo en Administración** *(replanteado el 25/9 tras la revisión del propietario)*
-  - **Descripción:** los formularios de alta y edición salen por completo de los gestores personales. La «Gestión de libros» del panel de Administración aloja el formulario a la derecha (crear y editar) y se crean las gestiones equivalentes de Antologías, Autores, Universos y Sagas sobre `catalogo/admin/*`, agrupadas en el menú del panel.
-  - **Por qué se necesita:** dar de alta entidades públicas es una tarea de administración y no debe vivir dentro del perfil privado.
-  - **Qué se espera lograr:** administración gestiona todo el catálogo desde un único lugar, con listado y formulario lado a lado.
-  - **Peligros si se mantiene como estaba:** formularios públicos mezclados con listados personales.
-  - **Peligros del cambio:** perder capacidades del formulario actual (portada, ISBN, altas auxiliares); se migran una a una empezando por Libros.
-  - **Libros hecho (25/9):** la «Gestión de libros» sustituye su modal por un panel lateral siempre visible que crea (portada obligatoria) y edita sobre `catalogo/admin/libros`. El panel queda a la derecha desde 1400 px, ocultando el ISBN de la tabla por debajo de 1700 px, y por debajo baja bajo el listado y se desplaza a la vista al editar. El menú de Administración se compacta por debajo de 1700 px. Antologías también cubiertas (ver abajo).
-  - **Autores, Universos y Sagas hecho (25/9):** `AdminCatalogEntitiesComponent` gestiona los tres tipos con el mismo patrón (listado canónico paginado y panel lateral de alta y edición sobre `catalogo/admin/*`). Autores se lee del listado; universos y sagas cargan su detalle para precargar autores, universo y subtítulo. Las secciones cuelgan de Administración junto a «Gestión de libros» y también están disponibles para moderación de catálogo. Las rutas `/dashboard/<gestor>/new` y `/:id` de libros, autores, universos y sagas redirigen a su sección del panel.
-  - **Antologías hecho (25/9):** «Gestión de libros» admite `kind="antologia"`: lista `/catalogo/antologias`, precarga el editor con `/catalogo/antologias/{id}/detalle-publico` (que ahora incluye `Universo` y `Saga`) y escribe con `catalogo/admin/antologias`. Funcionará de extremo a extremo cuando el backend despliegue el arreglo aceptado; comprobado con datos del contrato.
-
-- [x] **Propuestas desde Catálogo**
-  - **Hecho (25/9):** «Pedir nuevo libro» más un menú «Más peticiones» con antología, autor, universo, saga y «Proponer corrección». La corrección permite elegir el tipo y buscar el elemento concreto, porque el backend exige `EntidadId`. «Otro» (título opcional y texto obligatorio, `TipoEntidad: otro`) añadido tras la aceptación backend del 25/9.
-
-- [x] **Listados personales dentro del Perfil**
-  - **Descripción:** Autores, Universos, Sagas, Libros y Antologías pasan a ser apartados del panel del Perfil, de solo consulta. Pulsar un libro o antología abre su ficha; pulsar un autor, universo o saga lleva a la Biblioteca filtrada. Las rutas `/dashboard/<gestor>` redirigen al apartado.
-  - **Por qué se necesita:** hoy los enlaces del Perfil sacan al usuario del Perfil.
-  - **Qué se espera lograr:** consultar lo propio sin perder el contexto.
-  - **Peligros si se mantiene como estaba:** navegación que salta entre pantallas sin relación visual.
-  - **Peligros del cambio:** perder filtros, orden o paginación de los gestores actuales; se conservan.
-  - **Hecho en Wood (25/9):** `ObjectManagerComponent` admite `embeddedKind`; incrustado en el Perfil muestra solo el listado (métricas, búsqueda, filtros, orden y paginación), sin formulario ni acción de edición, con filas pulsables por ratón y teclado. Libros y antologías abren su ficha; autores, universos y sagas dejan el filtro correspondiente en la Biblioteca y navegan a ella. `/dashboard/<gestor>` redirige a `/dashboard/profile?section=<tipo>`; las rutas `/new` y `/:id` siguen para administración hasta completar la gestión del catálogo.
-
-- [x] **Cuenta y Preferencias desde el Perfil**
-  - **Descripción:** el Perfil enlaza Cuenta y seguridad y Preferencias; la navbar web deja de hacerlo. La APK no cambia.
-  - **Por qué se necesita:** decisión del propietario.
-  - **Qué se espera lograr:** un único punto de entrada para todo lo personal.
-  - **Peligros si se mantiene como estaba:** accesos duplicados y dispersos.
-  - **Peligros del cambio:** contradice la regla Mobile vigente; la guía debe limitarla a la APK.
-  - **Hecho en Wood (25/9):** el Perfil enlaza Cuenta y seguridad y Preferencias bajo «Cuenta»; la barra lateral deja de hacerlo. Mobile/APK sin cambios.
-
-## Hito 3 — Shell Web responsive
-
-- [x] **Navegación y shell**
-  - **Descripción:** cabecera y navegación Web de 320 px a ultrawide, con límites de ancho de lectura y columnas contextuales en wide.
-  - **Por qué se necesita:** es la base de todas las vistas Web.
-  - **Qué se espera lograr:** navegación clara, teclado y foco completos, sin overflow horizontal.
-  - **Peligros si se mantiene como estaba:** cada vista inventa su propio layout.
-  - **Peligros del cambio:** copiar el shell Mobile; Web tiene composición propia.
-  - **Hecho (25/9):** `WebNavigationComponent` (`src/app/components/web/ui/`) da navegación lateral con texto y plegable en escritorio (se recuerda en el dispositivo), rail en medium y app bar con cajón en compact; destinos Biblioteca, Catálogo, Comunidad, Mensajes y Estadísticas, y al pie Administración, Perfil y cierre de sesión. El dashboard la carga con `@defer` para no penalizar la carga inicial fuera de Web. Pendiente: centro de notificaciones Web.
-
-## Hito 4 — Vistas Web
-
-Cada punto incluye vista claro/oscuro, pruebas unitarias de la vista y validación Playwright Chromium/Firefox a 390, 1440 y 1920 px.
-
-- [x] **Estadísticas globales** (primera vista Web, 25/9): `WebStatisticsViewComponent` reutiliza datos y series del contenedor y aplica colores del tema Web, recalculados al cambiar claro/oscuro. Validada en Chromium/Firefox a 1440 y 390 px en ambos temas; las rutas sin vista Web siguen en Wood.
-- [x] **Biblioteca** (25/9): `WebLibraryViewComponent` consume el mismo contrato de controlador que Mobile (búsqueda por ámbitos con sugerencias, disponibilidad, vistas por universos y por estados, expansión recordada, editor de estado y antologías en panel lateral). Añade «Continúa leyendo» con las lecturas en marcha. Los helpers de agrupación pasan a `src/app/shared/library-view-helpers.ts`, compartidos con Mobile sin cambiar su comportamiento. Validada en Chromium con datos similares a los del propietario, en claro/oscuro a 1920 y 390 px.
-- [x] **Catálogo** (25/9): `WebCatalogViewComponent` consume el contrato de Mobile ampliado en `web-catalog-view.model.ts` con las peticiones de la cabecera («Pedir un libro», «Más peticiones» con altas de otros tipos y «Proponer corrección»). Búsqueda por ámbitos (componente compartido `WebScopedSearchComponent`, también en Biblioteca), tipo, filtros plegables con contador, tarjetas con «Añadir» por estado y ficha pública en panel lateral con sinopsis, datos disponibles (los vacíos se ocultan), Mi biblioteca, comunidad y reseñas paginadas; Escape la cierra si no hay otro modal encima. Los modales de petición y de estado usan tokens Web; las reglas Material de Wood del catálogo quedan acotadas a Wood. Validada en Chromium en claro/oscuro a 1440 y 390 px con datos simulados; falta revisarla con el volumen real cuando la bandera Web llegue a producción.
-- [x] **Espacio de libro** (26/9): la ruta `book/:id` declara `webView` para todas sus subrutas. `WebBookShellViewComponent` ocupa la pantalla completa con cabecera (volver, índice, portada, autores, guardado, búsqueda y wiki), pestañas de secciones (Resumen y las seis entidades) e índice lateral plegable, superpuesto por debajo de 1051 px; el diálogo de parte o interludio usa el nuevo mixin `web.dialog`. `WebChapterViewComponent` sigue la muestra aprobada: título en serif editable, páginas y orden en línea, escenas en tarjetas con localización y personajes por autocompletado, y panel de personajes fijo desde 1400 px (arrastrar a las escenas como en Wood) o lateral por debajo. `WebNarrativeEntityViewComponent` da listado en rejilla con agrupación y formulario con columna lateral para apodos, relaciones o personajes. `WebBookStatisticsViewComponent` (clasificaciones compartidas con Mobile en `shared/book-statistics-rankings.ts`) y `WebBookSearchViewComponent` completan el espacio. El editor RTF recibe capa Web (barra en una línea desplazable, texto en la fuente de lectura). La barra Wood antigua deja de mostrarse fuera del panel en Web. Validado en Chromium y Firefox, claro/oscuro, a 390, 1280, 1440 y 1920 px con un libro simulado de diez capítulos.
-- [x] **Perfil y Preferencias** (26/9): `WebProfileViewComponent` con cabecera de identidad, subnavegación (Resumen, Identidad pública, Mis peticiones, Mis reportes, Tu biblioteca y Cuenta) y edición en línea de alias, nombre, biografía y país. «Tu biblioteca» usa `WebManagerListViewComponent`, versión Web de solo consulta del gestor incrustado; libros y antologías abren la ficha en el panel lateral compartido `WebPublicDetailPanelComponent` (el mismo del Catálogo). Preferencias tiene rama Web propia con la misma subnavegación; interruptores, métricas de biblioteca, selector de país y modal de imagen reciben variante Web. Mixins nuevos `web.switch` y `web.settings-page`. En compact la subnavegación pasa a pestañas desplazables que mantienen visible la activa. Validado en Chromium en claro/oscuro a 1440 y 390 px con datos simulados.
-- [x] **Cuenta y seguridad** (26/9): `WebAccountSecurityViewComponent` con la misma subnavegación que Perfil y Preferencias (Métodos de acceso, Contraseña y correo, Dispositivos, Normas de comunidad, Moderación y Perfiles bloqueados); `?section=` abre el apartado. Como en Mobile, la confirmación de identidad se pide en un diálogo solo al guardar un cambio sensible y la acción continúa después (Wood sigue pidiéndola antes). Normas plegables, abiertas si están pendientes, con contador en la navegación. `revealActiveTab` compartido mantiene visible la pestaña activa en compact. Validado en Chromium en claro/oscuro a 1440 y 390 px.
-  - **Revisión del propietario (26/9):** cabecera en una sola fila (volver, libro, pestañas y herramientas); el índice se pliega desde su propia cabecera a un carril con «Mostrar índice» y sus acciones pasan a botones con texto («+ Capítulo», «+ Parte», «+ Interludio»); sin desbordes horizontales. El capítulo ocupa todo el ancho. En escritorio con ratón los personajes se asignan solo arrastrando (el panel fijo lleva la indicación al pie y la lista pasa por detrás); «Añadir» queda para pantallas pequeñas, táctiles y la APK. El Resumen pasa a gráficos ApexCharts con los colores del tema: medidor de progreso (página alcanzada sobre el total del libro), ritmo de páginas por capítulo con la media, mapa de presencia de personajes por capítulo, reparto apilado y personajes por grupo.
-- [x] **Estadísticas del libro en la APK** (27/9, petición del propietario): la vista Mobile/APK usa los mismos gráficos que la Web (constructores compartidos en `src/app/shared/book-charts.ts`, paleta leída de los tokens `--mobile-color-*` y recoloreada al cambiar el tema). Composición de pantalla nativa: resumen con medidor y fechas, cifras en rejilla, destacados y gráficos a ancho completo; los gráficos por capítulo desplazan en horizontal si no caben. En plegable abierto (≥600 px) los gráficos pasan a tarjetas y a dos columnas solo desde 900 px. Llega a la APK con la próxima build.
-- [x] **Notas del libro** (26/9, petición del propietario): nueva subruta `notes` con `BookNotesComponent` y vistas Web, Mobile/APK y Wood (buscar, crear, editar y borrar con confirmación en la propia tarjeta). Accesos: pestaña «Notas» en Web, botón en la barra Wood y en su panel compacto, y botón en la barra del libro Mobile. Consume `/notas/libro/{id}` y `/notas`. El backend aceptó el mismo día que las notas sean propias de cada lector (`docs/peticiones/respondidas/ACEPTADA_notas-de-libro-propias.md`): escritura Owner, lectura solo de las propias y `Fecha` fijada por el servidor, que el frontend ya no envía.
-- [x] **Comunidad, chat, clubes y notificaciones.**
-  - [x] **Entrega A (26/9):** estructura de Comunidad con título y pestañas (`WebSocialShellViewComponent`), Resumen en tarjetas, Personas en rejilla con acciones con texto, Actividad en columna de lectura con el editor de publicaciones en diálogo, Amistades y bloqueos, y perfil de otro lector. Las vistas consumen los controladores de Mobile; las rutas `summary`, `people`, `activity`, `friendships`, `blocks` y `users/:id` declaran `webView`. El aviso de conexión en directo del panel usa tokens Web y deja de mencionar «REST». Mixins nuevos `web.card`, `web.field` y `web.state`.
-  - [x] **Entrega B (26/9):** clubes. Listado (Descubrir, Mis clubes, Eventos, Solicitudes) con estados traducidos; detalle con cabecera, pestañas (Lecturas e hitos, Debates, Encuestas, Calendario, Miembros) y columna con cifras y «Mi progreso»; centro de solicitudes e invitaciones (`WebClubAccessCenterViewComponent`). Rutas `clubs` y `clubs/:id` con `webView`. `final-contracts.test.mjs` impide clases que Bootstrap define globalmente (`row`, `progress`…) en las vistas Web, tras dos choques visuales.
-  - [x] **Entrega C (26/9):** mensajes en dos paneles (bandeja con filtros y creación de chats y grupos; conversación con burbujas, respuestas, reacciones, edición, búsqueda, redactor con Intro para enviar y gestión del grupo en un lateral). En compact se ve uno u otro panel. Ruta `messages` con `webView`. `ChatFloatingCoordinatorService` solo usa ventanas flotantes en Wood: en Web y Mobile abre la página de Mensajes (antes, en Web de escritorio, el chat abierto desde un perfil no llegaba a mostrarse).
-  - [x] Centro de notificaciones Web (26/9): campana en la navegación Web (fila en escritorio, icono en la barra compacta) sobre el centro existente, con capa Web.
-- [x] **Bienvenida de estilo** (26/9, petición del propietario): la primera vez que una cuenta nueva (preferencias de interfaz con `FechaActualizacion: null`) llega a la Biblioteca en navegador, `ThemeOnboardingComponent` muestra Claro, Oscuro y Wood con el selector de Apariencia; al pulsar cada uno, la web cambia detrás para compararlos. Al confirmar, una toast indica dónde cambiarlo y su botón lleva a Perfil › Preferencias › Apariencia. Se recuerda por usuario y dispositivo (`libros:theme-onboarded:<id>`) porque elegir el tema por defecto no guarda nada en la cuenta. Se carga con `@defer` para no pesar en el arranque.
-- [x] **Administración** (26/9): sin separar controlador y vista, cada componente de administración incluye en Web la capa `web-admin.skin` (`src/assets/css/web/_admin.sass`), que traduce superficies, textos, tablas, campos, botones, chips y estados a los tokens del tema; el panel tiene su propio bloque Web. La capa usa `$boost` (`:not(#w)`) para ganar a las reglas Wood de clases anidadas sin `!important`. Las reglas globales de campos Material de `all-books` y `admin-catalog-entities` quedan acotadas a Wood. Ruta `adminpanel` con `webView`.
-- [x] **Paleta de órdenes Ctrl+K / ⌘K** (27/9, aprobada por el propietario solo para escritorio): `WebCommandPaletteComponent`, montado en la raíz con `@defer (on idle)`, se abre solo en Web y Wood con pantalla de más de 1050 px y puntero fino (nunca en la APK ni en táctil). Agrupa «Ir a» (Biblioteca, Catálogo, Estadísticas, Perfil), las secciones del libro abierto, sus capítulos e interludios en orden, sus personajes (también por apodo), los libros y antologías de la biblioteca y, desde dos letras, libros del catálogo que no están en la colección. Flechas, Intro, Esc o Ctrl+K para cerrar; devuelve el foco al cerrar. Los resultados del catálogo abren su ficha mediante `CatalogViewStateService.setPendingDetail`, que ahora también avisa al catálogo ya abierto (`detailRequested$`). Auditada con axe en claro y oscuro.
-- [x] **Estadísticas en dos pestañas** (27/9, petición del propietario): «Personal» deja de repetir en texto la lectura más rápida y el libro más tiempo en espera; este último pasa a gráfico de los libros «En espera» por días, y se añaden autores y estilos que más lees y tus puntuaciones (calculados de `/coleccion/items` en `src/app/shared/library-stats.ts`). «General» muestra la composición del catálogo (títulos por estilo, autores con más títulos, idiomas, décadas de publicación) desde `/catalogo/libros`, cargado al abrir la pestaña. Web con ApexCharts; Mobile/APK y Wood con `StatRowsComponent`. Desde el mismo día, «General» consume `/estadisticas/comunidad` (lectura de la comunidad, clubes y actividad) y la ficha de club abierto muestra sus autores más leídos (`docs/peticiones/respondidas/ACEPTADA_estadisticas-de-comunidad.md`).
-- [x] **Ventana «Estabas leyendo» ampliada** (27/9, petición del propietario): a su tamaño mínimo solo muestra el libro y «Seguir leyendo»; en un tramo intermedio invita a agrandarla; agrandada o maximizada añade progreso, estado de lectura con historial, valoración con reseña y notas (crear y ver las últimas). El reparto responde al tamaño de la ventana con consultas de contenedor (una columna, dos y, maximizada, tres). Datos: `/libros/{id}`, `/catalogo/libros/{id}/detalle-publico` (`MiColeccion`), `/coleccion` y `/notas`.
-- [x] **Sprint final 1.0** (27/9, revisión del propietario):
-  - La barra que une las sagas encadenadas es un pseudo-elemento por encima, así que el hover de la cabecera ya no la tapa (Web y Mobile).
-  - Campana: por encima de 1050 px flota sin fondo en la esquina superior derecha, fuera de la navegación; por debajo es un botón más del carril (en compact sigue en la barra superior).
-  - Ventanas flotantes en la Web de escritorio: el panel solo inicializaba el gestor en Wood y en Web no se abrían. «Abrir chats en ventana» va al pie del listado de Mensajes y desaparece con la ventana abierta. «Estabas leyendo» es una ventana más del gestor (minimizar, maximizar, cerrar) en el escritorio con sitio para ventanas; en el resto, la píldora de la APK. Cerrarla olvida el libro.
-  - Catálogo: las sagas que coinciden con la búsqueda aparecen sobre los resultados y abren su ficha (universo, autoría, «Continúa a» / «Continúa en» navegables y sus títulos) en Web, Mobile/APK y Wood (`/catalogo/sagas/{id}/detalle-publico` y `sagaId`). `?saga=<id>` abre la ficha al entrar.
-  - APK de QA: el lanzador muestra «Mem.Bib.Qa» (`launcher_name`) y el icono lleva un punto rojo abajo a la derecha.
-- [x] **Sagas encadenadas** (27/9, petición del propietario; backend en `docs/peticiones/respondidas/ACEPTADA_sagas-encadenadas.md`): la Biblioteca agrupa las sagas de una familia en orden de lectura en Web, Wood y Mobile/APK, las une visualmente en Web y Mobile y muestra «Sigue a…» / «Continúa en…». Administración vincula sagas anteriores. Nunca se infiere por el título.
-- [x] **Zona pública y autenticación** (27/9): vistas Web de Home, Login, Registro, Recuperación, Reset, Verificación, Verificación pendiente y Onboarding sobre sus contratos de vista existentes, con `WebPublicShellComponent` y `WebAuthPageComponent`. Las rutas declaran `webView` y el arranque (`index.html` e `initialPathHasWebView`) ya las incluye. Las pruebas de humo públicas comprueban la Web por defecto y una portada Wood elegida por el dispositivo; las baselines visuales públicas eligen Wood explícitamente y la matriz responsive y la presentación Mobile pública desactivan Web en local. Auditadas con axe en claro y oscuro. Revisando la zona se encontró y corrigió que `openApiError` se llamaba a sí mismo desde 750e643 (ningún error de API llegaba a mostrarse). Queda retirar el mecanismo de transición por ruta.
-
-Para cada vista: **Descripción** — vista Web propia sobre la fachada existente. **Por qué** — completar la presentación. **Qué se espera** — paridad funcional sin tocar la lógica. **Peligros si no** — fallback permanente. **Peligros del cambio** — divergencia funcional; la fachada sigue siendo la única dueña del estado.
-
-## Hito 5 — Pulido Wood (transferido del roadmap pausado)
-
-- [x] **Coherencia y ancho en escritorio** (cerrado el 27/9: el propietario da el pulido Wood por terminado)
-  - **Descripción:** tokens y mixins Wood (`src/assets/css/wood/_tokens.sass`), titulares serif coherentes, acentos dorados en lugar de verdes, familia de botones única, límites de ancho en wide/ultrawide, paginación y espacios vacíos de gestores y comunidad, botón «Instalar» sin tapar contenido, chips de personajes con la paleta Wood y errores técnicos nunca visibles.
-  - **Por qué se necesita:** auditoría del 25/9 con datos reales: «se le ven las costuras».
-  - **Qué se espera lograr:** Wood cohesionado sin rediseño completo.
-  - **Peligros si se mantiene como estaba:** deuda visual creciente.
-  - **Peligros del cambio:** degradar la referencia histórica o extender Bootstrap legacy.
-
-## Hito 6 — Cierre
-
-- [x] **Regresión y aceptación** (cerrado el 27/9: APK QA 1.0.82 instalada y revisada en el Honor; aceptación del propietario)
-  - **Avance (26/9):** guía de estilos actualizada al estado real, auditoría de accesibilidad Web automatizada, contrato de iconos y clases Web compartidas.
-  - **Avance (27/9):** vistas Web de la zona pública y retirada del mecanismo de transición (`data.webView`, `WebRouteSupportService`, `WEB_VIEWS_READY` y el aviso de Preferencias); `index.html` aplica el tema a todas las rutas salvo los laboratorios `/__…`. Unitarias, build, contratos QA y Playwright (Chromium, Firefox y WebKit) en verde, salvo la sonda realtime en WebKit, que ya fallaba antes. Verificación final de la APK (QA 1.0.82, código 83) y aceptación del propietario hechas el mismo día: versión 1.0 cerrada.
-  - **Descripción:** unitarias, build, Playwright Chromium/Firefox, verificación de que la APK no cambia (build nativa QA y comparación de vistas), aceptación del propietario en QA y paso a producción retirando la flag y el fallback.
-  - **Por qué se necesita:** la iniciativa cambia la presentación de toda la web.
-  - **Qué se espera lograr:** producción con Web claro/oscuro, Wood opcional y navegación reorganizada.
-  - **Peligros si se mantiene como estaba:** —
-  - **Peligros del cambio:** regresiones en la APK; se verifican explícitamente.
+- La checklist manual (arriba).
+- Revisar el Catálogo Web con el volumen real del propietario.
+- Regenerar en Linux la referencia visual Wood de `account-security` (la compara la campaña nocturna).

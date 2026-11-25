@@ -1,18 +1,13 @@
-# Autenticacion
+# Autenticación
 
-## Direccion
+## Dirección
 
-- Mantener los formularios de acceso y alta claros, con validaciones comprensibles antes de enviar al backend.
+- La cuenta, el acceso y la sesión son de la plataforma Yosiftware desde la adhesión (`ecosistema-kit/ACCESO.md`): Libros no tiene formularios de entrar, registrarse ni recuperar la contraseña; los pinta el SDK. Arquitectura en `docs/codex/PROJECT_WORKING_NOTES.md`, «Cuenta y sesión».
 
 ## Deuda relevante
 
-- Hay reglas de contrasena repetidas en varios formularios.
+- Ninguna registrada.
 
-## Lineas activas
+## Líneas activas
 
-- Mejorar el feedback de contrasena invalida en registro de usuario y registro de administradores.
-- Redisenio visual desktop de los formularios publicos coordinado desde `docs/GUIA_ESTILOS.md`.
-
-## Referencias historicas utiles
-
-- `docs/backend/api/ENDPOINTS.md` documenta los endpoints de autenticación y recuperación.
+- Ninguna.
