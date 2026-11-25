@@ -56,7 +56,7 @@ Si dudas, explica por qué en el informe, sin refactorizar.
 - APK nativa en Kotlin (`android-nativa/`): `datos/` para el cliente de la API, los modelos y los almacenes; `ui/componentes/` para las primitivas de Mobile; `ui/tema/` para los tokens. Se audita solo cuando el clon esté terminado. La APK de Capacitor (`android/`) se retiró en el corte (decisión del propietario, 2026-10-24) y solo queda en la etiqueta `apk-capacitor-final`: nunca se audita.
 - Backend: `../Libros API` (otro repositorio). Lo que se repite entre las dos partes se anota como propuesta.
 - Del ecosistema: `ecosistema-kit/` (SDK, librería de la sesión). No se edita; la librería se copia sin cambios a `android-nativa/yosiftware-sesion/`.
-- Fuera de alcance mientras dure la adhesión: inicio de sesión y sesión propias, chat, notificaciones, relaciones sociales y moderación de cuentas (se retiran en los hitos 2 y 3 de `docs/roadmaps/ecosistema/`).
+- Desde el corte de la adhesión (2026-10-25), el inicio de sesión, la sesión, el chat, las notificaciones, lo social y la moderación de cuentas son de la plataforma. Lo que quede de ellos en el código se quita; no se unifica.
 
 ## Cómo buscarlo (modos `revisar` y `corregir`)
 

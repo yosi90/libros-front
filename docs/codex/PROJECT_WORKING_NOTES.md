@@ -66,6 +66,7 @@ Este repositorio es `book-front`: la web Angular de una aplicación personal par
   - 25/10/2026, `corregir` sobre lo nuevo de la adhesión (`478fc8e..33989c0`): «Quedan duplicados»; propuestas 9 y 10 del mismo roadmap.
   - 26/10/2026, auditoría completa de la APK Kotlin (solo `android-nativa/app/`), base `6826083`: «Quedan duplicados»; propuestas en `docs/roadmaps/ecosistema/ROADMAP_PAUSADO_duplicados-apk-kotlin.md`. Los cambios de interfaz 8 a 11 de esa ronda solo se compilaron: falta verlos en un móvil.
 - **Documentación** (`.claude/agents/revisor-de-documentacion.md`): lo pide el contador `py -3 ecosistema-kit/herramientas/revision_de_documentacion.py`.
+  - 25/11/2026, auditoría completa, base `9bae7418`, unida en `a9936a9d`: «Quedan propuestas» (de unos 455 kB a unos 245 kB de documentación viva). Las propuestas abiertas: finalizar `ROADMAP_ACTIVO_duplicados-frontend.md` (sus 11 propuestas están cerradas); cerrar o rehacer las checklists `[pendiente]` de roadmaps ya finalizados que prueban sistemas retirados; quitar o mover `docs/Guias importar características/` (código de Fichas 3.5 para chat y notificaciones, hoy de la plataforma).
 
 ## Convención operativa de tests Karma
 
