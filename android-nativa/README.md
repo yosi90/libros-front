@@ -1,6 +1,6 @@
 # Libros: la APK nativa (Kotlin)
 
-El clon en Kotlin y Jetpack Compose de la APK actual de Memoria Bibliográfica, que es la web de Angular dentro de Capacitor (`../android/`). Es un **clon exacto** de lo propio de Libros, con el aspecto de la presentación Mobile (`../src/assets/css/mobile/` y `../src/app/components/mobile/`), y nace adherido a Yosiftware: la cuenta es la de la plataforma. Plan y estado: `../docs/roadmaps/ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (hitos 5 a 14).
+La APK de Memoria Bibliográfica, en Kotlin y Jetpack Compose. Nació como **clon exacto** de lo propio de Libros en la APK de Capacitor (la web de Angular empaquetada, retirada en el corte de la adhesión; etiqueta `apk-capacitor-final`), con el aspecto de la presentación Mobile (`../src/assets/css/mobile/` y `../src/app/components/mobile/`), y adherida a Yosiftware: la cuenta es la de la plataforma. Cómo se hizo: `../docs/roadmaps/ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (hitos 5 a 14).
 
 Mismo paquete que la APK de Capacitor (`es.yosiftware.libros`, y `.qa` en QA), con un `versionCode` mayor, para instalarse encima con la misma firma.
 
@@ -12,7 +12,7 @@ Mismo paquete que la APK de Capacitor (`es.yosiftware.libros`, y `.qa` en QA), c
 ## Datos y red (`app/src/main/java/es/yosiftware/libros/datos/`, hito 7)
 
 - `red/`: el único cliente de la API de Libros (`ClienteLibros`: token de la API de la librería, un solo reintento tras un 401, sin `Origin` y con `User-Agent` propio), el cliente HTTP compartido (`Red`, OkHttp con «fast fallback» y los tiempos de la APK de Capacitor), las llamadas a la plataforma con `sesion.conTokenDePlataforma` (`ClientePlataforma`) y el estado de la red para la barrera «sin conexión» (`EstadoDeRed`).
-- `ErrorDeLibros` y `MensajesDeError`: un solo tipo de error, leído según `docs/backend/api/ERRORES.md`, con las frases por `code` de la APK actual.
+- `ErrorDeLibros` y `MensajesDeError`: un solo tipo de error, leído según `docs/backend/api/ERRORES.md`. La frase es la del `error` de la API; sin ella, la de la pantalla (no hay tabla por `code`).
 - `cuenta/`: el ámbito de la cuenta (`AmbitoDeCuenta`: identidad, generación, trabajos y carpeta y claves por entorno y cuenta) y la base de los ViewModels de la cuenta (`ViewModelDeCuenta`), según `ecosistema-kit/CAMBIO_DE_CUENTA.md`.
 - `json/` y `modelos/`: la lectura tolerante del JSON (con `org.json`, como la librería) y los modelos de lo que se queda en Libros.
 - `repositorios/`: uno por área, con las mismas rutas que los servicios de la web.
@@ -58,7 +58,7 @@ Clonadas de `mobile-statistics-view`, `statistics.component.ts` y `app-stat-rows
 - Estadísticas: `ResumenDelLibro` (las cuentas), `GraficosDelLibro` (los gráficos en Compose) y `PantallaResumenDelLibro`.
 - Notas: `NotasDelLibro` (con `NotasViewModel`) y `PantallaNotasDelLibro`. Las notas antiguas en RTF pasan por `datos/Rtf.kt`.
 - Búsqueda: `BusquedaEnElLibro` (con `BusquedaViewModel`), que busca en el libro ya cargado, y `PantallaBusquedaDelLibro`.
-- Rediseños en prueba (rama `apk/redisenos-prueba`, 6/11/2026): el capítulo con «Escenas plegadas» (`PantallaCapitulo`), la hoja de reparto y la @ del texto (`HojaDeReparto`, `RepartoDeEscena` y `editor/Menciones.kt`) y «Tu lectura» como panel denso (`PanelDeLectura` y `PantallaResumenDelLibro`).
+- Los rediseños del 6/11/2026: el capítulo con «Escenas plegadas» (`PantallaCapitulo`), la hoja de reparto y la @ del texto (`HojaDeReparto`, `RepartoDeEscena` y `ui/editor/Menciones.kt`) y «Tu lectura» como panel denso (`PanelDeLectura` y `PantallaResumenDelLibro`).
 - Muestras de depuración: `MuestrasDeLibro` (la lista de vistas está en su documentación; `capitulo`, `capitulo-reparto`, `capitulo-datos` y `resumen-con-datos` enseñan los rediseños).
 
 ## Los sonidos (`sonido/`)
