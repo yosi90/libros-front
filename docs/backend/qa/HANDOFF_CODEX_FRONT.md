@@ -50,7 +50,7 @@ Valores funcionales gestionados por el propietario:
 | Variable | `QA_API_BASE_URL` |
 | Secret | `QA_RESET_TOKEN` |
 
-Las contraseñas `QA_*_PASSWORD` y `QA_PHONE_TEST_*` son de la sesión propia retirada y ya no sirven para entrar.
+Las contraseñas `QA_*_PASSWORD` y `QA_PHONE_TEST_*` de la sesión propia retirada ya no existen: el entorno `qa` solo guarda `QA_RESET_TOKEN` (y, en la API, el servidor y la base SQL de QA).
 
 Valores de publicación configurados por el propietario:
 
