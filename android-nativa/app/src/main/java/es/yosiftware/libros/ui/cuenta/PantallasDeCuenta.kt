@@ -286,7 +286,7 @@ fun PantallaDeEntrar(
 }
 
 /**
- * «Continuar como @alias» y, si se sabe, «con tu sesión de <app>»: el `.m-button--tonal` de la APK, con el símbolo del
+ * «Continuar como @alias» y, debajo, «Con tu cuenta Yosiftware», sin decir de qué app viene (kit 1.106): el `.m-button--tonal` de la APK, con el símbolo del
  * ecosistema delante (es la cuenta de Yosiftware) y la segunda línea en pequeño.
  */
 @Composable
