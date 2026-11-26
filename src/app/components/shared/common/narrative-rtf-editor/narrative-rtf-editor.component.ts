@@ -681,6 +681,20 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     }
 
     /**
+     * Lleva el foco al texto sin desplazar la página, con el cursor al final; con `selectAllOnFocus`, el texto queda
+     * seleccionado para escribir encima (lo hace `markFocused`). Es lo que hacen las escenas y entradas que se leen y
+     * se abren para escribir (Web, «Cuaderno»).
+     */
+    focusAtEnd(): void {
+        const editor = this.editor?.nativeElement;
+        if (!editor)
+            return;
+        editor.focus({ preventScroll: true });
+        if (!this.selectAllOnFocus)
+            this.moveCaretToEnd();
+    }
+
+    /**
      * Cambia lo escrito desde la @ en curso por `name` (con un espacio detrás si no lo hay) y deja el cursor tras él.
      * El nombre queda como enlace en cuanto se repintan las palabras clave.
      */

@@ -287,6 +287,29 @@ describe('NarrativeRtfEditorComponent', () => {
         expect(window.getSelection()?.toString()).toBe('Descripción de la escena');
     }));
 
+    it('focusAtEnd enfoca el texto con el cursor al final, o lo deja seleccionado si es el de por defecto', fakeAsync(() => {
+        const { component, root } = createEditor('Citra vino');
+        root.tabIndex = 0;
+        root.addEventListener('focus', () => component.markFocused());
+
+        component.focusAtEnd();
+        tick();
+        const caret = window.getSelection() as Selection;
+        expect(document.activeElement).toBe(root);
+        expect(caret.isCollapsed).toBeTrue();
+        expect(root.contains(caret.anchorNode)).toBeTrue();
+        const tail = document.createRange();
+        tail.setStart(caret.anchorNode!, caret.anchorOffset);
+        tail.setEnd(root, root.childNodes.length);
+        expect(tail.toString()).toBe('');
+
+        root.blur();
+        component.selectAllOnFocus = true;
+        component.focusAtEnd();
+        tick();
+        expect(window.getSelection()?.toString()).toBe('Citra vino');
+    }));
+
     it('restores the editor selection after a toolbar control takes focus', () => {
         const { component, root } = createEditor('Texto normal');
         const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);

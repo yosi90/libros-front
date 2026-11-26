@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,6 +11,7 @@ import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.s
 import { ModalDialogDirective } from '../../ui/modal-dialog.directive';
 import { foldText } from '../../../../shared/text';
 import { sceneCastDetails } from '../../../../shared/scene-cast';
+import { isReadingTextClick } from '../../../../shared/narrative-entity-links';
 import type { Chapter } from '../../../../interfaces/chapter';
 
 interface ListGroup { label: string; items: any[] }
@@ -46,7 +47,7 @@ export class WebNarrativeEntityViewComponent {
     private appearanceCache = new Map<number, Appearance[]>();
     private lastItemId: number | null = null;
 
-    constructor(private host: ElementRef<HTMLElement>, private layout: AdaptiveLayoutService, private router: Router) { }
+    constructor(private layout: AdaptiveLayoutService, private router: Router) { }
 
     get c(): NarrativeEntityPlaceholderComponent { return this.controller; }
 
@@ -178,32 +179,19 @@ export class WebNarrativeEntityViewComponent {
         return !!entry && !this.c.isUnsentPlaceholderEntry(entry);
     }
 
+    /** Abre la entrada para escribir: el cursor al final o, si es el texto por defecto, seleccionado para escribir encima. */
     openEntry(index: number): void {
         this.openEntryIndex = index;
-        setTimeout(() => {
-            const editor = this.host.nativeElement.querySelector<HTMLElement>(`[data-entry-index="${index}"] .entry__editor .rtf-editor`);
-            if (!editor)
-                return;
-            editor.focus({ preventScroll: true });
-            // El texto por defecto queda seleccionado (el editor lo hace al enfocarlo) para escribir encima.
-            const entry = this.c.createEntryDrafts[index];
-            if (entry && this.c.isDefaultEntryDescription(entry))
-                return;
-            const selection = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(editor);
-            range.collapse(false);
-            selection?.removeAllRanges();
-            selection?.addRange(range);
-        });
+        setTimeout(() => this.openEditor?.focusAtEnd());
     }
 
     openEntryFromText(index: number, event: MouseEvent): void {
-        const target = event.target as HTMLElement | null;
-        if (target?.closest('.rtf-narrative-link') || window.getSelection()?.toString())
-            return;
-        this.openEntry(index);
+        if (isReadingTextClick(event))
+            this.openEntry(index);
     }
+
+    /** El editor de la entrada abierta (las demás se leen con editores de solo lectura). */
+    @ViewChild('openEntryEditor', { read: NarrativeRtfEditorComponent }) private openEditor?: NarrativeRtfEditorComponent;
 
     /** «+ Entrada»: la de por defecto si aún no se ve (con su texto listo para escribir encima) o una nueva. */
     addEntry(): void {

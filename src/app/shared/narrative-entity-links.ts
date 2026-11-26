@@ -1,6 +1,7 @@
 import { Book } from '../interfaces/book';
+import type { BookElementType } from './book-element-types';
 
-export type NarrativeEntityLinkKind = 'characters' | 'locations' | 'organizations' | 'concepts' | 'events' | 'quotes';
+export type NarrativeEntityLinkKind = BookElementType['listRoute'];
 
 export interface NarrativeEntityLink {
     id: number;
@@ -181,4 +182,13 @@ function isCapitalizedMention(value: string): boolean {
 
 function isWordCharacter(value: string): boolean {
     return !!value && /[\p{L}\p{N}_]/u.test(value);
+}
+
+/**
+ * Un clic en un texto que se lee (escena o entrada) que debe abrirlo para escribir: no lo ha atendido ya un enlace a un
+ * elemento ni termina una selección de texto.
+ */
+export function isReadingTextClick(event: MouseEvent): boolean {
+    const target = event.target as HTMLElement | null;
+    return !event.defaultPrevented && !target?.closest('.rtf-narrative-link') && !window.getSelection()?.toString();
 }

@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Character } from '../../../../interfaces/character';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { isReadingTextClick } from '../../../../shared/narrative-entity-links';
 import {
     EditorMention, EditorMentionKey, NarrativeRtfEditorComponent
 } from '../../../shared/common/narrative-rtf-editor/narrative-rtf-editor.component';
@@ -110,26 +111,13 @@ export class WebChapterViewComponent {
     openScene(index: number): void {
         this.mention = null;
         this.c.openScene(index);
-        setTimeout(() => {
-            const editor = this.host.nativeElement.querySelector<HTMLElement>(`[data-scene-index="${index}"] .scene__editor .rtf-editor`);
-            if (!editor)
-                return;
-            editor.focus({ preventScroll: true });
-            const selection = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(editor);
-            range.collapse(false);
-            selection?.removeAllRanges();
-            selection?.addRange(range);
-        });
+        setTimeout(() => this.openEditor?.focusAtEnd());
     }
 
     /** Un clic en el texto leído abre la escena, salvo si era un enlace a un elemento o una selección de texto. */
     openSceneFromText(index: number, event: MouseEvent): void {
-        const target = event.target as HTMLElement | null;
-        if (event.defaultPrevented || target?.closest('.rtf-narrative-link') || window.getSelection()?.toString())
-            return;
-        this.openScene(index);
+        if (isReadingTextClick(event))
+            this.openScene(index);
     }
 
     openCast(index: number): void {

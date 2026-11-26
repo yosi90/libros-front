@@ -100,7 +100,7 @@
                       <button mat-menu-item type="button" class="is-danger" (click)="removeEntry(i)"><mat-icon>delete_outline</mat-icon><span>Eliminar la entrada</span></button>
                     </mat-menu>
                   </div>
-                  <app-narrative-rtf-editor class="entry__editor" [formControl]="entry.description" [ariaLabel]="'Texto de la entrada ' + (i + 1)" [value]="entry.description.value ?? ''"
+                  <app-narrative-rtf-editor #openEntryEditor class="entry__editor" [formControl]="entry.description" [ariaLabel]="'Texto de la entrada ' + (i + 1)" [value]="entry.description.value ?? ''"
                     [narrativeLinks]="c.getEntryNarrativeLinks()" [preferenceBookId]="c.book.Id" [selectAllOnFocus]="c.isDefaultEntryDescription(entry)"
                     (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
                   @if (entry.title.invalid) {<p class="field-error">El título necesita al menos 3 caracteres.</p>}

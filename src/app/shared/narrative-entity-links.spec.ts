@@ -1,5 +1,5 @@
 import { Book } from '../interfaces/book';
-import { applyNarrativeEntityLinks, buildNarrativeEntityLinks } from './narrative-entity-links';
+import { applyNarrativeEntityLinks, buildNarrativeEntityLinks, isReadingTextClick } from './narrative-entity-links';
 
 describe('narrative-entity-links', () => {
     const book = {
@@ -73,5 +73,34 @@ describe('narrative-entity-links', () => {
 
         expect((html.match(/rtf-narrative-link/g) ?? []).length).toBe(1);
         expect(html).toContain('Viaje antes que destino</span>');
+    });
+});
+
+describe('isReadingTextClick', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+        window.getSelection()?.removeAllRanges();
+    });
+
+    function clickOn(target: HTMLElement, prevented = false): MouseEvent {
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        if (prevented) event.preventDefault();
+        Object.defineProperty(event, 'target', { value: target });
+        return event;
+    }
+
+    it('abre con un clic en el texto, no en un enlace a un elemento, ni ya atendido, ni al seleccionar', () => {
+        const text = document.createElement('p');
+        text.innerHTML = 'Llegó <span class="rtf-narrative-link">Citra</span> al faro';
+        document.body.appendChild(text);
+
+        expect(isReadingTextClick(clickOn(text))).toBeTrue();
+        expect(isReadingTextClick(clickOn(text.querySelector('span')!))).toBeFalse();
+        expect(isReadingTextClick(clickOn(text, true))).toBeFalse();
+
+        const range = document.createRange();
+        range.selectNodeContents(text);
+        window.getSelection()?.addRange(range);
+        expect(isReadingTextClick(clickOn(text))).toBeFalse();
     });
 });
