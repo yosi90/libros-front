@@ -19,7 +19,7 @@ Alcance: `android-nativa/app/`, rutas bajo `android-nativa/app/src/main/java/es/
   - **Por qué se necesita:** es la regla de «autoguardado sin pérdidas» escrita dos veces.
   - **Qué se espera lograr:** un `BorradorConEspera` junto a `datos/BorradoresLocales.kt`, con sus pruebas, que usen los dos.
   - **Peligros si se mantiene como estaba:** arreglar un fallo del autoguardado en uno y no en el otro.
-  - **Peligros del cambio:** **alto**. El propietario perdió media escena por un fallo de esto; el capítulo además envía al servidor (`autoguardado`) y la ficha no. No se toca sin las pruebas de cerrar la app del todo en el Honor.
+  - **Peligros del cambio:** **alto**. El propietario perdió media escena por un fallo de esto; desde la F5c (26/11/2026) los dos envían además al servidor con el mismo ciclo (`autoguardado`, `otraVez`), así que conviene unir el borrador y el envío a la vez (`docs/roadmaps/common/bugs.md`). No se toca sin las pruebas de cerrar la app del todo en el Honor.
 
 ## Lo que ya da (o debería dar) la librería de la sesión
 
