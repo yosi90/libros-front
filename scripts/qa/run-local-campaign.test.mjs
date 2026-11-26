@@ -6,7 +6,7 @@ test('el archivo backend aporta solo las variables QA permitidas', () => {
     const environment = localQaEnvironment('LIBROS_QA_RESET_TOKEN=test-token\nQA_ADMIN_PASSWORD=test-password\nSQL_PASSWORD=not-imported\n', 'QA_API_BASE_URL=https://qa-api.yosiftware.es');
     assert.deepEqual(environment, {
         QA_API_BASE_URL: 'https://qa-api.yosiftware.es', QA_FRONT_BASE_URL: '', QA_DATASET_VERSION: '',
-        QA_FIREBASE_PROJECT_ID: '', QA_FIREBASE_SITE_ID: '', QA_ADMIN_PASSWORD: 'test-password', QA_RESET_TOKEN: 'test-token'
+        QA_FIREBASE_PROJECT_ID: '', QA_FIREBASE_SITE_ID: '', QA_RESET_TOKEN: 'test-token'
     });
     assert.throws(() => localQaEnvironment('QA_LEASE_ID=foreign', ''), /no puede fijar/);
     assert.throws(() => localQaEnvironment('QA_RESET_TOKEN=a\nLIBROS_QA_RESET_TOKEN=b', ''), /distintos/);
