@@ -1,0 +1,38 @@
+/* La mesa de lienzos: la página que enseña las maquetas. No forma parte del diseño de Libros. */
+:root {
+  --pg: #e9e6de; --pg-ink: #1b211f; --pg-mut: #515c56; --pg-line: #cbc6b9; --pg-ac: #0b6b5e;
+  --pg-ui: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pg-lec: Literata, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; --pg: #0b0e0d; --pg-ink: #e7ece9; --pg-mut: #a9b5af; --pg-line: #2a3430; --pg-ac: #7fd6c4; }
+}
+:root[data-theme="dark"] { color-scheme: dark; --pg: #0b0e0d; --pg-ink: #e7ece9; --pg-mut: #a9b5af; --pg-line: #2a3430; --pg-ac: #7fd6c4; }
+
+body { background: var(--pg); color: var(--pg-ink); font: 15px/1.5 var(--pg-ui); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--pg); }
+.pg { padding-block: 32px 72px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.pg h1 { margin: 0; font: 600 34px/1.1 var(--pg-lec); text-wrap: balance; }
+.pg__intro { max-width: 70ch; margin: 12px 0 0; color: var(--pg-mut); }
+.idx { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 13.5px; }
+.idx a { color: var(--pg-ac); text-underline-offset: 3px; }
+
+.ctl { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 20px; padding: 10px 0; background: var(--pg); border-bottom: 1px solid var(--pg-line); }
+.ctl__g { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--pg-mut); }
+.ctl button { min-height: 32px; padding: 4px 14px; border: 1px solid var(--pg-line); border-radius: 999px; background: none; color: var(--pg-ink); font: 500 13px var(--pg-ui); cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: var(--pg-ink); border-color: var(--pg-ink); color: var(--pg); }
+.ctl button:focus-visible { outline: 2px solid var(--pg-ac); outline-offset: 2px; }
+
+.bloque { margin: 64px 0 0; padding-top: 20px; border-top: 2px solid var(--pg-ink); font: 600 26px/1.2 var(--pg-lec); }
+.bloque + p { max-width: 78ch; margin: 8px 0 0; color: var(--pg-mut); }
+.pant { margin-top: 48px; scroll-margin-top: 72px; }
+.pant h2 { margin: 0 0 4px; font: 600 20px/1.25 var(--pg-lec); }
+.pant__idea { max-width: 80ch; margin: 0 0 4px; }
+.pant__nota { max-width: 80ch; margin: 0 0 16px; font-size: 13.5px; color: var(--pg-mut); }
+.fila { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 28px; margin-top: 16px; }
+.lzw { max-width: 100%; margin: 0; overflow-x: auto; padding-bottom: 4px; }
+.lzw figcaption { position: sticky; left: 0; margin-bottom: 8px; font-size: 12.5px; color: var(--pg-mut); }
+.lzw .lz { border-radius: 10px; outline: 1px solid var(--pg-line); outline-offset: -1px; }
+.pg[data-ver="c"] .lzw:not(.lzw--c), .pg[data-ver="m"] .lzw:not(.lzw--m), .pg[data-ver="d"] .lzw:not(.lzw--d) { display: none; }
+
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }

@@ -1,0 +1,852 @@
+<title>Vista de libro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&display=swap">
+<link rel="stylesheet" href="lienzo.css">
+<link rel="stylesheet" href="libro.css">
+<style>
+/* Dirección B, «Escaleta»: solo para comparar. Neutros más fríos, todo en sans, tabla y panel de detalle. */
+.pg .lz.lz--claro.dB { --cv: #f1f3f0; --sf: #ffffff; --sm: #e9ece8; --sh: #dfe3dd; --ol: #dde1db; --ols: #b4bbb5; font-size: 13.5px; }
+.dB .b { display: flex; flex-direction: column; height: 100%; }
+.b-top { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 12px; background: var(--sf); border-bottom: 1px solid var(--ol); flex: none; }
+.b-top > b { font-weight: 600; }
+.b-cap { display: flex; align-items: center; height: 32px; margin-left: 24px; padding: 0 2px; border: 1px solid var(--ol); border-radius: 6px; font-weight: 500; }
+.b-cap > span { padding: 0 8px; }
+.b-fin { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.b-body { display: flex; flex: 1; min-height: 0; }
+.b-nav { display: flex; flex-direction: column; gap: 2px; width: 212px; padding: 12px 8px; background: var(--sf); border-right: 1px solid var(--ol); flex: none; }
+.b-nav button { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 6px; font-weight: 500; color: var(--mut); }
+.b-nav button b { margin-left: auto; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.b-nav button.on { background: var(--prs); color: var(--ink); font-weight: 600; }
+.b-nav .raya { height: 1px; margin: 8px 4px; background: var(--ol); }
+.b-main { flex: 1; min-width: 0; padding: 24px 28px; }
+.b-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+.b-head h1 { font: 600 22px/1.2 var(--ui); }
+.b-head span { color: var(--mut); font-variant-numeric: tabular-nums; }
+.b-caja { border: 1px solid var(--ol); border-radius: 8px; background: var(--sf); overflow: hidden; }
+.b-tab { width: 100%; border-collapse: collapse; }
+.b-tab th { padding: 8px 12px; background: var(--sm); border-bottom: 1px solid var(--ol); font-size: 12px; font-weight: 600; color: var(--mut); text-align: left; }
+.b-tab td { padding: 10px 12px; border-bottom: 1px solid var(--ol); vertical-align: top; }
+.b-tab tr:last-child td { border-bottom: 0; }
+.b-tab .n { width: 40px; color: var(--mut); font-variant-numeric: tabular-nums; }
+.b-tab strong { display: block; font-weight: 600; }
+.b-tab small { display: block; max-width: 46ch; margin-top: 2px; font-size: 13px; color: var(--mut); }
+.b-tab .sel td { background: var(--prs); }
+.b-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.b-chip { padding: 2px 8px; border-radius: 4px; background: var(--sm); font-size: 12.5px; white-space: nowrap; }
+.b-chip.nom { background: none; box-shadow: inset 0 0 0 1px var(--ols); font-style: italic; }
+.b-insp { display: flex; flex-direction: column; gap: 14px; width: 420px; padding: 20px; background: var(--sf); border-left: 1px solid var(--ol); flex: none; }
+.b-insp h2 { display: flex; align-items: center; font: 600 15px/1.3 var(--ui); }
+.b-insp h2 .ib { margin-left: auto; }
+.b-area { min-height: 132px; padding: 10px 12px; border: 1px solid var(--ols); border-radius: 8px; font-size: 14px; line-height: 1.55; }
+.b-per { display: grid; gap: 4px; }
+.b-per .fl { padding-left: 0; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-volver" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lapiz" viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/></symbol>
+  <symbol id="i-lugar" viewBox="0 0 24 24"><path d="M12 21c-3-3.2-6.5-6.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 14.4 15 17.8 12 21z"/><circle cx="12" cy="10.5" r="2.2"/></symbol>
+  <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-abajo" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-der" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-izq" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-puntos" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-indice" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-nube-ok" viewBox="0 0 24 24"><path d="M7 18.5a4.5 4.5 0 0 1-.5-9 6 6 0 0 1 11.6-1 4.5 4.5 0 0 1-.6 10z"/><path d="M9.5 13l2 2 3.5-3.5"/></symbol>
+  <symbol id="i-nube-no" viewBox="0 0 24 24"><path d="M7 18.5a4.5 4.5 0 0 1-.5-9 6 6 0 0 1 11.6-1 4.5 4.5 0 0 1-.6 10z"/><path d="M4 3.5l16 17.5"/></symbol>
+  <symbol id="i-gira" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 0 1-13.6 4.4M4.5 12a7.5 7.5 0 0 1 13.6-4.4M18.5 3.5v4.2h-4.2M5.5 20.5v-4.2h4.2"/></symbol>
+  <symbol id="i-persona" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
+  <symbol id="i-capitulos" viewBox="0 0 24 24"><path d="M12 6.5C10 5.2 7.5 4.8 4 5v13c3.5-.2 6 .2 8 1.5 2-1.3 4.5-1.7 8-1.5V5c-3.5-.2-6 .2-8 1.5zM12 6.5v13"/></symbol>
+  <symbol id="i-elementos" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><circle cx="17" cy="7.25" r="3.25"/><path d="M12 13.5l4.5 7h-9z"/></symbol>
+  <symbol id="i-nota" viewBox="0 0 24 24"><path d="M6 4h12v16H6zM9 9h6M9 13h6M9 17h3"/></symbol>
+  <symbol id="i-resumen" viewBox="0 0 24 24"><path d="M5 20v-8M12 20V5M19 20v-5"/></symbol>
+  <symbol id="i-fuera" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5l-8 8M11 6H6v12h12v-5"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9.5" y="3.5" width="5" height="10" rx="2.5"/><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v3.5"/></symbol>
+  <symbol id="i-aviso" viewBox="0 0 24 24"><path d="M12 4.5l8.5 15h-17zM12 10v4.5"/><circle cx="12" cy="17" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-plegar" viewBox="0 0 24 24"><path d="M11 7l-5 5 5 5M18 5v14"/></symbol>
+  <symbol id="i-webs" viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="6" height="6" rx="1.2"/><rect x="13.5" y="4.5" width="6" height="6" rx="1.2"/><rect x="4.5" y="13.5" width="6" height="6" rx="1.2"/><rect x="13.5" y="13.5" width="6" height="6" rx="1.2"/></symbol>
+  <symbol id="i-campana" viewBox="0 0 24 24"><path d="M6.5 17v-6a5.5 5.5 0 0 1 11 0v6l1.5 1.5h-14zM10 20.5a2 2 0 0 0 4 0"/></symbol>
+</svg>
+
+<div class="pg" id="pg" data-maqueta="claro" data-ver="todos">
+  <h1>Vista de libro</h1>
+  <p class="pg__intro">Rediseño de la vista de libro de Libros, presentación Web. Primero, dos direcciones para el capítulo; después, el juego completo con la recomendada, «Cuaderno». Son maquetas estáticas con el libro de muestra «El atlas de las historias»; la portada es un marcador y los tres botones del final de la cabecera son el sitio de los de la plataforma.</p>
+  <ul class="idx">
+    <li><a href="#direcciones">Dos direcciones</a></li><li><a href="#capitulo">Capítulo</a></li><li><a href="#escena">Escribir una escena</a></li><li><a href="#reparto">Reparto</a></li><li><a href="#localizacion">Localización</a></li><li><a href="#indice">Índice</a></li><li><a href="#datos">Datos del capítulo y escena nueva</a></li><li><a href="#resumen">Resumen</a></li><li><a href="#personajes">Personajes</a></li><li><a href="#ficha">Ficha</a></li><li><a href="#nuevo-personaje">Nuevo personaje</a></li><li><a href="#nueva-localizacion">Nueva localización</a></li><li><a href="#notas">Notas</a></li><li><a href="#estados">Estados</a></li>
+  </ul>
+  <div class="ctl">
+    <div class="ctl__g" role="group" aria-label="Tamaño">Tamaño
+      <button type="button" data-pon="data-ver" value="todos" aria-pressed="true">Todos</button><button type="button" data-pon="data-ver" value="c" aria-pressed="false">Móvil</button><button type="button" data-pon="data-ver" value="m" aria-pressed="false">Plegable</button><button type="button" data-pon="data-ver" value="d" aria-pressed="false">Ancha</button>
+    </div>
+    <div class="ctl__g" role="group" aria-label="Tema del juego completo">Tema
+      <button type="button" data-pon="data-maqueta" value="claro" aria-pressed="true">Claro</button><button type="button" data-pon="data-maqueta" value="oscuro" aria-pressed="false">Oscuro</button>
+    </div>
+  </div>
+
+  <h2 class="bloque" id="direcciones">Dos direcciones para el capítulo</h2>
+  <p>Pantalla ancha, en claro. Recomiendo la A: el uso real es escribir mientras se lee y releer después, y un documento continuo se lee mejor, baja al móvil y a Compose como una sola columna y no obliga a abrir cada escena para tocarla. La B es más densa y rápida con ratón, pero en el móvil se parte en lista y detalle, y eso son más toques.</p>
+
+  <section class="pant">
+    <h2>A · Cuaderno</h2>
+    <p class="pant__idea">El capítulo es una página del cuaderno: el texto de las escenas en una columna de lectura y, al margen, dónde ocurre y quién sale. Se escribe en el sitio, sin abrir ni plegar.</p>
+    <div class="fila"><figure class="lzw lzw--d"><figcaption>Pantalla ancha · 1440 × 900 · claro</figcaption><div class="lz t-d lz--claro" data-de="p-capitulo"></div></figure></div>
+  </section>
+
+  <section class="pant">
+    <h2>B · Escaleta</h2>
+    <p class="pant__idea">El capítulo es una tabla de escenas, como la escaleta de un guion, con un panel a la derecha para rellenar la escena elegida. Toda la navegación del libro, en una columna a la izquierda.</p>
+    <div class="fila"><figure class="lzw lzw--d"><figcaption>Pantalla ancha · 1440 × 900 · claro</figcaption>
+      <div class="lz t-d lz--claro dB"><div class="b">
+        <header class="b-top">
+          <button class="ib" aria-label="Volver a la biblioteca"><i data-i="volver"></i></button>
+          <b>El atlas de las historias</b>
+          <div class="b-cap"><button class="ib ib--s" aria-label="Capítulo anterior" disabled><i data-i="izq" class="ic--s"></i></button><span>1 · La puerta entreabierta</span><button class="ib ib--s" aria-label="Elegir capítulo"><i data-i="abajo" class="ic--s"></i></button><button class="ib ib--s" aria-label="Capítulo siguiente"><i data-i="der" class="ic--s"></i></button></div>
+          <div class="b-fin">
+            <span class="est est--muestra" role="status"><i data-i="nube-ok"></i>Guardado</span>
+            <button class="ib" aria-label="Buscar en el libro"><i data-i="buscar"></i></button>
+            <div class="trio"><span class="trio__b"><i data-i="webs"></i></span><span class="trio__b"><i data-i="campana"></i></span><span class="trio__b trio__av">A</span></div>
+          </div>
+        </header>
+        <div class="b-body">
+          <nav class="b-nav" aria-label="Secciones del libro">
+            <button class="on">Capítulos<b>5</b></button>
+            <button>Personajes<b>6</b></button><button>Localizaciones<b>4</b></button><button>Organizaciones<b>0</b></button><button>Eventos<b>2</b></button><button>Conceptos<b>1</b></button><button>Citas<b>3</b></button>
+            <span class="raya"></span>
+            <button>Notas<b>2</b></button><button>Resumen</button>
+          </nav>
+          <main class="b-main">
+            <div class="b-head"><h1>La puerta entreabierta</h1><span>Cap. 1 · págs. 1–14</span><button class="ib ib--s" aria-label="Editar los datos del capítulo"><i data-i="lapiz" class="ic--s"></i></button></div>
+            <div class="b-caja"><table class="b-tab">
+              <thead><tr><th scope="col">N.º</th><th scope="col">Escena</th><th scope="col">Lugar</th><th scope="col">Personajes</th></tr></thead>
+              <tbody>
+                <tr><td class="n">1</td><td><strong>La llegada</strong><small>La ciudad aparece tras la lluvia. Iria cruza el puente con el mapa doblado bajo el abrigo…</small></td><td>Ciudad de Bruma</td><td><div class="b-chips"><span class="b-chip">Iria Valverde</span><span class="b-chip">La cartógrafa</span></div></td></tr>
+                <tr><td class="n">2</td><td><strong>El taller de mapas</strong><small>La cartógrafa le enseña un mapa que cambia cada vez que se mira. Tomás desconfía…</small></td><td>Taller de la cartógrafa</td><td><div class="b-chips"><span class="b-chip">Iria Valverde</span><span class="b-chip">La cartógrafa</span><span class="b-chip">Tomás Ferrer</span><span class="b-chip nom">@ Madre Oriana</span></div></td></tr>
+                <tr class="sel"><td class="n">3</td><td><strong>Noche en el muelle</strong><small>El barquero ofrece llevarla al otro lado a cambio de una historia.</small></td><td>El muelle</td><td><div class="b-chips"><span class="b-chip">El barquero</span><span class="b-chip">Iria Valverde</span></div></td></tr>
+                <tr><td class="n">4</td><td colspan="3"><button class="bt bt--txt"><i data-i="mas"></i>Escena</button></td></tr>
+              </tbody>
+            </table></div>
+          </main>
+          <aside class="b-insp" aria-label="Escena 3">
+            <h2>Escena 3<button class="ib ib--s" aria-label="Más: eliminar la escena"><i data-i="puntos"></i></button></h2>
+            <label class="cp"><span class="cp__et">Título</span><input class="in" value="Noche en el muelle"></label>
+            <div class="cp"><span class="cp__et">Lugar</span><button class="in"><span>El muelle</span><i data-i="abajo"></i></button></div>
+            <div class="cp"><span class="cp__et">Qué pasa</span><div class="b-area">El barquero ofrece llevarla al otro lado a cambio de una historia.<span class="caret"></span></div></div>
+            <div class="cp"><span class="cp__et">Personajes</span>
+              <div class="b-per">
+                <div class="fl"><span class="fl__n">El barquero</span><button class="tg tg--on" aria-pressed="true" aria-label="El barquero, en escena"><i data-i="persona"></i></button><button class="tg" aria-pressed="false" aria-label="El barquero, solo nombrado">@</button></div>
+                <div class="fl"><span class="fl__n">Iria Valverde</span><button class="tg tg--on" aria-pressed="true" aria-label="Iria Valverde, en escena"><i data-i="persona"></i></button><button class="tg" aria-pressed="false" aria-label="Iria Valverde, solo nombrada">@</button></div>
+                <div class="fl"><span class="fl__n">Bruno Salgado</span><button class="tg" aria-pressed="false" aria-label="Bruno Salgado, en escena"><i data-i="persona"></i></button><button class="tg" aria-pressed="false" aria-label="Bruno Salgado, solo nombrado">@</button></div>
+                <div class="fl"><span class="fl__n">La cartógrafa</span><button class="tg" aria-pressed="false" aria-label="La cartógrafa, en escena"><i data-i="persona"></i></button><button class="tg" aria-pressed="false" aria-label="La cartógrafa, solo nombrada">@</button></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div></div>
+    </figure></div>
+  </section>
+
+  <h2 class="bloque" id="juego">El juego completo, con «Cuaderno»</h2>
+  <p>Cada pantalla, en móvil, plegable abierto y pantalla ancha. El tema se cambia arriba y vale para todos los lienzos de este bloque.</p>
+
+  <section class="pant" id="capitulo" data-de="p-capitulo">
+    <h2>Capítulo</h2>
+    <p class="pant__idea">Cabecera de una fila con cuatro destinos (Capítulos, Elementos, Notas y Resumen), que en el móvil bajan a la barra inferior. El índice es una tabla de contenidos con su página, y las escenas se leen enteras, con el lugar y el reparto al margen.</p>
+    <p class="pant__nota">Plegable: el margen de apostillas se mantiene; el índice se abre desde «Capítulo 1 de 5». Compose: las apostillas piden una fila de dos columnas solo en ancho expandido; en el móvil van bajo el texto.</p>
+  </section>
+
+  <section class="pant" id="escena" data-de="p-escena">
+    <h2>Escribir una escena</h2>
+    <p class="pant__idea">Se pulsa el texto y se escribe ahí mismo: un fondo marca la escena activa, la barra de formato sale solo mientras se escribe y la @ ofrece personajes. El guardado se dice siempre en el mismo sitio.</p>
+    <p class="pant__nota">Compose: la tarjeta de la @ necesita la posición del cursor (ya existe en la APK). El texto sin fuente propia se pinta con la serif de lectura: hay que comprobarlo con el RTF heredado. En el móvil se ve ya desplazado hasta la escena 3.</p>
+  </section>
+
+  <section class="pant" id="reparto" data-de="p-reparto">
+    <h2>Reparto de la escena</h2>
+    <p class="pant__idea">El «+» abre el reparto sin sacar la escena de su sitio: desplegable junto al botón desde 600 px y hoja desde abajo en el móvil. El icono de la persona pone en escena; la @, solo nombrado.</p>
+    <p class="pant__nota">Web: popover nativo anclado al botón, con el overlay del CDK como respaldo. Compose: ModalBottomSheet en el móvil y un Popup anclado en el plegable.</p>
+  </section>
+
+  <section class="pant" id="localizacion" data-de="p-lugar">
+    <h2>Localización de la escena</h2>
+    <p class="pant__idea">El lugar se elige igual que el reparto, con la misma lista y el mismo buscador, que además crea el lugar que falta.</p>
+    <p class="pant__nota">Crear un lugar desde la escena es nuevo en la interfaz; usa el POST /localizaciones de hoy.</p>
+  </section>
+
+  <section class="pant" id="indice" data-de="p-indice">
+    <h2>Índice</h2>
+    <p class="pant__idea">«+ Capítulo» arriba; parte e interludio, en «⋯». Una parte se edita eligiendo capítulos, no números de orden. En móvil y plegable, el índice es un panel superpuesto.</p>
+    <p class="pant__nota">El editor traduce «desde el capítulo… hasta…» a OrdenInicio y OrdenFinal (0 es «el final»): no cambia el contrato. En el móvil el editor de parte es una hoja con los mismos campos.</p>
+  </section>
+
+  <section class="pant" id="datos" data-de="p-datos">
+    <h2>Datos del capítulo y escena nueva</h2>
+    <p class="pant__idea">Campos con la etiqueta encima y una sola caja. Lo que le falta a una escena se dice en una línea, sin rojo antes de tocar nada, y el indicador nunca dice «Guardado» mientras falte algo.</p>
+    <p class="pant__nota">Un capítulo nuevo se ve igual, con los campos vacíos, y se crea solo en cuanto tiene título y página. «Mismo reparto que la 1» es una ayuda opcional. En el móvil se ve ya desplazado hasta la escena nueva.</p>
+  </section>
+
+  <section class="pant" id="resumen" data-de="p-resumen">
+    <h2>Resumen</h2>
+    <p class="pant__idea">La portada por fin a un tamaño digno y, a su lado, lo leído. Debajo, las cifras sin casillas: capítulos, fechas, reparto y quién aparece en cada capítulo.</p>
+    <p class="pant__nota">El mapa de presencias pasa de ApexCharts a una rejilla CSS (en Compose, un Canvas o una rejilla perezosa). Los gráficos grandes siguen tras «Ver gráficos».</p>
+  </section>
+
+  <section class="pant" id="personajes" data-de="p-personajes">
+    <h2>Personajes</h2>
+    <p class="pant__idea">Elementos reúne los seis tipos. En plegable y ancha, lista y ficha a la vez; en el móvil, la lista y, al tocar, la ficha. La lista agrupa como lo manda el servidor y dice en cuántos capítulos sale cada uno.</p>
+    <p class="pant__nota">Compose: ListDetailPaneScaffold en el plegable. En móvil y plegable, el nombre del tipo es también el selector de tipo (la hoja de elementos de la APK).</p>
+  </section>
+
+  <section class="pant" id="ficha" data-de="p-ficha">
+    <h2>Ficha de personaje, editándola</h2>
+    <p class="pant__idea">La ficha se edita en el sitio y se guarda sola: nombre, estado, sexo, apodos, entradas y relaciones. Al cambiar el nombre pregunta si es un nombre nuevo o una errata, y una relación se añade buscando a la persona, no desde la lista de todo el reparto.</p>
+    <p class="pant__nota">Cada bloque guarda por su propio endpoint (apodos, estados, relaciones y entradas), así que no hace falta «Guardar cambios». El estado es el del personaje en este libro.</p>
+  </section>
+
+  <section class="pant" id="nuevo-personaje" data-de="p-nuevo-personaje">
+    <h2>Nuevo personaje</h2>
+    <p class="pant__idea">Tres datos y dos botones. El sexo son tres opciones a la vista, no un desplegable vacío, y un nombre repetido avisa sin impedir crear.</p>
+    <p class="pant__nota">Web: &lt;dialog&gt; nativo; en el móvil, la misma hoja pegada abajo, con los botones sobre el teclado. Se cierra tocando fuera solo si aún no hay nombre.</p>
+  </section>
+
+  <section class="pant" id="nueva-localizacion" data-de="p-nueva-localizacion">
+    <h2>Nueva localización y los demás elementos</h2>
+    <p class="pant__idea">La misma hoja con los datos básicos de cada tipo. Debajo, las de organización, concepto, evento y cita.</p>
+    <p class="pant__nota">Nada difícil: es el mismo componente con otros campos.</p>
+    <div class="fila"><figure class="lzw lzw--d"><figcaption>Las otras cuatro altas</figcaption><div class="lz t-d lz--tira" data-de="t-altas"></div></figure></div>
+  </section>
+
+  <section class="pant" id="notas" data-de="p-notas">
+    <h2>Notas</h2>
+    <p class="pant__idea">Arriba, siempre abierta, la nota que se escribe; debajo, las demás, que se editan al pulsarlas. Sin botón de guardar.</p>
+    <p class="pant__nota">La API pide título (2 caracteres) y texto (15) para crear la nota: hasta entonces vive apartada en el dispositivo y el indicador lo dice.</p>
+  </section>
+
+  <h2 class="bloque" id="estados">Estados</h2>
+  <p>En móvil y pantalla ancha; el plegable es la ancha sin la columna del índice.</p>
+
+  <section class="pant" data-de="p-e-libro" data-tam="c d">
+    <h2>Vacío: libro sin empezar</h2>
+    <p class="pant__idea">Una sola acción. El índice y la barra de capítulo no existen hasta que hay algo que enseñar.</p>
+  </section>
+  <section class="pant" data-de="p-e-lista" data-tam="c d">
+    <h2>Vacío: lista sin elementos</h2>
+    <p class="pant__idea">La lista dice qué falta y ofrece crearlo; la zona de la ficha se queda en blanco.</p>
+  </section>
+  <section class="pant" data-de="p-e-carga" data-tam="c d">
+    <h2>Cargando</h2>
+    <p class="pant__idea">La silueta de lo que viene, en su sitio, para que nada salte al llegar.</p>
+  </section>
+  <section class="pant" data-de="p-e-error" data-tam="c d">
+    <h2>Error al cargar</h2>
+    <p class="pant__idea">Qué ha pasado y un botón. El índice ya cargado sigue disponible.</p>
+  </section>
+  <section class="pant" data-de="p-e-recuperado" data-tam="c d">
+    <h2>Recuperado tras cerrar la app</h2>
+    <p class="pant__idea">Al volver, lo que se escribió y no llegó a enviarse ya está puesto en su escena y se está guardando. El aviso lo dice y deja volver a lo que había en el servidor.</p>
+    <div class="fila"><figure class="lzw lzw--d"><figcaption>El indicador de guardado, en sus cinco estados</figcaption><div class="lz t-d lz--tira" data-de="t-guardado"></div></figure></div>
+  </section>
+</div>
+
+<!-- ================= Piezas ================= -->
+<template id="t-est">
+<span class="est est--ok" role="status"><i data-i="nube-ok"></i>Guardado</span>
+<span class="est est--va" role="status"><i data-i="gira"></i>Guardando…</span>
+<span class="est est--falta" role="status"><i data-i="aviso"></i>Sin guardar<span class="no-c">: a la escena 2 le faltan datos</span></span>
+<span class="est est--local" role="status"><i data-i="nube-no"></i>Sin conexión · guardado en el dispositivo</span>
+</template>
+
+<template id="t-cab">
+<header class="cab">
+  <button class="ib" aria-label="Volver a la biblioteca"><i data-i="volver"></i></button>
+  <div class="cab__libro"><span class="pt no-c" aria-hidden="true"></span><div class="cab__tit"><b>El atlas de las historias</b><small class="no-c">Ada Lectora</small></div></div>
+  <nav class="tabs no-c" aria-label="Secciones del libro">
+    <button class="tab" data-t="capitulos">Capítulos</button><button class="tab" data-t="elementos">Elementos</button><button class="tab" data-t="notas">Notas</button><button class="tab" data-t="resumen">Resumen</button>
+  </nav>
+  <div class="cab__fin">
+    <span class="cab__est no-c no-m"><span data-inc="t-est"></span></span>
+    <button class="ib" aria-label="Buscar en el libro"><i data-i="buscar"></i></button>
+    <div class="trio" title="Sitio de la plataforma: webs, avisos y cuenta"><span class="trio__b"><i data-i="webs"></i></span><span class="trio__b"><i data-i="campana"></i></span><span class="trio__b trio__av">A</span></div>
+  </div>
+</header>
+</template>
+
+<template id="t-capbar">
+<div class="capbar no-d">
+  <button class="capbar__pos" aria-label="Abrir el índice"><i data-i="indice"></i><span><span class="no-c">Capítulo </span>1 de 5</span></button>
+  <span class="capbar__est"><span data-inc="t-est"></span></span>
+  <button class="ib" aria-label="Capítulo anterior" disabled><i data-i="izq"></i></button><button class="ib" aria-label="Capítulo siguiente"><i data-i="der"></i></button>
+</div>
+</template>
+
+<template id="t-barra">
+<nav class="barra" aria-label="Secciones del libro">
+  <button class="barra__i" data-t="capitulos"><i data-i="capitulos"></i>Capítulos</button>
+  <button class="barra__i" data-t="elementos"><i data-i="elementos"></i>Elementos</button>
+  <button class="barra__i" data-t="notas"><i data-i="nota"></i>Notas</button>
+  <button class="barra__i" data-t="resumen"><i data-i="resumen"></i>Resumen</button>
+</nav>
+</template>
+
+<template id="t-ind">
+<aside class="ind" aria-label="Índice">
+  <div class="ind__arriba">
+    <button class="bt bt--suave"><i data-i="mas"></i>Capítulo</button>
+    <button class="ib" aria-label="Nueva parte o nuevo interludio"><i data-i="puntos"></i></button>
+    <button class="ib no-c no-m" aria-label="Plegar el índice"><i data-i="plegar"></i></button>
+  </div>
+  <div class="ind__lista">
+    <div class="parte"><span>Segunda parte</span><button class="ib ib--s" aria-label="Editar Segunda parte"><i data-i="lapiz" class="ic--s"></i></button></div>
+    <button class="cl"><span class="cl__n">5</span><span class="cl__t">El otro lado</span><span class="cl__p">78</span></button>
+    <button class="cl"><span class="cl__n">4</span><span class="cl__t">Madre Oriana</span><span class="cl__p">58</span></button>
+    <div class="parte"><span>Interludio · Cartas del faro</span><button class="ib ib--s" aria-label="Nuevo capítulo en Cartas del faro"><i data-i="mas" class="ic--s"></i></button><button class="ib ib--s" aria-label="Editar Cartas del faro"><i data-i="lapiz" class="ic--s"></i></button></div>
+    <button class="cl cl--int"><span class="cl__n">I</span><span class="cl__t">La carta que no llegó</span><span class="cl__p">52</span></button>
+    <div class="parte"><span>Primera parte</span><button class="ib ib--s" aria-label="Editar Primera parte"><i data-i="lapiz" class="ic--s"></i></button></div>
+    <button class="cl"><span class="cl__n">3</span><span class="cl__t">Lo que guarda la bruma</span><span class="cl__p">34</span></button>
+    <button class="cl"><span class="cl__n">2</span><span class="cl__t">El mapa imposible</span><span class="cl__p">15</span></button>
+    <button class="cl cl--act" aria-current="page"><span class="cl__n">1</span><span class="cl__t">La puerta entreabierta</span><span class="cl__p">1</span></button>
+  </div>
+</aside>
+</template>
+
+<template id="t-ch">
+<header class="ch rg">
+  <span class="ch__n" aria-hidden="true">1</span>
+  <div>
+    <h1>La puerta entreabierta</h1>
+    <p class="ch__meta">págs. 1–14<button class="ib ib--s" aria-label="Editar los datos del capítulo 1"><i data-i="lapiz" class="ic--s"></i></button></p>
+  </div>
+</header>
+</template>
+
+<template id="t-esc1">
+<section class="esc rg">
+  <span class="esc__n">1</span>
+  <div class="esc__txt">
+    <h2 class="esc__t">La llegada</h2>
+    <p class="pr">La ciudad aparece tras la lluvia. Iria cruza el puente con el mapa doblado bajo el abrigo, sin saber que alguien la sigue desde el muelle.</p>
+  </div>
+  <aside class="esc__mg" aria-label="Dónde y quién, escena 1">
+    <button class="lugar"><i data-i="lugar" class="ic--s"></i>Ciudad de Bruma</button>
+    <ul class="rep"><li><button>Iria Valverde</button></li><li><button>La cartógrafa</button></li></ul>
+    <button class="mas" aria-label="Añadir personaje a la escena 1"><i data-i="mas" class="ic--s"></i></button>
+  </aside>
+</section>
+</template>
+
+<template id="t-reparto">
+<div class="pop__busca"><i data-i="buscar"></i><span>Buscar o crear</span></div>
+<ul class="lista-pop">
+  <li class="fl"><span class="fl__n">Iria Valverde</span><button class="tg tg--on" aria-pressed="true" aria-label="Iria Valverde, en escena"><i data-i="persona"></i></button><button class="tg" aria-pressed="false" aria-label="Iria Valverde, solo nombrada">@</button></li>
+  <li class="fl"><span class="fl__n">La cartógrafa</span><button class="tg tg--on" aria-pressed="true" aria-label="La cartógrafa, en escena"><i data-i="persona"></i></button><button class="tg" aria-pressed="false" aria-label="La cartógrafa, solo nombrada">@</button></li>
+  <li class="fl"><span class="fl__n">Tomás Ferrer</span><button class="tg tg--on" aria-pressed="true" aria-label="Tomás Ferrer, en escena"><i data-i="persona"></i></button><button class="tg" aria-pressed="false" aria-label="Tomás Ferrer, solo nombrado">@</button></li>
+  <li class="fl"><span class="fl__n">Madre Oriana</span><button class="tg" aria-pressed="false" aria-label="Madre Oriana, en escena"><i data-i="persona"></i></button><button class="tg tg--on" aria-pressed="true" aria-label="Madre Oriana, solo nombrada">@</button></li>
+  <li class="fl"><span class="fl__n">Bruno Salgado</span><button class="tg" aria-pressed="false" aria-label="Bruno Salgado, en escena"><i data-i="persona"></i></button><button class="tg" aria-pressed="false" aria-label="Bruno Salgado, solo nombrado">@</button></li>
+  <li class="fl"><span class="fl__n">El barquero</span><button class="tg" aria-pressed="false" aria-label="El barquero, en escena"><i data-i="persona"></i></button><button class="tg" aria-pressed="false" aria-label="El barquero, solo nombrado">@</button></li>
+</ul>
+</template>
+
+<template id="t-lugares">
+<div class="pop__busca"><i data-i="buscar"></i><span>Buscar o crear</span></div>
+<ul class="lista-pop">
+  <li><button class="fl fl--act" aria-pressed="true"><span class="fl__n">Taller de la cartógrafa</span><i data-i="check"></i></button></li>
+  <li><button class="fl" aria-pressed="false"><span class="fl__n">Ciudad de Bruma</span></button></li>
+  <li><button class="fl" aria-pressed="false"><span class="fl__n">El muelle</span></button></li>
+  <li><button class="fl" aria-pressed="false"><span class="fl__n">Sin localización</span></button></li>
+</ul>
+</template>
+
+<template id="t-esc2">
+<section class="esc rg">
+  <span class="esc__n">2</span>
+  <div class="esc__txt">
+    <h2 class="esc__t">El taller de mapas</h2>
+    <p class="pr">La cartógrafa le enseña un mapa que cambia cada vez que se mira. Tomás desconfía y recuerda que Madre Oriana ya se lo advirtió.</p>
+  </div>
+  <aside class="esc__mg" aria-label="Dónde y quién, escena 2">
+    <button class="lugar"><i data-i="lugar" class="ic--s"></i>Taller de la cartógrafa</button>
+    <ul class="rep"><li><button>Iria Valverde</button></li><li><button>La cartógrafa</button></li><li><button>Tomás Ferrer</button></li><li><button class="nom">@ Madre Oriana</button></li></ul>
+    <button class="mas" aria-label="Añadir personaje a la escena 2"><i data-i="mas" class="ic--s"></i></button>
+    <div class="pop pop--lug no-c" role="dialog" aria-label="Localización de la escena 2"><span data-inc="t-lugares"></span></div>
+    <div class="pop pop--rep no-c" role="dialog" aria-label="Personajes de la escena 2"><span data-inc="t-reparto"></span></div>
+  </aside>
+</section>
+</template>
+
+<template id="t-esc3">
+<section class="esc rg">
+  <span class="esc__n">3</span>
+  <div class="esc__txt">
+    <h2 class="esc__t">Noche en el muelle</h2>
+    <p class="pr"><span class="ent">El barquero</span> ofrece llevarla al otro lado a cambio de una historia.</p>
+  </div>
+  <aside class="esc__mg" aria-label="Dónde y quién, escena 3">
+    <button class="lugar"><i data-i="lugar" class="ic--s"></i>El muelle</button>
+    <ul class="rep"><li><button>El barquero</button></li><li><button>Iria Valverde</button></li></ul>
+    <button class="mas" aria-label="Añadir personaje a la escena 3"><i data-i="mas" class="ic--s"></i></button>
+  </aside>
+</section>
+</template>
+
+<template id="t-esc3-ed">
+<section class="esc rg esc--ed">
+  <span class="esc__n">3</span>
+  <div class="esc__txt">
+    <div class="esc__cab"><input class="tit-in" value="Noche en el muelle" aria-label="Título de la escena 3"><button class="ib" aria-label="Más: eliminar la escena 3"><i data-i="puntos"></i></button></div>
+    <div class="edit edit--foco">
+      <div class="rtf" role="toolbar" aria-label="Formato del texto">
+        <button aria-label="Negrita"><b>B</b></button><button aria-label="Cursiva"><em>I</em></button><button aria-label="Subrayado"><u>U</u></button><button aria-label="Tachado"><s>S</s></button>
+        <span class="sp"></span>
+        <button aria-label="Color y resaltado"><span class="rtf__a">A</span></button><button aria-label="Lista"><i data-i="indice"></i></button><button aria-label="Fuente y tamaño">Aa</button>
+        <span class="rtf__fin"><button aria-label="Dictar"><i data-i="mic"></i></button></span>
+      </div>
+      <div class="edit__txt">
+        <p><span class="ent">El barquero</span> ofrece llevarla al otro lado a cambio de una historia.</p>
+        <p><span class="ancla">@Tom<span class="caret"></span><span class="menc" role="group" aria-label="Personajes que coinciden"><span class="fl fl--act"><button class="fl__n">Tomás Ferrer</button><button class="tg" aria-label="Tomás Ferrer, solo nombrado">@</button></span><button class="fl fl--crea"><i data-i="mas" class="ic--s"></i>Crear «Tom»</button></span></span></p>
+      </div>
+    </div>
+  </div>
+  <aside class="esc__mg" aria-label="Dónde y quién, escena 3">
+    <button class="lugar"><i data-i="lugar" class="ic--s"></i>El muelle</button>
+    <ul class="rep"><li><button>El barquero</button></li><li><button>Iria Valverde</button></li></ul>
+    <button class="mas" aria-label="Añadir personaje a la escena 3"><i data-i="mas" class="ic--s"></i></button>
+  </aside>
+</section>
+</template>
+
+<template id="t-flotantes">
+<div class="scrim scrim--hj"></div>
+<div class="hj hj--rep" role="dialog" aria-label="Personajes de la escena 2"><div class="asa"></div><span data-inc="t-reparto"></span></div>
+<div class="hj hj--lug" role="dialog" aria-label="Localización de la escena 2"><div class="asa"></div><span data-inc="t-lugares"></span></div>
+</template>
+
+<template id="t-parte">
+<div class="pop pop--parte" role="dialog" aria-label="Editar parte">
+  <h2>Editar parte</h2>
+  <div class="campos">
+    <label class="cp"><span class="cp__et">Nombre</span><input class="in" value="Segunda parte"></label>
+    <div class="dos">
+      <div class="cp"><span class="cp__et">Desde el capítulo</span><button class="in in--mal" aria-invalid="true"><span>3 · Lo que guarda la bruma</span><i data-i="abajo"></i></button><span class="cp__nota cp__nota--mal"><i data-i="aviso" class="ic--s"></i>La Primera parte ya llega hasta el 3.</span></div>
+      <div class="cp"><span class="cp__et">Hasta</span><button class="in"><span>El final</span><i data-i="abajo"></i></button></div>
+    </div>
+    <label class="cp"><span class="cp__et">Página</span><input class="in" inputmode="numeric" value="58"></label>
+  </div>
+  <div class="dlg__pie"><button class="bt bt--txt">Cancelar</button><button class="bt bt--pri">Guardar</button></div>
+</div>
+</template>
+
+<!-- El capítulo en reposo: lo comparten Capítulo, Reparto, Localización e Índice. -->
+<template id="t-cap">
+<span data-inc="t-cab"></span>
+<span data-inc="t-capbar"></span>
+<div class="cuerpo">
+  <span data-inc="t-ind"></span>
+  <div class="scrim scrim--ind"></div>
+  <span data-inc="t-parte"></span>
+  <main class="doc"><div class="hoja">
+    <span data-inc="t-ch"></span>
+    <span data-inc="t-esc1"></span>
+    <span data-inc="t-esc2"></span>
+    <span data-inc="t-esc3"></span>
+    <div class="nueva rg"><span class="esc__n" aria-hidden="true">4</span><div><button class="bt bt--txt"><i data-i="mas"></i>Escena</button></div></div>
+    <div class="sig rg"><a class="bt bt--txt" href="#capitulo">2 · El mapa imposible<i data-i="der"></i></a></div>
+  </div></main>
+</div>
+<span data-inc="t-barra"></span>
+<span data-inc="t-flotantes"></span>
+</template>
+
+<template id="t-escena">
+<span data-inc="t-cab"></span>
+<span data-inc="t-capbar"></span>
+<div class="cuerpo">
+  <span data-inc="t-ind"></span>
+  <main class="doc"><div class="hoja">
+    <div class="aviso" role="status"><i data-i="nube-ok"></i><span>Recuperado lo que escribiste ayer a las 22:14 en «Noche en el muelle».</span><button class="bt bt--txt">Volver a lo guardado</button></div>
+    <div class="no-c"><span data-inc="t-ch"></span><span data-inc="t-esc1"></span><span data-inc="t-esc2"></span></div>
+    <span data-inc="t-esc3-ed"></span>
+    <div class="nueva rg"><span class="esc__n" aria-hidden="true">4</span><div><button class="bt bt--txt"><i data-i="mas"></i>Escena</button></div></div>
+  </div></main>
+</div>
+<span data-inc="t-barra"></span>
+</template>
+
+<!-- ================= Pantallas ================= -->
+<template id="p-capitulo"><div class="lb" data-tab="capitulos"><span data-inc="t-cap"></span></div></template>
+<template id="p-reparto"><div class="lb" data-tab="capitulos" data-pop="rep"><span data-inc="t-cap"></span></div></template>
+<template id="p-lugar"><div class="lb" data-tab="capitulos" data-pop="lug"><span data-inc="t-cap"></span></div></template>
+<template id="p-indice"><div class="lb" data-tab="capitulos" data-pop="ind"><span data-inc="t-cap"></span></div></template>
+<template id="p-escena"><div class="lb" data-tab="capitulos" data-est="va"><span data-inc="t-escena"></span></div></template>
+<template id="p-e-recuperado"><div class="lb" data-tab="capitulos" data-est="va" data-pop="rec"><span data-inc="t-escena"></span></div></template>
+
+<template id="p-datos">
+<div class="lb" data-tab="capitulos" data-est="falta">
+  <span data-inc="t-cab"></span>
+  <span data-inc="t-capbar"></span>
+  <div class="cuerpo">
+    <span data-inc="t-ind"></span>
+    <main class="doc"><div class="hoja">
+      <header class="ch rg ch--ed">
+        <span class="ch__n" aria-hidden="true">1</span>
+        <div class="campos">
+          <label class="cp"><span class="cp__et">Título</span><input class="in in--tit in--foco" value="La puerta entreabierta"></label>
+          <div class="tres">
+            <label class="cp"><span class="cp__et">Pág. inicial</span><input class="in" inputmode="numeric" value="1"></label>
+            <label class="cp"><span class="cp__et">Pág. final</span><input class="in" inputmode="numeric" value="14"></label>
+            <label class="cp"><span class="cp__et">Número</span><input class="in" inputmode="numeric" value="1"></label>
+          </div>
+          <button class="bt bt--txt">Hecho</button>
+        </div>
+      </header>
+      <div class="no-c"><span data-inc="t-esc1"></span></div>
+      <section class="esc rg esc--ed">
+        <span class="esc__n">2</span>
+        <div class="esc__txt">
+          <div class="esc__cab"><input class="tit-in" value="El taller de mapas" placeholder="Título de la escena" aria-label="Título de la escena 2"><button class="ib" aria-label="Más: eliminar la escena 2"><i data-i="puntos"></i></button></div>
+          <div class="edit"><div class="edit__txt"><p class="ph">Qué pasa en esta escena</p></div></div>
+          <p class="falta"><i data-i="aviso" class="ic--s"></i>Falta el texto (15 caracteres) y un personaje.</p>
+        </div>
+        <aside class="esc__mg" aria-label="Dónde y quién, escena 2">
+          <button class="lugar"><i data-i="lugar" class="ic--s"></i>Sin localización<i data-i="abajo" class="ic--s"></i></button>
+          <button class="bt bt--suave bt--mini">Mismo reparto que la 1</button>
+          <button class="mas" aria-label="Añadir personaje a la escena 2"><i data-i="mas" class="ic--s"></i></button>
+        </aside>
+      </section>
+    </div></main>
+  </div>
+  <span data-inc="t-barra"></span>
+</div>
+</template>
+
+<template id="p-resumen">
+<div class="lb" data-tab="resumen" data-est="no">
+  <span data-inc="t-cab"></span>
+  <div class="cuerpo"><main class="res"><div class="res__in">
+    <aside class="res__lado">
+      <div class="portada" aria-hidden="true"><b>El atlas de las historias</b><span>Ada Lectora</span></div>
+      <div>
+        <p class="chiste">«El mapa que no se está quieto»</p>
+        <a class="bt bt--txt" href="#resumen">Wiki<i data-i="fuera" class="ic--s"></i></a>
+      </div>
+    </aside>
+    <div class="res__cont">
+      <section class="prog" aria-label="Progreso">
+        <p class="prog__n"><b>95</b>de 312 págs.<span>30 %</span></p>
+        <div class="prog__b" role="progressbar" aria-label="Leído" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30"><span style="width:30%"></span></div>
+        <p class="prog__f"><span>Empezado el 20 ago</span><span>1 pág. al día</span></p>
+      </section>
+      <div class="duo">
+        <section class="sec"><h2>Capítulos</h2>
+          <div class="cifra"><b>5</b><span>11 escenas · 18 págs. de media</span>
+            <div class="mini" aria-hidden="true"><span style="height:70%"></span><span style="height:95%"></span><span style="height:90%"></span><span style="height:100%"></span><span style="height:90%"></span></div>
+          </div>
+        </section>
+        <section class="sec"><h2>Fechas</h2>
+          <ul class="fechas"><li><span>Comprado</span><button class="bt bt--txt">Añadir fecha</button></li><li><span>Empezado</span>20 ago 2026</li><li><span>Último capítulo</span>24 nov 2026</li></ul>
+        </section>
+      </div>
+      <div class="duo">
+        <section class="sec"><h2>Reparto<span>capítulos de 5</span></h2>
+          <div class="barras">
+            <span>Iria Valverde</span><div class="b"><span class="p" style="width:100%"></span></div><span class="v">5</span>
+            <span>Tomás Ferrer</span><div class="b"><span class="p" style="width:60%"></span><span class="n" style="width:20%"></span></div><span class="v">4</span>
+            <span>La cartógrafa</span><div class="b"><span class="p" style="width:60%"></span><span class="n" style="width:20%"></span></div><span class="v">4</span>
+            <span>Bruno Salgado</span><div class="b"><span class="p" style="width:40%"></span><span class="n" style="width:40%"></span></div><span class="v">4</span>
+            <span>Madre Oriana</span><div class="b"><span class="p" style="width:20%"></span><span class="n" style="width:60%"></span></div><span class="v">4</span>
+            <span>El barquero</span><div class="b"><span class="p" style="width:20%"></span></div><span class="v">1</span>
+          </div>
+          <p class="ley"><span><i class="c--v"></i>Aparece</span><span><i class="c--a"></i>Solo nombrado</span></p>
+        </section>
+        <section class="sec"><h2>Quién aparece en cada capítulo</h2>
+          <div class="calor">
+            <span class="f">Iria Valverde</span><span class="c c--v"></span><span class="c c--v"></span><span class="c c--u"></span><span class="c c--u"></span><span class="c c--v"></span>
+            <span class="f">Tomás Ferrer</span><span class="c c--u"></span><span class="c c--u"></span><span class="c"></span><span class="c c--n">@</span><span class="c c--u"></span>
+            <span class="f">La cartógrafa</span><span class="c c--v"></span><span class="c c--u"></span><span class="c c--u"></span><span class="c"></span><span class="c c--n">@</span>
+            <span class="f">Bruno Salgado</span><span class="c"></span><span class="c c--u"></span><span class="c c--n">@</span><span class="c c--n">@</span><span class="c c--u"></span>
+            <span class="f">Madre Oriana</span><span class="c c--n">@</span><span class="c"></span><span class="c c--n">@</span><span class="c c--v"></span><span class="c c--n">@</span>
+            <span class="f">El barquero</span><span class="c c--u"></span><span class="c"></span><span class="c"></span><span class="c"></span><span class="c"></span>
+            <span></span><span class="k">1</span><span class="k">2</span><span class="k">3</span><span class="k">4</span><span class="k">5</span>
+          </div>
+          <p class="ley"><span><i class="c--0"></i>No sale</span><span><i class="c--n"></i>@ Solo nombrado</span><span><i class="c--u"></i>Una escena</span><span><i class="c--v"></i>Varias</span></p>
+        </section>
+      </div>
+      <div><button class="bt bt--linea">Ver gráficos<i data-i="abajo"></i></button></div>
+    </div>
+  </div></main></div>
+  <span data-inc="t-barra"></span>
+</div>
+</template>
+
+<template id="t-elmnav">
+<div class="elm__nav">
+  <nav class="tipos no-c no-m" aria-label="Tipos de elemento">
+    <button class="tp" data-t="personajes">Personajes<b>6</b></button>
+    <button class="tp" data-t="localizaciones">Localizaciones<b>4</b></button>
+    <button class="tp" data-t="organizaciones">Organizaciones<b>0</b></button>
+    <button class="tp" data-t="eventos">Eventos<b>2</b></button>
+    <button class="tp" data-t="conceptos">Conceptos<b>1</b></button>
+    <button class="tp" data-t="citas">Citas<b>3</b></button>
+  </nav>
+  <div class="lst lst--personajes">
+    <div class="lst__tipo no-d"><button class="lst__sel" aria-label="Personajes: cambiar de tipo de elemento">Personajes<small>6</small><i data-i="abajo"></i></button><button class="bt bt--pri" aria-label="Nuevo personaje"><i data-i="mas"></i>Nuevo</button></div>
+    <div class="lst__arriba"><div class="in"><i data-i="buscar" class="ic--s"></i><span class="ph">Buscar</span></div><button class="bt bt--pri no-c no-m" aria-label="Nuevo personaje"><i data-i="mas"></i>Nuevo</button></div>
+    <p class="grupo">Principales</p>
+    <button class="it"><span class="it__n">Iria Valverde</span><span class="it__m">5 cap.</span></button>
+    <button class="it it--act" aria-current="true"><span class="it__n">Tomás Ferrer</span><span class="it__m">3 cap.</span></button>
+    <p class="grupo">Secundarios</p>
+    <button class="it"><span class="it__n">La cartógrafa</span><span class="it__m">3 cap.</span></button>
+    <button class="it"><span class="it__n">Bruno Salgado</span><span class="it__m">2 cap.</span></button>
+    <button class="it"><span class="it__n">Madre Oriana</span><span class="it__m">Desaparecida · 1 cap.</span></button>
+    <p class="grupo">Menores</p>
+    <button class="it"><span class="it__n">El barquero</span><span class="it__m">1 cap.</span></button>
+  </div>
+  <div class="lst lst--localizaciones">
+    <div class="lst__tipo no-d"><button class="lst__sel" aria-label="Localizaciones: cambiar de tipo de elemento">Localizaciones<small>4</small><i data-i="abajo"></i></button><button class="bt bt--pri" aria-label="Nueva localización"><i data-i="mas"></i>Nueva</button></div>
+    <div class="lst__arriba"><div class="in"><i data-i="buscar" class="ic--s"></i><span class="ph">Buscar</span></div><button class="bt bt--pri no-c no-m" aria-label="Nueva localización"><i data-i="mas"></i>Nueva</button></div>
+    <button class="it it--act" aria-current="true"><span class="it__n">Ciudad de Bruma</span><span class="it__m">Buen estado</span></button>
+    <button class="it"><span class="it__n">El muelle</span><span class="it__m">Abandonado</span></button>
+    <button class="it"><span class="it__n">Taller de la cartógrafa</span><span class="it__m">Buen estado</span></button>
+    <button class="it"><span class="it__n">Sin localización</span></button>
+  </div>
+  <div class="lst lst--organizaciones">
+    <div class="lst__tipo no-d"><button class="lst__sel" aria-label="Organizaciones: cambiar de tipo de elemento">Organizaciones<small>0</small><i data-i="abajo"></i></button></div>
+    <div class="vac"><p>Aún no hay organizaciones.</p><button class="bt bt--pri"><i data-i="mas"></i>Nueva organización</button></div>
+  </div>
+</div>
+</template>
+
+<template id="t-ficha-bar">
+<div class="fic__bar no-d"><button class="bt bt--txt no-m"><i data-i="izq"></i>Personajes</button><span data-inc="t-est"></span></div>
+</template>
+
+<template id="t-aparece">
+<section class="bl"><h3>Aparece en</h3><div class="caps"><a href="#capitulo" aria-label="Capítulo 1">1</a><a href="#capitulo" aria-label="Capítulo 2">2</a><a class="nom" href="#capitulo" aria-label="Capítulo 4, solo nombrado">@4</a><a href="#capitulo" aria-label="Capítulo 5">5</a></div></section>
+</template>
+
+<template id="t-ficha">
+<article class="fic">
+  <span data-inc="t-ficha-bar"></span>
+  <div class="fic__in">
+    <div>
+      <h1>Tomás Ferrer</h1>
+      <div class="props"><button class="pp"><span>Estado</span><b>Vivo</b><i data-i="abajo" class="ic--s"></i></button><button class="pp"><span>Sexo</span><b>Chico</b><i data-i="abajo" class="ic--s"></i></button></div>
+      <div class="apodos"><span class="apo">el aprendiz<button class="ib ib--s" aria-label="Quitar el apodo «el aprendiz»"><i data-i="cerrar" class="ic--s"></i></button></span><button class="apo-in ph">Añadir apodo</button></div>
+      <h2 class="ent-t">Descripción</h2>
+      <p class="pr">Aprendiz de la cartógrafa. Desconfía de los mapas que cambian y de quien los trae, pero es el primero en seguir a Iria cuando cruza al otro lado.</p>
+      <h2 class="ent-t">Lo que sabe del faro</h2>
+      <p class="pr">Creció oyendo que el faro se apagó la noche en que desapareció su padre. Nunca ha subido.</p>
+      <button class="bt bt--txt"><i data-i="mas"></i>Entrada</button>
+    </div>
+    <aside class="fic__mg">
+      <span data-inc="t-aparece"></span>
+      <section class="bl"><h3>Relaciones</h3>
+        <ul class="rel"><li><b>Iria Valverde</b><span>amiga de la infancia</span></li><li><b>La cartógrafa</b><span>maestra</span></li></ul>
+        <button class="bt bt--txt"><i data-i="mas"></i>Relación</button>
+      </section>
+      <section class="bl"><h3>También en</h3>
+        <ul class="rel"><li><b>El incendio del taller</b><span>evento</span></li><li><b>«Un mapa que cambia no es un mapa»</b><span>cita, pág. 22</span></li></ul>
+      </section>
+    </aside>
+  </div>
+</article>
+</template>
+
+<template id="t-ficha-ed">
+<article class="fic">
+  <span data-inc="t-ficha-bar"></span>
+  <div class="fic__in">
+    <div>
+      <label class="cp"><span class="cp__et">Nombre</span><input class="in in--tit in--foco" value="Tomás de Bruma"></label>
+      <div class="cambio" role="radiogroup" aria-label="Qué ha cambiado en el nombre">
+        <button class="radio radio--on" role="radio" aria-checked="true"><span class="radio__c"></span>Se llama así desde este libro; «Tomás Ferrer» queda como apodo</button>
+        <button class="radio" role="radio" aria-checked="false"><span class="radio__c"></span>Estaba mal escrito</button>
+      </div>
+      <div class="props"><button class="pp"><span>Estado</span><b>Vivo</b><i data-i="abajo" class="ic--s"></i></button><button class="pp"><span>Sexo</span><b>Chico</b><i data-i="abajo" class="ic--s"></i></button></div>
+      <div class="apodos"><span class="apo">el aprendiz<button class="ib ib--s" aria-label="Quitar el apodo «el aprendiz»"><i data-i="cerrar" class="ic--s"></i></button></span><span class="apo-in apo-in--foco">el descreído<span class="caret"></span></span></div>
+      <h2 class="ent-t">Descripción</h2>
+      <p class="pr">Aprendiz de la cartógrafa. Desconfía de los mapas que cambian y de quien los trae, pero es el primero en seguir a Iria cuando cruza al otro lado.</p>
+      <button class="bt bt--txt"><i data-i="mas"></i>Entrada</button>
+    </div>
+    <aside class="fic__mg">
+      <span data-inc="t-aparece"></span>
+      <section class="bl"><h3>Relaciones</h3>
+        <ul class="rel"><li><b>Iria Valverde</b><span>amiga de la infancia</span></li><li><b>La cartógrafa</b><span>maestra</span></li></ul>
+        <div class="campos">
+          <div class="cp"><span class="cp__et">Con</span><button class="in"><span>Madre Oriana</span><i data-i="abajo"></i></button></div>
+          <label class="cp"><span class="cp__et">Qué es de Tomás</span><input class="in in--foco" value="tía"></label>
+          <div class="dlg__pie"><button class="bt bt--txt">Cancelar</button><button class="bt bt--pri">Añadir</button></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</article>
+</template>
+
+<template id="t-ficha-lugar">
+<article class="fic">
+  <span data-inc="t-ficha-bar"></span>
+  <div class="fic__in">
+    <div>
+      <h1>Ciudad de Bruma</h1>
+      <div class="props"><button class="pp"><span>Estado</span><b>Buen estado</b><i data-i="abajo" class="ic--s"></i></button></div>
+      <h2 class="ent-t">Descripción</h2>
+      <p class="pr">Ciudad portuaria que solo se deja ver después de la lluvia. Sus calles no coinciden con ningún mapa dos días seguidos.</p>
+      <button class="bt bt--txt"><i data-i="mas"></i>Entrada</button>
+    </div>
+    <aside class="fic__mg">
+      <section class="bl"><h3>También en</h3><ul class="rel"><li><b>El incendio del taller</b><span>evento</span></li></ul></section>
+    </aside>
+  </div>
+</article>
+</template>
+
+<template id="t-pie-alta">
+<div class="dlg__pie"><button class="bt bt--linea">Crear y otro</button><button class="bt bt--pri">Crear</button></div>
+</template>
+
+<template id="p-personajes">
+<div class="lb" data-tab="elementos">
+  <span data-inc="t-cab"></span>
+  <div class="cuerpo"><div class="elm elm--lista" data-tipo="personajes"><span data-inc="t-elmnav"></span><span data-inc="t-ficha"></span></div></div>
+  <span data-inc="t-barra"></span>
+</div>
+</template>
+
+<template id="p-ficha">
+<div class="lb" data-tab="elementos" data-est="va">
+  <span data-inc="t-cab"></span>
+  <div class="cuerpo"><div class="elm elm--ficha" data-tipo="personajes"><span data-inc="t-elmnav"></span><span data-inc="t-ficha-ed"></span></div></div>
+  <span data-inc="t-barra"></span>
+</div>
+</template>
+
+<template id="p-nuevo-personaje">
+<div class="lb" data-tab="elementos">
+  <span data-inc="t-cab"></span>
+  <div class="cuerpo"><div class="elm elm--lista" data-tipo="personajes"><span data-inc="t-elmnav"></span><span data-inc="t-ficha"></span></div></div>
+  <span data-inc="t-barra"></span>
+  <div class="scrim"></div>
+  <div class="dlg" role="dialog" aria-label="Nuevo personaje">
+    <div class="asa no-m no-d"></div>
+    <div class="dlg__cab"><h2>Nuevo personaje</h2><button class="ib" aria-label="Cerrar"><i data-i="cerrar"></i></button></div>
+    <div class="campos">
+      <label class="cp"><span class="cp__et">Nombre</span><input class="in in--foco" value="Bruno Salgado"><span class="cp__nota cp__nota--aviso"><i data-i="aviso" class="ic--s"></i>Ya hay un «Bruno Salgado» en este libro. Puedes crearlo igualmente.</span></label>
+      <div class="dos">
+        <div class="cp"><span class="cp__et">Estado</span><button class="in"><span>Vivo</span><i data-i="abajo"></i></button></div>
+        <div class="cp"><span class="cp__et">Sexo</span><div class="seg" role="radiogroup" aria-label="Sexo"><button role="radio" aria-checked="true" class="on">Chico</button><button role="radio" aria-checked="false">Chica</button><button role="radio" aria-checked="false">No sé</button></div></div>
+      </div>
+    </div>
+    <span data-inc="t-pie-alta"></span>
+  </div>
+</div>
+</template>
+
+<template id="p-nueva-localizacion">
+<div class="lb" data-tab="elementos">
+  <span data-inc="t-cab"></span>
+  <div class="cuerpo"><div class="elm elm--lista" data-tipo="localizaciones"><span data-inc="t-elmnav"></span><span data-inc="t-ficha-lugar"></span></div></div>
+  <span data-inc="t-barra"></span>
+  <div class="scrim"></div>
+  <div class="dlg" role="dialog" aria-label="Nueva localización">
+    <div class="asa no-m no-d"></div>
+    <div class="dlg__cab"><h2>Nueva localización</h2><button class="ib" aria-label="Cerrar"><i data-i="cerrar"></i></button></div>
+    <div class="campos">
+      <label class="cp"><span class="cp__et">Nombre</span><input class="in in--foco" value="El faro"></label>
+      <div class="cp"><span class="cp__et">Estado</span><button class="in"><span>Buen estado</span><i data-i="abajo"></i></button></div>
+    </div>
+    <span data-inc="t-pie-alta"></span>
+  </div>
+</div>
+</template>
+
+<template id="t-altas">
+<div class="tira">
+  <div class="dlg dlg--suelta"><div class="dlg__cab"><h2>Nueva organización</h2></div><div class="campos"><label class="cp"><span class="cp__et">Nombre</span><input class="in" value="Gremio de cartógrafos"></label></div><span data-inc="t-pie-alta"></span></div>
+  <div class="dlg dlg--suelta"><div class="dlg__cab"><h2>Nuevo concepto</h2></div><div class="campos"><label class="cp"><span class="cp__et">Nombre</span><input class="in" value="Mapa vivo"></label></div><span data-inc="t-pie-alta"></span></div>
+  <div class="dlg dlg--suelta"><div class="dlg__cab"><h2>Nuevo evento</h2></div><div class="campos"><label class="cp"><span class="cp__et">Nombre</span><input class="in" value="El incendio del taller"></label><div class="cp"><span class="cp__et">Localización</span><button class="in"><span>Sin localización</span><i data-i="abajo"></i></button></div></div><span data-inc="t-pie-alta"></span></div>
+  <div class="dlg dlg--suelta"><div class="dlg__cab"><h2>Nueva cita</h2></div><div class="campos"><label class="cp"><span class="cp__et">Cita</span><input class="in" value="Un mapa que cambia no es un mapa"></label><div class="dos"><label class="cp"><span class="cp__et">Página</span><input class="in" inputmode="numeric" value="22"></label><div class="cp"><span class="cp__et">La dice</span><button class="in"><span>Tomás Ferrer</span><i data-i="abajo"></i></button></div></div></div><span data-inc="t-pie-alta"></span></div>
+</div>
+</template>
+
+<template id="p-notas">
+<div class="lb" data-tab="notas" data-est="va">
+  <span data-inc="t-cab"></span>
+  <div class="cuerpo"><main class="nts"><div class="nts__in">
+    <div class="comp comp--foco">
+      <input class="comp__t" value="El faro y el padre de Tomás" placeholder="Título" aria-label="Título de la nota">
+      <div class="comp__x">Si el faro se apagó la noche en que desapareció, quizá el barquero sea<span class="caret"></span></div>
+      <div class="comp__pie no-d"><span data-inc="t-est"></span></div>
+    </div>
+    <div class="nts__busca"><div class="in"><i data-i="buscar" class="ic--s"></i><span class="ph">Buscar en tus notas</span></div></div>
+    <article class="nt">
+      <div class="nt__c"><h2>El mapa cambia</h2><time datetime="2026-11-12">12 nov</time><button class="ib" aria-label="Más: eliminar «El mapa cambia»"><i data-i="puntos"></i></button></div>
+      <p class="pr">Cada vez que alguien lo mira dibuja otra costa. ¿Lo cambia quien mira o quien lo dibujó? Apuntar qué ve cada personaje.</p>
+    </article>
+    <article class="nt">
+      <div class="nt__c"><h2>Quién sigue a Iria</h2><time datetime="2026-11-03">3 nov</time><button class="ib" aria-label="Más: eliminar «Quién sigue a Iria»"><i data-i="puntos"></i></button></div>
+      <p class="pr">En el capítulo 1 alguien la observa desde el muelle. Apuesto por Bruno Salgado: es el único que no sale en esa escena.</p>
+    </article>
+  </div></main></div>
+  <span data-inc="t-barra"></span>
+</div>
+</template>
+
+<!-- ================= Estados ================= -->
+<template id="p-e-libro">
+<div class="lb" data-tab="capitulos" data-est="no">
+  <span data-inc="t-cab"></span>
+  <div class="cuerpo"><main class="doc"><div class="vac"><div class="portada" aria-hidden="true"><b>El atlas de las historias</b><span>Ada Lectora</span></div><button class="bt bt--pri">Poner en marcha</button></div></main></div>
+  <span data-inc="t-barra"></span>
+</div>
+</template>
+
+<template id="p-e-lista">
+<div class="lb" data-tab="elementos" data-est="no">
+  <span data-inc="t-cab"></span>
+  <div class="cuerpo"><div class="elm elm--lista" data-tipo="organizaciones"><span data-inc="t-elmnav"></span><article class="fic"></article></div></div>
+  <span data-inc="t-barra"></span>
+</div>
+</template>
+
+<template id="p-e-carga">
+<div class="lb" data-tab="capitulos" data-est="no" aria-busy="true">
+  <span data-inc="t-cab"></span>
+  <div class="capbar no-d"><span class="sk"></span></div>
+  <div class="cuerpo">
+    <aside class="ind"><span class="sk sk--c"></span><span class="sk sk--b"></span><span class="sk sk--c"></span><span class="sk sk--a"></span><span class="sk sk--b"></span><span class="sk sk--c"></span></aside>
+    <main class="doc"><div class="hoja">
+      <div class="ch rg"><span></span><div><span class="sk sk--t"></span></div></div>
+      <section class="esc rg"><span></span><div><span class="sk sk--a"></span><span class="sk sk--b"></span><span class="sk sk--c"></span></div><div class="no-c"><span class="sk sk--c"></span></div></section>
+      <section class="esc rg"><span></span><div><span class="sk sk--a"></span><span class="sk sk--b"></span><span class="sk sk--b"></span><span class="sk sk--a"></span></div><div class="no-c"><span class="sk sk--c"></span></div></section>
+      <section class="esc rg"><span></span><div><span class="sk sk--a"></span><span class="sk sk--c"></span></div><div class="no-c"><span class="sk sk--c"></span></div></section>
+    </div></main>
+  </div>
+  <span data-inc="t-barra"></span>
+</div>
+</template>
+
+<template id="p-e-error">
+<div class="lb" data-tab="capitulos" data-est="no">
+  <span data-inc="t-cab"></span>
+  <span data-inc="t-capbar"></span>
+  <div class="cuerpo">
+    <span data-inc="t-ind"></span>
+    <main class="doc"><div class="vac" role="alert"><i data-i="nube-no"></i><p>No se pudo cargar el capítulo. Comprueba la conexión.</p><button class="bt bt--linea">Reintentar</button></div></main>
+  </div>
+  <span data-inc="t-barra"></span>
+</div>
+</template>
+
+<template id="t-guardado">
+<div class="tira">
+  <div class="tira__e"><span class="est est--muestra"><i data-i="nube-ok"></i>Guardado</span>Todo está en el servidor.</div>
+  <div class="tira__e"><span class="est est--muestra"><i data-i="gira"></i>Guardando…</span>Se envía al dejar de escribir y al ocultarse la página.</div>
+  <div class="tira__e"><span class="est est--falta est--muestra"><i data-i="aviso"></i>Sin guardar: a la escena 2 le faltan datos</span>Lo escrito queda apartado en el dispositivo. Nunca dice «Guardado».</div>
+  <div class="tira__e"><span class="est est--local est--muestra"><i data-i="nube-no"></i>Sin conexión · guardado en el dispositivo</span>Se envía solo al volver la red.</div>
+  <div class="tira__e"><span class="est est--falta est--muestra"><i data-i="aviso"></i>No se pudo guardar · Reintentar</span>Falló el servidor. El texto sigue apartado.</div>
+</div>
+</template>
+
+<script src="lienzo.js"></script>
