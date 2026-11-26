@@ -102,7 +102,17 @@ export class WebBookShellViewComponent {
     get isSearchActive(): boolean { return this.activeSection === 'search'; }
 
     /** El índice solo vive en Capítulos; en escritorio es una columna (o su carril, plegado). */
-    get showsIndex(): boolean { return this.activeDestination === 'capitulos'; }
+    get showsIndex(): boolean { return this.activeDestination === 'capitulos' && !this.isNotStarted; }
+
+    /**
+     * El libro sin empezar (ni en marcha ni con capítulos): Capítulos es solo su portada y «Poner en marcha»; el índice y
+     * la barra de capítulo no existen hasta que hay algo que enseñar.
+     */
+    get isNotStarted(): boolean {
+        return !!this.c.book.Id && !this.c.isBookRunning() && !this.chapterSequence.length;
+    }
+
+    get showsNotStarted(): boolean { return this.activeDestination === 'capitulos' && this.isNotStarted; }
 
     get isOverlayIndex(): boolean { return !this.c.isDesktopLayout; }
 

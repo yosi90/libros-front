@@ -1,4 +1,16 @@
 @if (c.snapshot && panel; as p) {
+  <!-- «Cuaderno» (F4): la portada y la wiki a un lado (arriba, en el móvil) y las cifras al otro. -->
+  <div class="summary">
+  <aside class="summary__side" aria-label="El libro">
+    @if (c.book.Portada) {
+      <img class="summary__cover" [src]="c.book.Portada | coverCache | async" alt="">
+    } @else {
+      <div class="summary__cover summary__cover--empty" aria-hidden="true"><b>{{c.book.Nombre}}</b></div>
+    }
+    @if (c.wikiUrl; as wiki) {
+      <a class="summary__wiki" [href]="wiki" target="_blank" rel="noopener">Wiki<mat-icon aria-hidden="true">open_in_new</mat-icon></a>
+    }
+  </aside>
   <div class="stats">
     <!-- Con cabecera animada, arriba del todo; sin ella, la frase en su casilla. -->
     @if (c.bookTitle.available && c.bookTitle.html) {
@@ -6,11 +18,6 @@
     }
     @if (c.bookTitle.available && !c.bookTitle.html) {
       <section class="tile tile--wide" aria-labelledby="web-book-fun-title"><h2 id="web-book-fun-title">Tu título</h2><app-web-book-title [state]="c.bookTitle"></app-web-book-title></section>
-    }
-
-    <!-- La wiki del libro, aquí y no en la cabecera (F1 del rediseño «Cuaderno»). -->
-    @if (c.wikiUrl; as wiki) {
-      <p class="stats__links"><a class="web-button web-button--small" [href]="wiki" target="_blank" rel="noopener">Wiki<mat-icon aria-hidden="true">open_in_new</mat-icon></a></p>
     }
 
     <!-- «Tu lectura» en casillas (6/11/2026): cada cifra una sola vez. -->
@@ -150,6 +157,7 @@
         }
       </div>
     }
+  </div>
   </div>
 } @else {
   <div class="state"><mat-icon aria-hidden="true">analytics</mat-icon><p>Abre un libro para ver sus estadísticas.</p></div>

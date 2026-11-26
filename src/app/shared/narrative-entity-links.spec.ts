@@ -77,6 +77,9 @@ describe('narrative-entity-links', () => {
 });
 
 describe('isReadingTextClick', () => {
+    // Otra prueba puede dejar texto seleccionado en el documento: cada una empieza sin selección.
+    beforeEach(() => window.getSelection()?.removeAllRanges());
+
     afterEach(() => {
         document.body.innerHTML = '';
         window.getSelection()?.removeAllRanges();

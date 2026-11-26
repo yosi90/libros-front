@@ -42,7 +42,7 @@ import {
     pressCastIcon, sceneCastDetails, withSceneCastFirst
 } from '../../../../shared/scene-cast';
 import { createClientRequestId } from '../../../../shared/client-request-id';
-import { AutosaveStatus, autosaveStatusIcon, autosaveStatusLabel } from '../../../../shared/autosave-status';
+import { AutosaveStatus, autosaveStatusIcon, autosaveStatusLabel, isOfflineError } from '../../../../shared/autosave-status';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -167,6 +167,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     openSceneIndex: number | null = null;
     /** El nombre del personaje que se está creando desde una escena (el reparto o la @), o `null`. */
     creatingSceneCharacter: string | null = null;
+    /** Web: cuándo se apartó el borrador recuperado al abrir el capítulo (el aviso de la página lo dice). */
+    recoveredDraftAt: string | null = null;
     /** La localización que se está creando desde una escena (Web). */
     creatingSceneLocation: string | null = null;
     /** Los que estaban en la escena al abrir su reparto: salen arriba y la lista no salta al pulsar. */
@@ -203,6 +205,13 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     @HostListener('window:pagehide')
     onPageHide(): void {
         this.flushBeforeLeaving();
+    }
+
+    /** Vuelve la red: lo que quedó en el dispositivo se envía. */
+    @HostListener('window:online')
+    onOnline(): void {
+        if (this.autosaveStatus === 'offline' || this.autosaveStatus === 'error')
+            this.queueAutosave();
     }
 
     @HostListener('window:beforeunload', ['$event'])
@@ -317,6 +326,20 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
      * Cambio de cuenta, cierre de sesión o revocación (CAMBIO_DE_CUENTA.md): lo que no se había guardado se aparta para
      * la cuenta que lo escribió y no se envía nunca con la nueva. Esa cuenta lo recupera al volver a abrir el capítulo.
      */
+    /** «Volver a lo guardado»: se descarta lo recuperado y el capítulo vuelve a lo que tiene el servidor. */
+    discardRecoveredDraft(): void {
+        if (this.accountScope)
+            this.dropLocalDraft(this.accountScope);
+        this.recoveredDraftAt = null;
+        this.autosaveQueued = false;
+        this.initializeForm();
+    }
+
+    /** El aviso de lo recuperado ya no hace falta: lo que dice se ha guardado o la persona lo ha visto. */
+    dismissRecoveredDraft(): void {
+        this.recoveredDraftAt = null;
+    }
+
     abandon(): void {
         if (this.abandoned) return;
         const pending = this.hasPendingChanges();
@@ -436,9 +459,12 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         }
         this.fgChapter.markAsDirty();
         this.stashLocalDraft(this.accountScope);
-        this.toasts.showSystem('Hemos recuperado los cambios de este capítulo que no llegaron a guardarse.', {
-            title: 'Cambios recuperados', dedupeKey: `capitulo:recuperado:${this.draftKey()}`, durationMs: 8000
-        });
+        if (this.isWebView)
+            this.recoveredDraftAt = stashed?.guardado ?? new Date().toISOString();
+        else
+            this.toasts.showSystem('Hemos recuperado los cambios de este capítulo que no llegaron a guardarse.', {
+                title: 'Cambios recuperados', dedupeKey: `capitulo:recuperado:${this.draftKey()}`, durationMs: 8000
+            });
         this.queueAutosave();
     }
 
@@ -1350,9 +1376,9 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
                 this.autosaveStatus = this.savesPartially && this.incompleteSceneNumbers().length ? 'invalid' : 'saved';
                 this.saveIndicator.notifySaved(this.book.Id);
             },
-            error: () => {
+            error: error => {
                 this.skipNextBookStoreSync = false;
-                this.autosaveStatus = 'error';
+                this.autosaveStatus = isOfflineError(error) ? 'offline' : 'error';
             }
         });
     }

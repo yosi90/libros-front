@@ -363,6 +363,39 @@
     margin: var(--web-space-4) var(--web-space-3)
     color: var(--web-color-ink-muted)
 
+// ---------- El libro sin empezar ----------
+
+.not-started
+    display: grid
+    justify-items: center
+    align-content: center
+    gap: var(--web-space-5)
+    min-height: 100%
+    padding: var(--web-space-6) var(--web-space-4)
+
+.not-started__cover
+    width: 168px
+    aspect-ratio: 2 / 3
+    object-fit: cover
+    border: 1px solid var(--web-color-outline)
+    border-radius: 6px
+    box-shadow: var(--web-shadow-card)
+
+.not-started__cover--empty
+    box-sizing: border-box
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    padding: 16px 14px
+    background: var(--web-color-accent-soft)
+
+    b
+        font: 600 18px/1.15 var(--web-font-reading)
+
+    span
+        color: var(--web-color-ink-muted)
+        font-size: 12px
+
 // ---------- Tipos de elemento (escritorio) ----------
 
 .types

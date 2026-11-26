@@ -131,7 +131,18 @@
     }
 
     <section class="book__content">
-      <app-book-router></app-book-router>
+      @if (showsNotStarted) {
+        <div class="not-started">
+          @if (c.book.Portada) {
+            <img class="not-started__cover" [src]="c.book.Portada | coverCache | async" alt="" (error)="c.handleCoverImageError($event)">
+          } @else {
+            <div class="not-started__cover not-started__cover--empty" aria-hidden="true"><b>{{c.book.Nombre}}</b>@if (authorNames) {<span>{{authorNames}}</span>}</div>
+          }
+          <button class="web-button web-button--primary" type="button" [disabled]="c.isSavingRunningStatus" (click)="c.startBookReading()">Poner en marcha</button>
+        </div>
+      } @else {
+        <app-book-router></app-book-router>
+      }
     </section>
   </div>
 

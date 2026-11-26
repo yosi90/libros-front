@@ -519,6 +519,18 @@ describe('ChapterComponent', () => {
             expect(component.getMentionOptions('a').map(character => character.Nombre)).toEqual(['Ágata', 'Zelda']);
         });
 
+        it('Web: «Volver a lo guardado» descarta lo recuperado y deja el capítulo como en el servidor', () => {
+            component.chapter = { ...component.chapter, Id: 91, Nombre: 'Indiscreciones', Orden: 11, Pagina: 145 };
+            component.name.setValue('Lo que no llegó a guardarse');
+            component.recoveredDraftAt = '2026-11-25T22:14:00Z';
+
+            component.discardRecoveredDraft();
+
+            expect(component.recoveredDraftAt).toBeNull();
+            expect(component.name.value).toBe('Indiscreciones');
+            expect((component as any).hasPendingChanges()).toBeFalse();
+        });
+
         it('avisa de lo que le falta a la escena de un capítulo guardado', () => {
             saveChapter();
             component.scenesControls.at(0).patchValue({ descripcion: '' });

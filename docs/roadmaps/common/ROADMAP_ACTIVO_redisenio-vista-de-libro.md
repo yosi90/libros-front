@@ -106,15 +106,16 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 
 ## F4. Notas, Resumen y estados
 
-- [ ] **Notas sin botón**: la nota vive en `PendingWorkService` hasta que cumple lo que pide la API (título de 2 y texto de 15) y entonces se crea. Columna de 736 px.
-- [ ] **Resumen**: la portada y las cifras, en dos columnas desde el plegable, con la wiki (desde F1 es un botón suelto arriba). A 360 px, el campo de fecha de la casilla «Fechas» se sale de ella.
-- [ ] **Estados de todas las vistas**:
-  - libro sin empezar;
-  - lista vacía;
-  - cargando, con silueta;
-  - error al cargar;
-  - «recuperado tras cerrar la app»;
-  - el indicador de guardado, con sus cinco estados.
+- [x] **Notas sin botón** (26/11/2026): la nota vive en `PendingWorkService` hasta que cumple lo que pide la API (título de 2 y texto de 15) y entonces se crea. Columna de 736 px.
+  - *Cómo quedó (solo Web):* el compositor guarda solo 1,2 s después de escribir; tras crearla, la nota sigue en el compositor y se actualiza; al salir de él ya guardada, se vacía. Cambiar de nota con algo que aún no cumple se impide con un aviso, para no perderlo de vista. Lo apartado vuelve al abrir las notas.
+- [x] **Resumen** (26/11/2026): la portada y la wiki en una columna y las cifras en la otra desde el plegable (en el móvil, la portada pequeña arriba). El campo de la fecha de compra baja a su línea en una casilla estrecha.
+- [x] **Estados de todas las vistas** (26/11/2026):
+  - libro sin empezar: en Capítulos, su portada y «Poner en marcha», sin índice ni barra;
+  - lista vacía: Elementos y notas ya lo decían en una línea (F3);
+  - cargando, con silueta: en las notas; el libro sigue con el cargador común;
+  - error al cargar: las notas, con «Reintentar»; el libro vuelve a la biblioteca con su aviso, como antes;
+  - «recuperado tras cerrar la app»: aviso en el capítulo con la hora y «Volver a lo guardado»;
+  - el indicador de guardado, con sus cinco estados: guardando, guardado, sin guardar (con lo que falta), error y sin conexión (`offline`, que vuelve a enviar al recuperar la red), en el capítulo, la ficha y las notas.
 
 ## F5. La APK Kotlin
 

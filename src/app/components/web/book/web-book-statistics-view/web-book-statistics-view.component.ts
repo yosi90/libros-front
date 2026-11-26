@@ -47,10 +47,11 @@ const MINI_BARS = 32;
  * fechas, el reparto y quién aparece en cada capítulo); los gráficos grandes quedan tras «Ver gráficos». Los datos
  * vienen del contenedor; aquí se calculan las casillas y los gráficos con los colores del tema.
  */
+import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 @Component({
     selector: 'app-web-book-statistics-view',
     standalone: true,
-    imports: [CommonModule, MatIconModule, NgApexchartsModule, WebBookTitleComponent],
+    imports: [CommonModule, MatIconModule, NgApexchartsModule, WebBookTitleComponent, CoverCachePipe],
     templateUrl: './web-book-statistics-view.component.html',
     styleUrl: './web-book-statistics-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

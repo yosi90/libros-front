@@ -363,7 +363,9 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
 
         // Ana vuelve tras reiniciar el navegador (el doble arranca con Ana): recupera su borrador y se guarda con ella.
         await page.reload();
-        await expect(page.getByText('Hemos recuperado los cambios de este capítulo que no llegaron a guardarse')).toBeVisible({ timeout: 15_000 });
+        // En la Web («Cuaderno», F4) se dice en la página, con la vuelta a lo guardado.
+        await expect(page.getByRole('status').filter({ hasText: /Recuperado lo que escribiste/ })).toBeVisible({ timeout: 15_000 });
+        await expect(page.getByRole('button', { name: 'Volver a lo guardado' })).toBeVisible();
         await showTitle();
         await expect(title).toHaveValue('La puerta que solo Ana ha escrito', { timeout: 15_000 });
         await expect.poll(() => world.chapterSaves.length, { timeout: 10_000 }).toBe(2);

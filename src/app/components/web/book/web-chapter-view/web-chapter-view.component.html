@@ -1,4 +1,13 @@
 <form class="sheet" [formGroup]="c.fgChapter" (submit)="$event.preventDefault()">
+  <!-- Lo que se escribió y no llegó a guardarse (la app se cerró): se dice aquí, con la vuelta a lo guardado. -->
+  @if (c.recoveredDraftAt) {
+    <div class="recovered" role="status">
+      <mat-icon aria-hidden="true">history</mat-icon>
+      <span>Recuperado lo que escribiste el {{c.recoveredDraftAt | date:'d MMM'}} a las {{c.recoveredDraftAt | date:'HH:mm'}} y no llegó a guardarse.</span>
+      <button class="text-button" type="button" (click)="c.discardRecoveredDraft()">Volver a lo guardado</button>
+      <button class="icon-button icon-button--small" type="button" aria-label="Cerrar el aviso" (click)="c.dismissRecoveredDraft()"><mat-icon>close</mat-icon></button>
+    </div>
+  }
   <!-- «Cuaderno» (F2): el número del capítulo al margen, su título y sus páginas; el lápiz despliega sus datos. -->
   <header class="lane chapter-head">
     <span class="chapter-head__number" aria-hidden="true">{{chapterNumber}}</span>

@@ -36,6 +36,32 @@
     grid-template-columns: var(--gutter) minmax(0, 1fr) var(--margin)
     column-gap: var(--web-space-5)
 
+// El aviso de lo recuperado, arriba del capítulo.
+.recovered
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-2)
+    margin-bottom: var(--web-space-5)
+    padding: 10px 8px 10px 14px
+    color: var(--web-color-ink)
+    font-size: 14px
+    background: var(--web-color-info-soft)
+    border-radius: var(--web-radius-md)
+
+    > mat-icon
+        flex: none
+        width: 20px
+        height: 20px
+        font-size: 20px
+        color: var(--web-color-info)
+
+    > span
+        flex: 1 1 16em
+
+    .text-button
+        margin: 0
+
 // ---------- Cabecera del capítulo ----------
 
 .chapter-head

@@ -38,7 +38,7 @@ import { WebNarrativeEntityViewComponent } from '../../../web/book/web-narrative
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 import { foldText, joinList } from '../../../../shared/text';
 import { BookElementType, bookElementTypeOf } from '../../../../shared/book-element-types';
-import { AutosaveStatus, autosaveStatusLabel } from '../../../../shared/autosave-status';
+import { AutosaveStatus, autosaveStatusLabel, isOfflineError } from '../../../../shared/autosave-status';
 import { CharacterGroup, characterGroupRank, groupCharactersByGroup } from '../../../../shared/character-groups';
 import { CHARACTER_CREATE_TIMEOUT_MS, duplicateCharacterQuestion, findCharacterNamed, isRejectedCharacterClientRequestId } from '../../../../shared/scene-cast';
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
@@ -345,6 +345,13 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     @HostListener('window:pagehide')
     onPageHide(): void {
         this.keepEntityDraft();
+    }
+
+    /** Vuelve la red: la ficha que no pudo guardarse se envía. */
+    @HostListener('window:online')
+    onOnline(): void {
+        if (this.fichaStatus === 'offline')
+            this.runFichaAutosave();
     }
 
     private entityDraftKey(entityId: number): string {
@@ -1291,6 +1298,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.saveIndicator.notifySaved(book.Id);
             },
             error: errorData => {
+                if (isOfflineError(errorData)) {
+                    this.fichaStatus = 'offline';
+                    this.keepEntityDraft();
+                    return;
+                }
                 this.fichaStatus = 'error';
                 this.markBackendField(errorData);
                 this.snackBar.openApiError(errorData, 'No se pudo guardar la ficha');
