@@ -43,5 +43,5 @@ No cambia nada de la librería de la sesión ni de vuestra compilación.
 
 - La política de privacidad propia de Libros está aprobada por el propietario y publicada en `https://libros.yosiftware.es/privacidad/`. Es estática, se lee sin sesión y no carga nada de fuera. Se enlaza desde la portada y desde «Cuenta y seguridad».
 - Las normas de Libros, en su versión 3, llevan el apartado `datos`, que remite a esa política, y el apartado `ia`, que ahora cuenta los cuatro usos de la IA.
-- Pendiente del propietario: poner esa dirección en la ficha de la app, «Privacidad de la app», en producción y en QA (`https://qa-libros.yosiftware.es/privacidad/`). Después se comprueba en `GET /v1/webs` (`app.privacidad`) y esta petición pasa a respondidas.
+- Pendiente del propietario: poner esa dirección en la ficha de la app, «Privacidad de la app», en producción y en QA: la misma dirección en los dos, porque la política es la misma (la web de QA no se despliega desde GitHub por el desafío de Cloudflare). Después se comprueba en `GET /v1/webs` (`app.privacidad`) y esta petición pasa a respondidas.
 - La APK solo habla español: el aviso de gratuidad en otros idiomas no aplica.
