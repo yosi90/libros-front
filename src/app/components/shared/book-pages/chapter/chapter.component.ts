@@ -31,7 +31,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileChapterViewComponent } from '../../../mobile/book/mobile-chapter-view/mobile-chapter-view.component';
 import { WebChapterViewComponent } from '../../../web/book/web-chapter-view/web-chapter-view.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
-import { foldText } from '../../../../shared/text';
+import { foldText, joinList } from '../../../../shared/text';
 import { CharacterGroup, groupCharactersByGroup } from '../../../../shared/character-groups';
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { AppToastService } from '../../../../shared/toast/app-toast.service';
@@ -1171,7 +1171,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     private describeScenes(numbers: number[]): string {
         if (numbers.length === 1)
             return `La escena ${numbers[0]}`;
-        return `Las escenas ${numbers.slice(0, -1).join(', ')} y ${numbers[numbers.length - 1]}`;
+        return `Las escenas ${joinList(numbers)}`;
     }
 
     get autosaveLabel(): string {
@@ -1354,8 +1354,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         if (!this.hasAssignedCharacter(sceneGroup)) missing.push('un personaje');
         if (!missing.length)
             return null;
-        const list = missing.length === 1 ? missing[0] : `${missing.slice(0, -1).join(', ')} y ${missing[missing.length - 1]}`;
-        return `Falta ${list}.`;
+        return `Falta ${joinList(missing)}.`;
     }
 
     private runAutosave(editableScenes: FormGroup[]): void {

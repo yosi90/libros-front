@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { joinList } from './text';
 
 export function getApiErrorCode(error: unknown): string | null {
     if (!error)
@@ -55,7 +56,7 @@ export function describePlatformRestriction(scopes: readonly string[], until: st
     const visible = known.includes('comunidad') ? known.filter(scope => scope !== 'chat' && scope !== 'publicacion') : known;
     if (!scopes.length) return null;
     const labels = visible.length ? visible.map(scope => restrictionScopeLabels[scope]) : ['esta acción'];
-    const what = labels.length > 1 ? `${labels.slice(0, -1).join(', ')} y ${labels[labels.length - 1]}` : labels[0];
+    const what = joinList(labels);
     // «limitada la comunidad», «limitado el chat»: concuerda con lo primero que se nombra.
     const limited = what.startsWith('el ') ? 'limitado' : 'limitada';
     const date = until ? new Date(until) : null;
