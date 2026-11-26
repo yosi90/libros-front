@@ -1158,10 +1158,10 @@ Notas:
 - `Capitulos`, `CapitulosNombrado`, `CapitulosInterludios` y `CapitulosInterludiosNombrado` contienen los capÃ­tulos/interludios concretos donde aparece o se menciona el personaje.
 - `Organizaciones`, `Eventos` y `Citas` contienen relaciones resumidas visibles en el contexto del libro abierto.
 - `EsSagaPrevia` indica que el personaje procede de una saga previa visible para el libro abierto.
-- `POST /personajes` exige al menos una entrada valida. Usar `Entradas: [{ Nombre, Descripcion }]`; como compatibilidad, `Descripcion` crea una unica entrada inicial con nombre igual a `Apodo`.
+- `POST /personajes` (como las altas de localizaciones, organizaciones, conceptos, eventos y citas) no exige entradas: sin `Entradas` ni `Descripcion`, el elemento nace sin ninguna. Si se mandan, `Entradas: [{ Nombre, Descripcion }]`; como compatibilidad, `Descripcion` crea una unica entrada inicial con nombre igual a `Apodo`.
 - `POST /personajes` acepta `IdCliente` opcional (UUID). El cliente lo genera al primer intento de un alta y lo conserva en sus reintentos hasta que la confirma o abandona el formulario: si la API ya creo un personaje con ese `IdCliente` en ese libro, responde `200` con ese personaje en lugar de crear otro (`201` solo cuando crea). El mismo `IdCliente` en otro libro devuelve `409 character_client_request_conflict`, y uno que no es UUID, `400 invalid_client_request_id` (`field: IdCliente`). Dos personajes distintos pueden llamarse igual en un libro o saga: la API no rechaza nombres repetidos; avisar antes de crear uno es cosa del cliente. Sin la tabla `personaje_altas_cliente` en la base, el alta funciona sin esta proteccion.
 - Cada entrada debe tener `Nombre` entre 2 y 100 caracteres y `Descripcion` de minimo 15 caracteres. Si se manda una lista, todas las entradas deben ser validas.
-- Esta regla de entradas aplica tambien en `/entradas` para personajes, localizaciones, organizaciones, conceptos, eventos y citas.
+- Esta regla de entradas aplica tambien en `/entradas` (que si exige al menos una) para personajes, localizaciones, organizaciones, conceptos, eventos y citas.
 - `Apodo` debe tener entre 2 y 100 caracteres.
 - En operaciones `/personajes/{id_personaje}/apodos/{id_apodo}`, usar `ApodoId` devuelto por el listado.
 - `DELETE /apodos/{id_apodo}` es borrado logico. Si el apodo es nombre contextual en algun orden, el backend devuelve `409`; primero hay que repuntar ese contexto con la correccion correspondiente.
@@ -1218,7 +1218,7 @@ Notas:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/localizaciones` | Owner | Crea una localizacion, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+| POST | `/localizaciones` | Owner | Crea una localizacion, la asocia al libro/saga de `LibroId`; puede llevar entradas iniciales, que no son obligatorias. |
 
 Body:
 
@@ -1249,7 +1249,7 @@ Notas:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/conceptos` | Owner | Crea un concepto, lo asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+| POST | `/conceptos` | Owner | Crea un concepto, lo asocia al libro/saga de `LibroId`; puede llevar entradas iniciales, que no son obligatorias. |
 
 Body:
 
@@ -1277,7 +1277,7 @@ Notas:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/organizaciones` | Owner | Crea una organizacion, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+| POST | `/organizaciones` | Owner | Crea una organizacion, la asocia al libro/saga de `LibroId`; puede llevar entradas iniciales, que no son obligatorias. |
 | GET | `/organizaciones/{id_organizacion}/personajes` | JWT | Lista relaciones de organizacion con personajes. |
 | POST | `/organizaciones/{id_organizacion}/personajes` | Owner | Crea relacion de organizacion con personaje. |
 | PUT | `/organizaciones/{id_organizacion}/personajes/{id_personaje}` | Owner | Actualiza descripcion/origen de la relacion con personaje. |
@@ -1337,7 +1337,7 @@ Body relacion con localizacion:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/eventos` | Owner | Crea un evento, lo asocia al libro/saga de `LibroId`, crea al menos una entrada valida y opcionalmente relaciona personajes. |
+| POST | `/eventos` | Owner | Crea un evento, lo asocia al libro/saga de `LibroId`, puede llevar entradas iniciales (no obligatorias) y opcionalmente relaciona personajes. |
 
 Body:
 
@@ -1370,7 +1370,7 @@ Notas:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/citas` | Owner | Crea una cita, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+| POST | `/citas` | Owner | Crea una cita, la asocia al libro/saga de `LibroId`; puede llevar entradas iniciales, que no son obligatorias. |
 
 Body:
 

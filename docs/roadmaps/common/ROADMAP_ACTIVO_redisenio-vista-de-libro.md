@@ -20,7 +20,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
   - *Qué se espera:* que el texto se lea sobre papel.
   - *Peligro si no:* el contenido seguiría sobre el fondo de la navegación.
   - *Peligro del cambio:* afecta a todas las vistas Web. Hay que revisar el contraste con axe (`e2e/web-accessibility.spec.ts`).
-- [ ] **Petición al backend: altas de elementos sin entrada obligatoria.**
+- [x] **Petición al backend: altas de elementos sin entrada obligatoria** (26/11/2026, API `768b06a`, en producción; el cliente puede dejar de mandar «Descripción de {tipo}» en F3).
   - *Descripción:* `POST /personajes`, `/localizaciones`, `/organizaciones`, `/conceptos`, `/eventos` y `/citas`, sin la entrada de 15 caracteres.
   - *Por qué:* decisión 11. Hoy el cliente rellena «Descripción de {tipo}», y con la ficha editable en el sitio ese relleno se leería como texto de la persona.
   - *Qué se espera:* que baste con el nombre.

@@ -904,11 +904,6 @@ components:
             - LibroId
             - Apodo
             - Sexo
-            anyOf:
-            - required:
-              - Entradas
-            - required:
-              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -1198,11 +1193,6 @@ components:
             required:
             - LibroId
             - Nombre
-            anyOf:
-            - required:
-              - Entradas
-            - required:
-              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -1231,11 +1221,6 @@ components:
             required:
             - LibroId
             - Nombre
-            anyOf:
-            - required:
-              - Entradas
-            - required:
-              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -1261,11 +1246,6 @@ components:
             required:
             - LibroId
             - Nombre
-            anyOf:
-            - required:
-              - Entradas
-            - required:
-              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -1343,11 +1323,6 @@ components:
             - LibroId
             - Nombre
             - Id_Localizacion
-            anyOf:
-            - required:
-              - Entradas
-            - required:
-              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -1388,11 +1363,6 @@ components:
             - Nombre
             - Pagina
             - PersonajeId
-            anyOf:
-            - required:
-              - Entradas
-            - required:
-              - Descripcion
             properties:
               LibroId:
                 type: integer
