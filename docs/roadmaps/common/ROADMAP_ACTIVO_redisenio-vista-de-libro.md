@@ -8,13 +8,13 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 
 ## F0. Base
 
-- [ ] **Literata como serif de lectura, empaquetada.**
-  - *Descripción:* Literata variable (redonda y cursiva, solo los ejes y subconjuntos que se usan) en `src/assets/`, con su `@font-face`, como serif de lectura Web. El RTF sin fuente propia se pinta con ella, y hay que decidir con el corpus (`npm run qa:rtf:corpus`) si «Microsoft Sans Serif 12» cuenta como sin fuente.
+- [x] **Literata como serif de lectura, empaquetada** (26/11/2026, web `d8b4410f`, APK `7a803e9f`).
+  - *Descripción:* Literata estática de @fontsource 5.3.0 (redonda 400, 500 y 600; cursiva 400 y 500; latin y latin-ext) en `src/assets/fonts/literata/`, con su `@font-face`, como serif de lectura Web. El RTF sin fuente propia se pinta con ella. Microsoft Sans Serif cuenta como sin fuente en Web: es la única fuente del corpus heredado (las 1317 escenas y entradas de la copia de QA, a 12 pt y a 10,5 pt; el corpus de `npm run qa:rtf:corpus` lee una base que no está en este servidor). En la APK, una fuente fija por grosor en `res/font` (`Fuentes.lectura`, sin usar hasta F5).
   - *Por qué:* decisión 8 del propietario. Las fuentes se sirven desde la propia web, por la privacidad.
   - *Qué se espera:* la misma serif en la web y en la APK (`res/font`).
   - *Peligro si no:* la maqueta pierde su carácter.
   - *Peligro del cambio:* el peso del build. Va después de la rama de fuentes propias (`privacidad/fuentes-propias`).
-- [ ] **Tokens: papel y lienzo.**
+- [x] **Tokens: papel y lienzo** (26/11/2026, `d316202e`; los valores ya eran los de la maqueta, cambian los papeles).
   - *Descripción:* el papel (`surface`) pasa a ser el fondo del contenido, y el lienzo (`canvas`), el de las columnas de navegación. Los dos en claro y en oscuro.
   - *Por qué:* es la jerarquía de la maqueta.
   - *Qué se espera:* que el texto se lea sobre papel.
