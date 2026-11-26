@@ -14,7 +14,6 @@
 
 ## Líneas activas
 
-- `ROADMAP_ACTIVO_duplicados-frontend.md`: las propuestas de las auditorías de duplicados del frontend.
 - `ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: presentación Web claro/oscuro, Wood elegible y navegación reorganizada; queda su checklist manual.
 
 ## Referencias útiles

@@ -1,27 +1,26 @@
 # Guia de integracion: comunidad y clubes
 
-Punto de partida del front para la vertical social que **sigue siendo de Libros** después de la fase 3 de la adhesión a Yosiftware: las publicaciones y comentarios de los clubes, las denuncias de contenido y los clubes. La actividad automática pasó a las novedades de la plataforma y el muro general se retiró. SQL y REST son la fuente de verdad.
+Punto de partida del front para la vertical social que **es de Libros**: los clubes, sus publicaciones y comentarios y las denuncias de contenido. SQL y REST son la fuente de verdad.
 
-La cuenta, la sesión, el perfil, las relaciones, el chat, las notificaciones y su push, la moderación de cuentas y las preferencias de interfaz son de la plataforma: la web los usa con el SDK (`ecosistema-kit/ACCESO.md`, `SOCIAL.md`, `CHAT.md`, `NOTIFICACIONES.md`, `MODERACION.md`). Qué se retiró y qué usar en su lugar: [ADHESION_YOSIFTWARE.md](../api/ADHESION_YOSIFTWARE.md) y [RUTAS_RETIRADAS.md](../api/RUTAS_RETIRADAS.md).
+La cuenta, la sesión, el perfil, las relaciones, el chat, las notificaciones y su push, la moderación de cuentas y las preferencias de interfaz son de la plataforma: la web los usa con el SDK (`ecosistema-kit/ACCESO.md`, `SOCIAL.md`, `CHAT.md`, `NOTIFICACIONES.md`, `MODERACION.md`). Guía: [ADHESION_YOSIFTWARE.md](../api/ADHESION_YOSIFTWARE.md); recambios de lo retirado: [RUTAS_RETIRADAS.md](../api/RUTAS_RETIRADAS.md).
 
 ## Sesión y configuración
 
-- Todas las rutas privadas llevan `Authorization: Bearer <token>` con el token de la cuenta de Yosiftware (`yosiftware.fetch()` lo pone y lo renueva). Firebase ya no interviene: ni custom token ni `signInWithCustomToken`.
+- Todas las rutas privadas llevan `Authorization: Bearer <token>` con el token de la cuenta de Yosiftware (`yosiftware.fetch()` lo pone y lo renueva).
 - `GET /runtime-config` solo devuelve `Environment` y `QaDatasetVersion`; validar que `Environment` coincide con el despliegue esperado (en campañas QA, exactamente `qa`).
 - `GET /usuarios/me` da el `Id` local, el alias (`Nombre`) y el rol de Libros.
-- Firestore y la RTDB se retiraron: sus reglas (`docs/firebase/`) niegan todo y la web no debe leerlas.
 
 ## Tiempo real
 
-No hay WebSocket propio. Los eventos del club (`club.updated`, `club.reading_updated`, `club.milestone_*`, `club.event_*`) llegan por el **canal del espacio** de cada club (fase 4; [CONTRATOS.md](CONTRATOS.md)): `yosiftware.espacios.canal(EspacioId, …)` entrega `mensaje.datos = { tipo, ClubId, LecturaId?, HitoId?, EventoId? }`, que es un aviso para refrescar por REST. Con `desfase`, recargar de la API; sin canal, refrescar al entrar en el club, al volver al foco o tras una acción propia.
+No hay WebSocket propio. Los eventos del club (`club.updated`, `club.reading_updated`, `club.milestone_*`, `club.event_*`) llegan por el **canal del espacio** de cada club ([CONTRATOS.md](CONTRATOS.md)): `yosiftware.espacios.canal(EspacioId, …)` entrega `mensaje.datos = { tipo, ClubId, LecturaId?, HitoId?, EventoId? }`, que es un aviso para refrescar por REST. Con `desfase`, recargar de la API; sin canal, refrescar al entrar en el club, al volver al foco o tras una acción propia.
 
 ## Publicaciones de club
 
-Se publica con `POST /clubes-lectura/<id>/publicaciones` (audiencia `club`; si se envía `ClubId`, el de la ruta). El compositor general del muro (`POST /comunidad/publicaciones`) se retiró. La retirada del descubrimiento no cierra el club para sus miembros; un `404 club_post_target_unavailable` no distingue club eliminado, inexistente o membresía no activa.
+Se publica con `POST /clubes-lectura/<id>/publicaciones` (audiencia `club`; si se envía `ClubId`, el de la ruta). La retirada del descubrimiento no cierra el club para sus miembros; un `404 club_post_target_unavailable` no distingue club eliminado, inexistente o membresía no activa.
 
-## Novedades (antes, actividad automática y muro general)
+## Novedades
 
-La actividad lectora se publica como novedades de la plataforma (decisión 2 de la petición de migración): empezar o terminar una obra, puntuarla y reseñarla, con el catálogo de tipos de Libros. Las ve la web social (y, si la web quiere, su feed: `GET /v1/novedades` con el token de la plataforma, `ecosistema-kit/NOVEDADES.md`). `PublicarActividad: false` sigue evitando publicar un cambio concreto; lo demás lo deciden los ajustes de compartir de la persona en la web social (`https://social.yosiftware.es/?vista=novedades`), que sustituyen a `/comunidad/actividad/preferencias` (retirada). El muro general se retiró.
+La actividad lectora se publica como novedades de la plataforma (decisión 2 de la petición de migración): empezar o terminar una obra, puntuarla y reseñarla, con el catálogo de tipos de Libros. Las ve la web social (y, si la web quiere, su feed: `GET /v1/novedades` con el token de la plataforma, `ecosistema-kit/NOVEDADES.md`). `PublicarActividad: false` evita publicar un cambio concreto; lo demás lo deciden los ajustes de compartir de la persona en la web social (`https://social.yosiftware.es/?vista=novedades`).
 
 ## Comunidad
 
@@ -33,7 +32,7 @@ Renderizar Markdown saneado; no permitir HTML arbitrario ni embeds fuera de la a
 
 ## Clubes de lectura
 
-Un usuario crea como máximo un club. Desde la fase 4 cada club es un **espacio** de la plataforma (`ecosistema-kit/ESPACIOS.md`; guía: [ADHESION_YOSIFTWARE.md](../api/ADHESION_YOSIFTWARE.md)): la pertenencia, las invitaciones, las solicitudes y sus avisos son de la plataforma, y todo lo demás del club sigue en Libros.
+Un usuario crea como máximo un club. Cada club es un **espacio** de la plataforma (`ecosistema-kit/ESPACIOS.md`; guía: [ADHESION_YOSIFTWARE.md](../api/ADHESION_YOSIFTWARE.md)): la pertenencia, las invitaciones, las solicitudes y sus avisos son de la plataforma, y todo lo demás del club sigue en Libros.
 
 - Descubrimiento y creación: `GET|POST /clubes-lectura`; paginado con `q`, `tipoObjetivo` + `objetivoId`, `limit`, `cursorFecha` y `cursorId`. Cada club trae `EspacioId`, y en el descubrimiento `EstadoMembresia` (`disponible` o `miembro`).
 - `abierto`: `POST /v1/espacios/{EspacioId}/entrar` con el token de la plataforma (o `yosiftware.espacios`).

@@ -170,6 +170,10 @@ paths:
     $ref: ./openapi/paths/plugin-administracion.yaml#/~1admin~1v1~1moderacion~1casos
   /admin/v1/copias:
     $ref: ./openapi/paths/plugin-administracion.yaml#/~1admin~1v1~1copias
+  /admin/v1/ia/peticiones:
+    $ref: ./openapi/paths/plugin-administracion.yaml#/~1admin~1v1~1ia~1peticiones
+  /admin/v1/ia/peticiones/ajustes:
+    $ref: ./openapi/paths/plugin-administracion.yaml#/~1admin~1v1~1ia~1peticiones~1ajustes
   /comunidad/capacidades:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1capacidades
   /comunidad/resumen:

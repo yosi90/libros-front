@@ -13,11 +13,11 @@
 | `MejorValorados` | Libros independientes con al menos tres valoraciones, ordenados por media y después número de valoraciones. |
 | `AntologiasMasLeidas` | Antologías cuyo último estado válido es leído; sus secciones no se cuentan como libros independientes. |
 | `LecturasPorMes` | Doce meses naturales, incluido el actual. Cuenta una finalización por persona, libro y mes a partir del historial. |
-| `ActividadComunidad30Dias` | Publicaciones, comentarios y reacciones públicas, más debates, votos, eventos y nuevas incorporaciones de clubes abiertos visibles. |
+| `ActividadComunidad30Dias` | Publicaciones, comentarios y reacciones de los clubes abiertos, más debates, votos, eventos y nuevas incorporaciones de clubes abiertos visibles. |
 | `ClubesMasAmplios` | Clubes abiertos visibles con más miembros activos. |
 | `ClubesMasActivos` | Clubes abiertos visibles ordenados por la puntuación de actividad de 30 días que ya usa `/clubes-lectura/resumen`; incluye volumen, variedad y última actividad. |
 
-`GET /estadisticas/comunidad/clubes/{id}?limit=10` devuelve `Club`, `UmbralPrivacidad` y `AutoresMasLeidos`. Es la respuesta para «autores más leídos por una comunidad»: mide los libros actualmente leídos por **miembros activos actuales** del club. Solo expone clubes abiertos y visibles; un club cerrado, retirado, eliminado o bloqueado para la cuenta responde `404`.
+`GET /estadisticas/comunidad/clubes/{id}?limit=10` devuelve `Club`, `UmbralPrivacidad` y `AutoresMasLeidos`. Es la respuesta para «autores más leídos por una comunidad»: mide los libros actualmente leídos por **miembros activos actuales** del club. Solo expone clubes abiertos y visibles; un club cerrado, retirado o eliminado responde `404`.
 
 ## Significado y privacidad
 
@@ -31,4 +31,4 @@
 
 La pestaña **Personal** conserva sus datos propios. La pestaña **General** puede consumir `GET /estadisticas/comunidad` una vez y dibujar todos los bloques del contrato. Para la ficha de un club público, pedir el segundo endpoint cuando se abra esa ficha. `AutoresMasLeidosPorClub` no se envía en el resumen global porque cada club tiene su propio límite y audiencia.
 
-El 2026-09-27, QA y producción tenían menos de tres personas con lecturas compartidas. Los rankings de lectura pueden venir vacíos y los totales protegidos pueden ser `null` hasta que más personas habiliten esta preferencia.
+Con menos de tres personas que comparten sus lecturas, los rankings de lectura vienen vacíos y los totales protegidos, `null`.

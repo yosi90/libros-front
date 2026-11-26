@@ -6,25 +6,22 @@ Se mantiene como registro operativo vigente, no como guía histórica.
 
 | Ruta retirada | Recambio vigente | Motivo |
 |---|---|---|
-| `POST /peticiones/catalogo/{id}/resolver` | La acción `resolver_peticion` del plugin de la administración (`POST /admin/v1/peticiones/{id}/resolucion`); antes, `PATCH /peticiones/catalogo/{id}/resolver` (también retirada, abajo) | Un único método canónico para cambiar la resolución; admite selección de obra existente con `Obra.ObraId`. |
-| `POST /auth` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`); antes, `POST /auth/session` con un ID token Firebase (también retirada) | Firebase autentica password, Google o telefono; la API intercambia la identidad por una sesion revocable. |
-| `GET /auth/email` | Sin recambio publico | Se elimina la enumeracion previa. Firebase aplica proteccion contra enumeracion y el backend resuelve conflictos durante onboarding o vinculacion. |
-| `POST /auth/register` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`); antes, Alta Firebase email/password y `POST /auth/session`, seguido de `POST /auth/onboarding` (también retirada) | Firebase crea la credencial y verifica el correo; SQL crea la cuenta de dominio durante onboarding. |
-| `POST /auth/registeradmin` | Sin recambio publico | Los roles administrativos se asignan mediante operacion administrativa controlada, nunca creando credenciales SQL. |
-| `POST /auth/password-reset/request` y `POST /auth/password-reset/confirm` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`); antes, `sendPasswordResetEmail` y confirmacion del SDK Firebase (también retirada) | Firebase gestiona recuperacion y contrasenas; la API no almacena tokens ni hashes. |
-| `POST /auth/email-verification/confirm` y `POST /auth/email-verification/resend` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`); antes, `applyActionCode` / `sendEmailVerification` de Firebase y nuevo intercambio `POST /auth/session` (también retirada) | Firebase es autoridad de verificacion de email. |
-| `GET /auth/refresh-token` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`); antes, `POST /auth/session/refresh` (también retirada) | El refresh es un secreto opaco rotatorio en cookie `HttpOnly`, protegido por CSRF. |
-| `POST /auth/logout` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`); antes, `DELETE /auth/session` (también retirada) | Revoca conjuntamente la sesion local y el dispositivo push asociado. |
-| `GET /user` | `GET /usuarios/me` (antes `GET /auth/user`, también retirada) | Se eliminó el duplicado de consulta del usuario autenticado. |
-| Escrituras de catálogo bajo `/autores`, `/universos`, `/sagas`, `/libros` y `/antologias` | Las acciones `crear` y `editar` del plugin de la administración; antes, `POST` / `PATCH /catalogo/admin/{tipo}` y `/catalogo/admin/{tipo}/{id}` (también retiradas, abajo) | La administración del catálogo se concentra bajo `/catalogo/admin/*`; requiere rol administrador o moderador. |
-| `POST` / `PATCH /libros/{id}/idiomas` | La acción `editar` del plugin de la administración (`tipo=libro`) con `Idiomas: [1, 2]`; antes, `PATCH /catalogo/admin/libros/{id}` (también retirada) | La ruta no estaba registrada en la API. El recambio requiere administrador o moderador y reemplaza la lista completa de idiomas cuando se envía `Idiomas`; para añadir uno, conservar los IDs actuales y enviar la lista resultante. |
-| `GET /chat/grupos/{id}/candidatos` | `GET /chat/grupos/candidatos?ConversacionId={id}` | La búsqueda canónica sirve creación y administración, pagina y aplica la misma elegibilidad que un directo. |
-| `POST /chat/grupos/{id}/participantes/{user_id}` | `POST /chat/grupos/{id}/invitaciones` con `{ "Invitados": [user_id] }` | Las altas directas se retiraron: toda incorporación privada requiere consentimiento explícito. `DELETE` en la ruta de participante se conserva para expulsión. |
-
-| `DELETE /notificaciones/dispositivos/{id}` | Ninguno: `DELETE /notificaciones-dispositivos/{id}` también se retiró con la adhesión | Evita solaparse estructuralmente con la lectura individual de notificaciones. |
-| `GET /chat/grupos/invitaciones` y `PATCH /chat/grupos/invitaciones/{id}` | `GET /bandejas/chat/grupos/invitaciones` y `PATCH /bandejas/chat/grupos/invitaciones/{id}` | La bandeja propia pasa a un recurso raíz inequívoco frente a las invitaciones de un grupo concreto. |
-| `GET /clubes-lectura/solicitudes/mias` y `PATCH /clubes-lectura/solicitudes/mias/{id}` | Las solicitudes de la plataforma (fase 4, abajo); antes, `GET /bandejas/clubes/solicitudes` y `PATCH /bandejas/clubes/solicitudes/{id}` (también retiradas) | La bandeja global se separa de las solicitudes de un club concreto. |
-| `GET /clubes-lectura/invitaciones` y `PATCH /clubes-lectura/invitaciones/{id}` | Las invitaciones de la plataforma (fase 4, abajo); antes, `GET /bandejas/clubes/invitaciones` y `PATCH /bandejas/clubes/invitaciones/{id}` (también retiradas) | La bandeja global se separa de las invitaciones de un club concreto. |
+| `POST /peticiones/catalogo/{id}/resolver` | La acción `resolver_peticion` del plugin de la administración (`POST /admin/v1/peticiones/{id}/resolucion`) | Un único método canónico para cambiar la resolución; admite selección de obra existente con `Obra.ObraId`. |
+| `POST /auth` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`) | La cuenta y la sesión son de la plataforma. |
+| `GET /auth/email` | Sin recambio público | Se eliminó la enumeración de correos. |
+| `POST /auth/register` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`) | La cuenta y la sesión son de la plataforma. |
+| `POST /auth/registeradmin` | Sin recambio público | Los roles se asignan con la acción `rol` del plugin de la administración, nunca creando credenciales. |
+| `POST /auth/password-reset/request` y `POST /auth/password-reset/confirm` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`) | La cuenta y la sesión son de la plataforma. |
+| `POST /auth/email-verification/confirm` y `POST /auth/email-verification/resend` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`) | La cuenta y la sesión son de la plataforma. |
+| `GET /auth/refresh-token` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`) | La cuenta y la sesión son de la plataforma. |
+| `POST /auth/logout` | La cuenta de Yosiftware: el SDK de la plataforma (`<yosi-acceso>`, `ecosistema-kit/ACCESO.md`) | La cuenta y la sesión son de la plataforma. |
+| `GET /user` | `GET /usuarios/me` | Se eliminó el duplicado de consulta del usuario autenticado. |
+| Escrituras de catálogo bajo `/autores`, `/universos`, `/sagas`, `/libros` y `/antologias` | Las acciones `crear` y `editar` del plugin de la administración | El catálogo canónico solo se escribe desde el plugin. |
+| `POST` / `PATCH /libros/{id}/idiomas` | La acción `editar` del plugin de la administración (`tipo=libro`) con `Idiomas: [1, 2]` | Reemplaza la lista completa de idiomas cuando se envía `Idiomas`; para añadir uno, conservar los IDs actuales y enviar la lista resultante. |
+| `GET /chat/grupos/{id}/candidatos`, `POST /chat/grupos/{id}/participantes/{user_id}`, `GET /chat/grupos/invitaciones` y `PATCH /chat/grupos/invitaciones/{id}` | El chat de la plataforma (`ecosistema-kit/CHAT.md`, `/v1/chat/…`) | El chat es de la plataforma. |
+| `DELETE /notificaciones/dispositivos/{id}` | Sin recambio: el push lo envía la plataforma | Las notificaciones y su push son de la plataforma. |
+| `GET /clubes-lectura/solicitudes/mias` y `PATCH /clubes-lectura/solicitudes/mias/{id}` | Las solicitudes de los espacios de la plataforma (abajo, «los clubes en los espacios») | La pertenencia a los clubes es de la plataforma. |
+| `GET /clubes-lectura/invitaciones` y `PATCH /clubes-lectura/invitaciones/{id}` | Las invitaciones de los espacios de la plataforma (abajo, «los clubes en los espacios») | Ídem. |
 | `PATCH / DELETE /coleccion/libros/estados/{id}` | `PATCH / DELETE /coleccion/historicos/libros/estados/{id}` | El histórico global deja de compartir plantilla con el estado de una obra concreta. |
 | `PATCH / DELETE /coleccion/antologias/estados/{id}` | `PATCH / DELETE /coleccion/historicos/antologias/estados/{id}` | El histórico global deja de compartir plantilla con el estado, puntuación o reseña de una antología concreta. |
 
@@ -56,7 +53,7 @@ La cuenta, la sesión, el perfil, las relaciones, el chat, las notificaciones y 
 | `GET` y `PUT /notificaciones/preferencias` | Los ajustes de notificaciones de la plataforma (por web y por tipo) | Las preferencias por categoría y canal son de la plataforma. |
 | `POST /notificaciones/dispositivos` y `DELETE /notificaciones-dispositivos/{id}` | El push de la plataforma (`<yosi-notificaciones>` en la web; la librería de la sesión en la APK) | Libros deja de registrar dispositivos FCM y de enviar push. |
 | `GET /comunidad/usuarios`, `GET /comunidad/usuarios/{id}` y `GET /comunidad/usuarios/{id}/relacion` | Las personas y su relación en la plataforma: `GET /v1/personas` y `yosiftware.abrirPerfil()` (`ecosistema-kit/SOCIAL.md`) | Los perfiles públicos de comunidad y la relación con otra persona son de la plataforma. |
-| `GET /comunidad/relaciones/{seguidos,seguidores,amistades,bloqueos}` | Las relaciones de la plataforma (`SOCIAL.md`) | Las relaciones empiezan de cero en la plataforma; las de Libros quedan archivadas. |
+| `GET /comunidad/relaciones/{seguidos,seguidores,amistades,bloqueos}` | Las relaciones de la plataforma (`SOCIAL.md`) | Las relaciones empiezan de cero en la plataforma; las de Libros se borraron (2026-11-06). |
 | `POST` y `DELETE /comunidad/seguimientos` | Seguir y dejar de seguir en la plataforma | Ídem. |
 | `GET` y `POST /comunidad/amistades/solicitudes`, `PATCH /comunidad/amistades/solicitudes/{id}` | Las solicitudes de amistad de la plataforma | Ídem. |
 | `POST` y `DELETE /comunidad/bloqueos` | Los bloqueos de la plataforma | Ídem; la plataforma los aplica al chat y a las notificaciones. |
@@ -71,15 +68,15 @@ La cuenta, la sesión, el perfil, las relaciones, el chat, las notificaciones y 
 | `POST /moderacion/senales/abuse-lock` | Sin recambio | Señal del gate de sanciones propio. |
 | `POST /comunidad/denuncias` con `TipoEntidad` `perfil` o `mensaje` | `yosiftware.denunciar()` o la interfaz de denuncias de la plataforma | Decisión 10: los perfiles y los mensajes son de la plataforma. La ruta sigue para publicaciones, comentarios y clubes. |
 | `GET /admin/auth/phone-attempts` | Sin recambio | El teléfono es de la plataforma; la gestión de cuentas se retira (decisión 1). |
-| `GET /admin/usuarios/{id}` | La acción `usuarios` del plugin de la administración para la gestión de roles (antes `GET /admin/usuarios`, también retirada); la ficha de la cuenta, en la administración de la plataforma | La ficha con perfil privado, correo e incidentes era gestión de cuentas. |
+| `GET /admin/usuarios/{id}` | La acción `usuarios` del plugin de la administración para la gestión de roles; la ficha de la cuenta, en la administración de la plataforma | La ficha con perfil privado, correo e incidentes era gestión de cuentas. |
 | `GET /moderacion/usuarios` y `GET /moderacion/usuarios/{id}` | Sin recambio | La lectura de cuentas para moderadores se retira: el moderador no tiene hoy dónde moderar (decisión 14). |
 | `GET /comunidad/publicaciones` (el muro general) | Las novedades de la plataforma, en la web social (o, en la web, `GET /v1/novedades` con el token de la plataforma); las publicaciones de un club, `GET /clubes-lectura/{id}/publicaciones` | Decisión 2 de la petición de migración: el muro general se retira (0 publicaciones en producción); las publicaciones escritas a mano solo quedan dentro de los clubes. |
 | `POST /comunidad/publicaciones` (audiencias `publico`, `seguidores`, `amigos` y `club` con `ClubId`) | `POST /clubes-lectura/{id}/publicaciones` | Ídem. Editar, borrar, comentar y reaccionar siguen en `/comunidad/publicaciones/{id}…`, solo para publicaciones de un club. |
-| `GET` y `PUT /comunidad/actividad/preferencias`, `POST /comunidad/actividad/reconocimientos/{categoria}` | Los ajustes de compartir de la plataforma (`https://social.yosiftware.es/?vista=novedades`; en la web, `GET`/`PUT /v1/cuenta/novedades/ajustes` con el token de la plataforma) | La actividad automática se publica como novedades de la plataforma (`NOVEDADES.md`); `actividad_social_preferencias_usuario` queda archivada. `PublicarActividad: false` en la colección sigue evitando publicar un cambio concreto. |
+| `GET` y `PUT /comunidad/actividad/preferencias`, `POST /comunidad/actividad/reconocimientos/{categoria}` | Los ajustes de compartir de la plataforma (`https://social.yosiftware.es/?vista=novedades`; en la web, `GET`/`PUT /v1/cuenta/novedades/ajustes` con el token de la plataforma) | La actividad automática se publica como novedades de la plataforma (`NOVEDADES.md`). `PublicarActividad: false` en la colección sigue evitando publicar un cambio concreto. |
 
 ## Adhesión a Yosiftware (fase 4, 2026-10-24): los clubes en los espacios
 
-La pertenencia de los clubes es la de su espacio en la plataforma (`ecosistema-kit/ESPACIOS.md`; decisión 11 de la petición de migración). La persona entra, pide entrar, invita, acepta y sale desde el frontend con el token de la plataforma; `EspacioId` llega en los clubes de Libros. Las tablas `club_invitaciones` y `club_solicitudes_ingreso` dejan de escribirse y quedan archivadas.
+La pertenencia de los clubes es la de su espacio en la plataforma (`ecosistema-kit/ESPACIOS.md`; decisión 11 de la petición de migración). La persona entra, pide entrar, invita, acepta y sale desde el frontend con el token de la plataforma; `EspacioId` llega en los clubes de Libros.
 
 | Ruta retirada | Recambio vigente | Motivo |
 |---|---|---|
@@ -91,7 +88,7 @@ La pertenencia de los clubes es la de su espacio en la plataforma (`ecosistema-k
 | `GET /bandejas/clubes/solicitudes`, `PATCH /bandejas/clubes/solicitudes/{id}` | `GET /v1/espacios/{EspacioId}/solicitudes` (recibidas) y `DELETE /v1/espacios/{EspacioId}/solicitudes/mia` (retirar la propia) | Las bandejas propias desaparecen con las solicitudes propias. |
 | `GET /bandejas/clubes/invitaciones`, `PATCH /bandejas/clubes/invitaciones/{id}` | `GET /v1/espacios/invitaciones` (las mías), `GET /v1/espacios/{EspacioId}/invitaciones` (las enviadas) y `DELETE /v1/espacios/{EspacioId}/invitaciones/{id}` | Ídem. |
 
-`BandejasAcceso` sale de `GET /clubes-lectura/resumen` y `EstadoMembresia` ya no vale `solicitud_pendiente`. Expulsar y cambiar el rol siguen en `DELETE` y `PATCH /clubes-lectura/{id}/miembros/{userId}`, que la API lleva al espacio con su credencial de servicio.
+Expulsar y cambiar el rol siguen en `DELETE` y `PATCH /clubes-lectura/{id}/miembros/{userId}`, que la API lleva al espacio con su credencial de servicio.
 
 ## Adhesión a Yosiftware (fase 3, 2026-10-24): el panel de administración al plugin de la administración
 

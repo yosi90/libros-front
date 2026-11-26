@@ -1,5 +1,8 @@
 # Pruebas manuales - Mejoras visuales
 
+> **Cerrada sin completar el 2026-11-26:** prueba la barra lateral y los paneles de notificaciones y chat anteriores a la adhesión y a la presentación Web; el rediseño de la web con el diseñador (noviembre de 2026) trae su propia lista. Las casillas abiertas no se van a probar.
+
+
 ## Shell y navegación
 
 - [ ] Los iconos de la barra lateral no muestran fondos persistentes fuera de hover o activo.

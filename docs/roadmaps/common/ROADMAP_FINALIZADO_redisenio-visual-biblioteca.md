@@ -226,7 +226,7 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 
 - Los criterios visuales activos se han centralizado en `docs/GUIA_ESTILOS.md`. Este roadmap conserva el historial de alcance y decisiones, pero no debe usarse como fuente de estilos.
 - La responsividad queda fuera de alcance por decision del usuario. Cualquier incidencia movil se registrara como deuda futura.
-- Build verificado con `npm run build`. Quedan comprobaciones manuales desktop registradas en `docs/pruebas/common/[pendiente][redisenio-visual-biblioteca].md`.
+- Build verificado con `npm run build`. Quedan comprobaciones manuales desktop registradas en `docs/pruebas/common/[finalizado][redisenio-visual-biblioteca].md`.
 - La busqueda de coleccion se adapto desde `docs/card-search-filter-system/` como estado compartido del shell autenticado, sin cambios de contrato backend.
 - El perfil debe perder los listados de objetos y preparar el consumo de `GET /biblioteca/actividad_reciente?limit=4` para pintar actividad reciente cuando el backend lo implemente.
 - El perfil ya usa cabecera editorial, contadores horizontales, panel de seguridad/perfil y estado vacio tolerante para actividad reciente mientras el endpoint no exista.

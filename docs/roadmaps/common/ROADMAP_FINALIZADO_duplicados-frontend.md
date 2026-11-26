@@ -1,6 +1,6 @@
 # Duplicados pendientes del frontend
 
-**Activo desde el 29/10/2026** (lo activó el propietario mientras llegaba la IA1). Recoge lo que no aplicaron, por grande, por cambiar una API interna con muchos llamadores o por cruzar con el backend: la auditoría completa de duplicados del frontend (hito 1 de `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, base `5dc3120`, 24/10/2026), el modo `corregir` sobre lo nuevo de la adhesión (`478fc8e..33989c0`, 25/10/2026) y el de los rediseños Web (`main..60199408`, 6/11/2026). Las 11 propuestas están cerradas.
+**Finalizado el 26/11/2026; activo desde el 29/10/2026** (lo activó el propietario mientras llegaba la IA1). Recoge lo que no aplicaron, por grande, por cambiar una API interna con muchos llamadores o por cruzar con el backend: la auditoría completa de duplicados del frontend (hito 1 de `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, base `5dc3120`, 24/10/2026), el modo `corregir` sobre lo nuevo de la adhesión (`478fc8e..33989c0`, 25/10/2026) y el de los rediseños Web (`main..60199408`, 6/11/2026). Las 11 propuestas están cerradas.
 
 ## Frontend
 

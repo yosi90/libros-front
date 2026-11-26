@@ -1,12 +1,12 @@
 # Avisos operativos y normas de comunidad
 
-> Estado: implementaciones finalizadas. Las comprobaciones manuales permanecen en `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md`.
+> Estado: implementaciones finalizadas. Las comprobaciones manuales permanecen en `docs/pruebas/community/[finalizado][comunidad-notificaciones-realtime].md`.
 
 ## Objetivo
 
 Completar el ciclo de trabajo de peticiones y reportes con avisos persistentes, accionables y seguros para cada destinatario autorizado, y dar a las normas de comunidad una gestión administrativa explícita, separada de la moderación de cuentas.
 
-Las comprobaciones manuales y regresiones de esta iniciativa viven exclusivamente en `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md`.
+Las comprobaciones manuales y regresiones de esta iniciativa viven exclusivamente en `docs/pruebas/community/[finalizado][comunidad-notificaciones-realtime].md`.
 
 - [x] **1. Alinear el contrato de avisos de peticiones, reportes y alegaciones.**
   - **Descripcion:** contrastar la respuesta a `docs/peticiones/respondidas/ACEPTADA_notificaciones-operativas-y-normas.md` e incorporar únicamente los eventos, destinatarios, códigos y contextos tipados que publique el backend.

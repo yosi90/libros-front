@@ -8,7 +8,7 @@ Recoger y resolver de forma iterativa los hallazgos de las pruebas manuales de l
 
 ## Implementaciones pendientes
 
-Las comprobaciones manuales y regresiones viven exclusivamente en `docs/pruebas/common/[pendiente][pruebas-manuales-mejoras-visuales].md`.
+Las comprobaciones manuales y regresiones viven exclusivamente en `docs/pruebas/common/[finalizado][pruebas-manuales-mejoras-visuales].md`.
 
 - [x] **1. Estabilizar el shell y los menús contextuales.**
   - **Descripcion:** corregir iconografía, orden, scroll, anclaje y capas del menú lateral y sus superficies desplegables.

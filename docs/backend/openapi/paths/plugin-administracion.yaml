@@ -336,6 +336,32 @@
       '200': {description: Casos, content: {application/json: {schema: {type: object, required: [Casos], properties: {Casos: {type: array, items: {type: object}}}}}}}
       '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
       '503': {description: La plataforma no responde, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
+/admin/v1/ia/peticiones:
+  get:
+    tags: [PluginAdministracion]
+    operationId: getPluginAdminIaRequests
+    summary: El encargo de la IA de las peticiones de alta (acción `ia`)
+    description: El modo (`apagado`, `sombra` o `real`), el modelo y su lista, lo gastado este mes y hoy, si el lector del feed está vivo y los últimos estudios (kit 1.61, «Lo que la persona deja encargado»).
+    security: [{adminPluginCredential: []}]
+    parameters: [{name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 30}}]
+    responses:
+      '200': {description: Estado del encargo, content: {application/json: {schema: {type: object, properties: {Modo: {type: string, enum: [apagado, sombra, real]}, ModoDeConfiguracion: {type: string, enum: [apagado, sombra, real], description: 'El de `LIBROS_PETICIONES_IA`, que vale mientras no se elige nada.'}, Modelo: {type: string}, Modelos: {type: [array, 'null'], items: {type: object, properties: {Id: {type: string}, Nombre: {type: string}}}, description: 'Los de texto con tarifa de la clave de Anthropic del propietario; null si la plataforma no los da (`ModelosError`).'}, ModelosError: {type: [string, 'null'], description: '`ruta_no_disponible` mientras la plataforma no da la lista al backend, o el error del proveedor.'}, Proveedor: {type: string, const: anthropic}, Cuenta: {type: boolean}, Cambio: {type: [object, 'null'], properties: {Usuario: {type: [string, 'null']}, Fecha: {type: [string, 'null'], format: date-time}}}, Gasto: {type: object, properties: {MesCentimos: {type: number}, TopeCentimos: {type: number}}}, Hoy: {type: object, properties: {Estudiadas: {type: integer}, Tope: {type: integer}}}, LectorVivo: {type: boolean}, Estudios: {type: array, items: {type: object, description: 'Cada vez que la IA estudió una petición: modo, estado, decisión, motivos (`Codigo` y `Texto`), comentario, modelo, coste, resultado y fechas.'}}}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+/admin/v1/ia/peticiones/ajustes:
+  post:
+    tags: [PluginAdministracion]
+    operationId: postPluginAdminIaRequestSettings
+    summary: Enciende, apaga o cambia el modelo del encargo de la IA (acción `ia_ajustes`)
+    description: Lo guarda en `ia_ajustes` con quién lo hizo en la administración y lo registra en la auditoría (módulo `ia`). La API y el lector del feed lo leen en el momento; apagado, lo que esperaba en la cola se cierra sin llamar. El modelo tiene que estar en `Modelos`.
+    security: [{adminPluginCredential: []}]
+    parameters: [{$ref: '../../openapi.yaml#/components/parameters/IdempotencyKey'}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {Modo: {type: string, enum: [apagado, sombra, real]}, Modelo: {type: string}}}}}}
+    x-functional-error-codes: {validation_error: '400: falta el modo o el modelo, o el modo no existe.', modelo_no_disponible: '400: el modelo no está en la lista de la clave.', modelos_no_disponibles: '409: sin lista de modelos, el modelo no se puede cambiar.'}
+    responses:
+      '200': {description: El estado nuevo, content: {application/json: {schema: {type: object, properties: {Modo: {type: string, enum: [apagado, sombra, real]}, ModoDeConfiguracion: {type: string, enum: [apagado, sombra, real], description: 'El de `LIBROS_PETICIONES_IA`, que vale mientras no se elige nada.'}, Modelo: {type: string}, Modelos: {type: [array, 'null'], items: {type: object, properties: {Id: {type: string}, Nombre: {type: string}}}, description: 'Los de texto con tarifa de la clave de Anthropic del propietario; null si la plataforma no los da (`ModelosError`).'}, ModelosError: {type: [string, 'null'], description: '`ruta_no_disponible` mientras la plataforma no da la lista al backend, o el error del proveedor.'}, Proveedor: {type: string, const: anthropic}, Cuenta: {type: boolean}, Cambio: {type: [object, 'null'], properties: {Usuario: {type: [string, 'null']}, Fecha: {type: [string, 'null'], format: date-time}}}, Gasto: {type: object, properties: {MesCentimos: {type: number}, TopeCentimos: {type: number}}}, Hoy: {type: object, properties: {Estudiadas: {type: integer}, Tope: {type: integer}}}, LectorVivo: {type: boolean}, Estudios: {type: array, items: {type: object, description: 'Cada vez que la IA estudió una petición: modo, estado, decisión, motivos (`Codigo` y `Texto`), comentario, modelo, coste, resultado y fechas.'}}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/PluginUnauthorized'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /admin/v1/copias:
   get:
     tags: [PluginAdministracion]

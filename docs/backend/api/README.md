@@ -1,25 +1,24 @@
 # API HTTP
 
-La API se compone en `app.py` mediante blueprints Flask. SQL Server conserva el estado autoritativo; las escrituras de dominio crean sus outboxes dentro de la misma transacción cuando deben producir proyecciones, eventos o push.
+La API se compone en `app.py` mediante blueprints Flask. SQL Server conserva el estado autoritativo; lo que va a la plataforma (notificaciones, novedades, canal del espacio, incidentes) sale solo después de confirmar la transacción.
 
 ## Documentos
 
 - `ENDPOINTS.md`: contrato humano exhaustivo.
 - `OPENAPI.md`: visualización y validación de `../openapi.yaml`.
 - `OPERACION.md`: arranque, readiness y diagnóstico HTTP.
-- `ERRORES_Y_GATES.md`: reacción del cliente ante errores funcionales estables.
+- `ERRORES.md` y `ERRORES_Y_GATES.md`: el formato de los errores y la reacción del cliente ante los funcionales.
 - `RUTAS_RETIRADAS.md`: registro vigente de rutas eliminadas y recambios.
-- [MEDICION_AUDIENCIA_FRONT.md](MEDICION_AUDIENCIA_FRONT.md): medición anónima con Yosiftadísticas, script en `index.html` y marca de exclusión de las cuentas del propietario.
-- [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md): autenticación con la cuenta de Yosiftware (en la rama de adhesión, sin publicar), errores nuevos y lo previsto.
-- [EDICIONES_ISBN_FRONT.md](EDICIONES_ISBN_FRONT.md): integración de ediciones e ISBN, respuesta al front sobre resolución de peticiones contra obras existentes y estado de publicación.
+- [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md): la cuenta de Yosiftware, los clubes en los espacios, el plugin de la administración y lo que el backend envía a la plataforma.
+- [NOTIFICAPP.md](NOTIFICAPP.md): el plugin de Libros en Notificapp y sus rutas privadas.
+- [EDICIONES_ISBN_FRONT.md](EDICIONES_ISBN_FRONT.md): ediciones e ISBN.
+- [SECCIONES_ANTOLOGIA_FRONT.md](SECCIONES_ANTOLOGIA_FRONT.md): secciones de antología.
+- [ESTADISTICAS_COMUNIDAD_FRONT.md](ESTADISTICAS_COMUNIDAD_FRONT.md): estadísticas de la comunidad.
+- [MEDICION_AUDIENCIA_FRONT.md](MEDICION_AUDIENCIA_FRONT.md): medición anónima con Yosiftadísticas.
 
 ## Autenticación
 
-El contrato privado usa JWT Bearer. El front solicita después `POST /auth/firebase-custom-token` cuando necesita Firestore o RTDB; Firebase no sustituye el JWT ni decide roles, sanciones o permisos de negocio.
-
-La autenticación es la cuenta de Yosiftware: el contrato para el frontend está en `ADHESION_YOSIFTWARE.md` y las rutas retiradas de la sesión propia (Firebase) en `RUTAS_RETIRADAS.md`.
-
-Son públicos, entre otros, `GET /verify`, `GET /runtime-config`, login, registro, recuperación/verificación de email e imágenes públicas. OpenAPI declara cada excepción con `security: []`.
+El contrato privado usa el token Bearer de la cuenta de Yosiftware ([ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md)). Son públicos, entre otros, `GET /verify`, `GET /runtime-config`, `GET /health` e imágenes públicas; OpenAPI declara cada excepción con `security: []`. `/admin/v1/*` solo responde al plugin de la administración, por la propia máquina, y `/notificapp/v1/*` a la credencial externa de Notificapp.
 
 ## Convenciones
 

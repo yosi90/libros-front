@@ -12,3 +12,5 @@ python-dotenv
 nats-py>=2.11,<3
 # La hora de Madrid de la novedad diaria (utils/catalog_daily_news.py): en Windows, zoneinfo no trae las zonas.
 tzdata
+# La IA por la pasarela de la plataforma (utils/ia_pasarela.py, kit 1.61): el SDK oficial con su base_url.
+anthropic>=2.3,<3

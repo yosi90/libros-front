@@ -1,8 +1,6 @@
 # Contrato QA para Playwright del front
 
-> **Adhesión a Yosiftware (fase 3, rama `adhesion/api-identidad`).** QA ya no tiene WebSocket propio (`wss://qa-ws.yosiftware.es`), NATS, gateway, workers de tiempo real, Firebase Authentication, Firestore, RTDB ni FCM: la sesión es la cuenta de Yosiftware de la plataforma de QA y sus cuentas de prueba (`scripts/qa-plataforma-smoke.py`), y las contraseñas `QA_*_PASSWORD` y `QA_PHONE_TEST_*` ya no sirven para entrar. El perfil `realtime-recovery` se conserva como fixture SQL, sin entrega en directo. Lo que sigue documenta el contrato anterior donde no se ha actualizado; prevalecen `../api/ADHESION_YOSIFTWARE.md`, `README.md` y `ENTORNO_QA.md`.
-
-Esta guía define el flujo ejecutable para `yosi90/libros-front`. Leer primero `HANDOFF_CODEX_FRONT.md`.
+Esta guía define el flujo ejecutable para `yosi90/libros-front`. Leer primero `HANDOFF_CODEX_FRONT.md`. La sesión es la cuenta de Yosiftware de la plataforma de QA y sus cuentas de prueba (`../api/ADHESION_YOSIFTWARE.md`).
 
 ## Destinos y barrera anti-producción
 
@@ -11,14 +9,13 @@ Esta guía define el flujo ejecutable para `yosi90/libros-front`. Leer primero `
 | API | `https://qa-api.yosiftware.es` |
 | Front local | `http://127.0.0.1:4200` |
 | Front alojado | `https://qa-libros.yosiftware.es` |
-| WebSocket | `wss://qa-ws.yosiftware.es` |
-| Firebase proyecto/sitio | `libros-qa` |
+| Proyecto y sitio de Hosting | `libros-qa` |
 | Dataset | `2026.08.4` |
 
 Antes de adquirir lease o autenticar:
 
-1. `GET /verify`: `Entorno="qa"`, `VersionDatasetQa="2026.08.4"`, SQL disponible, `SourceDirty=false` y la misma release limpia en gateway.
-2. `GET /runtime-config`: `Environment="qa"`, `QaDatasetVersion="2026.08.4"`, `Firebase.ProjectId="libros-qa"`, `Firebase.AuthDomain="qa-libros.yosiftware.es"`, los tres `Firebase.Providers=true`, `PhoneTestingMode=true` y `RealtimeWsUrl="wss://qa-ws.yosiftware.es"`.
+1. `GET /verify`: `Entorno="qa"`, `VersionDatasetQa="2026.08.4"`, SQL disponible, `SourceDirty=false` y `ReleaseId` un SHA Git de 40 caracteres.
+2. `GET /runtime-config`: `Environment="qa"` y `QaDatasetVersion="2026.08.4"`.
 3. `GET /qa/status` con token pero todavía sin lease: exigir `Status=ready` y `Capabilities.BeginCampaign=allowed`.
 4. Si cualquier valor difiere, terminar sin adquirir lease ni resetear.
 
@@ -95,44 +92,30 @@ La concurrencia del workflow del front puede serializar ejecuciones de ese repos
 Usar `Type`, nunca `ResourceType`. Resolver todos los IDs y emails por alias, sin codificarlos:
 
 - identidades: `user.admin`, `user.moderator`, `user.member-a`, `user.member-b`;
-- autenticacion: `auth.phone.member-a`, identidad `phone` tecnica y estable vinculada a `user.member-a`;
 - catálogo/colección: `catalog.book-primary`, `collection.member-a.{waiting,in-progress,read,to-buy,want-to-read,discarded}`;
 - narrativa: `scene.rtf-2297`;
-- relaciones/comunidad: `relationship.friendship-a-b`, `relationship.request-b-moderator`, `feed.publication-primary`, `feed.comment-primary`;
-- chat: `chat.primary`, `chat.message-primary`;
-- notificaciones/políticas: `notification.member-a`, `policy.use.active`, `policy.creation.active`;
-- moderación/auditoría: `review-report.pending`, `community-report.pending`, `sanction.member-b.history`, `appeal.member-b.rejected`, `audit.admin-fixture`, `audit.club-fixture`.
+- comunidad: `feed.publication-primary`, `feed.comment-primary`;
+- moderación/auditoría: `review-report.pending`, `community-report.pending`, `audit.admin-fixture`.
 
-Las contraseñas solo proceden de los secrets `QA_*_PASSWORD` del Environment.
-
-Telefono usa exclusivamente `QA_PHONE_TEST_NUMBER` y `QA_PHONE_TEST_CODE`, configurados como numero ficticio en Firebase QA. El UID tecnico estable `libros-auth:phone:900003` esta vinculado en SQL a `user.member-a`; no se publica el numero ni su HMAC. Google real no se automatiza con una password o 2FA almacenados: nuevo/vinculado/conflictivo se cubren de forma determinista con emulador/contrato y se ejecuta un unico smoke OAuth manual con cuenta QA dedicada. El reset elimina identidades Firebase transitorias y conserva nueve UIDs baseline.
+No hay aliases de relaciones, chat, notificaciones, normas ni sanciones: son de la plataforma. Tampoco de clubes: un club es un espacio de la plataforma y cada prueba crea el suyo.
 
 ## Perfiles cerrados
 
 | Perfil | Aserción observable |
 |---|---|
-| `baseline` | Cuatro identidades verificadas y recorridos normales. |
-| `expired-sessions` | `user.member-a` obtiene un token caducado: siguiente ruta protegida devuelve `401 access_token_expired`. |
-| `rate-limited` | Petición protegida de `user.member-a`: `429 too_many_requests`. |
-| `realtime-recovery` | Sobres duplicados y reordenados conservan `eventId`; el cliente deduplica, reconecta y reconcilia por REST. |
+| `baseline` | Las cuatro identidades y los recorridos normales. |
+| `expired-sessions` | `user.member-a` lleva `Metadata.ExpectedError = access_token_expired`. |
+| `rate-limited` | Petición protegida de `user.member-a` bajo `/comunidad/`: `429 too_many_requests`. |
+| `realtime-recovery` | Marca `user.member-a` (`Metadata.Profile` y `Metadata.Delivery`); no hay entrega en directo propia. |
 
 No existen controles mutables adicionales para fabricar estados desde el cliente.
 
-La aceptación de `realtime-recovery` exige observación real del cliente en ambos navegadores: capturar el `eventId` recibido por WebSocket o por el event bus de la aplicación, demostrar una sola aplicación ante el duplicado/reordenamiento, forzar una pérdida de conexión, esperar la reconexión y comparar el estado reconciliado con REST. Comprobar solo que REST persiste una fila no acredita deduplicación ni recuperación WebSocket.
-
-El comienzo determinista del lote es la observación `WebSocket.onopen` del canal probado. Backend hace atómicos el handshake y el alta del socket frente a la entrega NATS; no añadir sleeps ni esperar un frame `ready`. Después de `open`, crear los cuatro mensajes y conservar las aserciones estrictas. Esta garantía no elimina la reconciliación REST para cortes posteriores.
-
-`eventId` es un string opaco y actualmente puede ser UUID. Solo sirve como clave de deduplicación; nunca convertirlo a número ni deducir de él el orden de entrega. Para acreditar reordenación de `message.created`, correlacionar los mensajes creados con `payload.Id` o con los marcadores enviados. El baseline deja a `user.member-b` pendiente de la política `creacion`; si ese usuario actúa como remitente, el test debe aceptar primero la política mediante el endpoint de dominio.
-
 ## Reglas de CI y seguridad
 
-- Workflow manual inicialmente y solo desde `main`.
+- Workflow manual y solo desde `main`.
 - `workers: 1`; Chromium y Firefox usan la misma lease.
 - Mantener intactos los workflows de Hosting de producción.
-- Autenticar despliegue con WIF y la cuenta dedicada indicada en `HANDOFF_CODEX_FRONT.md`.
+- Autenticar el despliegue con WIF y la cuenta dedicada indicada en `HANDOFF_CODEX_FRONT.md`.
 - No desplegar reglas, datos, Auth, FCM, Functions ni recursos distintos de Hosting.
-- Filtrar cabeceras, login y secrets de trazas/capturas. No pasar el token a `page.evaluate`, storage o variables públicas del build. Las llamadas de control QA no deben usar un contexto instrumentado que pueda volcar `X-QA-Reset-Token` al agotar un timeout; comprobar además el directorio de evidencia contra los valores secretos antes de subirlo.
-- SQL es la fuente de verdad de reconciliación realtime.
-- La observación `connected` debe pertenecer al documento vigente. El run `31703994637` demostró en Firefox que la espera podía resolverse y que la lectura inmediatamente posterior devolvía `connected-and-loaded: []`; más tarde aparecía otra conexión `reconnected: false`. Un array append-only solo pierde el marcador si se reemplaza el documento o se reinstala la sonda.
-- El helper debe asignar un `documentId` por ejecución de `addInitScript`, conservar observaciones también en Node/Playwright y exigir inmediatamente antes de los `POST` que el documento actual contiene su propio `chat/connected`. Si cambia la generación, debe esperar el `open` de la nueva sin sleeps y adjuntar ambas generaciones.
-- Como barrera previa, `/verify.SourceDirty` debe ser `false` y `/verify.ReleaseId` debe coincidir con `/verify.Componentes.realtimeGateway.ReleaseId`. La aceptación web quedó acreditada con cinco campañas consecutivas verdes sobre `libros-front@ddc3130`; el semáforo nuevo endurece campañas futuras y no invalida esa evidencia.
+- Filtrar cabeceras y secrets de trazas y capturas. No pasar el token a `page.evaluate`, storage o variables públicas del build. Las llamadas de control QA no usan un contexto instrumentado que pueda volcar `X-QA-Reset-Token` al agotar un timeout; el directorio de evidencia se comprueba contra los valores secretos antes de subirlo.
+- SQL y REST son la fuente de verdad tras cualquier evento del canal del espacio.

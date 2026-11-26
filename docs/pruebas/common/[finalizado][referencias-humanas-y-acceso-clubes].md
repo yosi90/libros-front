@@ -1,5 +1,8 @@
 # Checklist manual: referencias humanas y acceso a clubes
 
+> **Cerrada sin completar el 2026-11-26:** prueba el contrato propio de los clubes (bandejas, `club.updated`, cancelaciones), sustituido en la adhesión por los espacios de la plataforma; lo vigente de los clubes está en la lista de la adhesión (`ecosistema/[pendiente][adhesion-yosiftware-y-apk-kotlin].md`, «Espacios»). Las casillas abiertas no se van a probar.
+
+
 > Estado: pendiente de QA manual. Verificación automática completada: compilación, build y 167 specs correctas.
 
 ## Centro de Acceso

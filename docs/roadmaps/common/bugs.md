@@ -10,7 +10,7 @@
 
 ## Pausado
 
-- Verificación manual de escritorio del rediseño visual de Home, el shell autenticado y la vista inicial de universos y libros (`docs/pruebas/common/[pendiente][redisenio-visual-biblioteca].md`).
+- Verificación manual de escritorio del rediseño visual de Home, el shell autenticado y la vista inicial de universos y libros (`docs/pruebas/common/[finalizado][redisenio-visual-biblioteca].md`).
 
 ## Finalizado
 

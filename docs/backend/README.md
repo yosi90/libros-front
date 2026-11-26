@@ -27,18 +27,19 @@ docs/backend/
 ## Accesos rápidos
 
 - Integrar o modificar una ruta: `api/ENDPOINTS.md` y `openapi.yaml`.
-- Preparar la adhesión a Yosiftware (cuenta de la plataforma en lugar de la sesión propia): [guía para el front](api/ADHESION_YOSIFTWARE.md), con lo que está en la rama de adhesión y lo previsto.
-- Integrar ediciones e ISBN: [guía para el front](api/EDICIONES_ISBN_FRONT.md), con la respuesta a la petición de resolución contra obras existentes y el estado de publicación en QA y producción.
-- Consultar la entrega de ediciones aceptada por el front: [corrección de MiColeccion](api/EDICIONES_ISBN_FRONT.md#respuesta-al-front-sobre-micoleccion) y [publicación en producción](api/EDICIONES_ISBN_FRONT.md#respuesta-al-front-sobre-publicación-en-producción), con revisiones desplegadas y evidencia de conservación de datos.
-- Integrar la exclusión de secciones de antología del catálogo y la colección: [guía para el front](api/SECCIONES_ANTOLOGIA_FRONT.md), con estado de publicación y cambios del cliente.
-- Integrar la medición anónima de audiencia de Yosiftadísticas: [guía para el front](api/MEDICION_AUDIENCIA_FRONT.md), con el script, la marca de exclusión del propietario y su calendario de publicación.
+- Integrar la cuenta de Yosiftware, los clubes en los espacios y el plugin de la administración: [guía para el front](api/ADHESION_YOSIFTWARE.md).
+- Integrar ediciones e ISBN: [guía para el front](api/EDICIONES_ISBN_FRONT.md).
+- Integrar las secciones de antología: [guía para el front](api/SECCIONES_ANTOLOGIA_FRONT.md).
+- Integrar las estadísticas de la comunidad: [guía para el front](api/ESTADISTICAS_COMUNIDAD_FRONT.md).
+- Integrar la medición anónima de audiencia de Yosiftadísticas: [guía para el front](api/MEDICION_AUDIENCIA_FRONT.md).
+- El plugin de Notificapp: [NOTIFICAPP.md](api/NOTIFICAPP.md).
 - Consultar Swagger: `api/OPENAPI.md`.
 - Operar API y readiness: `api/OPERACION.md`.
-- Entender qué queda del tiempo real (el lector del feed y el canal del espacio): `realtime/README.md`.
+- Entender el tiempo real (el lector del feed y el canal del espacio): `realtime/README.md`.
 - Integrar la comunidad y los clubes: `realtime/INTEGRACION_FRONT.md`.
 - Levantar o resetear QA: `qa/README.md`.
 - Elegir y ejecutar la suite de calidad: `qa/PRUEBAS.md`.
-- Entregar QA y Playwright al Codex del front: `qa/HANDOFF_CODEX_FRONT.md`.
+- Entregar QA y Playwright al Codex del front: `qa/HANDOFF_CODEX_FRONT.md` y `qa/PLAYWRIGHT_FRONT.md`.
 - Operar el túnel público QA: `qa/CLOUDFLARE.md`.
 - Preparar GitHub Actions/Environment: `qa/GITHUB_ACTIONS.md`.
 - Actualizar y recuperar SQL de desarrollo: `desarrollo/BACKUPS_SQL.md`.
@@ -51,8 +52,6 @@ docs/backend/
 | QA local | `http://127.0.0.1:5101` |
 | QA público | `https://qa-api.yosiftware.es` |
 | Producción | `https://libros-api.yosiftware.es` |
-
-El WebSocket propio se retiró con la adhesión a Yosiftware: el tiempo real es el de la plataforma.
 
 La URL pública QA se entrega como `QA_API_BASE_URL`. Antes de ejecutar resets o pruebas destructivas se debe comprobar `GET /verify` y exigir `Entorno: qa`.
 

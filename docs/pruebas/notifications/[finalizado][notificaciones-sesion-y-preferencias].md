@@ -1,5 +1,8 @@
 # Checklist manual: notificaciones de sesión y preferencias
 
+> **Cerrada sin completar el 2026-11-26:** prueba la campana, el historial de avisos y el diálogo de normas propios de Libros, retirados en el corte de la adhesión (2026-10-25): la campana y las normas son de la plataforma. Las casillas abiertas no se van a probar.
+
+
 > Pendiente de QA visual en navegador. La compilación de aplicación y specs es correcta; Karma alcanzó el límite operativo sin publicar nuevos fallos.
 
 ## Toasts y decisiones

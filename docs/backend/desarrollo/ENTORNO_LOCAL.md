@@ -14,8 +14,6 @@ npm ci
 
 SQL Server debe estar accesible con los valores de `.env`. La configuración de partida está en `.env.example`.
 
-Tras crear `.env`, ejecutar una vez `./scripts/ensure-local-auth-config.ps1`. El script añade de forma idempotente el secreto HMAC local y los límites de autenticación telefónica sin imprimir ni reemplazar secretos existentes.
-
 ## Ejecución habitual
 
 Solo API:
@@ -25,10 +23,10 @@ Solo API:
 python app.py
 ```
 
-API, gateway y workers realtime:
+El lector del feed de la plataforma, en otra consola:
 
 ```powershell
-.\scripts\start-realtime-stack.ps1
+python -m realtime.plataforma_feed_worker
 ```
 
 QA aislado:

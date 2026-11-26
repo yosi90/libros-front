@@ -1,6 +1,6 @@
 # Backup SQL administrativo
 
-La acción `copia` del plugin de la administración (`POST /admin/v1/copias`, por la propia máquina y con la credencial del plugin; antes `GET /admin/backup`) crea una fotografia completa de los datos de la base SQL Server conectada. Se genera en segundo plano y el ZIP queda en `.runtime/copias/` del servidor (el plugin solo recibe JSON); `GET /admin/v1/copias` dice si hay una en curso, cómo acabó la última y lista las guardadas.
+La acción `copia` del plugin de la administración (`POST /admin/v1/copias`, por la propia máquina y con la credencial del plugin) crea una fotografia completa de los datos de la base SQL Server conectada. Se genera en segundo plano y el ZIP queda en `.runtime/copias/` del servidor (el plugin solo recibe JSON); `GET /admin/v1/copias` dice si hay una en curso, cómo acabó la última y lista las guardadas.
 
 ## Comportamiento por entorno
 
@@ -14,7 +14,7 @@ La estructura `0` a `12` no cambia. Solo se regeneran los bloques top-level `INS
 
 La escritura de `1` a `10` es conjunta: una tabla o columna inexistente, un bloque ambiguo o un fallo de filesystem cancela la operacion y repone los archivos anteriores. Tras cada ejecucion correcta se copia el conjunto actualizado de SQL top-level a `versiones_previas/<AAAAMMDD-HHMMSS>` y se conservan las cinco ejecuciones exitosas mas recientes.
 
-## ZIP descargado
+## ZIP
 
 El ZIP no replica la agrupacion canonica. Contiene un `.sql` numerado por cada tabla no interna de la base, incluidas las tablas operativas y las tablas vacias. El orden respeta dependencias; el primer y ultimo archivo deshabilitan y revalidan las constraints de la carga completa. Las tablas identity usan `IDENTITY_INSERT`.
 

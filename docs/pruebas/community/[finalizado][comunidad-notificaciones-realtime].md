@@ -1,5 +1,8 @@
 # Pruebas - Comunidad, notificaciones y tiempo real
 
+> **Cerrada sin completar el 2026-11-26:** prueba el tiempo real, las notificaciones, las normas y las sanciones propios de Libros, que se retiraron en el corte de la adhesión (2026-10-25): hoy son de la plataforma. Las casillas abiertas no se van a probar.
+
+
 ## Contrato y permisos
 
 - [ ] OpenAPI valida todas las referencias y operaciones nuevas.

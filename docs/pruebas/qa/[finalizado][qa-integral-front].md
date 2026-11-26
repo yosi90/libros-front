@@ -48,8 +48,8 @@ La ejecución de `npm run qa:integration` se detiene antes de resetear mientras 
 
 ## Checklists verticales referenciadas
 
-- `docs/pruebas/common/[pendiente][pruebas-manuales-mejoras-visuales].md`
-- `docs/pruebas/common/[pendiente][redisenio-visual-biblioteca].md`
-- `docs/pruebas/common/[pendiente][referencias-humanas-y-acceso-clubes].md`
-- `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md`
-- `docs/pruebas/notifications/[pendiente][notificaciones-sesion-y-preferencias].md`
+- `docs/pruebas/common/[finalizado][pruebas-manuales-mejoras-visuales].md`
+- `docs/pruebas/common/[finalizado][redisenio-visual-biblioteca].md`
+- `docs/pruebas/common/[finalizado][referencias-humanas-y-acceso-clubes].md`
+- `docs/pruebas/community/[finalizado][comunidad-notificaciones-realtime].md`
+- `docs/pruebas/notifications/[finalizado][notificaciones-sesion-y-preferencias].md`

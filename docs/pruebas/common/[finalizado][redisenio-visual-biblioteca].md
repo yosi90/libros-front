@@ -1,5 +1,8 @@
 # Pruebas Pendientes - Redisenio Visual Biblioteca
 
+> **Cerrada sin completar el 2026-11-26:** prueba el aspecto anterior a la presentación Web y pantallas retiradas en la adhesión (entrar, registro, recuperar la contraseña); el rediseño de la web con el diseñador (noviembre de 2026) trae su propia lista. Las casillas abiertas no se van a probar.
+
+
 ## Verificaciones automaticas
 
 - [x] `npm run build`

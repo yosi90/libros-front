@@ -6,7 +6,7 @@ Todas las respuestas de error usan `error` como mensaje final en español para l
 
 En escrituras administrativas de catálogo, `FechaPublicacion` acepta año (`AAAA`), año y mes (`AAAA-MM`) o fecha completa (`AAAA-MM-DD`); el backend completa mes y día faltantes con `01`.
 
-## Actualizacion Multiusuario Y Actividad
+## Multiusuario y actividad
 
 > Referencia humana canónica. Para tipos exactos prevalece `../openapi.yaml`.
 
@@ -15,7 +15,7 @@ En escrituras administrativas de catálogo, `FechaPublicacion` acepta año (`AAA
   - `Totales` del catálogo;
   - `Nuevos` (altas exactas en 24 horas, 7 días y 30 días);
   - `AltasPorMes` de los 12 últimos meses.
-- **Novedades de la plataforma** (decisión 2 de la petición de migración): empezar o terminar una obra (estados `En marcha` y `Leido`), puntuarla y reseñarla se publican, después de confirmar y en segundo plano, como novedades de la plataforma (`libro.empezado`, `libro.terminado`, `libro.puntuado` y `libro.resenado`; `utils/platform_novedades.py`). `PublicarActividad: false` en `POST`/`PATCH /coleccion/{libros|antologias}/{id}/estado`, `/puntuacion` y `/resena` no publica esa novedad; `true`, `null` u omitido la publican y la plataforma aplica los ajustes de compartir de la persona (`https://social.yosiftware.es/?vista=novedades`). Borrar una reseña o que la oculte la moderación retira su novedad. Las preferencias propias (`/comunidad/actividad/preferencias` y sus reconocimientos) y el muro general se retiraron: [RUTAS_RETIRADAS.md](RUTAS_RETIRADAS.md).
+- **Novedades de la plataforma** (decisión 2 de la petición de migración): empezar o terminar una obra (estados `En marcha` y `Leido`), puntuarla y reseñarla se publican, después de confirmar y en segundo plano, como novedades de la plataforma (`libro.empezado`, `libro.terminado`, `libro.puntuado` y `libro.resenado`; `utils/platform_novedades.py`). `PublicarActividad: false` en `POST`/`PATCH /coleccion/{libros|antologias}/{id}/estado`, `/puntuacion` y `/resena` no publica esa novedad; `true`, `null` u omitido la publican y la plataforma aplica los ajustes de compartir de la persona (`https://social.yosiftware.es/?vista=novedades`). Borrar una reseña o que la oculte la moderación retira su novedad.
 - Usar `/catalogo/*` para buscar el catalogo compartido y `/coleccion/*` para estado, puntuacion y biblioteca personal. El catalogo canonico se administra desde el plugin de la administracion de la plataforma (`/admin/v1/*`, abajo): la web ya no tiene escrituras de catalogo.
 - `universos.id = 1` (`Sin universo`) es global, visible para todos e inmodificable.
 - `GET /biblioteca/actividad_reciente?limit=4` devuelve una lista mezclada de libros y antologias ordenada por fecha de ultimo estado descendente.
@@ -37,7 +37,7 @@ Base URL QA: la entrega `QA_API_BASE_URL` se gestiona fuera del repositorio. Ant
 ## Autenticacion y permisos
 
 - Publico: no necesita token.
-- JWT: necesita `Authorization: Bearer <token>` con el token de la cuenta de Yosiftware (audiencia `libros-api`), el que da el SDK de la plataforma (`yosiftware.token()` o `yosiftware.fetch()`). Es la unica forma de entrar: la sesion propia de Libros (Firebase, refresh, CSRF y telefono) se retiro con la adhesion. Errores y alcance de `restricciones` y `normasPendientes`: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md).
+- JWT: necesita `Authorization: Bearer <token>` con el token de la cuenta de Yosiftware (audiencia `libros-api`), el que da el SDK de la plataforma (`yosiftware.token()` o `yosiftware.fetch()`). Es la unica forma de entrar. Errores y alcance de `restricciones` y `normasPendientes`: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md).
 - Plugin de la administracion: `/admin/v1/*` solo responde por la propia maquina y con la credencial del plugin, nunca con un JWT ni por el tunel ([Plugin de la administración](#plugin-de-la-administración)). El rol (`usuario`, `administrador`, `moderador`) sigue en la base de Libros, por la cuenta de Yosiftware.
 
 ## Notas de datos
@@ -68,9 +68,9 @@ Este bloque es el contrato recomendado para las nuevas pantallas del front.
 - La coleccion de cada usuario vive en `/coleccion/*`.
 - Estados, puntuacion, resena, actividad y fechas historicas son personales por usuario.
 - Cambiar estado, puntuacion o resena de un libro/antologia lo anade automaticamente a la coleccion personal.
-- Los historicos de estado pueden corregirse por id historico desde `/coleccion/*/estados/{id}`; `DELETE` hace borrado logico con `id_estado = -1`.
+- Los historicos de estado pueden corregirse por id historico desde `/coleccion/historicos/{libros|antologias}/estados/{id}`; `DELETE` hace borrado logico con `id_estado = -1`.
 - Las entidades narrativas internas de libros, como capitulos, personajes, escenas, notas, entradas, conceptos, localizaciones, organizaciones, eventos y citas, pertenecen al usuario que las crea mediante `id_usuario_creador`.
-- Los ids de las entidades narrativas de `GET /libros/{id_libro}` (`Id`, `Id_Libro_Origen`, `Id_Localizacion`, `Id_Personaje`, `Id_Estado`) son enteros JSON, como declara OpenAPI. Hasta el 24/10/2026, localizaciones, organizaciones, eventos, conceptos y citas los devolvian como texto (`"64"`); el cliente debe compararlos como numeros.
+- Los ids de las entidades narrativas de `GET /libros/{id_libro}` (`Id`, `Id_Libro_Origen`, `Id_Localizacion`, `Id_Personaje`, `Id_Estado`) son enteros JSON, como declara OpenAPI.
 - En una saga, una entidad narrativa (personaje, localizacion, organizacion, evento, concepto o cita) solo se ve en el libro en que se creo (`saga_<entidad>.id_libro_origen`) y en los posteriores, contando las sagas previas como las listas de `GET /libros/{id_libro}`. Toda entidad mostrada dentro de otra en el contexto de un libro sigue esa regla: participantes de organizaciones (`/organizaciones/{id}/personajes|localizaciones?libroId=` y los ids embebidos), personajes de eventos, relaciones entre personajes (`?libroId=`) y personajes de escenas. La localizacion global (`Id = 1`) es siempre visible. Al reescribir desde un libro anterior la lista de personajes de una escena (`PUT /escenas/{id}`) o de un evento (`PATCH /eventos/{id}` con `LibroId`), los participantes que aun no existen en ese libro se conservan.
 - Las metricas de `/universos` y `/universos/metricas` son de coleccion privada: no cuentan catalogo completo ni contenido narrativo creado por otros usuarios.
 - **El ritmo de lectura** (`utils/reading_pace.py`). Sale de cuándo se registra cada capítulo, algo que se guarda desde el 2026-10-25; lo de antes no tiene fecha. El avance de un día es lo que sube la página más alta alcanzada en cada libro, con los días y las horas de Madrid.
@@ -226,7 +226,7 @@ Notas:
 
 ### Administracion del catalogo
 
-Desde la adhesion a Yosiftware, el catalogo canonico se administra **solo** desde el plugin de la administracion de la plataforma: [Plugin de la administración](#plugin-de-la-administración). Las antiguas rutas `/catalogo/admin/*` ya no existen ([RUTAS_RETIRADAS.md](RUTAS_RETIRADAS.md)). Lo que sigue describe las reglas del catalogo, que son las mismas en el plugin.
+El catalogo canonico se administra **solo** desde el plugin de la administracion de la plataforma: [Plugin de la administración](#plugin-de-la-administración). Lo que sigue describe las reglas del catalogo, que son las mismas en el plugin.
 
 `GET /catalogo/google-books/isbn/{isbn}` consulta metadatos externos como ayuda editorial y requiere JWT (lo usan las peticiones de catalogo); el plugin tiene su propia accion `isbn`.
 
@@ -291,15 +291,15 @@ Respuesta de detalle publico:
 
 `Estadisticas` solo agrega usuarios activos/verificados con `mostrar_estadisticas = 1`. `MiColeccion` es personal del usuario autenticado y no depende de esa preferencia.
 
-`MiColeccion.EnBiblioteca` indica la presencia de la obra en `usuario_libros` o `usuario_antologias`, independientemente de `EdicionesIds`. Tras retirar todas las ediciones mediante `PUT`, permanece `true` y conserva puntuación, reseña, su marca de ocultación, fechas y estados de la obra. Esos campos coinciden con `/coleccion/items` para la misma cuenta; los valores nulos siguen siendo válidos si nunca se guardaron. La posesión de una edición compartida cambia desde todas sus obras vinculadas, sin eliminar ninguna relación de colección. Corrección y estado de publicación: [guía de ediciones e ISBN](EDICIONES_ISBN_FRONT.md#respuesta-al-front-sobre-micoleccion).
+`MiColeccion.EnBiblioteca` indica la presencia de la obra en `usuario_libros` o `usuario_antologias`, independientemente de `EdicionesIds`. Tras retirar todas las ediciones mediante `PUT`, permanece `true` y conserva puntuación, reseña, su marca de ocultación, fechas y estados de la obra. Esos campos coinciden con `/coleccion/items` para la misma cuenta; los valores nulos siguen siendo válidos si nunca se guardaron. La posesión de una edición compartida cambia desde todas sus obras vinculadas, sin eliminar ninguna relación de colección. Corrección y estado de publicación: [guía de ediciones e ISBN](EDICIONES_ISBN_FRONT.md#selección-de-ejemplares).
 
 ### Coleccion personal
 
 Todos requieren JWT. Estos endpoints siempre trabajan sobre el usuario autenticado.
 
-Una seccion interna se identifica de forma canonica por la existencia de su `id_libro` en `antologia_libros`. Por definicion, cada `id_libro` de seccion pertenece a una unica antologia; el esquema lo impone con `UQ_antologia_libros_id_libro`. No aparece en `/coleccion/items`, `/coleccion/universos`, `/libros`, actividad reciente ni en la proyeccion Firestore de biblioteca. Las escrituras directas de estado, puntuacion, resena o historico de libro responden `409 anthology_section_collection_forbidden`; el cliente debe operar con la pareja `id_antologia` + `id_libro` desde el flujo propio de la antologia. El estado contextual conserva su historico en `fecha_estado_secciones_antologia`; la puntuacion y resena viven en `usuario_antologia_secciones`. Ninguna de estas tablas crea `usuario_libros`.
+Una seccion interna se identifica de forma canonica por la existencia de su `id_libro` en `antologia_libros`. Por definicion, cada `id_libro` de seccion pertenece a una unica antologia; el esquema lo impone con `UQ_antologia_libros_id_libro`. No aparece en `/coleccion/items`, `/coleccion/universos`, `/libros`, ni en la actividad reciente. Las escrituras directas de estado, puntuacion, resena o historico de libro responden `409 anthology_section_collection_forbidden`; el cliente debe operar con la pareja `id_antologia` + `id_libro` desde el flujo propio de la antologia. El estado contextual conserva su historico en `fecha_estado_secciones_antologia`; la puntuacion y resena viven en `usuario_antologia_secciones`. Ninguna de estas tablas crea `usuario_libros`.
 
-Estado de publicacion e instrucciones del cliente: [Secciones de antologia: integracion del front](SECCIONES_ANTOLOGIA_FRONT.md). El recorrido Android de estado y valoracion contextual fue confirmado por el front el 2026-09-06.
+Estado de publicacion e instrucciones del cliente: [Secciones de antologia: integracion del front](SECCIONES_ANTOLOGIA_FRONT.md).
 
 | Metodo | Ruta | Uso |
 |---|---|---|
@@ -330,7 +330,7 @@ Si la antologia no pertenece a la coleccion autenticada responde `404 anthology_
 
 ### Copias de seguridad
 
-Las copias se generan desde el plugin de la administracion (acciones `copias` y `copia`, [Plugin de la administración](#plugin-de-la-administración)). `GET /admin/backup`, que descargaba el ZIP, se retiro: el plugin solo recibe JSON.
+Las copias se generan desde el plugin de la administracion (acciones `copias` y `copia`, [Plugin de la administración](#plugin-de-la-administración)). El plugin solo recibe JSON.
 
 Respuesta de `/coleccion/items`:
 
@@ -528,18 +528,18 @@ Los usuarios normales usan este flujo para pedir altas o ediciones de catalogo. 
 | POST | `/peticiones/catalogo` | JWT | Crea una peticion. |
 | GET | `/peticiones/catalogo/mias?estado=activas` | JWT | Lista peticiones propias. `activas` incluye `pendiente` y `devuelta`. |
 | POST/PATCH | `/peticiones/catalogo/mias/{id}/responder` | JWT | Reenvia una peticion propia devuelta con un nuevo `Payload`. |
-| GET | `/admin/v1/peticiones?estado=pendiente` | Plugin de la administración | Lista peticiones (antes `GET /peticiones/catalogo`). |
+| GET | `/admin/v1/peticiones?estado=pendiente` | Plugin de la administración | Lista peticiones. |
 | POST | `/admin/v1/peticiones/{id}/resolucion` | Plugin de la administración | Aprueba, rechaza o devuelve el grupo pendiente; admite `Obra.ObraId` para seleccionar una obra existente (antes `PATCH /peticiones/catalogo/{id}/resolver`). |
 
 Cada usuario puede mantener como máximo cinco peticiones activas en total (`pendiente` o `devuelta`, de cualquier tipo). Al intentar crear la sexta, `POST /peticiones/catalogo` devuelve `409 catalog_active_request_limit`; las peticiones aprobadas y rechazadas no cuentan. El límite se comprueba dentro de una transacción que serializa las altas del mismo usuario.
 
 Las peticiones de `alta` de `libro` o `antologia` exigen `Payload.ISBN` como texto con ISBN-10 o ISBN-13, prefijo editorial válido y dígito de control válido. Se admiten espacios y guiones; el backend guarda el ISBN-13 equivalente. Valores de relleno como `0` o `0000000000000` se rechazan con `400 catalog_request_isbn_required` y `field: Payload.ISBN`, tanto al crear como al reenviar una petición devuelta. Los otros tipos de petición y las ediciones conservan sus reglas actuales.
 
-Las altas con el mismo ISBN comparten `GrupoISBN` y cada persona conserva su propia petición y cuota. Si ya tiene una activa de ese ISBN, `POST` responde `200` con su `Id` y no crea otra fila; si indica un tipo de obra distinto, responde `409 catalog_isbn_request_conflict`. Un ISBN ya vinculado a una única obra del mismo tipo se aprueba inmediatamente. Con ISBN nuevo, se aprueba y crea la edición si `Nombre` coincide con una sola obra y `Autores` representa exactamente el mismo conjunto de IDs o nombres existentes. Sin título, autores, coincidencia única o con un ISBN compartido entre obras, se deja pendiente de revisión. La cola `GET /peticiones/catalogo?estado=pendiente` y Notificapp muestran una entrada por grupo con `Participantes`; `/mias` sigue mostrando las filas individuales. Resolver la entrada pendiente aprueba, rechaza o devuelve a todos sus participantes pendientes en una transacción, con notificación e historial propio para cada uno. La respuesta incluye `ParticipantesResueltos`.
+Las altas con el mismo ISBN comparten `GrupoISBN` y cada persona conserva su propia petición y cuota. Si ya tiene una activa de ese ISBN, `POST` responde `200` con su `Id` y no crea otra fila; si indica un tipo de obra distinto, responde `409 catalog_isbn_request_conflict`. Un ISBN ya vinculado a una única obra del mismo tipo se aprueba inmediatamente. Con ISBN nuevo, se aprueba y crea la edición si `Nombre` coincide con una sola obra y `Autores` representa exactamente el mismo conjunto de IDs o nombres existentes. Sin título, autores, coincidencia única o con un ISBN compartido entre obras, se deja pendiente de revisión. La cola del plugin (`GET /admin/v1/peticiones?estado=pendiente`) y Notificapp muestran una entrada por grupo con `Participantes`; `/mias` sigue mostrando las filas individuales. Resolver la entrada pendiente aprueba, rechaza o devuelve a todos sus participantes pendientes en una transacción, con notificación e historial propio para cada uno. La respuesta incluye `ParticipantesResueltos`.
 
-La resolución es la acción `resolver_peticion` del plugin de la administración (`POST /admin/v1/peticiones/{id}/resolucion`, JSON; la web ya no resuelve). Al aprobar un alta de obra admite `{"Estado":"aprobada","Obra":{"ObraId":53}}`: el tipo y el ISBN provienen de la petición; se crea o reutiliza una edición de la obra seleccionada y se devuelve `EntidadId`, `EdicionId` y `ParticipantesResueltos`. Una edición nueva usa `Obra.FechaPublicacion` o, si se omite, `Payload.FechaPublicacion`; su portada inicial es `nocover.png`. Una edición existente conserva sus datos. `Obra.VincularEdicionId` autoriza en la misma transacción un ISBN compartido exclusivamente al administrador. No se admite `Obra.ISBN` en la selección de una obra existente. No acepta imagen: la portada se edita después con la acción `editar_edicion` del plugin. Ejemplos, permisos, errores y diferencias con Notificapp: [EDICIONES_ISBN_FRONT.md](EDICIONES_ISBN_FRONT.md#resolver-desde-la-web-contra-una-obra-existente).
+La resolución es la acción `resolver_peticion` del plugin de la administración (`POST /admin/v1/peticiones/{id}/resolucion`, JSON; la web no resuelve). Al aprobar un alta de obra admite `{"Estado":"aprobada","Obra":{"ObraId":53}}`: el tipo y el ISBN provienen de la petición; se crea o reutiliza una edición de la obra seleccionada y se devuelve `EntidadId`, `EdicionId` y `ParticipantesResueltos`. Una edición nueva usa `Obra.FechaPublicacion` o, si se omite, `Payload.FechaPublicacion`; su portada inicial es `nocover.png`. Una edición existente conserva sus datos. `Obra.VincularEdicionId` autoriza en la misma transacción un ISBN compartido exclusivamente al administrador. No se admite `Obra.ISBN` en la selección de una obra existente. No acepta imagen: la portada se edita después con la acción `editar_edicion` del plugin. Ejemplos, permisos, errores y diferencias con Notificapp: [EDICIONES_ISBN_FRONT.md](EDICIONES_ISBN_FRONT.md#resolver-contra-una-obra-existente).
 
-Tras confirmar una petición nueva en producción, el backend envía un aviso privado al propietario mediante Notificapp. También avisa al abrir un grupo nuevo de reportes de reseña (`books_review_report`) o una denuncia de un club, de una publicación o de un comentario de club (`books_community_report`); las alegaciones son de la plataforma. El fallo de ese canal no cambia la respuesta HTTP; se conserva para reintento local. El paquete y las operaciones del panel se describen en [NOTIFICAPP.md](NOTIFICAPP.md).
+Tras confirmar una petición nueva en producción, el backend envía un aviso privado al propietario mediante Notificapp. Con la IA encendida (`LIBROS_PETICIONES_IA`, IA1), el de un alta de libro o antología espera a su propuesta, como mucho 15 minutos, y la lleva en el cuerpo ([NOTIFICAPP.md](NOTIFICAPP.md)); la respuesta de `POST /peticiones/catalogo` no cambia. También avisa al abrir un grupo nuevo de reportes de reseña (`books_review_report`) o una denuncia de un club, de una publicación o de un comentario de club (`books_community_report`); las alegaciones son de la plataforma. El fallo de ese canal no cambia la respuesta HTTP; se conserva para reintento local. El paquete y las operaciones del panel se describen en [NOTIFICAPP.md](NOTIFICAPP.md).
 
 En el panel de Notificapp, aprobar un alta de `libro` o `antologia` exige `Obra` con nombre, al menos un autor y una ubicación en universo o saga. `Obra.Autores` recoge IDs existentes y `Obra.AutoresNuevos` puede incluir hasta 20 fichas nuevas con nombre obligatorio, idioma natal, estilos y un lugar de origen existente (`LugarOrigenId`, incluido `0`) o nuevo (`LugarOrigenNombre`); los demás campos de autor son opcionales. El detalle ofrece `Opciones.LugaresOrigen` junto a autores, universos, sagas, idiomas y estilos. La API reutiliza por nombre normalizado o crea el lugar, crea los autores, crea la obra y sus relaciones, obtiene `EntidadId`, marca la petición como aprobada y genera la notificación propia dentro de **una misma transacción**. La notificación nunca se confirma antes de existir el libro o la antología. El formulario permite completar ISBN, páginas, fecha de publicación, sinopsis, wiki, titular creativo del libro, idiomas y estilos cuando correspondan. Una edición actualiza la ficha existente en esa misma transacción. La portada es opcional: con imagen, Notificapp envía `multipart/form-data` con `payload` JSON e `image` PNG/JPEG/WebP de hasta 10 MiB a la misma ruta privada; la API valida, normaliza, guarda y enlaza el archivo antes de confirmar la transacción. Sin imagen se mantiene JSON y la portada provisional. La respuesta con imagen incluye `Portada`.
 
@@ -665,8 +665,8 @@ Usuarios autenticados pueden reportar resenas visibles. La moderacion recibe gru
 |---|---|---|---|
 | POST | `/reportes` | JWT | Reporta una resena de libro o antologia. |
 | GET | `/reportes/mios?estado=activas` | JWT | Lista reportes creados por el usuario. `activas` incluye pendientes. |
-| GET | `/admin/v1/reportes?estado=pendiente` | Plugin de la administración | Lista grupos de reportes (antes `/moderacion/reportes`). |
-| POST | `/admin/v1/reportes/{id}/resolucion` | Plugin de la administración | Acepta o rechaza un grupo completo; al aceptar puede registrar un incidente (antes `/moderacion/reportes/{id}/resolver`). |
+| GET | `/admin/v1/reportes?estado=pendiente` | Plugin de la administración | Lista grupos de reportes. |
+| POST | `/admin/v1/reportes/{id}/resolucion` | Plugin de la administración | Acepta o rechaza un grupo completo; al aceptar puede registrar un incidente. |
 
 Crear reporte:
 
@@ -750,7 +750,7 @@ Errores comunes:
 
 ### Moderacion de cuentas
 
-La moderación de cuentas es de la plataforma (`ecosistema-kit/MODERACION.md`): Libros ya no tiene casos, etapas, sanciones, alegaciones, incidentes ni políticas `uso` y `creacion` con su aceptación. Lo limitado llega en el token (`restricciones`, `normasPendientes`) y lo aplica la guardia de la API (`403 platform_restriction_active` y `403 platform_rules_acceptance_required`, [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md)). `uso` pasa a las normas de uso comunes y `creacion`, a las normas propias de Libros que publica la plataforma. Libros sigue moderando su contenido (las denuncias de reseñas, de clubes y de publicaciones de club); cuando una merezca avisar o sancionar a la cuenta, registrará un incidente en la plataforma (`utils/platform_moderation.py`, pendiente). Rutas retiradas: `RUTAS_RETIRADAS.md`.
+La moderación de cuentas (casos, sanciones, alegaciones y normas con su aceptación) es de la plataforma (`ecosistema-kit/MODERACION.md`). Lo limitado llega en el token (`restricciones`, `normasPendientes`) y lo aplica la guardia de la API (`403 platform_restriction_active` y `403 platform_rules_acceptance_required`, [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md)). Las normas de uso son las comunes y las de creación, las normas propias de Libros que publica la plataforma. Libros modera su contenido (las denuncias de reseñas, de clubes y de publicaciones de club) y, cuando una merece avisar o sancionar a la cuenta, registra un incidente en la plataforma ([Incidentes](#plugin-de-la-administración)). Rutas retiradas: `RUTAS_RETIRADAS.md`.
 
 ### Plugin de la administración
 
@@ -767,12 +767,12 @@ Todo el panel de administración de Libros es el plugin `libros` de la administr
 | Acción | Método | Ruta (`/admin/v1` +) | Qué hace |
 |---|---|---|---|
 | `resumen` | GET | `/resumen` | Cuentas por estado y rol y las tres colas pendientes. |
-| `estadisticas` | GET | `/estadisticas` | Peticiones de catálogo por estado y desglose (antes `/catalogo/admin/estadisticas/peticiones`). |
+| `estadisticas` | GET | `/estadisticas` | Peticiones de catálogo por estado y desglose. |
 | `roles` | GET | `/roles` | Roles de Libros. |
 | `usuarios` | GET | `/usuarios` | Usuarios locales con `IdGlobal` (su cuenta de Yosiftware), alias, rol y estado; `q` busca por alias o por `IdGlobal` exacto; `rolId`, `estadoId`, `limit` y cursor. |
 | `rol` | POST | `/usuarios/{id}/rol` | `{ RolId, Motivo }`; no cambia el rol de la propia cuenta ni retira el último administrador activo. |
 | `peticiones` | GET | `/peticiones` | Cola de peticiones de catálogo (`estado`). |
-| `resolver_peticion` | POST | `/peticiones/{id}/resolucion` | `{ Estado, Comentario?, Obra? }`, como antes. |
+| `resolver_peticion` | POST | `/peticiones/{id}/resolucion` | `{ Estado, Comentario?, Obra? }` ([Peticiones de catalogo](#peticiones-de-catalogo)). |
 | `catalogo` | GET | `/catalogo/{tipo}` | Lista `libros`, `antologias`, `autores` (estos tres con `page` y `pageSize` obligatorios), `universos`, `sagas`, `idiomas`, `estilos`, `lugares-origen` o `estados-localizacion`; `q` filtra. |
 | `crear` | POST | `/catalogo/{tipo}` | Alta en `libros`, `antologias`, `autores`, `universos`, `sagas` (cuerpo editorial; obras con `Imagen`), `idiomas` (`Nombre`, `Codigo`), `estilos` o `estados-localizacion` (`Nombre`). |
 | `ficha` | GET | `/catalogo/fichas/{id}?tipo=` | Ficha editable de un `libro` o una `antologia` (autores, idiomas, estilos, saga con orden o universo, ediciones, secciones o antología a la que pertenece), `autor`, `universo` o `saga`. |
@@ -781,8 +781,8 @@ Todo el panel de administración de Libros es el plugin `libros` de la administr
 | `ediciones` | GET | `/catalogo/fichas/{id}/ediciones?tipo=` | Ediciones de la obra. |
 | `crear_edicion` | POST | `/catalogo/fichas/{id}/ediciones?tipo=` | Edición nueva (`ISBN`, `FechaPublicacion?`, `Imagen?`) o compartida (`VincularEdicionId`). |
 | `editar_edicion` | POST | `/catalogo/ediciones/{id}` | `ISBN`, `FechaPublicacion` o `Imagen`. |
-| `crear_seccion` | POST | `/catalogo/antologias/{id}/secciones` | Sección nueva: `Nombre`, `Autores`, `PaginaInicio`, `PaginaFinal` y, opcionales, los datos editoriales e `Imagen` (antes `POST /antologias/secciones`; `Estado` ya no es obligatorio). |
-| `editar_seccion` | POST | `/catalogo/secciones/{id}` | Edición parcial de la sección (el libro `{id}`; la antología se deduce), con `Imagen` (antes `PATCH /antologias/secciones`). |
+| `crear_seccion` | POST | `/catalogo/antologias/{id}/secciones` | Sección nueva: `Nombre`, `Autores`, `PaginaInicio`, `PaginaFinal` y, opcionales, los datos editoriales e `Imagen`; `Estado` no es obligatorio. |
+| `editar_seccion` | POST | `/catalogo/secciones/{id}` | Edición parcial de la sección (el libro `{id}`; la antología se deduce), con `Imagen`. |
 | `fusionar_lugar` | POST | `/catalogo/lugares-origen/{id}/fusion` | `{ DestinoId }`: los autores pasan al destino y el lugar se borra. |
 | `isbn` | GET | `/catalogo/isbn/{isbn}` | Metadatos de Google Books (con la portada como `data:`). |
 | `reportes` | GET | `/reportes` | Denuncias de reseñas (`estado`: `pendiente`, `aceptado`, `rechazado`, `todos`). |
@@ -794,44 +794,42 @@ Todo el panel de administración de Libros es el plugin `libros` de la administr
 | `copia` | POST | `/copias` | Empieza en segundo plano una copia completa (`202`): actualiza los SQL canónicos del entorno y deja el ZIP en `.runtime/copias/`. En QA, `409 admin_backup_unavailable_in_qa`; con otra en curso, `409 admin_backup_in_progress`. |
 | `auditoria` | GET | `/auditoria` | Auditoría de las escrituras administrativas, filtrable y paginada. |
 
-**Incidentes** (decisión 10 de la petición): al aceptar una denuncia de reseña o de club, `Incidente: { Caso, Mensaje }` registra, después de confirmar y en segundo plano, un incidente en la plataforma a la cuenta de quien escribió lo denunciado (`POST /v1/servicio/moderacion/incidentes`, `idExterno` `reporte-resena-{id}` o `denuncia-comunidad-{id}`, así que repetir no duplica). La plataforma aplica la escalera del caso. Sin `Incidente`, la resolución no avisa ni sanciona a la cuenta, como antes.
-
-La gestión de cuentas (estado, intentos de teléfono, ficha de cuenta con incidentes y la lectura de cuentas para moderadores) se retiró con la adhesión a Yosiftware: la cuenta y su moderación son de la plataforma.
+**Incidentes** (decisión 10 de la petición): al aceptar una denuncia de reseña o de club, `Incidente: { Caso, Mensaje }` registra, después de confirmar y en segundo plano, un incidente en la plataforma a la cuenta de quien escribió lo denunciado (`POST /v1/servicio/moderacion/incidentes`, `idExterno` `reporte-resena-{id}` o `denuncia-comunidad-{id}`, así que repetir no duplica). La plataforma aplica la escalera del caso. Sin `Incidente`, la resolución no avisa ni sanciona a la cuenta.
 
 ### Chat
 
-El chat propio de Libros (directos, grupos, invitaciones a grupos, mensajes, reacciones, respuestas, el archivo de sistema, la conversación de cada club, las ventanas flotantes y los tickets de WebSocket) se retiró con la adhesión a Yosiftware: la web usa el chat de la plataforma pintado por Libros (`ecosistema-kit/CHAT.md`, rutas `/v1/chat/…`). La conversación de cada club es la conversación de su espacio (`ConversacionId` en el detalle del club; fase 4). Rutas retiradas y recambios: `RUTAS_RETIRADAS.md`.
+El chat es el de la plataforma, pintado por Libros (`ecosistema-kit/CHAT.md`, rutas `/v1/chat/…`). La conversación de cada club es la de su espacio (`ConversacionId` en el detalle del club). Rutas retiradas y recambios: `RUTAS_RETIRADAS.md`.
 
-`GET /comunidad/resumen` devuelve el contador privado de clubes de la portada social: `Resumen.Clubes.Activos` (clubes no borrados en los que la persona es miembro activo). Ya no incluye relaciones, mensajes ni `Resumen.Clubes.InvitacionesPendientes`: las invitaciones son de la plataforma desde la fase 4 y la web las cuenta con `GET /v1/espacios/invitaciones` (o `yosiftware.espacios.invitaciones()`) y el token de la persona.
+`GET /comunidad/resumen` devuelve el contador privado de clubes de la portada social: `Resumen.Clubes.Activos` (clubes no borrados en los que la persona es miembro activo). Las invitaciones son de la plataforma: la web las cuenta con `GET /v1/espacios/invitaciones` (o `yosiftware.espacios.invitaciones()`) y el token de la persona.
 
 ### Notificaciones
 
-El centro de notificaciones propio (`/notificaciones/*`), sus preferencias por categoría y canal, el registro de dispositivos FCM y el push propio se retiraron con la adhesión a Yosiftware (decisión 7 de la petición de migración): las notificaciones son de la plataforma (`ecosistema-kit/NOTIFICACIONES.md`) y la web las enseña con `<yosi-notificaciones>`; el push lo envía la plataforma. El backend avisa por un único punto, `utils/platform_notifications.notificar()`: después de confirmar la transacción, en segundo plano, a la cuenta de la persona (`POST /v1/servicio/notificaciones`) y con un `idExterno` estable; declara su catálogo de tipos al arrancar y retira los avisos que dejan de valer. Catálogo y textos: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md). Los mensajes de sistema que cada notificación creaba en el chat desaparecen con el chat propio.
+Las notificaciones y su push son de la plataforma (`ecosistema-kit/NOTIFICACIONES.md`); la web las enseña con `<yosi-notificaciones>`. El backend avisa por un único punto, `utils/platform_notifications.notificar()`: después de confirmar la transacción, en segundo plano, a la cuenta de la persona (`POST /v1/servicio/notificaciones`) y con un `idExterno` estable; declara su catálogo de tipos al arrancar y retira los avisos que dejan de valer. Catálogo y textos: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md).
 
 ### Gates propios
 
 Las normas pendientes las indica el token de la plataforma (`normasPendientes`): mientras falten, la API responde `403 platform_rules_acceptance_required` a todo salvo las lecturas de arranque (listados de autores, universos, sagas y catálogos auxiliares, el resumen de colección, las capacidades y el usuario local propio, `GET /usuarios/me`). La reacción esperada del cliente está en `ERRORES_Y_GATES.md`.
 
-`GET /comunidad/capacidades` entrega las banderas de despliegue de interfaz para la cuenta autenticada y una versión semver declarada en `X-Client-Version` (o `clientVersion`). La respuesta contiene `VersionConfiguracion`, `CacheTtlSegundos`, `FechaExpiracion` y las capacidades `feed` y `clubes` (las de sanciones, tiempo real, notificaciones y chat se retiraron con la adhesión: son de la plataforma). Sin versión válida, con expiración o ante `503 community_capabilities_unavailable`, tratar todas como desactivadas y conservar sesión y biblioteca. Estas banderas no reemplazan los gates de la plataforma (`restricciones`, `normasPendientes`) ni los de audiencia o membresía ya aplicados en servidor.
+`GET /comunidad/capacidades` entrega las banderas de despliegue de interfaz para la cuenta autenticada y una versión semver declarada en `X-Client-Version` (o `clientVersion`). La respuesta contiene `VersionConfiguracion`, `CacheTtlSegundos`, `FechaExpiracion` y las capacidades `feed` y `clubes`. Sin versión válida, con expiración o ante `503 community_capabilities_unavailable`, tratar todas como desactivadas y conservar sesión y biblioteca. Estas banderas no reemplazan los gates de la plataforma (`restricciones`, `normasPendientes`) ni los de audiencia o membresía ya aplicados en servidor.
 
 ### Relaciones
 
-Las amistades, los seguimientos, los bloqueos, sus solicitudes y los perfiles públicos de comunidad son de la plataforma (`ecosistema-kit/SOCIAL.md`): Libros ya no guarda ni consulta relaciones. Lo que la web enseña de otras personas sale del feed de cambios, que copia el alias en `usuarios.nombre` (los campos `Nombre` de autores de debates, publicaciones, miembros, solicitudes e invitaciones de clubes). El catálogo de `error.code` de gates está en [ERRORES_Y_GATES.md](ERRORES_Y_GATES.md).
+Las amistades, los seguimientos, los bloqueos, sus solicitudes y los perfiles públicos de comunidad son de la plataforma (`ecosistema-kit/SOCIAL.md`): Libros no guarda ni consulta relaciones. Lo que la web enseña de otras personas sale del feed de cambios, que copia el alias en `usuarios.nombre` (los campos `Nombre` de autores de debates, publicaciones, miembros, solicitudes e invitaciones de clubes). El catálogo de `error.code` de gates está en [ERRORES_Y_GATES.md](ERRORES_Y_GATES.md).
 
-- El muro general se retiró con las novedades de la plataforma (decisión 2 de la petición de migración): solo quedan las publicaciones de los clubes.
-- Los listados de clubes y debates ya no filtran por bloqueos: los bloqueos de la plataforma se aplican al chat, a las notificaciones y a las invitaciones de los espacios.
-- Para invitar a alguien, el frontend busca personas en la plataforma (`GET /v1/personas?q=`) e invita con `POST /v1/espacios/{EspacioId}/invitaciones` (fase 4).
+- Solo hay publicaciones en los clubes; la actividad de lectura va a las novedades de la plataforma.
+- Los listados de clubes y debates no filtran por bloqueos: los bloqueos de la plataforma se aplican al chat, a las notificaciones y a las invitaciones de los espacios.
+- Para invitar a alguien, el frontend busca personas en la plataforma (`GET /v1/personas?q=`) e invita con `POST /v1/espacios/{EspacioId}/invitaciones`.
 
 ### Clubes en los espacios de la plataforma
 
-Desde la fase 4 de la adhesión, cada club es un **espacio** de la plataforma Yosiftware (`ecosistema-kit/ESPACIOS.md`): la pertenencia (quién está, con qué rol, cómo se entra, las invitaciones, las solicitudes y sus avisos), la conversación y el canal de tiempo real son de la plataforma; las lecturas, el progreso, los hitos, el calendario, las encuestas, los debates y las publicaciones siguen en Libros. Guía para el frontend: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md).
+Cada club es un **espacio** de la plataforma Yosiftware (`ecosistema-kit/ESPACIOS.md`): la pertenencia (quién está, con qué rol, cómo se entra, las invitaciones, las solicitudes y sus avisos), la conversación y el canal de tiempo real son de la plataforma; las lecturas, el progreso, los hitos, el calendario, las encuestas, los debates y las publicaciones siguen en Libros. Guía para el frontend: [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md).
 
 - `POST /clubes-lectura` crea el club y su espacio (`idExterno` `club-<Id>`) a nombre de quien lo crea, que tiene su propiedad, en la misma transacción: si la plataforma falla responde `503 club_space_unavailable` (u otro `club_space_*`, en OpenAPI) y no crea nada. Devuelve `{ Id, EspacioId }`. `abierto` es un espacio con `entrada: "abierto"`; `cerrado`, con `entrada: "solicitud"` (se pide y también se invita). Editar el nombre o la visibilidad (`PATCH /clubes-lectura/{id}`) lo lleva al espacio tras confirmar; borrar el club borra su espacio y restaurarlo crea uno nuevo con quien lo tiene como único miembro.
-- Los clubes (`GET /clubes-lectura`, `/mios`, `/resumen` y el detalle) traen `EspacioId`; el detalle, además, `ConversacionId` (la conversación del espacio en el chat de la plataforma; `null` hasta que la plataforma la da). `EstadoMembresia` es `miembro` o `disponible`; `GET /clubes-lectura/resumen` ya no trae `BandejasAcceso`.
-- **Entrar, pedir entrar, invitar, aceptar, rechazar y salir** los hace la persona con el token de la plataforma: `POST /v1/espacios/{EspacioId}/entrar`, `POST …/solicitudes`, `POST …/invitaciones`, `POST /v1/espacios/invitaciones/{id}/aceptar` y `DELETE /v1/espacios/{EspacioId}/miembros/yo` (o `yosiftware.espacios` del SDK). Las rutas propias se retiraron: `RUTAS_RETIRADAS.md`.
+- Los clubes (`GET /clubes-lectura`, `/mios`, `/resumen` y el detalle) traen `EspacioId`; el detalle, además, `ConversacionId` (la conversación del espacio en el chat de la plataforma; `null` hasta que la plataforma la da). `EstadoMembresia` es `miembro` o `disponible`.
+- **Entrar, pedir entrar, invitar, aceptar, rechazar y salir** los hace la persona con el token de la plataforma: `POST /v1/espacios/{EspacioId}/entrar`, `POST …/solicitudes`, `POST …/invitaciones`, `POST /v1/espacios/invitaciones/{id}/aceptar` y `DELETE /v1/espacios/{EspacioId}/miembros/yo` (o `yosiftware.espacios` del SDK). Recambios de las rutas retiradas: `RUTAS_RETIRADAS.md`.
 - **Expulsar** (`DELETE /clubes-lectura/{id}/miembros/{userId}`) y **cambiar el rol** (`PATCH …`, `moderador` o `miembro`) siguen en Libros para la propiedad del club: la API los hace en el espacio con su credencial de servicio en la misma transacción. Quien es expulsado recibe `club.expulsion` y solo vuelve con una invitación.
 - La API autoriza con su copia del feed (`club_miembros`, solo `estado = 'activo'`): un cambio hecho en la plataforma (entrar, salir, un rol, un traspaso de la propiedad) se nota en Libros cuando el lector del feed lo aplica (cada 5 minutos o al aviso de NATS). Los roles de Libros son los de siempre: `propietario` (la propiedad del espacio), `moderador` (rol `moderacion` del espacio) y `miembro`.
-- El límite de tres clubes por persona ya no existe (decide la plataforma: 300 espacios por cuenta); sigue el de crear un solo club.
+- Cada persona crea como mucho un club (`409 club_owner_limit_reached`); en cuántos está lo limita la plataforma (300 espacios por cuenta).
 - Los eventos `club.updated`, `club.reading_updated`, `club.milestone_*` y `club.event_*` se publican en el canal del espacio tras confirmar: `{ "tipo", "ClubId", … }` en `mensaje.datos` (`yosiftware.espacios.canal(EspacioId, …)`).
 - `GET /clubes-lectura/mios` lista todas las membresías activas, incluidos clubes cerrados o retirados del descubrimiento; nunca incluye eliminados.
 - `GET /clubes-lectura/mios/eventos/proximos` pagina por `cursorFechaInicio` + `cursorId`; `/clubes-lectura/mios/actividad` usa `cursorFecha` + `cursorTipo` + `cursorId`. Las tarjetas no exponen cuerpos, votos, progreso, expulsiones ni auditoría.
@@ -856,12 +854,12 @@ Desde la fase 4 de la adhesión, cada club es un **espacio** de la plataforma Yo
 ### Denuncias de contenido y clubes
 
 - `POST /comunidad/denuncias` admite `publicacion`, `comentario` y `club`. Las denuncias de perfiles y de mensajes son de la plataforma (`yosiftware.denunciar()` o su interfaz con la API) y responden `400 invalid_content_report`. El backend valida el acceso y crea el snapshot de moderación; no aceptar texto aportado por el cliente.
-- La cola se gestiona desde el plugin de la administración (`denuncias` y `resolver_denuncia`; antes `GET|POST|PATCH /moderacion/comunidad/denuncias`), con sus medidas de contenido y, al aceptar, el incidente opcional. `club_retirado_descubrimiento|club_restaurado_descubrimiento` solo afectan al directorio público, no a miembros ni histórico. Los grupos archivados de perfiles y mensajes siguen apareciendo en la cola y solo se cierran (sin medida).
+- La cola se gestiona desde el plugin de la administración (`denuncias` y `resolver_denuncia`), con sus medidas de contenido y, al aceptar, el incidente opcional. `club_retirado_descubrimiento|club_restaurado_descubrimiento` solo afectan al directorio público, no a miembros ni histórico. Los grupos antiguos de perfiles y mensajes siguen en la cola y solo se cierran, sin medida.
 - Resolver un grupo de una publicación, un comentario o un club avisa a la fuente (`club.contenido_revisado`) y a cada denunciante (`club.denuncia_resuelta`) con notificaciones de la plataforma, y retira el aviso de la cola. No exponen motivos, contenido, terceros ni moderador. Las publicaciones y comentarios que se pueden denunciar son solo los de los clubes.
 
 ### Publicaciones de los clubes
 
-- Se publica con `POST /clubes-lectura/{id}/publicaciones` (audiencia `club`; `ClubId`, si se envía, debe coincidir con la ruta) y se lee con `GET /clubes-lectura/{id}/publicaciones`. El muro general (`GET` y `POST /comunidad/publicaciones`, audiencias `publico`, `seguidores` y `amigos`) se retiró. Editar, borrar, comentar y reaccionar siguen en `/comunidad/publicaciones/{id}…`, solo para publicaciones de un club (las del muro antiguo responden `404 post_not_found`).
+- Se publica con `POST /clubes-lectura/{id}/publicaciones` (audiencia `club`; `ClubId`, si se envía, debe coincidir con la ruta) y se lee con `GET /clubes-lectura/{id}/publicaciones`. Editar, borrar, comentar y reaccionar siguen en `/comunidad/publicaciones/{id}…`, solo para publicaciones de un club (las del muro antiguo responden `404 post_not_found`).
 - Solo publica quien sea miembro activo de un club no eliminado. Un club retirado del descubrimiento sigue siendo publicable por sus miembros. Un destino inválido, eliminado o sin membresía responde `404 club_post_target_unavailable` sin distinguir la causa.
 
 ### Spoilers en comentarios de Comunidad
@@ -870,7 +868,7 @@ Desde la fase 4 de la adhesión, cada club es un **espacio** de la plataforma Yo
 - Cuando el padre tiene spoiler, un contexto explícito debe usar el mismo libro y abarcar su rango. No se admiten `AntologiaId` ni un `LibroId` alternativo: responde `400 comment_spoiler_incompatible_with_post` sin exponer progreso ni datos de terceros.
 - `invalid_comment_spoiler`, `invalid_comment_spoiler_range` e `invalid_comment_spoiler_chapter` indican un cuerpo estructurado inválido. La lectura conserva `revelarSpoilers=true` como acción explícita y el ocultado por progreso.
 
-### Guia de migracion para el front
+### Qué ruta usar en cada pantalla
 
 - Para la pantalla "todos los libros guardados en la web", usar `/catalogo/libros` y `/catalogo/antologias`.
 - Para "mi coleccion", usar `/coleccion/items`.
@@ -914,7 +912,7 @@ Respuesta OK:
 
 | Método | Ruta | Permiso | Descripción |
 |---|---|---|---|
-| GET | `/runtime-config` | Público | Identificador de entorno y versión del dataset QA. Firebase y el WebSocket propio se retiraron con la adhesión. Nunca expone secretos. |
+| GET | `/runtime-config` | Público | Identificador de entorno y versión del dataset QA. Nunca expone secretos. |
 | GET | `/qa/fixtures` | Secreto CI QA | Resuelve aliases estables del dataset QA; no existe fuera de QA. |
 | GET | `/qa/status` | Secreto CI QA | Semaforo tipado de escenario, reset, lease, capacidades, componentes e identidad de despliegue; admite `X-QA-Lease-Id` opcional sin devolverlo. |
 | POST | `/qa/lease/acquire` | Secreto CI QA | Adquiere durante 10 minutos la exclusión global de campaña. |
@@ -922,7 +920,7 @@ Respuesta OK:
 | DELETE | `/qa/lease/{lease_id}` | Secreto CI QA | Libera idempotentemente la lease propia. |
 | POST | `/qa/reset` | Secreto CI QA + lease | Restaura baseline y aplica un perfil QA cerrado; exige `X-QA-Lease-Id` y no existe fuera de QA. |
 
-Las rutas `/qa/*` no tienen CORS y no se llaman desde JavaScript de navegador. Requieren `X-QA-Reset-Token`, `LIBROS_ENVIRONMENT=qa`, reset habilitado y la marca de base QA. Los perfiles permitidos son `baseline`, `expired-sessions`, `rate-limited` y `realtime-recovery` (`version-conflict` se retiró en la fase 4 de la adhesión con los clubes de la provisión). `GET /qa/status` separa la aptitud para iniciar una campaña de las capacidades `Reset`/`Cleanup`: una variación diagnóstica de release nunca invalida por sí sola el cleanup de una lease activa. Consultar [ENTORNO_QA.md](../qa/ENTORNO_QA.md) para operación, rotación y fixtures.
+Las rutas `/qa/*` no tienen CORS y no se llaman desde JavaScript de navegador. Requieren `X-QA-Reset-Token`, `LIBROS_ENVIRONMENT=qa`, reset habilitado y la marca de base QA. Los perfiles permitidos son `baseline`, `expired-sessions`, `rate-limited` y `realtime-recovery`. `GET /qa/status` separa la aptitud para iniciar una campaña de las capacidades `Reset`/`Cleanup`: una variación diagnóstica de release nunca invalida por sí sola el cleanup de una lease activa. Consultar [ENTORNO_QA.md](../qa/ENTORNO_QA.md) para operación, rotación y fixtures.
 
 Respuesta sin BD:
 

@@ -1,6 +1,6 @@
 # Notificaciones de sesión y preferencias
 
-> Estado: finalizado. Checklist manual asociada pendiente de ejecución visual: `docs/pruebas/notifications/[pendiente][notificaciones-sesion-y-preferencias].md`.
+> Estado: finalizado. Checklist manual asociada pendiente de ejecución visual: `docs/pruebas/notifications/[finalizado][notificaciones-sesion-y-preferencias].md`.
 
 ## Objetivo
 

@@ -6,7 +6,7 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
 
 ## Implementaciones pendientes
 
-Las comprobaciones de contrato, regresion, accesibilidad y experiencia manual se mantienen exclusivamente en `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md`.
+Las comprobaciones de contrato, regresion, accesibilidad y experiencia manual se mantienen exclusivamente en `docs/pruebas/community/[finalizado][comunidad-notificaciones-realtime].md`.
 
 - [x] **1. Completar gates, sanciones y limites de producto.**
   - **Descripcion:** terminar de aplicar las restricciones efectivas de politicas y sanciones en todas las capacidades sociales afectadas.

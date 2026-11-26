@@ -1,65 +1,62 @@
 # Integración de Libros con Notificapp
 
-## Versión 1.2.0 (estética nueva de Notificapp, 2026-11-05): publicada
-
-Sin cambios de contrato: mismas acciones, rutas, `eventKinds`, `onSuccess`, `eventExternalId` y textos. El panel usa el bloque «Estética de Notificapp» del kit (variables de Terminal, Claro y Bento y el script que fija `data-style` con `Notificapp.getStyle()`, con respaldo a `getTheme()` y al tema del sistema) y trae `ui/icon.png` (el icono de la app, 192 × 192). Publicada por actualización remota con `pack.py` y `publish.py` del kit vigente (`docs/notificapp-plugin-kit/`); SHA-256 del ZIP `f31e7d177eb62c73de3094d9618887c1ebc2540d80337916d7b07b65aaf7eddc`.
-
-## Versión 1.1.0 (adhesión a Yosiftware, 2026-10-24): pendiente de instalar en el corte
-
-Decisión 12 de la petición de migración. El plugin `libros-api` pasa de la 1.0.8 a la **1.1.0**:
-
-- `books_request` sigue igual, con sus acciones (`list`, `detail`, `respond` y `respond_image`) y `onSuccess: "answered"` en las dos que resuelven.
-- `books_review_report` sigue igual (denuncias de reseñas).
-- `books_community_report` queda solo para los clubes, sus publicaciones y sus comentarios: las denuncias de perfiles y mensajes son de la plataforma y ya no llegan a Libros.
-- **`books_appeal` desaparece** con la moderación de cuentas propia (las alegaciones son de la plataforma).
-- El panel rotula las denuncias («Denuncia de reseña», «Denuncia en un club») y recuerda que se resuelven en el plugin de Libros de la **administración de Yosiftware** (las colas de denuncias, con su incidente opcional, están allí: [ENDPOINTS.md](ENDPOINTS.md#plugin-de-la-administración)). Las peticiones de catálogo se siguen resolviendo desde aquí.
-
-Quitar un tipo de `eventKinds` cambia los permisos del plugin: **no se publica con `publish.py`**. El ZIP (`.runtime/entregas/libros-api-1.1.0.notificapp.zip`, hecho con `pack.py` del kit; la lectura del paquete de Notificapp lo acepta) se entrega al propietario, que lo instala en el corte con `plugin_cli upgrade` y vuelve a activar después las actualizaciones remotas si las quiere ([ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md#el-plugin-de-notificapp-libros-api-110)). Hasta entonces la 1.0.8 instalada sigue con las alegaciones de producción, que desaparecen justo en el corte.
-
-Las rutas `/notificapp/v1/…` no cambian y no dependen de nada retirado en las fases 3 y 4: leen `peticiones_catalogo`, `usuarios` y el catálogo, resuelven con la misma vista que el plugin de la administración y avisan a la persona con las notificaciones de la plataforma tras confirmar (comprobado por `tests/test_notificapp_plugin.py` y `tests/test_notificapp_manifest.py`).
-
-## Historial
-
-La versión 1.0.8 del plugin declara `onSuccess: "answered"` en `respond` y `respond_image`. Notificapp asocia la acción al aviso que abrió el panel y, solo si Libros devuelve HTTP 2xx con JSON válido tras resolver la petición, lo mueve a la bandeja «Respondidas». Los errores HTTP y las cancelaciones dejan el aviso en su bandeja. Las APK anteriores a 0.3.11 todavía pueden responder, pero no envían el identificador del aviso y no pueden moverlo automáticamente. La versión se revisó e instaló localmente porque `onSuccess` cambia el permiso de la acción; se reactivaron después las actualizaciones remotas. La API de Libros y su contrato de respuesta no cambiaron. La petición real #2, ya aprobada antes de esta versión, se trasladó a «Respondidas» tras consultar su estado vigente en Libros.
-
-El proyecto conserva el plugin existente `libros-api` y el tipo `books_request`. El paquete con panel se prepara en `notificapp-plugin/`. Su primera instalación fue un `upgrade` de la identidad registrada; las versiones siguientes se publican con la credencial privada de actualización mientras no cambien los permisos. El panel corre dentro de la APK de Notificapp y no contiene credenciales.
-
-El panel instalado usa `Notificapp.getLaunchEvent()` para mostrar solo el aviso abierto. En una petición de catálogo enseña el formulario de decisión desde el primer momento, pero bloquea el envío hasta que la API privada confirma que sigue pendiente. En denuncias o alegaciones muestra el cuerpo del aviso sin ofrecer una acción de resolución de catálogo. Al abrir el espacio sin seleccionar un aviso muestra una indicación breve; no incluye lista, filtros ni buscador. La interfaz ofrece paletas clara y oscura y usa `Notificapp.getTheme()` en la APK actual, con respaldo CSS para APK antiguas.
-
-La publicación pública de 1.0.2 fue bloqueada por Cloudflare (`403`/`1010` para el `User-Agent` predeterminado de `urllib`); se completó por el listener local de Notificapp. El publicador actualizado del kit usa `Notificapp-Publisher/1.0`: alcanzó la API pública y recibió un `409` JSON al probar una versión antigua. Desde el móvil físico, un token inválido recibió `401` JSON y el ZIP **1.0.3** se instaló por HTTPS público con `200`. La prueba fue desde otro dispositivo de la misma LAN, sin acreditar una red móvil externa. La versión 1.0.4 se publicó por la URL HTTPS pública y Notificapp devolvió `200` con la misma huella SHA-256 del ZIP local. No se creó una excepción en Cloudflare porque el cliente identificado ya llega a la API. La [petición de publicación remota](PETICION_NOTIFICAPP_PUBLICACION_REMOTA.md) conserva el diagnóstico original.
+Libros tiene en Notificapp el plugin `libros-api` («Libros»), versión 1.3.0, versionado en `notificapp-plugin/` (manifiesto e `ui/index.html`). Avisa al propietario de lo que espera su decisión y le deja resolver las peticiones de catálogo desde el móvil. Las notificaciones a las personas no pasan por aquí: son de la plataforma (`utils/platform_notifications.py`, [ADHESION_YOSIFTWARE.md](ADHESION_YOSIFTWARE.md)). Guía del protocolo y del empaquetado: `docs/notificapp-plugin-kit/PROJECT_PLUGIN.md`.
 
 ## Avisos
 
-Solo `LIBROS_ENVIRONMENT=produccion` envía avisos. La API publica después del commit SQL y conserva el mismo `externalId` en la cola privada si Notificapp no responde:
+Solo `LIBROS_ENVIRONMENT=produccion` envía avisos (`utils/notificapp_sender.py`). La API publica después del commit SQL y conserva el mismo `externalId` en la cola privada si Notificapp no responde:
 
 | Tipo | Cuándo | `externalId` |
 | --- | --- | --- |
-| `books_request` | Nueva petición de catálogo | `catalog-request-{id}` |
+| `books_request` | Nueva petición de catálogo (una por grupo de ISBN) | `catalog-request-{id}` |
 | `books_review_report` | Nuevo grupo pendiente de reportes de reseña | `review-report-group-{id}` |
 | `books_community_report` | Nuevo grupo pendiente de denuncias de un club, de una publicación o de un comentario de club | `community-report-group-{id}` |
 
-Un reporte adicional sobre un grupo ya abierto no crea otro aviso. Desde la 1.1.0 no hay `books_appeal`: las alegaciones son de la plataforma. Las notificaciones a las personas son de la plataforma (`utils/platform_notifications.py`); Notificapp sigue avisando al propietario.
+Un reporte adicional sobre un grupo ya abierto no crea otro aviso. Los reportes y denuncias se resuelven en el plugin de Libros de la administración de Yosiftware ([ENDPOINTS.md](ENDPOINTS.md#plugin-de-la-administración)); el panel solo los rotula («Denuncia de reseña», «Denuncia en un club») y lo recuerda. Las peticiones de catálogo se resuelven aquí.
+
+### El aviso de una petición nueva con la propuesta de la IA
+
+Con la IA de las peticiones en `sombra` o `real` (roadmap `docs/roadmaps/PAUSADO_ia/`, IA1):
+
+- El aviso `books_request` de un alta de libro o antología **espera a la IA**, como mucho `LIBROS_PETICIONES_IA_ESPERA_AVISO` minutos (15), y su cuerpo añade un bloque «— La IA, en sombra (no se ha aplicado nada) —» con lo que habría hecho: aprobar con la obra (título, autores, saga o universo con su orden, páginas, fecha, sinopsis, fuentes y avisos como «Sin portada» o «La sinopsis es una traducción») o escalar con sus motivos y el comentario («En Libros se llama X; las fuentes en español de España lo llaman Y»), y lo que costó.
+- Mismo `externalId`: el panel abre la petición como siempre y el aviso sale **una sola vez** (la marca `ia_peticiones.fecha_aviso`).
+- Sale en el momento, sin la propuesta, si la IA está apagada, si la espera es 0 o si el lector del feed no está vivo; y sin ella, con una línea que lo dice, si la IA no termina a tiempo o falla.
+- En `real`, si la IA aprueba y se aplica, el título del aviso es «Petición #N aprobada automáticamente».
+
+## Rutas privadas
+
+| Acción | Ruta | Qué hace |
+| --- | --- | --- |
+| `list` | `GET /notificapp/v1/requests` | Hasta 100 peticiones pendientes y `HayMas` (el panel de una sola petición no la usa). |
+| `detail` | `GET /notificapp/v1/requests/{id}` | La petición abierta. Las altas pendientes de libro y antología incluyen opciones de autores, universos, sagas, idiomas, estilos y `Opciones.LugaresOrigen`, `SugerenciaGoogleBooks` y `PropuestaIA`. |
+| `respond` | `POST /notificapp/v1/requests/{id}/responses` | Resuelve por JSON. `onSuccess: "answered"`. |
+| `respond_image` | La misma ruta, con `image: true` | Resuelve con portada (`multipart/form-data` con `payload` JSON e `image`). `onSuccess: "answered"`. |
+
+- `POST …/responses` acepta `Estado` (`aprobada`, `rechazada`, `devuelta`) y `Comentario` opcional de hasta 500 caracteres. Aprobar un alta de libro o antología exige además `Obra` con el formulario editorial completo. El servidor de Notificapp exige confirmación nativa y añade `Idempotency-Key`.
+- En la respuesta aprobada, `Obra.Autores` contiene IDs existentes y puede ser `[]` si se aporta `Obra.AutoresNuevos`; entre ambas listas se exige al menos un autor. `AutoresNuevos` admite hasta 20 fichas `{Nombre, IdiomaId?, Estilos?, LugarOrigenId? | LugarOrigenNombre?}`. El ID de lugar `0` es válido; un lugar nuevo se reutiliza por nombre normalizado o se crea.
+- **Una sola transacción**: la API valida y crea lugar y autores, inserta la obra con sus relaciones y obtiene su ID **antes** de actualizar la petición y crear el aviso a la persona. Si algo falla, la petición sigue pendiente y no se avisa. Las ediciones modifican la entidad existente antes de resolver.
+- **Portada** (`respond_image`): Libros valida MIME, formato y tamaño (PNG, JPEG o WebP, hasta 10 MiB), normaliza a PNG de 600x900, guarda el archivo y enlaza la portada antes de confirmar SQL; si se revierte, borra el archivo nuevo. Sin imagen, `respond` usa la portada provisional.
+- **Idempotencia**: `peticiones_catalogo.notificapp_idempotency_key` y `notificapp_request_hash` guardan la clave y la huella de `Estado`, `Comentario`, `Obra` y el SHA-256 de la imagen. Una repetición idéntica devuelve el resultado previo sin reaplicar nada; otra clave sobre una petición ya resuelta recibe `409`.
+- **Google Books** (`SugerenciaGoogleBooks`): con un ISBN válido, el detalle lo consulta después de cerrar SQL, con un plazo breve y sin portada. Da `encontrado` con título, ISBN, autores, estilos, páginas, idioma, fecha y sinopsis, o un estado que explica por qué no. Si falla, el detalle sale igual.
+- **La propuesta de la IA** (`PropuestaIA`, `null` si no la ha estudiado): el último estudio terminado de `ia_peticiones`, con `Modo`, `Decision`, `Motivos` (en texto), `Comentario`, `Avisos`, `Modelo`, `Fecha` y `Obra`, con la forma de la que va a `resolve_request` (solo lo que la IA encontró y casa con el catálogo).
+
+## Credenciales
+
+- Las rutas privadas solo aceptan una credencial externa de servidor a servidor, en `.runtime/notificapp-upstream.json` (campos privados `token` y `adminUserId`). Para Libros, `adminUserId` es `1`; cada llamada comprueba en SQL que esa cuenta siga siendo administradora. En el servidor de Notificapp se configura con `set-upstream-token libros-api <archivo-privado>`.
+- El emisor de avisos usa otra credencial, `.runtime/notificapp-sender.json`. La de las actualizaciones remotas, `.runtime/notificapp-update.token`.
+- Ninguna entra en el repositorio, el ZIP ni el HTML. El panel no contiene credenciales.
+- El paquete declara solo el dominio `https://libros-api.yosiftware.es` y las rutas de arriba.
 
 ## Panel
 
-Para las altas de libro o antología, el detalle incluye también `Opciones.LugaresOrigen`. En la respuesta aprobada, `Obra.Autores` contiene IDs existentes y puede ser `[]` si se aporta `Obra.AutoresNuevos`; entre ambas listas se exige al menos un autor. `AutoresNuevos` admite hasta 20 fichas `{Nombre, IdiomaId?, Estilos?, LugarOrigenId? | LugarOrigenNombre?}`. El nombre es obligatorio; idioma natal, estilos y lugar de origen son opcionales. El ID de lugar `0` es válido. Si se escribe un lugar nuevo, la API reutiliza el existente por nombre normalizado o lo crea. Primero valida y crea lugar y autor, luego la obra y finalmente la resolución y la notificación, todo en una transacción. Un error revierte el conjunto.
+- Usa `Notificapp.getLaunchEvent()` para mostrar solo el aviso abierto. En una petición de catálogo enseña el formulario de decisión desde el primer momento, pero bloquea el envío hasta que la API confirma que sigue pendiente. Al abrir el espacio sin un aviso, muestra una indicación breve.
+- Rellena el formulario de alta con la propuesta de la IA, después con Google Books y por último con lo que escribió la persona: nombre, ISBN, páginas, fecha, sinopsis, autores, saga o universo con su orden, idiomas y estilos. Encima dice en una línea qué hizo la IA («La IA habría aprobado…», «La IA la escaló…») con sus motivos y avisos. Si la IA encontró los autores, no ofrece crear fichas con lo que escribió la persona. Coteja autores, estilos e idioma con el catálogo y avisa de lo que no encuentra. La ubicación en universo o saga la decide el administrador. Todo se puede corregir antes de aprobar.
+- Portada: `Notificapp.pickImage(requestId)` devuelve un `imageHandle` temporal (nunca bytes ni URI) por `window.notificappReceive`, y `Notificapp.request` lo envía con `respond_image`. Si la conexión falla después de enviar, el panel consulta el estado antes de repetir.
+- Estética: el bloque «Estética de Notificapp» del kit (Terminal, Claro y Bento, con `Notificapp.getStyle()` y respaldo a `getTheme()` y al tema del sistema) y el icono `ui/icon.png` (192 × 192).
 
-`GET /notificapp/v1/requests` devuelve hasta 100 peticiones pendientes y `HayMas`, aunque el panel de una sola petición no lo invoca. `GET /notificapp/v1/requests/{id}` consulta la petición abierta; las altas pendientes de libro y antología incluyen opciones de autores, universos, sagas, idiomas y estilos. `POST /notificapp/v1/requests/{id}/responses` acepta `Estado` (`aprobada`, `rechazada`, `devuelta`) y `Comentario` opcional de hasta 500 caracteres. Aprobar un alta de libro o antología exige además `Obra` con el formulario editorial completo. El servidor de Notificapp exige confirmación nativa de la operación y añade `Idempotency-Key` automáticamente.
+## Publicar una versión
 
-La versión 1.0.7 prepara automáticamente el formulario cuando una petición pendiente de libro o antología contiene un ISBN válido. El detalle privado consulta Google Books con un plazo breve y devuelve `SugerenciaGoogleBooks`: `encontrado` con título, ISBN, autores, estilos, páginas, idioma, fecha y sinopsis, o un estado explicativo si no hay ISBN, no es válido, no hay resultado o falla el servicio. Se omiten portada y URL externa para mantener pequeño el mensaje; la portada sigue usando el selector nativo. El panel coteja autores, estilos e idioma con el catálogo de Libros, marca coincidencias y avisa de nombres no encontrados. La ubicación en universo o saga sigue siendo una decisión del administrador. Todas las sugerencias se pueden editar antes de aprobar. La consulta externa ocurre después de cerrar la conexión SQL y nunca bloquea la lectura de la petición si falla.
-
-La API valida la obra, la inserta con sus relaciones y obtiene el ID canónico **antes** de actualizar la petición y crear la notificación del lector; todo ocurre en la misma transacción SQL. Si la creación falla, la petición sigue pendiente y no se emite el aviso. Para ediciones se modifica la entidad existente antes de resolver, sin crear otra. La versión 1.0.7 ofrece una portada opcional: `respond_image` envía una sola petición multipart con `payload` JSON e `image`. Libros valida MIME, formato y tamaño, normaliza a PNG de 600x900, guarda el archivo y enlaza `cover` antes de confirmar SQL. Si falla o se revierte la transacción, elimina el archivo nuevo. Sin imagen, `respond` continúa por JSON y usa la portada provisional.
-
-Estas rutas aceptan exclusivamente una credencial externa de servidor a servidor. La API la lee de `.runtime/notificapp-upstream.json`, con campos privados `token` y `adminUserId`. Para Libros, `adminUserId` es `1`; cada llamada comprueba en SQL que esa cuenta siga siendo administradora. El token externo es distinto del token emisor de `.runtime/notificapp-sender.json` y de los JWT de usuario. Configúralo también en el servidor de Notificapp con `set-upstream-token libros-api <archivo-privado>` después de aprobar el ZIP. Nunca se incorpora al repositorio, al ZIP ni al HTML.
-
-La resolución guarda la clave de idempotencia y la huella de `Estado`, `Comentario`, `Obra` y SHA-256 de la imagen cuando procede en `peticiones_catalogo`. Una repetición idéntica devuelve el resultado previo sin reaplicar una creación o edición de catálogo; una clave distinta sobre una petición ya resuelta recibe `409`. Las columnas `notificapp_idempotency_key` y `notificapp_request_hash` están instaladas en producción; sus definiciones canónicas están en los scripts `0 - Creación.sql` de desarrollo y producción.
-
-El paquete declara únicamente el dominio público `https://libros-api.yosiftware.es` y las tres rutas anteriores. La guía del protocolo y empaquetado es `docs/notificapp-plugin-kit/PROJECT_PLUGIN.md`; el paquete debe validarse antes de entregarlo. Las preguntas y finales de Codex usan el espacio «Agentes» ya conectado y no usan este plugin.
-
-La APK Notificapp 0.3.9 expone `Notificapp.getTheme()` con el tema efectivo (`light` o `dark`) y vuelve a cargar el panel si cambia el sistema. El panel actual ya lo consulta con respaldo CSS para APK antiguas. Se verificó visualmente en el móvil con las dos combinaciones cruzadas entre sistema y app. Las dos columnas de idempotencia están instaladas en `libros` y `libros_pruebas`; las rutas privadas están publicadas y la credencial externa está configurada en Notificapp. Por HTTPS público, el detalle de una petición pendiente respondió `200`, una llamada anónima `401` y una resolución de ID inexistente `404`. No se ha resuelto una petición real solo para probar la integración; la primera decisión administrativa se confirmará desde el panel.
-
-## Capacidad genérica de imágenes de Notificapp
-
-Notificapp API 0.3.2 y APK 0.3.10 admiten seleccionar una imagen nativamente y adjuntarla a una acción `POST` del plugin. El contrato completo está en `docs/notificapp-plugin-kit/PROJECT_PLUGIN.md`. El HTML llama a `Notificapp.pickImage(requestId)` y recibe por `window.notificappReceive` un `imageHandle` temporal, nunca bytes ni URI. Para enviar, usa `Notificapp.request` con `requestId`, `action`, `id`, `payload` e `imageHandle`. La app pide confirmación y Notificapp envía a la ruta externa declarada un único `multipart/form-data` con `payload` (JSON de la decisión y la obra) e `image` (PNG, JPEG o WebP, hasta 10 MiB), más la credencial externa y `Idempotency-Key` en cabeceras. Libros debe volver a validar el archivo, resolver la escritura atómicamente y proteger los reintentos. Si la conexión falla después de enviar, el cliente debe consultar el estado antes de repetir; no puede suponer que la transacción no se confirmó.
-
-Para conservar las decisiones sin imagen, `respond` sigue en JSON y `respond_image` declara `{"method":"POST","path":"/notificapp/v1/requests/{id}/responses","image":true}`. Esto **amplía la política `api.actions`**: la primera versión con ese permiso requiere `plugin_cli upgrade` local tras revisión del ZIP; no se puede enviar como actualización remota ordinaria. El `upgrade` conserva `libros-api` y sus avisos, pero apaga actualizaciones remotas hasta que el propietario las reactive en «Espacios de API». El panel y el endpoint de Libros ya adoptan este contrato en la versión 1.0.5 instalada. El upgrade local mantuvo el espacio y los avisos, y se reactivaron las actualizaciones remotas. QA probó la aprobación con portada, un reintento idéntico y un conflicto de imagen diferente; terminó en baseline sin lease. Queda pendiente la primera aprobación real desde el móvil del propietario.
+- Cada versión sube `version` y conserva `eventKinds`, `agents`, `api.baseUrl` y `api.actions`. Si no cambian los permisos, se publica por actualización remota con `pack.py` y `publish.py` del kit (`docs/notificapp-plugin-kit/`) y la credencial de actualización.
+- Si cambian (añadir o quitar un tipo de aviso, una acción o un permiso como `image` u `onSuccess`), el ZIP se entrega al propietario, que lo instala con `plugin_cli upgrade`: conserva el espacio, los avisos y la credencial de emisor, y apaga las actualizaciones remotas hasta que las reactive en la APK («Espacios de API»).
+- El publicador del kit se identifica con `User-Agent: Notificapp-Publisher/1.0`: Cloudflare bloquea el agente por defecto de Python (`403`/`1010`; [petición de publicación remota](PETICION_NOTIFICAPP_PUBLICACION_REMOTA.md)).
+- Las respuestas y preguntas de los agentes van al espacio «Agentes» y no usan este plugin.
