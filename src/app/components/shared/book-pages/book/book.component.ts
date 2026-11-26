@@ -35,6 +35,9 @@ import { MobileBookShellComponent } from '../../../mobile/book/mobile-book-shell
 import { WebBookShellViewComponent } from '../../../web/book/web-book-shell-view/web-book-shell-view.component';
 import { ExternalNavigationService } from '../../../../services/navigation/external-navigation.service';
 
+import { BOOK_ELEMENT_TYPES } from '../../../../shared/book-element-types';
+import { bookWikiUrl } from '../../../../shared/book-wiki';
+
 type StructureEditorKind = 'part' | 'interlude';
 
 interface EntityToolbarAction {
@@ -86,17 +89,12 @@ export class BookComponent implements OnInit, OnDestroy {
         }
     };
     actualStatus = '';
-    entityToolbarActions: EntityToolbarAction[] = [
-        { label: 'Personajes', icon: 'co_present', listRoute: 'characters', createRoute: 'character' },
-        { label: 'Organizaciones', icon: 'groups', listRoute: 'organizations', createRoute: 'organization' },
-        { label: 'Eventos', icon: 'event', listRoute: 'events', createRoute: 'event' },
-        { label: 'Localizaciones', icon: 'my_location', listRoute: 'locations', createRoute: 'location' },
-        { label: 'Conceptos', icon: 'auto_awesome', listRoute: 'concepts', createRoute: 'concept' },
-        { label: 'Citas', icon: 'format_quote', listRoute: 'quotes', createRoute: 'quote' },
-    ];
+    entityToolbarActions: EntityToolbarAction[] = [...BOOK_ELEMENT_TYPES];
 
     displayList: DisplayItem[] = [];
     structureEditorKind: StructureEditorKind | null = null;
+    /** El rango de una parte que choca con otra (`409 part_order_conflict`): la Web lo dice bajo el campo. */
+    structureOrderError: string | null = null;
     editingStructureId: number | null = null;
     bookActionsOpen = false;
     bookIndexOpen = false;
@@ -334,6 +332,7 @@ export class BookComponent implements OnInit, OnDestroy {
 
     openStructureEditor(kind: StructureEditorKind, id?: number): void {
         this.structureEditorKind = kind;
+        this.structureOrderError = null;
         this.editingStructureId = id ?? null;
 
         if (kind === 'part') {
@@ -362,6 +361,7 @@ export class BookComponent implements OnInit, OnDestroy {
 
     closeStructureEditor(): void {
         this.structureEditorKind = null;
+        this.structureOrderError = null;
         this.editingStructureId = null;
     }
 
@@ -391,13 +391,33 @@ export class BookComponent implements OnInit, OnDestroy {
         request.subscribe({
             next: () => this.refreshBookAfterStructureSave(),
             error: error => {
-                const message = getApiErrorCode(error) === 'part_order_conflict'
-                    ? 'Ese rango de capítulos se solapa con otra parte del libro'
-                    : 'Error al guardar la estructura del libro';
-                this.snackBar.openSnackBar(message, 'errorBar');
+                const conflict = getApiErrorCode(error) === 'part_order_conflict';
+                this.structureOrderError = conflict ? this.partConflictMessage(value) : null;
+                if (!conflict || !this.isWebView) {
+                    const message = conflict
+                        ? 'Ese rango de capítulos se solapa con otra parte del libro'
+                        : 'Error al guardar la estructura del libro';
+                    this.snackBar.openSnackBar(message, 'errorBar');
+                }
                 this.loader.deactivateLoader();
             }
         });
+    }
+
+    /** «Se solapa con «Primera parte» (capítulos 1 a 3).»: la parte con la que choca el rango, si se encuentra. */
+    private partConflictMessage(value: any): string {
+        const start = Number(value.ordenInicio);
+        const end = Number(value.ordenFinal) || Number.POSITIVE_INFINITY;
+        const other = this.book.Partes.find(part => {
+            if (part.Id === this.editingStructureId)
+                return false;
+            const partEnd = Number(part.Orden_final) || Number.POSITIVE_INFINITY;
+            return Number(part.Orden_inicio) <= end && start <= partEnd;
+        });
+        if (!other)
+            return 'Ese rango se solapa con otra parte del libro.';
+        const range = Number(other.Orden_final) ? `capítulos ${other.Orden_inicio} a ${other.Orden_final}` : `desde el capítulo ${other.Orden_inicio}`;
+        return `Se solapa con «${other.Nombre}» (${range}).`;
     }
 
     private savePart(value: any) {
@@ -490,15 +510,13 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     hasBookWikiLink(): boolean {
-        const wiki = this.getBookWikiUrl();
-        return !!wiki && !this.isDefaultWikiUrl(wiki);
+        return !!bookWikiUrl(this.book.Wiki);
     }
 
     openBookWiki(): void {
-        if (!this.hasBookWikiLink())
-            return;
-
-        void this.externalNavigation.open(this.toExternalUrl(this.getBookWikiUrl()));
+        const url = bookWikiUrl(this.book.Wiki);
+        if (url)
+            void this.externalNavigation.open(url);
     }
 
     toggleBookIndex(): void {
@@ -580,32 +598,5 @@ export class BookComponent implements OnInit, OnDestroy {
                 this.isSavingRunningStatus = false;
             }
         });
-    }
-
-    private getBookWikiUrl(): string {
-        return (this.book.Wiki ?? '').trim();
-    }
-
-    private isDefaultWikiUrl(value: string): boolean {
-        try {
-            const url = new URL(this.toExternalUrl(value));
-            return url.hostname.replace(/^www\./, '').toLocaleLowerCase() === 'google.es';
-        } catch {
-            return this.normalizeLooseUrl(value) === 'google.es';
-        }
-    }
-
-    private toExternalUrl(value: string): string {
-        const trimmedValue = value.trim();
-        return /^https?:\/\//i.test(trimmedValue) ? trimmedValue : `https://${trimmedValue}`;
-    }
-
-    private normalizeLooseUrl(value: string): string {
-        return value
-            .trim()
-            .replace(/^https?:\/\//i, '')
-            .replace(/^www\./i, '')
-            .replace(/\/+$/, '')
-            .toLocaleLowerCase();
     }
 }

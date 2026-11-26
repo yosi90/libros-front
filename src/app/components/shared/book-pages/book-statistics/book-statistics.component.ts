@@ -38,6 +38,7 @@ import { READING_PACE_SINCE, ReadingPaceBook, paceComparison, paceDayLabel } fro
 import { localDay } from '../../../../shared/reading-panel';
 import { BookTitleState } from '../../common/book-title/book-title.state';
 import { WoodBookTitleComponent } from '../../common/book-title/wood-book-title.component';
+import { bookWikiUrl } from '../../../../shared/book-wiki';
 
 interface BookChartOptions {
     series: ApexAxisChartSeries;
@@ -75,6 +76,11 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
     readonly chartItemLimit = 10;
 
     book: Book = this.bookStore.libroVacio;
+
+    /** La wiki del libro, si tiene una propia: en la Web va en el Resumen. */
+    get wikiUrl(): string | null {
+        return bookWikiUrl(this.book.Wiki);
+    }
     snapshot: BookStatisticsSnapshot | null = null;
     pageChartOptions: BookChartOptions = this.createEmptyChartOptions('bar');
     chapterCharacterChartOptions: BookChartOptions = this.createEmptyChartOptions('bar', true);

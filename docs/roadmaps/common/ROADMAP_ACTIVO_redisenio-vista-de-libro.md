@@ -29,18 +29,20 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 
 ## F1. El marco del libro
 
-- [ ] **La cabecera, con cuatro destinos.**
+- [x] **La cabecera, con cuatro destinos** (26/11/2026).
   - *Descripción:* Capítulos, Elementos, Notas y Resumen, con volver, la portada y el título, buscar, el indicador de guardado y los tres botones de la plataforma. Por debajo de 600 px, una barra inferior con los cuatro destinos, sin pestañas desplazables ni «⋯». La wiki pasa al Resumen.
   - *Por qué:* decisiones 2 y 10.
   - *Qué se espera:* menos pestañas y el mismo marco en el móvil y en la APK.
   - *Peligro si no:* seis pestañas desplazables.
   - *Peligro del cambio:* un toque más para llegar a un tipo de elemento; Elementos recuerda el último usado. En 360 px el título se queda en unos 130 px.
-- [ ] **El índice, solo en Capítulos.**
+  - *Cómo quedó:* hasta que llegue F3, el tipo de elemento se elige en una columna (escritorio) o en la barra «Personajes 6 ▾» (por debajo), con el número de cada tipo; la lista ya no repite su título. Entre 600 y 759 px los destinos bajan a una segunda fila de la cabecera, porque no caben con el título. Capítulos vuelve al último capítulo abierto en el libro (si no, al último del índice) y, si ya se está en él, abre el índice. La búsqueda queda en la cabecera, sin destino propio.
+- [x] **El índice, solo en Capítulos** (26/11/2026).
   - *Descripción:* columna fija en pantalla ancha y panel superpuesto en el móvil y el plegable, con la barra «1 de 5», anterior y siguiente. Sin título, con «+ Capítulo», «⋯» para parte e interludio, y la página a la derecha. El editor de parte, como desplegable («desde el capítulo… hasta…», que se traduce a `OrdenInicio` y `OrdenFinal`, y el `409 part_order_conflict` bajo el campo).
   - *Por qué:* decisión 5.
   - *Qué se espera:* que las demás vistas tengan todo el ancho.
   - *Peligro si no:* el índice compite con las listas de elementos.
   - *Peligro del cambio:* la guía describe el carril plegable, y hay que reescribirla.
+  - *Cómo quedó:* el índice va del último capítulo al primero, como la maqueta. El editor de parte o interludio es un `popover` anclado al botón que lo abre (CSS Anchor Positioning con `@supports`; sin él, centrado) y en el móvil una hoja desde abajo. «Desde el capítulo» y «Hasta» (con «El final») se eligen por nombre, y el conflicto de rango se dice bajo el campo con la parte con la que choca. El carril plegado sigue en escritorio.
 
 ## F2. El capítulo como cuaderno
 
@@ -99,7 +101,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 ## F4. Notas, Resumen y estados
 
 - [ ] **Notas sin botón**: la nota vive en `PendingWorkService` hasta que cumple lo que pide la API (título de 2 y texto de 15) y entonces se crea. Columna de 736 px.
-- [ ] **Resumen**: la portada y las cifras, en dos columnas desde el plegable, con la wiki.
+- [ ] **Resumen**: la portada y las cifras, en dos columnas desde el plegable, con la wiki (desde F1 es un botón suelto arriba). A 360 px, el campo de fecha de la casilla «Fechas» se sale de ella.
 - [ ] **Estados de todas las vistas**:
   - libro sin empezar;
   - lista vacía;

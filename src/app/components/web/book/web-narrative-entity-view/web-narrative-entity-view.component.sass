@@ -86,6 +86,20 @@
     align-items: center
     gap: var(--web-space-2)
 
+// En la lista, el tipo y su número ya los dice el marco del libro (los tipos de Elementos): el título queda solo para
+// los lectores de pantalla.
+.entity:not(.entity--form)
+    .entity__title
+        position: absolute
+        width: 1px
+        height: 1px
+        overflow: hidden
+        clip-path: inset(50%)
+        white-space: nowrap
+
+    .entity__actions
+        margin-left: auto
+
 // ---------- Listado ----------
 
 .origin-group

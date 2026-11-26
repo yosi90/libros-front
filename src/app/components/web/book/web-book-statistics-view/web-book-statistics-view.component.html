@@ -8,6 +8,11 @@
       <section class="tile tile--wide" aria-labelledby="web-book-fun-title"><h2 id="web-book-fun-title">Tu título</h2><app-web-book-title [state]="c.bookTitle"></app-web-book-title></section>
     }
 
+    <!-- La wiki del libro, aquí y no en la cabecera (F1 del rediseño «Cuaderno»). -->
+    @if (c.wikiUrl; as wiki) {
+      <p class="stats__links"><a class="web-button web-button--small" [href]="wiki" target="_blank" rel="noopener">Wiki<mat-icon aria-hidden="true">open_in_new</mat-icon></a></p>
+    }
+
     <!-- «Tu lectura» en casillas (6/11/2026): cada cifra una sola vez. -->
     <div class="tiles">
       @if (p.progress.page > 0 || p.progressStart || p.progressEnd) {

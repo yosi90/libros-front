@@ -4,8 +4,8 @@ Roadmap: `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`. Cada
 
 ## Web
 
-- [ ] La cabecera tiene cuatro destinos y, por debajo de 600 px, barra inferior; la wiki está en el Resumen.
-- [ ] El índice solo sale en Capítulos: columna en ancha y panel superpuesto en móvil y plegable, con «1 de 5», anterior y siguiente.
+- [x] La cabecera tiene cuatro destinos y, por debajo de 600 px, barra inferior; la wiki está en el Resumen (F1, 26/11/2026: capturas a 360, 680, 840 y 1440 px en los dos temas; unitarias del marco).
+- [x] El índice solo sale en Capítulos: columna en ancha y panel superpuesto en móvil y plegable, con «1 de 5», anterior y siguiente (F1, igual). El editor de parte se despliega junto a su lápiz y, en el móvil, como hoja.
 - [ ] Una escena se edita al pulsarla, solo una a la vez, y lo escrito sobrevive a cerrar la pestaña.
 - [ ] El reparto y el lugar se eligen junto al «+» o al lugar (hoja en el móvil); «Mismo reparto que la escena anterior» y crear un lugar funcionan.
 - [ ] Sin panel de arrastrar personajes; el «+» y la @ siguen.
