@@ -16,6 +16,7 @@ import es.yosiftware.libros.datos.repositorios.InterludioAGuardar
 import es.yosiftware.libros.datos.repositorios.ParteAGuardar
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 import es.yosiftware.libros.datos.repositorios.RepositorioLibro
+import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
 import es.yosiftware.libros.ui.componentes.Avisador
 import androidx.lifecycle.viewModelScope
 import java.time.Instant
@@ -343,6 +344,9 @@ class LibroViewModel(
         elementosAbiertos = false
         indiceAbierto = false
     }
+
+    /** Abre el elemento al que lleva un enlace del texto (de una escena o de una entrada). */
+    fun abrirEnlace(enlace: EnlaceNarrativo) = ir(VistaDelLibro.DeElemento(Elemento.de(enlace.tipo), seleccionado = enlace.id))
 
     fun estaActiva(otra: VistaDelLibro): Boolean = vistaElegida && vista == otra
 

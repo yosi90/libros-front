@@ -106,15 +106,6 @@ fun enlacesDe(libro: Libro): List<EnlaceNarrativo> = EnlacesNarrativos.construir
     libro.citas.forEach { add(EnlaceNarrativo(it.id, TipoDeEnlace.CITA, it.nombre, it.nombre)) }
 })
 
-private fun elementoDe(tipo: TipoDeEnlace): Elemento = when (tipo) {
-    TipoDeEnlace.PERSONAJE -> Elemento.PERSONAJES
-    TipoDeEnlace.LOCALIZACION -> Elemento.LOCALIZACIONES
-    TipoDeEnlace.ORGANIZACION -> Elemento.ORGANIZACIONES
-    TipoDeEnlace.CONCEPTO -> Elemento.CONCEPTOS
-    TipoDeEnlace.EVENTO -> Elemento.EVENTOS
-    TipoDeEnlace.CITA -> Elemento.CITAS
-}
-
 /**
  * Las medidas del cuaderno según el ancho: el medianil con los números a la izquierda, el hueco entre columnas y, solo
  * en el ancho expandido, la columna de las apostillas (lugar y reparto) a la derecha; si no, van bajo el texto.
@@ -363,7 +354,7 @@ private fun Escena(
     raya: Boolean, enlaces: List<EnlaceNarrativo>, creador: CreadorDePersonajes, cuaderno: Cuaderno,
 ) {
     val colores = LocalColores.current
-    val alAbrirEnlace = { enlace: EnlaceNarrativo -> libroVm.ir(VistaDelLibro.DeElemento(elementoDe(enlace.tipo), seleccionado = enlace.id)) }
+    val alAbrirEnlace = libroVm::abrirEnlace
     val fondo = if (abierta) {
         Modifier.sobresalir(cuaderno.sobresale).clip(RoundedCornerShape(12.dp)).background(colores.lienzo)
             .padding(horizontal = cuaderno.sobresale, vertical = if (cuaderno.compacto) Espacios.e3 else Espacios.e4)

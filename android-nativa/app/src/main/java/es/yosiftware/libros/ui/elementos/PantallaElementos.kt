@@ -88,7 +88,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.plegar
 import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
-import es.yosiftware.libros.datos.rtf.TipoDeEnlace
 import es.yosiftware.libros.ui.adaptable.ClaseDeVentana
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
@@ -305,7 +304,7 @@ private fun Ficha(libroVm: LibroViewModel, vm: ElementosViewModel, libro: Libro,
     val hoja = Hoja(LocalVentana.current.clase)
     val foco = LocalFocusManager.current
     val tipo = ficha.tipo
-    val enlaces = remember(libro, ficha.id) { enlacesDe(libro).filterNot { ficha.id != null && it.id == ficha.id && elementoDe(it.tipo) == tipo } }
+    val enlaces = remember(libro, ficha.id) { enlacesDe(libro).filterNot { ficha.id != null && it.id == ficha.id && Elemento.de(it.tipo) == tipo } }
     val apariciones = remember(libro, ficha.id) { if (tipo == Elemento.PERSONAJES) ListaDeElementos.apariciones(libro)[ficha.id].orEmpty() else emptyList() }
     Column(Modifier.fillMaxSize().background(colores.superficie)) {
         Row(
@@ -585,7 +584,7 @@ private fun Entrada(libroVm: LibroViewModel, vm: ElementosViewModel, ficha: Fich
     val tipo = ficha.tipo
     val abierta = vm.entradaAbierta == entrada.clave
     val titulo = entrada.titulo.trim().ifEmpty { "Descripción" }
-    val alAbrirEnlace = { enlace: EnlaceNarrativo -> libroVm.ir(VistaDelLibro.DeElemento(elementoDe(enlace.tipo), seleccionado = enlace.id)) }
+    val alAbrirEnlace = libroVm::abrirEnlace
     val fondo = if (abierta) {
         Modifier.sobresalir(hoja.sobresale).clip(RoundedCornerShape(12.dp)).background(colores.lienzo)
             .padding(horizontal = hoja.sobresale, vertical = if (hoja.compacta) Espacios.e3 else Espacios.e4)
@@ -964,15 +963,6 @@ private fun Pareja(ancha: Boolean, primero: @Composable (Modifier) -> Unit, segu
 }
 
 // --- Piezas. ---
-
-private fun elementoDe(tipo: TipoDeEnlace): Elemento = when (tipo) {
-    TipoDeEnlace.PERSONAJE -> Elemento.PERSONAJES
-    TipoDeEnlace.LOCALIZACION -> Elemento.LOCALIZACIONES
-    TipoDeEnlace.ORGANIZACION -> Elemento.ORGANIZACIONES
-    TipoDeEnlace.CONCEPTO -> Elemento.CONCEPTOS
-    TipoDeEnlace.EVENTO -> Elemento.EVENTOS
-    TipoDeEnlace.CITA -> Elemento.CITAS
-}
 
 /** Corre el elemento [lado] a la izquierda y lo ensancha lo mismo (el `margin-left` negativo de la web). */
 private fun Modifier.sobresalirIzquierda(lado: Dp): Modifier = layout { medible, limites ->

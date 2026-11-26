@@ -3,6 +3,7 @@ package es.yosiftware.libros.ui.libro
 import es.yosiftware.libros.datos.modelos.Capitulo
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
+import es.yosiftware.libros.datos.rtf.TipoDeEnlace
 import es.yosiftware.libros.ui.biblioteca.ultimoEstado
 import java.net.URI
 
@@ -38,6 +39,18 @@ enum class Elemento(val etiqueta: String, val lista: String, val crear: String, 
 
     /** «creado» o «creada», concordando con el singular (la web decía «Organización creado»). */
     fun participio(raiz: String): String = raiz + if (femenino) "a" else "o"
+
+    companion object {
+        /** El elemento al que lleva un enlace del texto. */
+        fun de(tipo: TipoDeEnlace): Elemento = when (tipo) {
+            TipoDeEnlace.PERSONAJE -> PERSONAJES
+            TipoDeEnlace.LOCALIZACION -> LOCALIZACIONES
+            TipoDeEnlace.ORGANIZACION -> ORGANIZACIONES
+            TipoDeEnlace.CONCEPTO -> CONCEPTOS
+            TipoDeEnlace.EVENTO -> EVENTOS
+            TipoDeEnlace.CITA -> CITAS
+        }
+    }
 }
 
 object IndiceDelLibro {
