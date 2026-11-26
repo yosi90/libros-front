@@ -88,7 +88,7 @@ export const test = base.extend<DiagnosticsFixture>({
                 }));
                 const detail = message.text().includes('JSHandle@object') && values.length ? values.join(' ') : message.text();
                 const location = message.location();
-                if (detail.includes('downloadable font: download failed') || location.url.includes('fonts.gstatic.com')) return;
+                if (detail.includes('downloadable font: download failed')) return;
                 const rendered = `console: ${detail}${location.url ? ` (${location.url}:${location.lineNumber})` : ''}`;
                 // WebKit todavía no implementa la extensión de viewport que Chromium
                 // usa para coordinar el teclado virtual. La ignora de forma segura y
