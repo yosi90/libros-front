@@ -14,6 +14,7 @@
 
 ## Líneas activas
 
+- `ROADMAP_ACTIVO_redisenio-vista-de-libro.md`: el rediseño «Cuaderno» de la vista de libro y del resto de la web.
 - `ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: presentación Web claro/oscuro, Wood elegible y navegación reorganizada; queda su checklist manual.
 
 ## Referencias útiles

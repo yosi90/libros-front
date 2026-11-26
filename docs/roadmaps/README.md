@@ -15,7 +15,7 @@
 
 ## Roadmap activo
 
-Ninguno. El siguiente será el rediseño de la web con el diseñador (noviembre de 2026).
+- `common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`: el rediseño «Cuaderno» de la vista de libro y después del resto de la web, aprobado por el propietario el 26/11/2026 (maqueta en `docs/diseno/vista-de-libro-2026-11/`).
 
 ## Roadmaps pausados
 
