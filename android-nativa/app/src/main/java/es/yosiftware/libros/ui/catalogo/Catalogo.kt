@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.catalogo
 
+import es.yosiftware.libros.datos.comparadorDeNombres
 import es.yosiftware.libros.datos.conUnDecimal
 import es.yosiftware.libros.datos.modelos.DetallePublico
 import es.yosiftware.libros.datos.modelos.Edicion
@@ -13,7 +14,6 @@ import es.yosiftware.libros.ui.biblioteca.Ambito
 import es.yosiftware.libros.ui.biblioteca.Busqueda
 import es.yosiftware.libros.ui.biblioteca.Disponibilidad
 import es.yosiftware.libros.ui.biblioteca.ObraBuscable
-import es.yosiftware.libros.ui.biblioteca.comparadorDeNombres
 import es.yosiftware.libros.ui.biblioteca.ordenarPorLectura
 
 // Lo que decide el Catálogo de la APK de Capacitor (catalog.component.ts en 5dc3120, la versión capturada), sin red ni

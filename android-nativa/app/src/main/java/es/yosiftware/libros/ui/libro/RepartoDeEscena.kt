@@ -1,10 +1,9 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.datos.comparadorDeNombres
 import es.yosiftware.libros.datos.modelos.Personaje
 import es.yosiftware.libros.datos.modelos.PersonajeEnEscena
 import es.yosiftware.libros.datos.plegar
-import java.text.Collator
-import java.util.Locale
 
 /**
  * Lo que decide la «Hoja de reparto» y la «@» del texto de una escena (rediseño del 6/11/2026, opciones A y C del
@@ -12,8 +11,6 @@ import java.util.Locale
  * ofrece «Crear «…»» y qué queda en la escena al pulsar.
  */
 object RepartoDeEscena {
-    private val porNombre: Collator = Collator.getInstance(Locale.forLanguageTag("es")).apply { strength = Collator.PRIMARY }
-
     /**
      * Los personajes del libro que coinciden con [consulta], sin tildes ni mayúsculas, por el nombre o por un apodo:
      * primero los que empiezan así y luego los que lo llevan dentro, cada grupo por nombre. Sin consulta, todos por
@@ -22,7 +19,7 @@ object RepartoDeEscena {
     fun filtrar(personajes: List<Personaje>, consulta: String, excluir: Set<Int> = emptySet()): List<Personaje> {
         val buscado = plegar(consulta).trim()
         val candidatos = personajes.filter { it.id !in excluir }
-        if (buscado.isEmpty()) return candidatos.sortedWith { a, b -> porNombre.compare(a.nombre, b.nombre) }
+        if (buscado.isEmpty()) return candidatos.sortedWith { a, b -> comparadorDeNombres.compare(a.nombre, b.nombre) }
         return candidatos.mapNotNull { personaje ->
             val textos = listOf(personaje.nombre) + personaje.apodos.filterNot { it.borrado }.map { it.apodo }
             val plegados = textos.map { plegar(it).trim() }
@@ -31,7 +28,7 @@ object RepartoDeEscena {
                 plegados.any { it.contains(buscado) } -> 1 to personaje
                 else -> null
             }
-        }.sortedWith(compareBy<Pair<Int, Personaje>> { it.first }.thenComparator { a, b -> porNombre.compare(a.second.nombre, b.second.nombre) }).map { it.second }
+        }.sortedWith(compareBy<Pair<Int, Personaje>> { it.first }.thenComparator { a, b -> comparadorDeNombres.compare(a.second.nombre, b.second.nombre) }).map { it.second }
     }
 
     /** El nombre con el que se ofrece «Crear «…»»: lo escrito sin espacios en los bordes, si vale como nombre (3 a 100). */

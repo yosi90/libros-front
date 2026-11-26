@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.biblioteca
 
+import es.yosiftware.libros.datos.comparadorDeNombres
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.datos.modelos.TipoDeEstado

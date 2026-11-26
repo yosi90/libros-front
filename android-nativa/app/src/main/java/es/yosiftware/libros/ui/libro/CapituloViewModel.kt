@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.datos.comparadorDeNombres
 import es.yosiftware.libros.sonido.Sonido
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,8 +21,6 @@ import es.yosiftware.libros.datos.repositorios.EscenaAGuardar
 import es.yosiftware.libros.datos.repositorios.ServidorDeCapitulos
 import es.yosiftware.libros.ui.componentes.Avisador
 import java.io.File
-import java.text.Collator
-import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -101,8 +100,6 @@ class CapituloViewModel(
     private var guardando = false
     private var otraVez = false
     private var abandonado = false
-
-    private val porNombre: Collator = Collator.getInstance(Locale.forLanguageTag("es")).apply { strength = Collator.PRIMARY }
 
     private fun nuevaClave(): Long = ++siguienteClave
 
@@ -222,7 +219,7 @@ class CapituloViewModel(
         val libro = libro ?: return emptyList()
         val buscado = plegar(consulta).trim()
         return libro.localizaciones.filter { buscado.isEmpty() || plegar(it.nombre).contains(buscado) }
-            .sortedWith(compareByDescending<Localizacion> { it.id == escena.idLocalizacion }.thenBy(porNombre) { it.nombre })
+            .sortedWith(compareByDescending<Localizacion> { it.id == escena.idLocalizacion }.thenBy(comparadorDeNombres) { it.nombre })
     }
 
     /** `getLocationNameToCreate`: lo buscado, si vale como nombre y no hay ya un lugar que se llame así. */

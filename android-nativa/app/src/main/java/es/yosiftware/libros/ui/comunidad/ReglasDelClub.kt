@@ -1,14 +1,11 @@
 package es.yosiftware.libros.ui.comunidad
 
+import es.yosiftware.libros.datos.comparadorDeNombres
 import es.yosiftware.libros.datos.modelos.LecturaDeClub
 import es.yosiftware.libros.datos.modelos.Universo
-import java.text.Collator
-import java.util.Locale
 
 /** Lo que el detalle del club calcula sin pantalla (`club-detail.component.ts`). */
 object ReglasDelClub {
-    private val orden: Collator = Collator.getInstance(Locale.forLanguageTag("es")).apply { strength = Collator.PRIMARY }
-
     /** Las obras de la colección de [tipo] para la lectura actual, por nombre (`readingTargetOptions`). */
     fun obrasDeTipo(tipo: String, universos: List<Universo>): List<Pair<Int, String>> {
         val obras = when (tipo) {
@@ -18,7 +15,7 @@ object ReglasDelClub {
             "universo" -> universos.filter { it.id > 0 && it.nombre != "Sin universo" }.map { it.id to it.nombre }
             else -> emptyList()
         }
-        return obras.distinctBy { it.first }.sortedWith { a, b -> orden.compare(a.second, b.second) }
+        return obras.distinctBy { it.first }.sortedWith { a, b -> comparadorDeNombres.compare(a.second, b.second) }
     }
 
     /**

@@ -1,21 +1,15 @@
 package es.yosiftware.libros.ui.biblioteca
 
+import es.yosiftware.libros.datos.comparadorDeNombres
 import es.yosiftware.libros.datos.modelos.EnlaceDeSaga
 import es.yosiftware.libros.datos.modelos.EstadoDeLectura
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.datos.modelos.Universo
-import java.text.Collator
-import java.util.Locale
 
 // Agrupación y etiquetas de la Biblioteca: src/app/shared/library-view-helpers.ts, saga-chain.ts y lo que usa de
 // reading-status.ts. Funciones puras: no deciden estilos ni navegación.
-
-/** Compara nombres en español sin mirar tildes ni mayúsculas (`localeCompare(…, 'es', { sensitivity: 'base' })`). */
-internal val comparadorDeNombres: Comparator<String> = Collator.getInstance(Locale.forLanguageTag("es")).apply {
-    strength = Collator.PRIMARY
-}.let { collator -> Comparator { a, b -> collator.compare(a, b) } }
 
 /** Por su orden en la saga o el universo y, a igual orden, por nombre (`sortLibraryItems`). */
 fun ordenarObras(obras: List<Obra>): List<Obra> =

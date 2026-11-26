@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.datos.comparadorDeNombres
 import es.yosiftware.libros.datos.modelos.Capitulo
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.modelos.PersonajeEnEscena
@@ -14,8 +15,6 @@ import es.yosiftware.libros.datos.rtf.FUENTE_POR_DEFECTO
 import es.yosiftware.libros.datos.rtf.Parrafo
 import es.yosiftware.libros.datos.rtf.Tramo
 import es.yosiftware.libros.datos.rtfATexto
-import java.text.Collator
-import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -80,7 +79,6 @@ object ReglasDelCapitulo {
     private val ordenValido = Regex("^[1-9][0-9]?$")
     private val tituloPorDefecto = Regex("^Escena \\d+$")
     private val paginaValida = Regex("^[1-9][0-9]{0,3}$")
-    private val porNombre: Collator = Collator.getInstance(Locale.forLanguageTag("es")).apply { strength = Collator.PRIMARY }
 
     /** «Indiscreciones · págs. 145–151 · nº 11» (o «pág. 145» si empieza y acaba en la misma): los datos plegados. */
     fun resumen(capitulo: CapituloEditable): String {
@@ -197,7 +195,7 @@ object ReglasDelCapitulo {
 
     /** Los personajes de una escena, por nombre (`sortSceneCharacters`). */
     fun ordenarPersonajes(personajes: List<PersonajeEnEscena>, nombre: (Int) -> String): List<PersonajeEnEscena> =
-        personajes.sortedWith { a, b -> porNombre.compare(nombre(a.id), nombre(b.id)) }
+        personajes.sortedWith { a, b -> comparadorDeNombres.compare(nombre(a.id), nombre(b.id)) }
 
     private fun rtfATextoPlano(valor: String): String = rtfATexto(valor)
 
