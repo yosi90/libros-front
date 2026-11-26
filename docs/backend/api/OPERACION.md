@@ -31,14 +31,14 @@ El lector del feed aplica los plazos de conservación al arrancar y cada día a 
 | Clubes borrados, enteros | 30 días después de borrarse (hasta entonces se pueden restaurar) |
 | ZIP de `.runtime/copias/` y snapshots de `Base de datos/@Producción/versiones_previas/` (de estas, solo las cinco más recientes) | 30 días. En QA no hay copias |
 
-**Las copias `COPY_ONLY` de antes de cada migración** (carpeta `Backup` de SQL Server) también se guardan 30 días, pero las borra una persona: la cuenta de servicio no llega a esa carpeta y solo SQL Server (como administrador) puede borrar en ella, y la comparten otras bases del servidor. Se apunta la fecha de cada copia en el `LEEME.md` de su migración y, pasados 30 días, desde una consola de administrador:
+**Las copias `COPY_ONLY` de antes de cada migración** (carpeta `Backup` de SQL Server) también se guardan 30 días, pero las borra una persona: la cuenta de servicio no llega a esa carpeta, y la comparten otras bases del servidor. Desde una PowerShell elevada:
 
 ```powershell
-# Las copias de `libros` de más de 30 días que constan en msdb (comprueba la lista antes de borrar).
-sqlcmd -S localhost\SQLEXPRESS -E -C -Q "SELECT m.physical_device_name, s.backup_finish_date FROM msdb.dbo.backupset s JOIN msdb.dbo.backupmediafamily m ON m.media_set_id = s.media_set_id WHERE s.database_name = N'libros' AND s.is_copy_only = 1 AND s.backup_finish_date < DATEADD(day, -30, GETDATE()) ORDER BY s.backup_finish_date"
-# Cada archivo de la lista, uno a uno:
-Remove-Item -LiteralPath "C:\Program Files\Microsoft SQL Server\MSSQL17.SQLEXPRESS\MSSQL\Backup\<archivo>.bak"
+.\scripts\borrar-copias-sql-caducadas.ps1           # lista las de libros y libros_pruebas de más de 30 días
+.\scripts\borrar-copias-sql-caducadas.ps1 -Borrar   # las borra, archivo por archivo
 ```
+
+Solo toca archivos `.bak` de esas dos bases que constan en `msdb`. Conviene pasarlo una vez al mes.
 
 ## Salud y readiness
 

@@ -6,6 +6,7 @@ La acción `copia` del plugin de la administración (`POST /admin/v1/copias`, po
 
 - En local con `DEBUG=true`, usa la base activa y actualiza `Base de datos/@Desarrollo`.
 - En produccion, y en local sin debug, usa la base activa y actualiza `Base de datos/@Producción`.
+- Los SQL de datos (`1` a `10`) no se versionan: llevan datos de personas y Git los ignora. Solo existen en el disco del servidor.
 - En QA no genera ni persiste copias: devuelve `409 admin_backup_unavailable_in_qa`. La implementacion se acredita contra `libros_qa` mediante una prueba de integracion que trabaja exclusivamente sobre archivos temporales.
 
 ## Scripts canonicos e historico
