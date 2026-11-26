@@ -78,6 +78,29 @@
         cursor: not-allowed
         opacity: .5
 
+// Botón de texto en el primario, sin caja («+ Escena», «+ Entrada», «+ Relación»): solo el fondo suave al pasar.
+@mixin text-button
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    min-height: 36px
+    padding: 0 var(--web-space-2)
+    color: var(--web-color-primary)
+    font: 600 14px/1 var(--web-font-ui)
+    background: transparent
+    border: 0
+    border-radius: var(--web-radius-md)
+    cursor: pointer
+    @include focus-ring
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+    &:hover
+        background: var(--web-color-primary-soft)
+
 @mixin segmented
     display: inline-flex
     padding: 3px

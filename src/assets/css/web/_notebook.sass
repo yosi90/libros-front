@@ -1,0 +1,59 @@
+// El «Cuaderno» Web (rediseño de la vista de libro): lo que comparten las escenas del capítulo y las entradas de un
+// elemento, que se leen enteras y se abren para escribir una a la vez. Mixins sin emisión: los incluye cada vista.
+@use 'primitives' as web
+
+// Las partes de un bloque `.<nombre>`: el título en serif (un botón que lo abre), el texto leído (pulsarlo también lo
+// abre) y, abierto, la fila del título como campo y el editor.
+@mixin block($block)
+    .#{$block}__title
+        margin: 0
+        font: 600 19px/1.4 var(--web-font-reading)
+
+        button
+            padding: 0
+            color: inherit
+            font: inherit
+            text-align: left
+            background: none
+            border: 0
+            border-radius: var(--web-radius-sm)
+            cursor: text
+            @include web.focus-ring
+
+    .#{$block}__read
+        margin-top: 6px
+        cursor: text
+
+    .#{$block}__title-row
+        display: flex
+        align-items: center
+        gap: var(--web-space-2)
+
+    .#{$block}__title-input
+        flex: 1
+        min-width: 0
+        padding: 0 0 4px
+        color: var(--web-color-ink)
+        font: 600 19px/1.4 var(--web-font-reading)
+        background: none
+        border: 0
+        border-bottom: 1px solid var(--web-color-outline-strong)
+        border-radius: 0
+        outline: 0
+
+        &:focus
+            border-bottom-color: var(--web-color-primary)
+
+    .#{$block}__editor
+        margin-top: 10px
+
+// El bloque abierto: un fondo de lienzo que sobresale 16 px por los lados (8 px por debajo de 600 px de contenido).
+@mixin block-open
+    margin-inline: -16px
+    padding: 16px
+    background: var(--web-color-canvas)
+    border-radius: var(--web-radius-lg)
+
+@mixin block-open-compact
+    margin-inline: -8px
+    padding: 12px 8px

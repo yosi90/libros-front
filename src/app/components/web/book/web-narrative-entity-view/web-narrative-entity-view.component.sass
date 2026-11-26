@@ -1,4 +1,5 @@
 @use '../../../../../assets/css/web/primitives' as web
+@use '../../../../../assets/css/web/notebook'
 
 // Elementos («Cuaderno», F3): la lista sobre el lienzo y la ficha sobre el papel, una al lado de la otra desde 600 px
 // de contenido; por debajo, una u otra. Cada una desplaza por su cuenta (`.book__content` es un contenedor de tamaño).
@@ -21,27 +22,8 @@
         font-size: 16px
 
 .text-button
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    min-height: 36px
+    @include web.text-button
     margin: var(--web-space-3) 0 0 calc(-1 * var(--web-space-2))
-    padding: 0 var(--web-space-2)
-    color: var(--web-color-primary)
-    font: 600 14px/1 var(--web-font-ui)
-    background: transparent
-    border: 0
-    border-radius: var(--web-radius-md)
-    cursor: pointer
-    @include web.focus-ring
-
-    mat-icon
-        width: 20px
-        height: 20px
-        font-size: 20px
-
-    &:hover
-        background: var(--web-color-primary-soft)
 
 .field-error
     margin: var(--web-space-1) 0 0
@@ -306,52 +288,9 @@
     margin-top: 28px
 
 .entry--open
-    margin-inline: -16px
-    padding: 16px
-    background: var(--web-color-canvas)
-    border-radius: var(--web-radius-lg)
+    @include notebook.block-open
 
-.entry__title
-    margin: 0
-    font: 600 19px/1.4 var(--web-font-reading)
-
-    button
-        padding: 0
-        color: inherit
-        font: inherit
-        text-align: left
-        background: none
-        border: 0
-        border-radius: var(--web-radius-sm)
-        cursor: text
-        @include web.focus-ring
-
-.entry__read
-    margin-top: 6px
-    cursor: text
-
-.entry__head
-    display: flex
-    align-items: center
-    gap: var(--web-space-2)
-
-.entry__title-input
-    flex: 1
-    min-width: 0
-    padding: 0 0 4px
-    color: var(--web-color-ink)
-    font: 600 19px/1.4 var(--web-font-reading)
-    background: none
-    border: 0
-    border-bottom: 1px solid var(--web-color-outline-strong)
-    border-radius: 0
-    outline: 0
-
-    &:focus
-        border-bottom-color: var(--web-color-primary)
-
-.entry__editor
-    margin-top: 10px
+@include notebook.block('entry')
 
 // ---------- Al margen: dónde sale y con quién ----------
 
@@ -611,8 +550,7 @@
         height: 40px
 
     .entry--open
-        margin-inline: -8px
-        padding: 12px 8px
+        @include notebook.block-open-compact
 
     // En el móvil, el alta es una hoja pegada abajo, con los botones sobre el teclado.
     .quick

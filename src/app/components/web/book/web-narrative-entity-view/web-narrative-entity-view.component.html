@@ -90,7 +90,7 @@
             @if (!isHiddenEntry(i)) {
               <article class="entry" [class.entry--open]="openEntryIndex === i" [attr.data-entry-index]="i">
                 @if (openEntryIndex === i) {
-                  <div class="entry__head">
+                  <div class="entry__title-row">
                     <input class="entry__title-input" type="text" [formControl]="entry.title" maxlength="100" [attr.aria-label]="'Título de la entrada ' + (i + 1)"
                       (focus)="c.selectDefaultText($event, 'Descripción')">
                     <button class="icon-button" type="button" [attr.aria-label]="'Más: eliminar la entrada ' + (i + 1)" [matMenuTriggerFor]="entryMenu"><mat-icon>more_horiz</mat-icon></button>

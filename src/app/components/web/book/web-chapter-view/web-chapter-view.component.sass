@@ -1,4 +1,5 @@
 @use '../../../../../assets/css/web/primitives' as web
+@use '../../../../../assets/css/web/notebook'
 
 // «Cuaderno» (F2): el capítulo como documento. Cada fila (cabecera, escena, «+ Escena») tiene tres columnas: el número
 // al margen izquierdo, el texto y las apostillas (lugar y reparto). Por debajo de 600 px de contenido, las apostillas
@@ -22,26 +23,7 @@
         font-size: 20px
 
 .text-button
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    min-height: 36px
-    padding: 0 var(--web-space-2)
-    color: var(--web-color-primary)
-    font: 600 14px/1 var(--web-font-ui)
-    background: transparent
-    border: 0
-    border-radius: var(--web-radius-md)
-    cursor: pointer
-    @include web.focus-ring
-
-    mat-icon
-        width: 20px
-        height: 20px
-        font-size: 20px
-
-    &:hover
-        background: var(--web-color-primary-soft)
+    @include web.text-button
 
 .sheet
     box-sizing: border-box
@@ -146,24 +128,7 @@
 .scene__text
     min-width: 0
 
-.scene__title
-    margin: 0
-    font: 600 19px/1.4 var(--web-font-reading)
-
-    button
-        padding: 0
-        color: inherit
-        font: inherit
-        text-align: left
-        background: none
-        border: 0
-        border-radius: var(--web-radius-sm)
-        cursor: text
-        @include web.focus-ring
-
-.scene__read
-    margin-top: 6px
-    cursor: text
+@include notebook.block('scene')
 
 .scene__placeholder
     margin: 0
@@ -186,37 +151,11 @@
 
 // La escena que se escribe: un fondo, y una sola caja alrededor del texto.
 .scene--editing
-    margin: 0 -16px
-    padding: 16px
-    background: var(--web-color-canvas)
+    @include notebook.block-open
     border-top-color: transparent
-    border-radius: var(--web-radius-lg)
 
     + .scene, + .scene-new
         border-top-color: transparent
-
-.scene__title-row
-    display: flex
-    align-items: center
-    gap: var(--web-space-2)
-
-.scene__title-input
-    flex: 1
-    min-width: 0
-    padding: 0 0 4px
-    color: var(--web-color-ink)
-    font: 600 19px/1.4 var(--web-font-reading)
-    background: none
-    border: 0
-    border-bottom: 1px solid var(--web-color-outline-strong)
-    border-radius: 0
-    outline: 0
-
-    &:focus
-        border-bottom-color: var(--web-color-primary)
-
-.scene__editor
-    margin-top: 10px
 
 // ---------- Al margen: lugar y reparto ----------
 
@@ -640,8 +579,7 @@
         gap: var(--web-space-2)
 
     .scene--editing
-        margin: 0 -8px
-        padding: 12px 8px
+        @include notebook.block-open-compact
 
     // Las apostillas, bajo el texto y con objetivos táctiles de 36 px.
     .scene__margin
