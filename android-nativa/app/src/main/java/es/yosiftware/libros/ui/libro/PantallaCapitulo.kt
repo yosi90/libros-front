@@ -131,8 +131,6 @@ private class Cuaderno(clase: ClaseDeVentana) {
         ClaseDeVentana.Media -> 28.sp
         ClaseDeVentana.Expandida -> 32.sp
     }
-    /** Lo que sobresale por los lados el fondo de la escena abierta. */
-    val sobresale = if (compacto) Espacios.e2 else Espacios.e4
 }
 
 /**
@@ -229,8 +227,6 @@ private fun Modifier.raya(colores: Colores, con: Boolean = true): Modifier =
 private fun estiloDeNumeroDeEscena(color: Color) =
     Textos.cuerpo.copy(fontFamily = Fuentes.lectura, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, lineHeight = 27.sp, color = color, fontFeatureSettings = "tnum")
 
-private val estiloDeTituloDeEscena = Textos.cuerpo.copy(fontFamily = Fuentes.lectura, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, lineHeight = 1.4.em)
-
 /**
  * La cabecera del capítulo: su número al margen, en el acento; su título en serif y sus páginas con el lápiz, que
  * despliega sus datos (solos en un capítulo nuevo o con algún dato mal). El estado del guardado, a la derecha o debajo.
@@ -322,10 +318,7 @@ private fun Escena(
 ) {
     val colores = LocalColores.current
     val alAbrirEnlace = libroVm::abrirEnlace
-    val fondo = if (abierta) {
-        Modifier.sobresalir(cuaderno.sobresale).clip(RoundedCornerShape(12.dp)).background(colores.lienzo)
-            .padding(horizontal = cuaderno.sobresale, vertical = if (cuaderno.compacto) Espacios.e3 else Espacios.e4)
-    } else Modifier.raya(colores, raya).padding(vertical = 18.dp)
+    val fondo = if (abierta) Modifier.bloqueAbierto(colores.lienzo, cuaderno.compacto) else Modifier.raya(colores, raya).padding(vertical = 18.dp)
     Carril(
         cuaderno,
         Modifier.then(fondo).semantics { contentDescription = "Escena $numero" },
@@ -335,8 +328,11 @@ private fun Escena(
         val falta = ReglasDelCapitulo.loQueFalta(escena)
         if (abierta) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                TituloDeEscena(vm, escena, numero, Modifier.weight(1f))
-                MenuDeEscena(vm, escena, numero)
+                CampoDeTitulo(
+                    escena.clave, escena.nombre, { nuevo -> vm.cambiarEscena(escena.clave) { it.copy(nombre = nuevo) } },
+                    ejemplo = "Título de la escena", descripcion = "Título de la escena $numero", porDefecto = "Escena $numero", modifier = Modifier.weight(1f),
+                )
+                MenuDeEliminar("Más: eliminar la escena $numero", "Eliminar la escena") { vm.quitarEscena(escena.clave) }
             }
             EditorRtf(
                 valor = escena.descripcion,
@@ -355,19 +351,10 @@ private fun Escena(
                 alPonerElCursor = vm::cursorPuesto,
             )
         } else {
-            Text(
-                escena.nombre.ifBlank { "Escena $numero" },
-                style = estiloDeTituloDeEscena.copy(color = colores.tinta),
-                modifier = Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = "Escribir en la escena $numero") { vm.abrirEscena(escena.clave) }
-                    .semantics { heading() },
-            )
+            TituloLeido(escena.nombre.ifBlank { "Escena $numero" }, "Escribir en la escena $numero") { vm.abrirEscena(escena.clave) }
             Box(Modifier.padding(top = 6.dp)) {
                 if (ReglasDelCapitulo.textoPlano(escena).isNotEmpty()) {
-                    EditorRtf(
-                        valor = escena.descripcion, alCambiar = {}, modifier = Modifier.widthIn(max = 660.dp).fillMaxWidth(),
-                        enlaces = enlaces, alAbrirEnlace = alAbrirEnlace, descripcion = "Texto de la escena $numero",
-                        soloLectura = true, alTocarParaEscribir = { posicion -> vm.abrirEscena(escena.clave, posicion) },
-                    )
+                    TextoLeido(escena.descripcion, enlaces, alAbrirEnlace, "Texto de la escena $numero") { posicion -> vm.abrirEscena(escena.clave, posicion) }
                 } else {
                     Text(
                         "Qué pasa en esta escena",
@@ -382,60 +369,6 @@ private fun Escena(
                 Icon(painterResource(Iconos.errorOutline), contentDescription = null, tint = colores.atencion, modifier = Modifier.size(16.dp))
                 Text(falta, style = Textos.cuerpo.copy(fontSize = 13.sp, color = colores.atencion))
             }
-        }
-    }
-}
-
-/** El título de la escena abierta, en serif y sobre una raya (sin caja); «Escena N» se selecciona entero al entrar. */
-@Composable
-private fun TituloDeEscena(vm: CapituloViewModel, escena: EscenaEditable, numero: Int, modifier: Modifier) {
-    val colores = LocalColores.current
-    var campo by remember { mutableStateOf(TextFieldValue(escena.nombre)) }
-    if (campo.text != escena.nombre) campo = campo.copy(text = escena.nombre, selection = TextRange(minOf(campo.selection.start, escena.nombre.length), minOf(campo.selection.end, escena.nombre.length)))
-    var enfocado by remember { mutableStateOf(false) }
-    BasicTextField(
-        value = campo,
-        onValueChange = { nuevo ->
-            campo = nuevo
-            if (nuevo.text != escena.nombre) vm.cambiarEscena(escena.clave) { it.copy(nombre = nuevo.text) }
-        },
-        singleLine = true,
-        textStyle = estiloDeTituloDeEscena.copy(color = colores.tinta),
-        cursorBrush = SolidColor(colores.primario),
-        modifier = modifier
-            .semantics { contentDescription = "Título de la escena $numero" }
-            .onFocusChanged { estado ->
-                // `selectDefaultText`: «Escena N» se selecciona entero al entrar.
-                if (estado.isFocused && !enfocado && escena.nombre == "Escena $numero") campo = campo.copy(selection = TextRange(0, escena.nombre.length))
-                enfocado = estado.isFocused
-            },
-        decorationBox = { interior ->
-            Box(
-                Modifier.fillMaxWidth().heightIn(min = 44.dp)
-                    .drawBehind { drawRect(if (enfocado) colores.primario else colores.contornoFuerte, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
-                    .padding(bottom = 4.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                if (escena.nombre.isEmpty()) Text("Título de la escena", style = estiloDeTituloDeEscena.copy(color = colores.tintaSuave))
-                interior()
-            }
-        },
-    )
-}
-
-/** «⋯» de la escena: eliminarla. */
-@Composable
-private fun MenuDeEscena(vm: CapituloViewModel, escena: EscenaEditable, numero: Int) {
-    val colores = LocalColores.current
-    var abierto by remember { mutableStateOf(false) }
-    Box {
-        BotonDeIconoPequeno(Iconos.moreHoriz, "Más: eliminar la escena $numero", grande = true) { abierto = true }
-        DropdownMenu(abierto, onDismissRequest = { abierto = false }, containerColor = colores.superficie) {
-            DropdownMenuItem(
-                text = { Text("Eliminar la escena", style = Textos.cuerpo.copy(color = colores.error)) },
-                leadingIcon = { Icon(painterResource(Iconos.delete), contentDescription = null, tint = colores.error, modifier = Modifier.size(20.dp)) },
-                onClick = { abierto = false; vm.quitarEscena(escena.clave) },
-            )
         }
     }
 }

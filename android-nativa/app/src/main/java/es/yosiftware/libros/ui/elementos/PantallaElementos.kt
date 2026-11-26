@@ -97,13 +97,17 @@ import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.editor.EditorRtf
 import es.yosiftware.libros.ui.libro.BotonDeIconoPequeno
 import es.yosiftware.libros.ui.libro.BotonDeTexto
+import es.yosiftware.libros.ui.libro.CampoDeTitulo
 import es.yosiftware.libros.ui.libro.Elemento
 import es.yosiftware.libros.ui.libro.EstadoDelGuardado
 import es.yosiftware.libros.ui.libro.IndicadorDeGuardado
 import es.yosiftware.libros.ui.libro.LibroViewModel
+import es.yosiftware.libros.ui.libro.MenuDeEliminar
+import es.yosiftware.libros.ui.libro.TextoLeido
+import es.yosiftware.libros.ui.libro.TituloLeido
+import es.yosiftware.libros.ui.libro.bloqueAbierto
 import es.yosiftware.libros.ui.libro.VistaDelLibro
 import es.yosiftware.libros.ui.libro.enlacesDe
-import es.yosiftware.libros.ui.libro.sobresalir
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
@@ -289,7 +293,6 @@ private class Hoja(clase: ClaseDeVentana) {
         ClaseDeVentana.Expandida -> 40.dp
     }
     val propiedad = if (compacta) 40.dp else 32.dp
-    val sobresale = if (compacta) Espacios.e2 else Espacios.e4
 }
 
 /**
@@ -572,8 +575,6 @@ private fun Apodos(vm: ElementosViewModel, ficha: FichaEditable) {
     }
 }
 
-private val estiloDeTituloDeEntrada = Textos.cuerpo.copy(fontFamily = Fuentes.lectura, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, lineHeight = 1.4.em)
-
 /**
  * Una entrada: leída, su título y su texto enteros, en serif, que al tocarlos la abren para escribir (con el cursor
  * donde se tocó); abierta, sobre el lienzo, el título como campo, el «⋯» con «Eliminar» y el editor con su barra.
@@ -585,15 +586,15 @@ private fun Entrada(libroVm: LibroViewModel, vm: ElementosViewModel, ficha: Fich
     val abierta = vm.entradaAbierta == entrada.clave
     val titulo = entrada.titulo.trim().ifEmpty { "Descripción" }
     val alAbrirEnlace = libroVm::abrirEnlace
-    val fondo = if (abierta) {
-        Modifier.sobresalir(hoja.sobresale).clip(RoundedCornerShape(12.dp)).background(colores.lienzo)
-            .padding(horizontal = hoja.sobresale, vertical = if (hoja.compacta) Espacios.e3 else Espacios.e4)
-    } else Modifier
+    val fondo = if (abierta) Modifier.bloqueAbierto(colores.lienzo, hoja.compacta) else Modifier
     Column(Modifier.padding(top = 28.dp).fillMaxWidth().then(fondo).semantics { contentDescription = "Entrada ${indice + 1}" }) {
         if (abierta) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                TituloDeEntrada(vm, entrada, indice, Modifier.weight(1f))
-                MenuDeEntrada(vm, entrada, indice)
+                CampoDeTitulo(
+                    entrada.clave, entrada.titulo, { nuevo -> vm.cambiarEntrada(entrada.clave) { it.copy(titulo = nuevo) } },
+                    ejemplo = "Título de la entrada", descripcion = "Título de la entrada ${indice + 1}", porDefecto = "Descripción", modifier = Modifier.weight(1f), maximo = 100,
+                )
+                MenuDeEliminar("Más: eliminar la entrada ${indice + 1}", "Eliminar la entrada") { vm.quitarEntrada(entrada.clave) }
             }
             EditorRtf(
                 valor = entrada.descripcion,
@@ -611,75 +612,12 @@ private fun Entrada(libroVm: LibroViewModel, vm: ElementosViewModel, ficha: Fich
             if (!ReglasDeLaFicha.tituloValido(entrada.titulo)) Error("El título necesita al menos 3 caracteres.")
             if (!ReglasDeLaFicha.descripcionValida(entrada.descripcion)) Error("El texto necesita al menos 15 caracteres.")
         } else {
-            Text(
-                titulo,
-                style = estiloDeTituloDeEntrada.copy(color = colores.tinta),
-                modifier = Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = "Escribir en la entrada $titulo") { vm.abrirEntrada(entrada.clave) }
-                    .semantics { heading() },
-            )
+            TituloLeido(titulo, "Escribir en la entrada $titulo") { vm.abrirEntrada(entrada.clave) }
             if (!ReglasDeLaFicha.esDeRelleno(tipo, entrada)) {
                 Box(Modifier.padding(top = 6.dp)) {
-                    EditorRtf(
-                        valor = entrada.descripcion, alCambiar = {}, modifier = Modifier.widthIn(max = 660.dp).fillMaxWidth(),
-                        enlaces = enlaces, alAbrirEnlace = alAbrirEnlace, descripcion = "Texto de $titulo",
-                        soloLectura = true, alTocarParaEscribir = { posicion -> vm.abrirEntrada(entrada.clave, posicion) },
-                    )
+                    TextoLeido(entrada.descripcion, enlaces, alAbrirEnlace, "Texto de $titulo") { posicion -> vm.abrirEntrada(entrada.clave, posicion) }
                 }
             }
-        }
-    }
-}
-
-/** El título de la entrada abierta, en serif y sobre una raya; «Descripción» se selecciona entero al entrar. */
-@Composable
-private fun TituloDeEntrada(vm: ElementosViewModel, entrada: EntradaEditable, indice: Int, modifier: Modifier) {
-    val colores = LocalColores.current
-    var campo by remember(entrada.clave) { mutableStateOf(TextFieldValue(entrada.titulo)) }
-    if (campo.text != entrada.titulo) campo = campo.copy(text = entrada.titulo, selection = TextRange(minOf(campo.selection.start, entrada.titulo.length), minOf(campo.selection.end, entrada.titulo.length)))
-    var enfocado by remember { mutableStateOf(false) }
-    BasicTextField(
-        value = campo,
-        onValueChange = { nuevo ->
-            val texto = nuevo.text.take(100)
-            campo = nuevo.copy(text = texto)
-            if (texto != entrada.titulo) vm.cambiarEntrada(entrada.clave) { it.copy(titulo = texto) }
-        },
-        singleLine = true,
-        textStyle = estiloDeTituloDeEntrada.copy(color = colores.tinta),
-        cursorBrush = SolidColor(colores.primario),
-        modifier = modifier
-            .semantics { contentDescription = "Título de la entrada ${indice + 1}" }
-            .onFocusChanged { estado ->
-                if (estado.isFocused && !enfocado && entrada.titulo == "Descripción") campo = campo.copy(selection = TextRange(0, entrada.titulo.length))
-                enfocado = estado.isFocused
-            },
-        decorationBox = { interior ->
-            Box(
-                Modifier.fillMaxWidth().heightIn(min = 44.dp)
-                    .drawBehind { drawRect(if (enfocado) colores.primario else colores.contornoFuerte, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
-                    .padding(bottom = 4.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                if (entrada.titulo.isEmpty()) Text("Título de la entrada", style = estiloDeTituloDeEntrada.copy(color = colores.tintaSuave))
-                interior()
-            }
-        },
-    )
-}
-
-/** «⋯» de la entrada: eliminarla. */
-@Composable
-private fun MenuDeEntrada(vm: ElementosViewModel, entrada: EntradaEditable, indice: Int) {
-    val colores = LocalColores.current
-    var abierto by remember { mutableStateOf(false) }
-    Box {
-        BotonDeIconoPequeno(Iconos.moreHoriz, "Más: eliminar la entrada ${indice + 1}", grande = true) { abierto = true }
-        DropdownMenu(abierto, onDismissRequest = { abierto = false }, containerColor = colores.superficie) {
-            DropdownMenuItem(
-                text = { Text("Eliminar la entrada", style = Textos.cuerpo.copy(color = colores.error)) },
-                leadingIcon = { Icon(painterResource(Iconos.delete), contentDescription = null, tint = colores.error, modifier = Modifier.size(20.dp)) },
-                onClick = { abierto = false; vm.quitarEntrada(entrada.clave) },
-            )
         }
     }
 }
