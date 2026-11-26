@@ -14,6 +14,7 @@ import {
     EditorMention, EditorMentionKey, NarrativeRtfEditorComponent
 } from '../../../shared/common/narrative-rtf-editor/narrative-rtf-editor.component';
 import type { ChapterComponent } from '../../../shared/book-pages/chapter/chapter.component';
+import { WebSaveStatusComponent } from '../../ui/web-save-status/web-save-status.component';
 
 /**
  * Capítulo en Web, «Cuaderno» (F2 del rediseño de la vista de libro): el capítulo se lee como un documento. Cada escena,
@@ -25,7 +26,7 @@ import type { ChapterComponent } from '../../../shared/book-pages/chapter/chapte
 @Component({
     selector: 'app-web-chapter-view',
     standalone: true,
-    imports: [A11yModule, OverlayModule, CommonModule, ReactiveFormsModule, MatIconModule, MatMenuModule, MatTooltipModule, NarrativeRtfEditorComponent],
+    imports: [A11yModule, OverlayModule, CommonModule, ReactiveFormsModule, MatIconModule, MatMenuModule, MatTooltipModule, NarrativeRtfEditorComponent, WebSaveStatusComponent],
     templateUrl: './web-chapter-view.component.html',
     styleUrl: './web-chapter-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

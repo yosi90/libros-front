@@ -9,6 +9,7 @@ import { NarrativeRtfEditorComponent } from '../../../shared/common/narrative-rt
 import type { NarrativeEntityPlaceholderComponent } from '../../../shared/book-pages/narrative-entity-placeholder/narrative-entity-placeholder.component';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { ModalDialogDirective } from '../../ui/modal-dialog.directive';
+import { WebSaveStatusComponent } from '../../ui/web-save-status/web-save-status.component';
 import { foldText } from '../../../../shared/text';
 import { sceneCastDetails } from '../../../../shared/scene-cast';
 import { isReadingTextClick } from '../../../../shared/narrative-entity-links';
@@ -26,7 +27,7 @@ interface Appearance { chapter: Chapter; named: boolean }
 @Component({
     selector: 'app-web-narrative-entity-view',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatMenuModule, MatTooltipModule, NarrativeRtfEditorComponent, ModalDialogDirective],
+    imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatMenuModule, MatTooltipModule, NarrativeRtfEditorComponent, ModalDialogDirective, WebSaveStatusComponent],
     templateUrl: './web-narrative-entity-view.component.html',
     styleUrl: './web-narrative-entity-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

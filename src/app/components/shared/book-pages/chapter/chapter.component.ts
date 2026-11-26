@@ -42,6 +42,7 @@ import {
     pressCastIcon, sceneCastDetails, withSceneCastFirst
 } from '../../../../shared/scene-cast';
 import { createClientRequestId } from '../../../../shared/client-request-id';
+import { AutosaveStatus, autosaveStatusIcon, autosaveStatusLabel } from '../../../../shared/autosave-status';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -151,7 +152,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     deletedSceneIds: number[] = [];
     isInterludeChapter = false;
     currentInterludeId: number | null = null;
-    autosaveStatus: 'idle' | 'saving' | 'saved' | 'error' | 'invalid' = 'idle';
+    autosaveStatus: AutosaveStatus = 'idle';
     characterOrderRefreshing$: Observable<boolean> = of(false);
     narrativeEntityLinks: NarrativeEntityLink[] = [];
     /** El capítulo guardado cuyos datos se han desplegado; los demás se resumen en una línea (opción A, 26/10/2026). */
@@ -1163,13 +1164,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     get autosaveLabel(): string {
-        switch (this.autosaveStatus) {
-            case 'saving': return 'Guardando…';
-            case 'saved': return 'Guardado';
-            case 'error': return 'Error al guardar';
-            case 'invalid': return this.savesPartially ? this.partialSaveLabel() : 'Cambios incompletos';
-            default: return '';
-        }
+        return autosaveStatusLabel(this.autosaveStatus, () => this.savesPartially ? this.partialSaveLabel() : 'Cambios incompletos');
     }
 
     /** «Sin guardar: a la escena 2 le faltan datos». */
@@ -1184,13 +1179,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     get autosaveIcon(): string {
-        switch (this.autosaveStatus) {
-            case 'saving': return 'sync';
-            case 'saved': return 'cloud_done';
-            case 'error': return 'cloud_off';
-            case 'invalid': return 'warning';
-            default: return 'cloud_queue';
-        }
+        return autosaveStatusIcon(this.autosaveStatus);
     }
 
     isDefaultSceneDescription(sceneGroup: AbstractControl): boolean {

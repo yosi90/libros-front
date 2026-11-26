@@ -32,9 +32,7 @@
       <div class="ficha__bar">
         <button class="ficha__back icon-button" type="button" [attr.aria-label]="'Volver a la lista de ' + c.getConfig().label.toLowerCase()" (click)="backToList()"><mat-icon>arrow_back</mat-icon></button>
         @if (c.fichaStatusLabel) {
-          <span class="ficha__status" role="status" aria-live="polite" [attr.data-state]="c.fichaStatus">
-            <mat-icon aria-hidden="true">{{c.fichaStatus === 'saving' ? 'sync' : c.fichaStatus === 'saved' ? 'cloud_done' : c.fichaStatus === 'error' ? 'cloud_off' : 'error_outline'}}</mat-icon>{{c.fichaStatusLabel}}
-          </span>
+          <app-web-save-status class="ficha__status" [state]="c.fichaStatus" [label]="c.fichaStatusLabel"></app-web-save-status>
         }
       </div>
 

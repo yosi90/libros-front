@@ -131,34 +131,6 @@
     color: var(--web-color-ink-muted)
     font: 12.5px/1.4 var(--web-font-ui)
 
-.autosave
-    display: inline-flex
-    align-items: center
-    gap: 4px
-    color: var(--web-color-ink-muted)
-    font-size: 13px
-    line-height: 1.3
-
-    mat-icon
-        flex: none
-        width: 20px
-        height: 20px
-        font-size: 20px
-
-    &[data-state='saved']
-        color: var(--web-color-success)
-
-    &[data-state='error']
-        color: var(--web-color-danger)
-
-    &[data-state='invalid']
-        color: var(--web-color-warning)
-
-.is-spinning
-    animation: web-spin 1s linear infinite
-
-@include web.spinner-keyframes
-
 // ---------- Escenas ----------
 
 .scene

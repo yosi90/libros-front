@@ -48,9 +48,7 @@
     </div>
     <div class="chapter-head__state">
       @if (c.autosaveStatus !== 'idle') {
-        <span class="autosave" [attr.data-state]="c.autosaveStatus" role="status" aria-live="polite">
-          <mat-icon aria-hidden="true" [class.is-spinning]="c.autosaveStatus === 'saving'">{{c.autosaveIcon}}</mat-icon><span>{{c.autosaveLabel}}</span>
-        </span>
+        <app-web-save-status [state]="c.autosaveStatus" [label]="c.autosaveLabel"></app-web-save-status>
       }
     </div>
   </header>

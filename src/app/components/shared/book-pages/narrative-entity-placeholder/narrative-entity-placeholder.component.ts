@@ -38,6 +38,7 @@ import { WebNarrativeEntityViewComponent } from '../../../web/book/web-narrative
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 import { foldText, joinList } from '../../../../shared/text';
 import { BookElementType, bookElementTypeOf } from '../../../../shared/book-element-types';
+import { AutosaveStatus, autosaveStatusLabel } from '../../../../shared/autosave-status';
 import { CharacterGroup, characterGroupRank, groupCharactersByGroup } from '../../../../shared/character-groups';
 import { CHARACTER_CREATE_TIMEOUT_MS, duplicateCharacterQuestion, findCharacterNamed, isRejectedCharacterClientRequestId } from '../../../../shared/scene-cast';
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
@@ -190,7 +191,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     private readonly stopPendingWork: () => void;
 
     /** Web («Cuaderno», F3): cómo va el guardado de la ficha, que se guarda sola. */
-    fichaStatus: 'idle' | 'saving' | 'saved' | 'error' | 'invalid' = 'idle';
+    fichaStatus: AutosaveStatus = 'idle';
     /** Mientras se escribe el nombre (y se elige qué ha cambiado en él), no se envía: se guarda al salir del campo. */
     nameBeingEdited = false;
     private fichaSaving = false;
@@ -1224,13 +1225,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     get fichaStatusLabel(): string {
-        switch (this.fichaStatus) {
-            case 'saving': return 'Guardando…';
-            case 'saved': return 'Guardado';
-            case 'error': return 'Error al guardar';
-            case 'invalid': return this.areCreateEntriesValid() ? 'Sin guardar: revisa los datos' : 'Sin guardar: falta texto en una entrada';
-            default: return '';
-        }
+        return autosaveStatusLabel(this.fichaStatus,
+            () => this.areCreateEntriesValid() ? 'Sin guardar: revisa los datos' : 'Sin guardar: falta texto en una entrada');
     }
 
     private runFichaAutosave(): void {
