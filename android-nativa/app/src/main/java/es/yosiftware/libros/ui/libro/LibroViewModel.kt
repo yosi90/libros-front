@@ -66,6 +66,24 @@ sealed interface VistaDelLibro {
     }
 }
 
+/**
+ * Los cuatro destinos del libro («Cuaderno», F5, como la F1 de la web): Capítulos, Elementos, Notas y Resumen. La búsqueda
+ * no es ninguno: va en la barra.
+ */
+enum class Destino(val etiqueta: String) {
+    CAPITULOS("Capítulos"), ELEMENTOS("Elementos"), NOTAS("Notas"), RESUMEN("Resumen");
+
+    companion object {
+        fun de(vista: VistaDelLibro): Destino? = when (vista) {
+            is VistaDelLibro.DeCapitulo, VistaDelLibro.NuevoCapitulo, is VistaDelLibro.NuevoCapituloDeInterludio -> CAPITULOS
+            is VistaDelLibro.DeElemento -> ELEMENTOS
+            VistaDelLibro.Notas -> NOTAS
+            VistaDelLibro.Estadisticas -> RESUMEN
+            VistaDelLibro.Busqueda -> null
+        }
+    }
+}
+
 /** El formulario de una parte o un interludio (`structureForm`), con los números como texto, como se escriben. */
 data class EditorDeEstructura(
     val tipo: TipoDeGrupo,
@@ -156,6 +174,74 @@ class LibroViewModel(
     }
 
     val ordenMaximo: Int get() = libro?.let(IndiceDelLibro::ordenMaximo) ?: 0
+
+    // --- Los destinos («Cuaderno», F5). ---
+
+    val destino: Destino? get() = Destino.de(vista)
+
+    /** Los capítulos en orden de lectura (el índice va del último al primero), con los de los interludios. */
+    val secuencia: List<VistaDelLibro.DeCapitulo>
+        get() {
+            val paradas = mutableListOf<VistaDelLibro.DeCapitulo>()
+            fun recorrer(entradas: List<EntradaDelIndice>) {
+                entradas.forEach { entrada ->
+                    when (entrada) {
+                        is EntradaDelIndice.DeCapitulo -> paradas += VistaDelLibro.DeCapitulo(entrada.capitulo.id, entrada.deInterludio)
+                        is EntradaDelIndice.Grupo -> recorrer(entrada.entradas)
+                    }
+                }
+            }
+            recorrer(indice)
+            return paradas.asReversed()
+        }
+
+    /** «3 de 12» del capítulo abierto, o `null` si no es uno del índice (uno nuevo, por ejemplo). */
+    val posicion: Pair<Int, Int>?
+        get() {
+            val lista = secuencia
+            val actual = lista.indexOf(vista)
+            return if (actual < 0) null else (actual + 1) to lista.size
+        }
+
+    val anterior: VistaDelLibro.DeCapitulo? get() = posicion?.let { (n, _) -> secuencia.getOrNull(n - 2) }
+    val siguiente: VistaDelLibro.DeCapitulo? get() = posicion?.let { (n, _) -> secuencia.getOrNull(n) }
+
+    /** Sin empezar (ni en marcha ni con capítulos): Capítulos es su portada y «Poner en marcha», sin índice. */
+    val sinEmpezar: Boolean get() = libro != null && !enMarcha && secuencia.isEmpty()
+
+    /** El último capítulo abierto en este libro: «Capítulos» vuelve a él. */
+    private var ultimoCapitulo: VistaDelLibro.DeCapitulo? = null
+
+    /** El último tipo de elemento abierto, por cuenta: «Elementos» vuelve a él. */
+    val ultimoElemento: Elemento
+        get() = ambito.clave("elemento")?.let(almacen::leer)?.let { nombre -> Elemento.entries.firstOrNull { it.name == nombre } } ?: Elemento.PERSONAJES
+
+    fun irA(destino: Destino) {
+        when (destino) {
+            Destino.CAPITULOS -> when {
+                this.destino == Destino.CAPITULOS -> alternarIndice()
+                ultimoCapitulo != null && ultimoCapitulo in secuencia -> ir(ultimoCapitulo!!)
+                secuencia.isNotEmpty() -> ir(secuencia.last())
+                else -> ir(VistaDelLibro.NuevoCapitulo)
+            }
+            Destino.ELEMENTOS -> ir(VistaDelLibro.DeElemento(ultimoElemento))
+            Destino.NOTAS -> ir(VistaDelLibro.Notas)
+            Destino.RESUMEN -> ir(VistaDelLibro.Estadisticas)
+        }
+    }
+
+    /** Cuántos hay de cada tipo en el libro (la barra de Elementos los enseña). */
+    fun cuantos(elemento: Elemento): Int {
+        val actual = libro ?: return 0
+        return when (elemento) {
+            Elemento.PERSONAJES -> actual.personajes.size
+            Elemento.ORGANIZACIONES -> actual.organizaciones.size
+            Elemento.EVENTOS -> actual.eventos.size
+            Elemento.LOCALIZACIONES -> actual.localizaciones.size
+            Elemento.CONCEPTOS -> actual.conceptos.size
+            Elemento.CITAS -> actual.citas.size
+        }
+    }
     val enMarcha: Boolean get() = libro?.let(IndiceDelLibro::enMarcha) ?: false
     val wiki: String? get() = libro?.let(IndiceDelLibro::wiki)
 
@@ -177,6 +263,7 @@ class LibroViewModel(
         historial = listOf(primera)
         libro = null
         indice = emptyList()
+        ultimoCapitulo = primera as? VistaDelLibro.DeCapitulo
         vista = primera
         vistaElegida = primera != VistaDelLibro.Estadisticas
         indiceAbierto = false
@@ -248,6 +335,8 @@ class LibroViewModel(
         if (historial.lastOrNull() != nueva) historial = historial + nueva
         if (vista != nueva) datosDelCapitulo = false
         vista = nueva
+        if (nueva is VistaDelLibro.DeCapitulo) ultimoCapitulo = nueva
+        if (nueva is VistaDelLibro.DeElemento) ambito.clave("elemento")?.let { almacen.guardar(it, nueva.elemento.name) }
         recordar()
         vistaElegida = true
         elementosAbiertos = false

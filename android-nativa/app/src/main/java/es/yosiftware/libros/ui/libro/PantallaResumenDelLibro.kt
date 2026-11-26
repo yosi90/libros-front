@@ -56,6 +56,8 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
+import es.yosiftware.libros.ui.componentes.VarianteDeBoton
+import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
 import es.yosiftware.libros.ui.tema.Textos
@@ -91,6 +93,13 @@ fun PantallaResumenDelLibro(vm: LibroViewModel) {
         ) {
             // Tu título divertido (IA2), solo de los libros: la portada viva, arriba del todo.
             if (!libro.obra.esAntologia) TituloDelLibro(libro.obra.id, SitioDelTitulo.CABECERA)
+            // La wiki del libro, aquí y no en la barra («Cuaderno», F5).
+            vm.wiki?.let { wiki ->
+                val uri = androidx.compose.ui.platform.LocalUriHandler.current
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Boton("Wiki", { runCatching { uri.openUri(wiki) } }, variante = VarianteDeBoton.Contorno, icono = Iconos.openInNew)
+                }
+            }
             Panel(vm, libro, resumen)
             MasGraficos(libro, resumen, ancha, muyAncha)
         }
