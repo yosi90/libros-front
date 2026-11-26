@@ -3,6 +3,7 @@
 ## Pendiente
 
 - [ ] **Club borrado: avisar del plazo de 30 días.** La API (`5e4dbf0`) borra un club entero a los 30 días de borrarlo y responde `RestaurableHasta` en el `DELETE`; pasado el plazo, restaurar da `409 club_restore_expired`. La web (Web, Wood y Mobile) aún dice «El histórico y los miembros se conservan…», y la APK, lo suyo: hay que decir hasta cuándo se puede restaurar.
+- [ ] **Duplicado: la fuente por defecto del RTF, en tres constantes** (revisor de duplicados, `69fc7895..b14f02d6`). `'Microsoft Sans Serif'` está en `src/app/shared/rtf/rtf-text.ts:4` (`DEFAULT_FONT`, privada), en `src/app/services/preferences/narrative-editor-font-preference.service.ts:25` (`DEFAULT_NARRATIVE_EDITOR_FONT`) y a mano en `narrative-rtf-editor.component.ts:109` (`selectedFont`). Propuesta: exportarla una vez desde `shared/rtf/rtf-text.ts` y que el servicio y el editor la importen (la regla nueva de `narrative-rtf-editor.component.sass:744` es Sass y seguirá con el literal, con su comentario). Es anterior al alcance revisado; por eso no se ha tocado.
 
 ## Finalizado
 
