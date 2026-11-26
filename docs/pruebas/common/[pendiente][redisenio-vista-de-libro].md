@@ -19,4 +19,18 @@ Roadmap: `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`. Cada
 
 ## APK
 
-- [ ] Lo mismo en el Honor, plegado y abierto.
+- [x] Las cuatro tandas compilan y pasan las unitarias (F5, 26/11/2026: 406). Las nuevas cubren:
+  - el capítulo nuevo sin botón, «Mismo reparto» y el lugar creado;
+  - lo que le falta a una escena;
+  - la ficha que se guarda sola y no crea dos veces una entrada;
+  - el nombre que se guarda al salir del campo;
+  - el alta solo con el nombre;
+  - las notas sin botón, con su borrador y sin conexión;
+  - lo recuperado con «Volver a lo guardado».
+- [x] Con las muestras de depuración en el Honor:
+  - plegado: el capítulo, el índice, la ficha, las notas, el compositor a medias y el Resumen;
+  - abierto: la lista con la ficha al lado y el alta.
+- [ ] En el Honor abierto: el capítulo, las notas y el Resumen.
+- [ ] Con una cuenta de QA, a mano en el Honor:
+  - escribir una escena, cerrar la app del todo y volver («Volver a lo guardado»);
+  - la ficha y las notas sin conexión (modo avión) y al volver la red.

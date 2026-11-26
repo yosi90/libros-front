@@ -166,7 +166,8 @@ fun PantallaCapitulo(libroVm: LibroViewModel, vista: VistaDelLibro, vm: Capitulo
                 capitulo.escenas.forEachIndexed { i, escena ->
                     val abierta = escena.clave == vm.escenaAbierta
                     // La raya de arriba, salvo junto a la escena abierta (que ya tiene su fondo).
-                    val raya = !abierta && capitulo.escenas.getOrNull(i - 1)?.clave != vm.escenaAbierta
+                    // (La primera, siempre: sin escena abierta, `null != null` se la quitaba.)
+                    val raya = !abierta && (i == 0 || capitulo.escenas[i - 1].clave != vm.escenaAbierta)
                     Escena(libroVm, vm, libro, escena, i + 1, abierta, raya, enlaces, creador, cuaderno)
                 }
                 Carril(

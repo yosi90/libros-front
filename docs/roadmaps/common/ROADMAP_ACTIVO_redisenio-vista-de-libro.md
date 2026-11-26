@@ -130,6 +130,17 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
   - *Qué se espera:* la misma vista en el Honor.
   - *Peligro si no:* la web y la APK, distintas.
   - *Peligro del cambio:* las muestras de depuración, que hay que poner al día. Se prueba en el Honor, nunca en un emulador.
+  - *Cómo quedó (26/11/2026, en cuatro tandas, F5a a F5d; falta publicar la APK):*
+    - **El marco:** los cuatro destinos abajo, cada uno vuelve a lo último abierto. Debajo de la barra del libro, la del destino: «Capítulo 3 de 12» con anterior y siguiente, o «Personajes 21 ▾». El índice lleva «+ Capítulo» y «⋯» (parte e interludio); la wiki, en el Resumen.
+    - **El capítulo:** se lee entero en Literata (el RTF sin fuente propia, o con Microsoft Sans Serif, se pinta con ella). Tocar el texto abre la escena con el cursor ahí; los enlaces siguen abriendo su elemento. Las apostillas van debajo salvo en el ancho expandido, y el lugar se crea desde su hoja. Un capítulo nuevo se crea en cuanto vale. Lo recuperado se dice en la página con «Volver a lo guardado» y, a diferencia de antes, no se envía hasta seguir escribiendo o cerrar el aviso.
+    - **Elementos:**
+      - lista y ficha a la vez desde 600 dp con un `Row` propio, no con `ListDetailPaneScaffold`: la regla es la de la web (la ficha al lado o, en el móvil, en lugar de la lista) y no hacía falta la dependencia de `material3-adaptive`;
+      - la ficha se guarda sola; lo enviado toma su id sin rehacer la ficha;
+      - pasar a otro elemento o volver guarda antes y, si algo no vale, lo deja en el borrador del móvil.
+    - **Las notas:** antes no tenían borrador y se perdían al cerrar la app o cambiar de cuenta. Ahora el compositor guarda solo y lo que aún no vale se queda en la carpeta de la cuenta.
+    - **Sin conexión,** el capítulo, la ficha y las notas dicen «Sin conexión · guardado en el dispositivo» y reenvían al volver la red (`EstadoDeRed`).
+    - **El reparto y el lugar** siguen en la `HojaInferior` propia, no en `ModalBottomSheet`.
+    - **Probado en el Honor:** plegado, todo con las muestras de depuración; abierto, Elementos.
 
 ## F6. El resto de la web
 
