@@ -12,7 +12,11 @@ La acción `copia` del plugin de la administración (`POST /admin/v1/copias`, po
 
 La estructura `0` a `12` no cambia. Solo se regeneran los bloques top-level `INSERT ... VALUES` que ya existen en los scripts de datos `1` a `10`. No se modifican los seeds de `0`, los indices de `11`, los backfills de `12` ni ningun `INSERT ... SELECT`; tampoco se agregan bloques para tablas operativas que no formen parte de los seeds canonicos.
 
-La escritura de `1` a `10` es conjunta: una tabla o columna inexistente, un bloque ambiguo o un fallo de filesystem cancela la operacion y repone los archivos anteriores. Tras cada ejecucion correcta se copia el conjunto actualizado de SQL top-level a `versiones_previas/<AAAAMMDD-HHMMSS>` y se conservan las cinco ejecuciones exitosas mas recientes.
+La escritura de `1` a `10` es conjunta: una tabla o columna inexistente, un bloque ambiguo o un fallo de filesystem cancela la operacion y repone los archivos anteriores. Tras cada ejecucion correcta se copia el conjunto actualizado de SQL top-level a `versiones_previas/<AAAAMMDD-HHMMSS>` y se conservan las cinco ejecuciones exitosas mas recientes, nunca mas de 30 dias.
+
+## Plazo
+
+Las copias se guardan 30 dias como mucho: los ZIP de `.runtime/copias/` (cualquier archivo de esa carpeta) y las snapshots de `versiones_previas/`. Se podan al terminar cada copia y en el trabajo diario del lector del feed (`utils/data_retention.py`, `docs/backend/api/OPERACION.md`). Los SQL canonicos de nivel superior no caducan: son la ultima fotografia y estan en Git.
 
 ## ZIP
 

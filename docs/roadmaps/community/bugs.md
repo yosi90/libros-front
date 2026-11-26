@@ -2,6 +2,7 @@
 
 ## Pendiente
 
+- [ ] **Club borrado: avisar del plazo de 30 días.** La API (`5e4dbf0`) borra un club entero a los 30 días de borrarlo y responde `RestaurableHasta` en el `DELETE`; pasado el plazo, restaurar da `409 club_restore_expired`. La web (Web, Wood y Mobile) aún dice «El histórico y los miembros se conservan…», y la APK, lo suyo: hay que decir hasta cuándo se puede restaurar.
 - Ninguno registrado. La bandeja de acceso a clubes y las referencias humanas se cerraron en `docs/roadmaps/common/ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.
 
 ## Finalizado

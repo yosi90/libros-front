@@ -18,6 +18,28 @@ El vigilante usa `.venv-svc` (sobre `C:\Python314`, `scripts/preparar-python-ser
 
 **Desplegar en producción**: el código en `main` de la copia principal, `LIBROS_RELEASE_ID` en `.env` y la marca `.runtime/avisos/reiniciar-api-produccion` (la atiende el vigilante, sin administrador). `.runtime/avisos/parar-produccion` lo para. Si la copia principal no está en `main`, el vigilante de producción no arranca ni reinicia con ese código (`Get-RamaAjena`): se trabaja siempre en un `git worktree`. `scripts/start-realtime-stack.ps1` solo arranca la tarea si está parada. Cerrar a mano procesos de la cuenta de servicio exige administrador.
 
+## Plazos de conservación (trabajo diario)
+
+El lector del feed aplica los plazos de conservación al arrancar y cada día a las 04:00 de Madrid (`utils/data_retention.py`, decisión del propietario del 2026-11-26). Corre con la cuenta de servicio del entorno; `LIBROS_PLAZOS=0` lo apaga. Cada regla va en su transacción: si una falla, se registra en el registro del lector (`Plazos de conservación: no se pudo aplicar «…»`) y las demás siguen; al día siguiente se repite. Todo es idempotente, así que reiniciar el lector no borra nada antes de tiempo.
+
+| Qué se borra | Cuándo |
+|---|---|
+| Reportes de reseñas y denuncias de clubes resueltos, con sus motivos, su decisión y la copia del club denunciado; el motivo en la actividad de quien reportó; su resolución en la auditoría del plugin | 12 meses después de resolverse (los resueltos sin fecha de resolución, 12 meses después de crearse). Los pendientes no se borran |
+| `club_auditoria` y `comunidad_auditoria` | 12 meses |
+| `ia_llamadas` (las peticiones y propuestas que las apuntaban se quedan sin la llamada) | 400 días. Nunca dentro del mes en curso: los límites diarios y el gasto del mes salen de esas filas |
+| Publicaciones, comentarios y debates marcados como borrados | Al momento (la API ya los borra al borrarlos) |
+| Clubes borrados, enteros | 30 días después de borrarse (hasta entonces se pueden restaurar) |
+| ZIP de `.runtime/copias/` y snapshots de `Base de datos/@Producción/versiones_previas/` (de estas, solo las cinco más recientes) | 30 días. En QA no hay copias |
+
+**Las copias `COPY_ONLY` de antes de cada migración** (carpeta `Backup` de SQL Server) también se guardan 30 días, pero las borra una persona: la cuenta de servicio no llega a esa carpeta y solo SQL Server (como administrador) puede borrar en ella, y la comparten otras bases del servidor. Se apunta la fecha de cada copia en el `LEEME.md` de su migración y, pasados 30 días, desde una consola de administrador:
+
+```powershell
+# Las copias de `libros` de más de 30 días que constan en msdb (comprueba la lista antes de borrar).
+sqlcmd -S localhost\SQLEXPRESS -E -C -Q "SELECT m.physical_device_name, s.backup_finish_date FROM msdb.dbo.backupset s JOIN msdb.dbo.backupmediafamily m ON m.media_set_id = s.media_set_id WHERE s.database_name = N'libros' AND s.is_copy_only = 1 AND s.backup_finish_date < DATEADD(day, -30, GETDATE()) ORDER BY s.backup_finish_date"
+# Cada archivo de la lista, uno a uno:
+Remove-Item -LiteralPath "C:\Program Files\Microsoft SQL Server\MSSQL17.SQLEXPRESS\MSSQL\Backup\<archivo>.bak"
+```
+
 ## Salud y readiness
 
 `GET /verify` devuelve el entorno, la versión del dataset QA cuando aplica, el estado general y comprobaciones seguras de:

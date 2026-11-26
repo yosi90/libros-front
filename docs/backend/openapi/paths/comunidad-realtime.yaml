@@ -173,9 +173,10 @@
   delete:
     operationId: deleteComunidadPublicacionesById
     tags: [Comunidad]
-    summary: Elimina logicamente una publicacion propia
+    summary: Borra una publicacion propia
+    description: Se borra de verdad, con sus comentarios y sus reacciones. El registro de cambios guarda que se borró, sin su texto.
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses: {'200': {description: Publicacion eliminada y auditada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityMutationResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
+    responses: {'200': {description: Publicacion borrada y auditada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityMutationResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
 /comunidad/publicaciones/{id}/comentarios:
   get:
     operationId: getComunidadPublicacionesByIdComentarios
@@ -213,9 +214,10 @@
   delete:
     operationId: deleteComunidadPublicacionesByIdComentariosByCommentId
     tags: [Comunidad]
-    summary: Elimina logicamente un comentario propio de la publicacion indicada
+    summary: Borra un comentario propio de la publicacion indicada
+    description: Se borra de verdad, con sus reacciones. El registro de cambios guarda que se borró, sin su texto.
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: comment_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses: {'200': {description: Comentario eliminado y auditado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityMutationResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
+    responses: {'200': {description: Comentario borrado y auditado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityMutationResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
 /comunidad/publicaciones/{id}/reacciones:
   put:
     operationId: putComunidadPublicacionesByIdReacciones
@@ -251,11 +253,11 @@
   delete:
     operationId: deleteClubesLecturaById
     tags: [ClubesLectura]
-    summary: Elimina lógicamente el club propio y borra su espacio
-    description: "Borra el espacio del club en la plataforma (sus miembros, invitaciones, solicitudes, conversación y canal) dentro de la misma transacción; si la plataforma falla (`503 club_space_unavailable`), el club no se borra. El contenido del club se conserva hasta una restauración explícita."
+    summary: Borra el club propio y su espacio; se puede restaurar durante 30 días
+    description: "Borra el espacio del club en la plataforma (sus miembros, invitaciones, solicitudes, conversación y canal) dentro de la misma transacción; si la plataforma falla (`503 club_space_unavailable`), el club no se borra. El club se puede restaurar hasta `RestaurableHasta` (30 días); después, el trabajo diario lo borra entero, con todo su contenido."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     responses:
-      '200': {description: Club eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}
+      '200': {description: Club borrado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubDeletionResponse'}}}}
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
@@ -303,10 +305,13 @@
   post:
     operationId: postClubesLecturaByIdRestaurar
     tags: [ClubesLectura]
-    summary: Restaura un club eliminado lógicamente
-    description: "Solo el propietario. Recupera el contenido del club y crea un espacio nuevo con quien lo tiene como único miembro: los demás vuelven entrando o con una invitación de la plataforma. `503 club_space_unavailable` si la plataforma falla."
+    summary: Restaura un club borrado hace menos de 30 días
+    description: "Solo el propietario y durante los 30 días siguientes al borrado. Recupera el contenido del club y crea un espacio nuevo con quien lo tiene como único miembro: los demás vuelven entrando o con una invitación de la plataforma. `409 club_restore_expired` si ya han pasado los 30 días (el trabajo diario lo borra entero); `503 club_space_unavailable` si la plataforma falla."
+    x-functional-error-codes:
+      club_not_deleted: "409: el club no está borrado. Refrescar el club."
+      club_restore_expired: "409: han pasado los 30 días para restaurarlo. Retirar la opción de restaurar."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    responses: {'200': {description: Club restaurado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+    responses: {'200': {description: Club restaurado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubDeletionResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /clubes-lectura/{id}/lecturas:
   x-functional-error-codes:
     club_access_unavailable: "404: club no disponible. Retirar la vista y refrescar clubes propios."

@@ -1812,12 +1812,14 @@ components:
       - type: object
         required: [Eliminada]
         properties: {Eliminada: {type: boolean}}
-    ResolutionStateResponse:
+    ClubDeletionResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
       - type: object
         required: [Estado]
-        properties: {Estado: {type: string, enum: [aceptada, rechazada]}}
+        properties:
+          Estado: {type: string, enum: [eliminado, restaurado]}
+          RestaurableHasta: {type: string, format: date-time, description: 'Solo al borrar: hasta cuándo se puede restaurar (30 días). Después se borra entero.'}
     CommunityCommentCreateRequest:
       type: object
       required: [ContenidoMarkdown]
