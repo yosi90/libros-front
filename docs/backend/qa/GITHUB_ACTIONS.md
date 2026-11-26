@@ -7,7 +7,7 @@ El workflow `.github/workflows/quality.yml` separa contrato, pruebas y smokes de
 | Job | Ejecución | Responsabilidad |
 |---|---|---|
 | `backend` | push y pull request | dependencias Python y `unittest` |
-| `contracts-and-firebase` | push y pull request | lint OpenAPI y reglas Firebase con emuladores |
+| `contracts` | push y pull request | lint OpenAPI |
 | `qa-smoke` | manual | `scripts/qa-smoke.ps1`: entorno, semáforo, lease y los cuatro perfiles contra la URL QA |
 | `sql-realtime-integration` | manual, runner privado | `tests.test_sql_realtime_integration` contra SQL QA |
 

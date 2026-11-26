@@ -8,7 +8,6 @@ Esta es la guia canonica para elegir y ejecutar verificaciones del backend. La r
 |---|---|---|
 | Unitario y contrato Python | Guards, permisos, controladores, configuracion, documentacion y registro de rutas | `.\.venv\Scripts\python.exe -m unittest discover -s tests` |
 | OpenAPI | Sintaxis y referencias del contrato publico | `npm run lint:openapi` |
-| Firebase | Las reglas Firestore y RTDB, cerradas del todo, contra emuladores | `npm run test:firebase-rules` |
 | SQL | Dataset y aliases, rollback y transacciones de catálogo, colección y clubes | Con variables QA cargadas y `RUN_SQL_INTEGRATION=1`: `.\.venv\Scripts\python.exe -m unittest tests.test_sql_realtime_integration` y, para el borrado de una cuenta borrada, `tests.test_sql_account_deletion_integration` |
 | Provision y smoke QA | Reconstruccion, identidad del entorno, runtime config, login, reset, perfiles y fixtures publicados | La tarea `Libros QA Reconstruccion` (`qa/rebuild-daily.ps1`) reconstruye `libros_qa` una vez al dia; para forzarlo, `qa/rebuild-daily.ps1 -Forzar` (para y vuelve a arrancar QA), y despues `scripts/qa-smoke.ps1` con secretos del entorno QA |
 | Front E2E | Recorridos Chromium y Firefox sobre perfiles deterministas | Pertenece al repositorio del front; contrato en `PLAYWRIGHT_FRONT.md` |

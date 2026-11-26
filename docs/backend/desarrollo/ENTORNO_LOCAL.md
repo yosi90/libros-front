@@ -43,7 +43,6 @@ La matriz completa por tipo de cambio y las reglas para integracion SQL, smoke Q
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests
 npm run lint:openapi
-npm run test:firebase-rules
 git diff --check
 ```
 
