@@ -62,11 +62,10 @@ Este repositorio es `book-front`: la web Angular de una aplicación personal par
 ## Revisores del kit
 
 - **Duplicados** (`.claude/agents/revisor-de-duplicados.md`):
-  - 24/10/2026, auditoría completa del frontend, base `5dc3120`: «Quedan duplicados»; las propuestas están en `docs/roadmaps/common/ROADMAP_FINALIZADO_duplicados-frontend.md`.
-  - 25/10/2026, `corregir` sobre lo nuevo de la adhesión (`478fc8e..33989c0`): «Quedan duplicados»; propuestas 9 y 10 del mismo roadmap.
+  - 24/10/2026, auditoría completa del frontend, base `5dc3120`, y 25/10/2026, `corregir` sobre lo nuevo de la adhesión (`478fc8e..33989c0`): «Quedan duplicados»; sus 11 propuestas se cerraron en `docs/roadmaps/common/ROADMAP_FINALIZADO_duplicados-frontend.md`.
   - 26/10/2026, auditoría completa de la APK Kotlin (solo `android-nativa/app/`), base `6826083`: «Quedan duplicados»; propuestas en `docs/roadmaps/ecosistema/ROADMAP_PAUSADO_duplicados-apk-kotlin.md`. Los cambios de interfaz 8 a 11 de esa ronda solo se compilaron: falta verlos en un móvil.
 - **Documentación** (`.claude/agents/revisor-de-documentacion.md`): lo pide el contador `py -3 ecosistema-kit/herramientas/revision_de_documentacion.py`.
-  - 25/11/2026, auditoría completa, base `9bae7418`, unida en `a9936a9d`: «Quedan propuestas» (de unos 455 kB a unos 245 kB de documentación viva). El 26/11/2026 se cerraron el roadmap de duplicados del frontend y las cinco listas de pruebas de sistemas retirados, y se quitaron las guías para portar código de Fichas 3.5 (`docs/Guias importar características/`, ya portado o de la plataforma).
+  - 25/11/2026, auditoría completa, base `9bae7418`, unida en `a9936a9d`: «Quedan propuestas»; resueltas el 26/11/2026.
 
 ## Convención operativa de tests Karma
 
@@ -114,8 +113,7 @@ La CSP vive en `firebase.json` (producción; QA la deriva con `scripts/qa/prepar
 - `script-src` va **sin `'unsafe-inline'`** (revisión de la plataforma en `docs/peticiones/respondidas/ACEPTADA_migrar-libros-a-la-plataforma.md`): un HTML inyectado no ejecuta nada. Por eso `production` y `qa` llevan `optimization.styles.inlineCritical: false` (el CSS crítico se cargaba con un `onload="this.media='all'"` en línea, que la CSP bloquearía y dejaría la web sin estilos), y el tema previo a Angular está en `src/tema-inicial.js` (asset en la raíz, en el grupo `app-shell` del service worker y con `Cache-Control: no-cache` en Hosting), no en un `<script>` en línea.
 - No metas scripts ni manejadores en línea (`<script>` sin `src`, `on…=`, `javascript:`) en `index.html`: `final-contracts.test.mjs` lo comprueba en la fuente y `scripts/qa/verify-pwa-artifact.mjs`, en el `dist` (forma parte de `qa:ci`, que corre antes de desplegar producción).
 - El SDK de la plataforma y `s.js` de Yosiftadísticas no inyectan scripts en línea (`ecosistema-kit/ACCESO.md`, «Cabeceras de la web»).
-- `style-src` conserva `'unsafe-inline'`: los estilos de componentes de Angular van en `<style>` y el título divertido los necesita.
-- Las tipografías son de la propia web (`src/assets/fonts/`, `docs/GUIA_ESTILOS.md`, «Tipografías»): `style-src` es `'self' 'unsafe-inline'` y `font-src`, `'self' data:`, sin Google Fonts ni CDN. `final-contracts.test.mjs` lo comprueba y `e2e/own-fonts.spec.ts` mira que la web y la ficha de un libro no pidan nada a esos orígenes.
+- `style-src` es `'self' 'unsafe-inline'` (los estilos de componentes de Angular van en `<style>` y el título divertido los necesita) y `font-src`, `'self' data:`: sin Google Fonts ni CDN, porque las tipografías son de la propia web (`docs/GUIA_ESTILOS.md`, «Tipografías»). `final-contracts.test.mjs` lo comprueba y `e2e/own-fonts.spec.ts` mira que la web y la ficha de un libro no pidan nada a esos orígenes.
 - El marco del título divertido tiene un origen opaco (`sandbox=""`) y pide sus fuentes con CORS: Hosting sirve `/assets/fonts/**` con `Access-Control-Allow-Origin: *`, y lo mismo hacen `scripts/qa/serve-static.mjs` y `ng serve` (configuraciones `development` y `dev-plataforma`, en este caso para todo lo que sirve). Sin esa cabecera, la cabecera pinta con las fuentes del sistema y la consola avisa del bloqueo.
 
 ## Entornos y credenciales
