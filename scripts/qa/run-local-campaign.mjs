@@ -5,7 +5,7 @@ import { acquireQaLease, qaSettings, releaseQaLease, renewQaLease, resetBaseline
 import { runWithLeaseKeepalive } from './run-with-lease.mjs';
 
 const PUBLIC_NAMES = ['QA_API_BASE_URL', 'QA_FRONT_BASE_URL', 'QA_DATASET_VERSION', 'QA_FIREBASE_PROJECT_ID', 'QA_FIREBASE_SITE_ID'];
-const PRIVATE_NAMES = ['QA_RESET_TOKEN', 'QA_ADMIN_PASSWORD', 'QA_MODERATOR_PASSWORD', 'QA_USER_A_PASSWORD', 'QA_USER_B_PASSWORD', 'QA_PHONE_TEST_NUMBER', 'QA_PHONE_TEST_CODE'];
+const PRIVATE_NAMES = ['QA_RESET_TOKEN'];
 
 export function localQaEnvironment(source, defaults) {
     const supplied = parseEnv(source.replace(/^\uFEFF/, ''));
