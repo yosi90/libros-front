@@ -65,29 +65,29 @@ export class BookStoreService {
      * (origen, grupo, métricas) se conserva si la respuesta no lo trae.
      */
     upsertCharacter(bookId: number, character: Character): void {
-        const book = this.getBook();
-        if (book.Id !== bookId || !character?.Id)
-            return;
-
-        const characters = book.Personajes ?? [];
-        const index = characters.findIndex(current => Number(current.Id) === Number(character.Id));
-        const personajes = index >= 0
-            ? characters.map((current, position) => position === index ? { ...current, ...character } : current)
-            : [...characters, { EsLibroActual: true, OrigenContexto: 'actual', EsSagaPrevia: false, EsSeccionOrigen: false, ...character } as Character];
-        this.bookSubject.next({ ...book, Personajes: personajes });
+        this.upsertBookItem(bookId, 'Personajes', character,
+            created => ({ EsLibroActual: true, OrigenContexto: 'actual', EsSagaPrevia: false, EsSeccionOrigen: false, ...created } as Character));
     }
 
     /** Añade o actualiza una localización del libro abierto (la creada desde una escena) sin recargar el libro. */
     upsertLocation(bookId: number, location: Book['Localizaciones'][number]): void {
+        this.upsertBookItem(bookId, 'Localizaciones', location);
+    }
+
+    /** Lo común de los dos de arriba: solo en el libro abierto, y lo que ya tenía el elemento se conserva si no viene. */
+    private upsertBookItem<K extends 'Personajes' | 'Localizaciones'>(
+        bookId: number, key: K, item: Book[K][number], asNew: (item: Book[K][number]) => Book[K][number] = created => created
+    ): void {
         const book = this.getBook();
-        if (book.Id !== bookId || !location?.Id)
+        if (book.Id !== bookId || !item?.Id)
             return;
-        const locations = book.Localizaciones ?? [];
-        const exists = locations.some(current => Number(current.Id) === Number(location.Id));
-        const localizaciones = exists
-            ? locations.map(current => Number(current.Id) === Number(location.Id) ? { ...current, ...location } : current)
-            : [...locations, location];
-        this.bookSubject.next({ ...book, Localizaciones: localizaciones });
+
+        const items = (book[key] ?? []) as Array<Book[K][number]>;
+        const index = items.findIndex(current => Number(current.Id) === Number(item.Id));
+        const next = index >= 0
+            ? items.map((current, position) => position === index ? { ...current, ...item } : current)
+            : [...items, asNew(item)];
+        this.bookSubject.next({ ...book, [key]: next });
     }
 
     getChapter(chapterId: number): Chapter {
