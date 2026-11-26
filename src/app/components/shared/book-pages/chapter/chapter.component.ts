@@ -39,7 +39,7 @@ import { CharacterService } from '../../../../services/entities/character.servic
 import { NarrativeEntityService } from '../../../../services/entities/narrative-entity.service';
 import {
     CHARACTER_CREATE_TIMEOUT_MS, castNameToCreate, duplicateCharacterQuestion, filterSceneCast, findCharacterNamed, isRejectedCharacterClientRequestId,
-    pressCastIcon, withSceneCastFirst
+    pressCastIcon, sceneCastDetails, withSceneCastFirst
 } from '../../../../shared/scene-cast';
 import { createClientRequestId } from '../../../../shared/client-request-id';
 
@@ -476,7 +476,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
                 Nombre: scene.Nombre,
                 Descripcion: scene.Descripcion,
                 LocalizacionId: scene.Localizacion?.Id ?? null,
-                Personajes: this.getSceneCharacterDetails(scene)
+                Personajes: sceneCastDetails(scene)
                     .map(character => ({ Id: Number(character.Id), Nombrado: !!character.Nombrado }))
                     .sort((a, b) => a.Id === b.Id
                         ? Number(a.Nombrado) - Number(b.Nombrado)
@@ -518,7 +518,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     createSceneGroup(data?: Scene, sceneNumber?: number): FormGroup {
-        const sceneCharacters = this.getSceneCharacterDetails(data);
+        const sceneCharacters = sceneCastDetails(data);
         const defaultSceneName = sceneNumber ? `Escena ${sceneNumber}` : '';
         // En la Web la escena nueva empieza vacía: un texto de relleno se leería como de la persona («Cuaderno», F2).
         const defaultSceneDescription = this.isWebView ? '' : this.createDefaultSceneDescription();
@@ -688,18 +688,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         else if (this.endPage.hasError('max'))
             this.errorEndPageMessage = 'La página final máxima es 9999';
         else this.errorEndPageMessage = 'Página final no válida';
-    }
-
-    getSceneCharacterIds(scene: Scene): number[] {
-        return this.getSceneCharacterDetails(scene).map(character => character.Id);
-    }
-
-    getSceneCharacterDetails(scene?: Scene): SceneCharacterDetail[] {
-        if (!scene) return [];
-        if (scene.PersonajesDetalle?.length) return scene.PersonajesDetalle;
-        return (scene.Personajes ?? []).map(character => typeof character === 'number'
-            ? { Id: character, Nombrado: false }
-            : { Id: character.Id, Nombrado: !!character.Nombrado });
     }
 
     hasAssignedCharacter(sceneGroup: any): boolean {

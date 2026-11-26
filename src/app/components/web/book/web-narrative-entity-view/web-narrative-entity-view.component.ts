@@ -10,6 +10,7 @@ import type { NarrativeEntityPlaceholderComponent } from '../../../shared/book-p
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { ModalDialogDirective } from '../../ui/modal-dialog.directive';
 import { foldText } from '../../../../shared/text';
+import { sceneCastDetails } from '../../../../shared/scene-cast';
 import type { Chapter } from '../../../../interfaces/chapter';
 
 interface ListGroup { label: string; items: any[] }
@@ -114,11 +115,9 @@ export class WebNarrativeEntityViewComponent {
             for (const chapter of chapters) {
                 const seen = new Map<number, boolean>();
                 for (const scene of chapter.Escenas ?? []) {
-                    const cast = (scene.PersonajesDetalle?.length ? scene.PersonajesDetalle : scene.Personajes ?? []) as Array<number | { Id: number; Nombrado?: boolean }>;
-                    for (const entry of cast) {
-                        const id = Number(typeof entry === 'number' ? entry : entry.Id);
-                        const named = typeof entry === 'number' ? false : !!entry.Nombrado;
-                        seen.set(id, (seen.get(id) ?? true) && named);
+                    for (const entry of sceneCastDetails(scene)) {
+                        const id = Number(entry.Id);
+                        seen.set(id, (seen.get(id) ?? true) && !!entry.Nombrado);
                     }
                 }
                 for (const [id, named] of seen) {

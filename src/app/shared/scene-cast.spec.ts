@@ -1,7 +1,8 @@
 import { Character, CharacterAlias } from '../interfaces/character';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-    castNameToCreate, duplicateCharacterQuestion, filterSceneCast, findCharacterNamed, isRejectedCharacterClientRequestId, pressCastIcon, withSceneCastFirst
+    castNameToCreate, duplicateCharacterQuestion, filterSceneCast, findCharacterNamed, isRejectedCharacterClientRequestId, pressCastIcon, sceneCastDetails,
+    withSceneCastFirst
 } from './scene-cast';
 
 /** Los mismos casos que la APK (`RepartoDeEscenaTest`). */
@@ -74,5 +75,14 @@ describe('scene-cast', () => {
         expect(withSceneCastFirst(filterSceneCast(characters, ''), new Set([5, 2])).map(item => item.Nombre))
             .toEqual(['Rowan', 'Segador Goddard', 'Ángela', 'Citra Terranova', 'Marie Curie', 'Mercury']);
         expect(withSceneCastFirst(filterSceneCast(characters, 'cur'), new Set([5])).map(item => item.Nombre)).toEqual(['Marie Curie', 'Mercury']);
+    });
+});
+
+describe('sceneCastDetails', () => {
+    it('usa PersonajesDetalle si lo trae y, si no, convierte Personajes', () => {
+        expect(sceneCastDetails({ Personajes: [1], PersonajesDetalle: [{ Id: 2, Nombrado: true }] })).toEqual([{ Id: 2, Nombrado: true }]);
+        expect(sceneCastDetails({ Personajes: [1, 3], PersonajesDetalle: [] })).toEqual([{ Id: 1, Nombrado: false }, { Id: 3, Nombrado: false }]);
+        expect(sceneCastDetails({ Personajes: [{ Id: 4, Nombrado: true }] })).toEqual([{ Id: 4, Nombrado: true }]);
+        expect(sceneCastDetails(undefined)).toEqual([]);
     });
 });

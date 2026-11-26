@@ -1,5 +1,5 @@
 import { Character } from '../interfaces/character';
-import { SceneCharacterDetail } from '../interfaces/scene';
+import { Scene, SceneCharacterDetail } from '../interfaces/scene';
 import { getApiErrorCode } from './api-error-message';
 import { foldText } from './text';
 
@@ -80,4 +80,13 @@ export const CHARACTER_CREATE_TIMEOUT_MS = 30_000;
 export function isRejectedCharacterClientRequestId(error: unknown): boolean {
     const code = getApiErrorCode(error);
     return code === 'invalid_client_request_id' || code === 'character_client_request_conflict';
+}
+
+/** El reparto guardado de una escena como `{ Id, Nombrado }`: `PersonajesDetalle` si lo trae y, si no, `Personajes` (ids o detalle). */
+export function sceneCastDetails(scene?: Pick<Scene, 'Personajes' | 'PersonajesDetalle'> | null): SceneCharacterDetail[] {
+    if (!scene) return [];
+    if (scene.PersonajesDetalle?.length) return scene.PersonajesDetalle;
+    return (scene.Personajes ?? []).map(character => typeof character === 'number'
+        ? { Id: character, Nombrado: false }
+        : { Id: character.Id, Nombrado: !!character.Nombrado });
 }
