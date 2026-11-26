@@ -39,10 +39,9 @@ No cambia nada de la librería de la sesión ni de vuestra compilación.
 
 ## Resolución
 
-**En curso** (2026-11-25).
+**En curso** (2026-11-26): solo falta la ficha.
 
-- `GET /v1/webs` da `app.privacidad: null` para `libros` en QA y en producción.
-- La APK de Libros sí trata datos propios (la biblioteca, las lecturas, las notas, los capítulos y la narrativa, en el servidor de Libros). Por eso necesita su información de privacidad.
-- Hoy no tiene ninguna página pública que la cuente, y a sus normas les falta el apartado `datos`.
-- Pendiente del propietario: dar el visto bueno al texto (el apartado «Lo que guarda Libros» y una página pública en la web de Libros) y, después, poner su dirección en la ficha de cada entorno.
+- La política de privacidad propia de Libros está aprobada por el propietario y publicada en `https://libros.yosiftware.es/privacidad/`. Es estática, se lee sin sesión y no carga nada de fuera. Se enlaza desde la portada y desde «Cuenta y seguridad».
+- Las normas de Libros, en su versión 3, llevan el apartado `datos`, que remite a esa política, y el apartado `ia`, que ahora cuenta los cuatro usos de la IA.
+- Pendiente del propietario: poner esa dirección en la ficha de la app, «Privacidad de la app», en producción y en QA (`https://qa-libros.yosiftware.es/privacidad/`). Después se comprueba en `GET /v1/webs` (`app.privacidad`) y esta petición pasa a respondidas.
 - La APK solo habla español: el aviso de gratuidad en otros idiomas no aplica.
