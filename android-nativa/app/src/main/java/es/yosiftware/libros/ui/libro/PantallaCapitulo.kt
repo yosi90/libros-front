@@ -40,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.onFocusChanged
@@ -71,7 +70,6 @@ import es.yosiftware.libros.datos.rtf.EnlacesNarrativos
 import es.yosiftware.libros.datos.rtf.TipoDeEnlace
 import es.yosiftware.libros.ui.adaptable.ClaseDeVentana
 import es.yosiftware.libros.ui.adaptable.LocalVentana
-import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
 import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.editor.EditorRtf
@@ -479,17 +477,7 @@ private fun HojaDeLugar(vm: CapituloViewModel, escena: EscenaEditable?) {
     var buscado by remember(escena?.clave) { mutableStateOf("") }
     HojaInferior(abierta = escena != null, alCerrar = vm::cerrarLugar, titulo = "Lugar") {
         if (escena == null) return@HojaInferior
-        Row(
-            Modifier.fillMaxWidth().padding(start = Espacios.e5, end = Espacios.e2),
-            horizontalArrangement = Arrangement.spacedBy(Espacios.e1),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            CampoNativo(
-                etiqueta = null, valor = buscado, alCambiar = { buscado = it }, modifier = Modifier.weight(1f),
-                ejemplo = "Buscar o crear", iconoFinal = Iconos.search, nombreAccesible = "Buscar o crear localización",
-            )
-            BotonDeIcono(Iconos.close, "Cerrar", vm::cerrarLugar)
-        }
+        BuscadorDeHoja(buscado, { buscado = it }, "Buscar o crear localización", vm::cerrarLugar)
         Column(
             Modifier.fillMaxWidth().padding(start = Espacios.e4, end = Espacios.e3, top = Espacios.e2, bottom = Espacios.e4)
                 .heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
@@ -510,17 +498,7 @@ private fun HojaDeLugar(vm: CapituloViewModel, escena: EscenaEditable?) {
                 }
             }
             vm.lugarParaCrear(buscado)?.let { nombre ->
-                val ocupado = vm.creandoLugar != null
-                Row(
-                    Modifier.fillMaxWidth().heightIn(min = 44.dp).alpha(if (ocupado) 0.5f else 1f)
-                        .clickable(enabled = !ocupado, role = Role.Button) { vm.crearLugar(escena.clave, buscado) }
-                        .padding(horizontal = Espacios.e2),
-                    horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CirculoDeCrear(28.dp)
-                    Text(if (vm.creandoLugar == nombre) "Creando «$nombre»…" else "Crear «$nombre»", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.primario), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
+                FilaDeCrear(nombre, vm.creandoLugar, lados = Espacios.e2) { vm.crearLugar(escena.clave, buscado) }
             }
         }
     }

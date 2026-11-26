@@ -113,17 +113,7 @@ fun HojaDeReparto(vm: CapituloViewModel, libro: Libro, escena: EscenaEditable?, 
         if (escena == null) return@HojaInferior
         val lista = RepartoDeEscena.conLosDeLaEscenaPrimero(RepartoDeEscena.filtrar(libro.personajes, buscado), primero)
         val paraCrear = RepartoDeEscena.nombreParaCrear(buscado)
-        Row(
-            Modifier.fillMaxWidth().padding(start = Espacios.e5, end = Espacios.e2),
-            horizontalArrangement = Arrangement.spacedBy(Espacios.e1),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            CampoNativo(
-                etiqueta = null, valor = buscado, alCambiar = { buscado = it }, modifier = Modifier.weight(1f),
-                ejemplo = "Buscar o crear", iconoFinal = Iconos.search, nombreAccesible = "Buscar o crear personaje",
-            )
-            BotonDeIcono(Iconos.close, "Cerrar", vm::cerrarReparto)
-        }
+        BuscadorDeHoja(buscado, { buscado = it }, "Buscar o crear personaje", vm::cerrarReparto)
         Column(
             Modifier.fillMaxWidth().padding(start = Espacios.e5, end = Espacios.e3, top = Espacios.e2, bottom = Espacios.e4)
                 .heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
@@ -133,21 +123,12 @@ fun HojaDeReparto(vm: CapituloViewModel, libro: Libro, escena: EscenaEditable?, 
                 FilaDePersonaje(personaje, actual) { nombrado -> vm.pulsarEnElReparto(escena.clave, personaje.id, nombrado) }
             }
             if (paraCrear != null) {
-                val ocupado = creador.creando != null
-                Row(
-                    Modifier.fillMaxWidth().heightIn(min = 44.dp).alpha(if (ocupado) 0.5f else 1f)
-                        .clickable(enabled = !ocupado, role = Role.Button) {
-                            creador.crear(libro, paraCrear) { id ->
-                                primero = primero + id
-                                vm.asignarPersonaje(escena.clave, id, false)
-                                buscado = ""
-                            }
-                        },
-                    horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CirculoDeCrear(28.dp)
-                    Text(if (creador.creando == paraCrear) "Creando «$paraCrear»…" else "Crear «$paraCrear»", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.primario), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                FilaDeCrear(paraCrear, creador.creando) {
+                    creador.crear(libro, paraCrear) { id ->
+                        primero = primero + id
+                        vm.asignarPersonaje(escena.clave, id, false)
+                        buscado = ""
+                    }
                 }
             }
         }
@@ -163,9 +144,45 @@ private fun Inicial(nombre: String, tamano: Dp) {
     }
 }
 
+/** Arriba de las hojas de buscar o crear (el reparto y el lugar): el buscador con la lupa y la X de cerrar. */
+@Composable
+internal fun BuscadorDeHoja(buscado: String, alBuscar: (String) -> Unit, nombreAccesible: String, alCerrar: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = Espacios.e5, end = Espacios.e2),
+        horizontalArrangement = Arrangement.spacedBy(Espacios.e1),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CampoNativo(
+            etiqueta = null, valor = buscado, alCambiar = alBuscar, modifier = Modifier.weight(1f),
+            ejemplo = "Buscar o crear", iconoFinal = Iconos.search, nombreAccesible = nombreAccesible,
+        )
+        BotonDeIcono(Iconos.close, "Cerrar", alCerrar)
+    }
+}
+
+/**
+ * «Crear «…»» al final de la lista de esas hojas. Mientras se crea algo ([creando]), apagada; si es [nombre], «Creando
+ * «…»…». [lados], el relleno a izquierda y derecha, para alinearla con las filas de su lista.
+ */
+@Composable
+internal fun FilaDeCrear(nombre: String, creando: String?, lados: Dp = 0.dp, alCrear: () -> Unit) {
+    val colores = LocalColores.current
+    val ocupado = creando != null
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 44.dp).alpha(if (ocupado) 0.5f else 1f)
+            .clickable(enabled = !ocupado, role = Role.Button, onClick = alCrear)
+            .padding(horizontal = lados),
+        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CirculoDeCrear(28.dp)
+        Text(if (creando == nombre) "Creando «$nombre»…" else "Crear «$nombre»", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.primario), maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
 /** El «+» en un círculo discontinuo del primario, delante de «Crear «…»». */
 @Composable
-internal fun CirculoDeCrear(tamano: Dp) {
+private fun CirculoDeCrear(tamano: Dp) {
     val colores = LocalColores.current
     Box(
         Modifier.size(tamano).drawBehind {
