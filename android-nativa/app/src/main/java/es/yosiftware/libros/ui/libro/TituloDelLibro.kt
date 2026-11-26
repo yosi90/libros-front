@@ -396,7 +396,7 @@ private fun BotonSobreLaCabecera(icono: Int, descripcion: String, alPulsar: () -
 
 /**
  * La cabecera animada, aislada: un WebView **sin JavaScript**, sin acceso a archivos ni a contenido, que no navega a
- * ningún sitio, con la CSP de la cabecera (solo estilos y fuentes de las CDN permitidas). El HTML y el CSS ya vienen
+ * ningún sitio, con la CSP de la cabecera (solo estilos en línea y las tipografías de la propia web). El HTML y el CSS ya vienen
  * saneados de la API (`utils/titulo_html.py`); esta es la segunda barrera. Los efectos son de CSS: `:active` al tocar.
  */
 @SuppressLint("SetJavaScriptEnabled")
@@ -409,7 +409,7 @@ fun CabeceraDelTitulo(html: String, estilos: String?, titulo: String, modifier: 
             vista.contentDescription = titulo
             if (vista.tag != documento) {
                 vista.tag = documento
-                vista.loadDataWithBaseURL("https://libros.yosiftware.es/", documento, "text/html", "utf-8", null)
+                vista.loadDataWithBaseURL(BuildConfig.WEB_LIBROS, documento, "text/html", "utf-8", null)
             }
         },
         modifier = modifier,
@@ -439,16 +439,89 @@ private fun webViewAislado(contexto: Context): WebView = WebView(contexto).apply
     }
 }
 
-/** El documento de la cabecera, con su propia CSP: sin scripts, y estilos y fuentes solo de las CDN permitidas. */
-internal fun documentoDeLaCabecera(html: String, estilos: String?): String {
-    val cdn = "https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net"
-    val csp = "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com $cdn; " +
-        "font-src data: https://fonts.gstatic.com $cdn; img-src data:"
+/** Las tipografías propias de la web (`assets/fonts/`, con su hoja `fuentes.css`): las de la cabecera. */
+internal val FUENTES_DE_LA_WEB = BuildConfig.WEB_LIBROS + "assets/fonts/"
+
+/**
+ * El documento de la cabecera, con su propia CSP: sin scripts, y estilos y tipografías solo de la propia web
+ * ([fuentes]); nada de Google Fonts ni de CDN. Es el de la web (`book-title-banner-document.ts`): un cambio allí va
+ * también aquí.
+ */
+internal fun documentoDeLaCabecera(html: String, estilos: String?, fuentes: String = FUENTES_DE_LA_WEB): String {
+    val csp = "default-src 'none'; style-src 'unsafe-inline' $fuentes; font-src data: $fuentes; img-src data:"
     return "<!doctype html><html><head><meta charset=\"utf-8\">" +
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" +
         "<meta http-equiv=\"Content-Security-Policy\" content=\"$csp\">" +
+        "<link rel=\"stylesheet\" href=\"${fuentes}fuentes.css\">" +
         "<style>html,body{height:100%;margin:0;overflow:hidden}</style>" +
-        "<style>${estilos.orEmpty()}</style></head><body>$html</body></html>"
+        "<style>${estilosPropios(estilos).replace(cierreDeEstilos) { "<\\/style" }}</style></head><body>$html</body></html>"
+}
+
+/**
+ * La familia propia que sustituye a la que pedía una cabecera de fuera, según la genérica de su lista. Va justo antes
+ * de la genérica: las que la cabecera nombra antes (si las tiene el sistema) siguen mandando.
+ */
+private val respaldosPropios = mapOf(
+    "serif" to "Playfair Display", "ui-serif" to "Playfair Display",
+    "sans-serif" to "Montserrat", "ui-sans-serif" to "Montserrat", "system-ui" to "Montserrat", "ui-rounded" to "Montserrat",
+    "fantasy" to "Cinzel Decorative", "cursive" to "MedievalSharp",
+)
+/** Sin genérica en la lista, la de los titulares. */
+private const val RESPALDO_POR_DEFECTO = "Playfair Display"
+private val generica = Regex(
+    """(^|[,\s])(sans-serif|serif|ui-sans-serif|ui-serif|ui-rounded|system-ui|fantasy|cursive|monospace|ui-monospace|emoji|math|fangsong)(?=\s*(?:,|$))""",
+    RegexOption.IGNORE_CASE,
+)
+private val declaracionDeLetra = Regex("""(^|[;{\s])(font-family|font)(\s*:\s*)([^;{}]+)""", RegexOption.IGNORE_CASE)
+private val valorClave = Regex("""^(?:inherit|initial|unset|revert|revert-layer)$|var\(""", RegexOption.IGNORE_CASE)
+private val importante = Regex("""\s*!important\s*$""", RegexOption.IGNORE_CASE)
+private val comentario = Regex("""/\*[\s\S]*?(?:\*/|$)""")
+private val importacion = Regex("""@import\b[^;]*(?:;|$)""", RegexOption.IGNORE_CASE)
+private val direccion = Regex("""url\(\s*(['"]?)(.*?)\1\s*\)""", RegexOption.IGNORE_CASE)
+private val caraDeFuente = Regex("""@font-face\s*\{[^}]*\}""", RegexOption.IGNORE_CASE)
+private val caraApartada = Regex("\u0000(\\d+)\u0000")
+/** Un `</style>` en los estilos no puede cerrar el bloque antes de tiempo. */
+private val cierreDeEstilos = Regex("</style", RegexOption.IGNORE_CASE)
+
+private fun conRespaldoPropio(propiedad: String, valor: String): String {
+    val final = importante.find(valor)
+    val lista = if (final != null) valor.substring(0, final.range.first) else valor
+    if (valorClave.containsMatchIn(lista.trim())) return valor
+    val encontrada = generica.find(lista)
+    val propia = when {
+        encontrada != null -> respaldosPropios[encontrada.groupValues[2].lowercase()]
+        propiedad == "font-family" -> RESPALDO_POR_DEFECTO
+        else -> null
+    }
+    if (propia == null || lista.lowercase().contains(propia.lowercase())) return valor
+    val conPropia = if (encontrada != null) {
+        val corte = encontrada.range.first + encontrada.groupValues[1].length
+        "${lista.substring(0, corte)}'$propia', ${lista.substring(corte)}"
+    } else {
+        "${lista.trimEnd()}, '$propia'"
+    }
+    return conPropia + (final?.value ?: "")
+}
+
+/**
+ * El CSS de la cabecera con solo recursos propios: sin `@import` (las de Google Fonts y los CDN de antes), sin `url()`
+ * que no sea `data:` y con una familia propia de respaldo en cada lista de fuentes, para que las cabeceras que pedían
+ * una fuente de fuera se sigan viendo bien. La CSP del documento lo garantiza igualmente.
+ */
+internal fun estilosPropios(estilos: String?): String {
+    // Los `@font-face` se apartan mientras tanto: su `font-family` es un nombre, no una lista.
+    val caras = mutableListOf<String>()
+    var css = estilos.orEmpty().replace(comentario, "").replace(importacion, "")
+    css = direccion.replace(css) { if (it.groupValues[2].trim().startsWith("data:", ignoreCase = true)) it.value else "none" }
+    css = caraDeFuente.replace(css) {
+        caras.add(it.value)
+        "\u0000${caras.size - 1}\u0000"
+    }
+    css = declaracionDeLetra.replace(css) {
+        val (antes, propiedad, dosPuntos, valor) = it.destructured
+        "$antes$propiedad$dosPuntos${conRespaldoPropio(propiedad.lowercase(), valor)}"
+    }
+    return caraApartada.replace(css) { caras.getOrNull(it.groupValues[1].toInt()).orEmpty() }
 }
 
 /**

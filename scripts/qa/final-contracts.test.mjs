@@ -156,13 +156,16 @@ test('Hosting publica la CSP del kit de Yosiftware y cabeceras defensivas sin bl
     assert.match(csp, /connect-src [^;]*https:\/\/cuentas-api\.yosiftware\.es [^;]*wss:\/\/cuentas-ws\.yosiftware\.es/);
     assert.match(csp, /frame-src https:\/\/cuentas\.yosiftware\.es;/);
     assert.match(csp, /img-src [^;]*https:\/\/cuentas-api\.yosiftware\.es/);
-    // El título divertido de cada libro (iframe `sandbox` con `srcdoc`, que hereda esta CSP): sus fuentes y estilos de
-    // Google Fonts y de los tres CDN que deja el servidor. Nada de esos CDN en `script-src`.
-    for (const cdn of [String.raw`cdnjs\.cloudflare\.com`, String.raw`unpkg\.com`, String.raw`cdn\.jsdelivr\.net`]) {
-        assert.match(csp, new RegExp(`style-src [^;]*https://${cdn}`));
-        assert.match(csp, new RegExp(`font-src [^;]*https://${cdn}`));
-        assert.doesNotMatch(csp, new RegExp(`script-src [^;]*${cdn}`));
-    }
+    // Las tipografías se sirven desde la propia web, también las de la cabecera del título divertido (iframe `sandbox`
+    // con `srcdoc`, que hereda esta CSP): ni Google Fonts ni CDN.
+    assert.match(csp, /style-src 'self' 'unsafe-inline';/);
+    assert.match(csp, /font-src 'self' data:;/);
+    for (const origin of [String.raw`fonts\.googleapis\.com`, String.raw`fonts\.gstatic\.com`, String.raw`cdnjs\.cloudflare\.com`,
+        String.raw`unpkg\.com`, String.raw`cdn\.jsdelivr\.net`])
+        assert.doesNotMatch(csp, new RegExp(origin));
+    // El marco aislado de la cabecera tiene un origen opaco: sus tipografías se piden con CORS.
+    const fontHeaders = firebase.hosting.headers.find(rule => rule.source === '/assets/fonts/**')?.headers ?? [];
+    assert.equal(fontHeaders.find(header => header.key === 'Access-Control-Allow-Origin')?.value, '*');
     assert.equal(headers['cross-origin-embedder-policy'], undefined);
     assert.equal(headers['x-content-type-options'], 'nosniff');
     assert.equal(headers['referrer-policy'], 'strict-origin-when-cross-origin');
@@ -198,6 +201,22 @@ test('la CSP no deja ejecutar scripts en línea y la web no los necesita', async
     assert.match(index, /<script src="tema-inicial\.js"><\/script>/);
     for (const assets of [build.options.assets, build.configurations.production.assets, build.configurations.qa.assets])
         assert.ok(assets.includes('src/tema-inicial.js'));
+});
+
+test('las tipografías se sirven desde la propia web, sin Google Fonts ni CDN', async () => {
+    const [angular, index, fonts] = await Promise.all([
+        readFile(path.join(root, 'angular.json'), 'utf8'),
+        readFile(path.join(root, 'src', 'index.html'), 'utf8'),
+        readFile(path.join(root, 'src', 'assets', 'fonts', 'fuentes.css'), 'utf8')
+    ]);
+    const external = /fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com|unpkg\.com|cdn\.jsdelivr\.net/;
+    assert.match(index, /<link rel="stylesheet" href="assets\/fonts\/fuentes\.css">/);
+    assert.doesNotMatch(index, external);
+    assert.doesNotMatch(angular, external);
+    assert.doesNotMatch(fonts, /url\((?!(?:[a-z-]+)\/[a-z0-9-]+\.woff2\))/);
+    const files = [...fonts.matchAll(/url\(([^)]+)\)/g)].map(match => match[1]);
+    assert.ok(files.length > 0);
+    await Promise.all(files.map(file => readFile(path.join(root, 'src', 'assets', 'fonts', file))));
 });
 
 test('la campaña de integración evalúa el flag después de cargar el environment QA', async () => {

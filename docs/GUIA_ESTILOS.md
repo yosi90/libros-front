@@ -117,6 +117,17 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Las transiciones sencillas usan CSS o Web Animations. Otra dependencia requiere decisión técnica, accesibilidad, tree-shaking y budget.
 - No elevar budgets para ocultar CSS duplicado; revisar primero emisión global, especificidad y lazy loading.
 
+### Tipografías
+
+- **Se sirven desde la propia web**, nunca desde Google Fonts ni un CDN: `src/assets/fonts/`, con su hoja `assets/fonts/fuentes.css` enlazada en `index.html`. La CSP no admite otros orígenes en `font-src` ni en `style-src`.
+- Son las familias del editor RTF (Cinzel Decorative, Lato, Luckiest Guy, MedievalSharp, Merriweather, Montserrat, Open Sans, Playfair Display y Roboto), que también dan Roboto a la tipografía base y a Material y Lato a Wood. Van en woff2, sacadas de @fontsource 5.3.0, con los subconjuntos latin y latin-ext y solo los pesos en uso; cada carpeta lleva su licencia (SIL OFL 1.1; Luckiest Guy, Apache 2.0). El navegador solo descarga las caras y los subconjuntos que pinta.
+- Material Icons sale del paquete npm `material-icons`. Inter (`--web-font-ui`, `--mobile-font-body`) y las serif de lectura (Iowan Old Style, Palatino, Georgia) son del sistema y no se descargan.
+- Una familia o un peso nuevo se añade a `src/assets/fonts/` con su licencia y su `@font-face` en `fuentes.css`, nunca con un enlace externo.
+- **La cabecera del título divertido** solo usa recursos propios, en la web (`book-title-banner-document.ts`) y en el WebView de la APK (`TituloDelLibro.kt`), que hacen lo mismo:
+  - su documento enlaza `fuentes.css` y su CSP solo deja la carpeta `assets/fonts/` de la web;
+  - su CSS se limpia: sin `@import` ni `url()` que no sea `data:`;
+  - cada lista de fuentes recibe una propia antes de su genérica (`serif`, Playfair Display; `sans-serif`, Montserrat; `fantasy`, Cinzel Decorative; `cursive`, MedievalSharp; sin genérica, Playfair Display). Así se siguen viendo las cabeceras que importaban una fuente de Google; los iconos de Font Awesome o Boxicons y las clases de Animate.css o Hover.css que traían no se pintan.
+
 ## Navegación y shells
 
 ### Shell general

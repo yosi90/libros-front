@@ -1,25 +1,7 @@
+import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-
-/**
- * La CSP del documento de la cabecera: solo estilos en línea y los de Google Fonts y los tres CDN que deja el servidor,
- * sus fuentes e imágenes `data:`. Ni scripts, ni conexiones, ni imágenes de fuera. Se suma a la de la página, que el
- * `srcdoc` hereda (`firebase.json`).
- */
-export const BOOK_TITLE_BANNER_CSP = "default-src 'none'; "
-    + "style-src 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; "
-    + 'font-src data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; '
-    + 'img-src data:';
-
-/** El documento completo de la cabecera. Un `</style>` en los estilos no puede cerrar el bloque antes de tiempo. */
-export function bookTitleBannerDocument(html: string, styles: string | null | undefined): string {
-    const css = (styles ?? '').replace(/<\/style/gi, '<\\/style');
-    return '<!doctype html><html><head><meta charset="utf-8">'
-        + `<meta http-equiv="Content-Security-Policy" content="${BOOK_TITLE_BANNER_CSP}">`
-        // La base, como en la APK: la cabecera es fluida y llena el marco (las de la app de escritorio no lo decían).
-        + '<style>html,body{height:100%;margin:0;overflow:hidden}</style>'
-        + `<style>${css}</style></head><body>${html}</body></html>`;
-}
+import { bookTitleBannerDocument, bookTitleBannerFontsUrl } from './book-title-banner-document';
 
 /**
  * El título divertido como lo pintaba la app de escritorio: si la IA trajo una cabecera animada (`Html` y `Estilos`),
@@ -76,6 +58,7 @@ export function bookTitleBannerDocument(html: string, styles: string | null | un
 })
 export class BookTitleBannerComponent implements OnChanges {
     private readonly sanitizer = inject(DomSanitizer);
+    private readonly fontsUrl = bookTitleBannerFontsUrl(inject(DOCUMENT).baseURI);
 
     /** La frase: el texto sin cabecera, el `title` del marco y lo que oyen los lectores de pantalla. */
     @Input({ required: true }) title = '';
@@ -94,10 +77,11 @@ export class BookTitleBannerComponent implements OnChanges {
 
     ngOnChanges(): void {
         // Solo para el `srcdoc` de este marco, y es seguro: `sandbox=""` sin permisos (sin scripts, sin el origen de la
-        // página, sin formularios, ventanas ni navegación), la CSP propia del documento (sin scripts ni conexiones) y el
-        // HTML y el CSS ya saneados en el servidor. Nada de esto entra en el DOM de la página.
+        // página, sin formularios, ventanas ni navegación), la CSP propia del documento (sin scripts ni conexiones, y
+        // solo las tipografías propias) y el HTML y el CSS ya saneados en el servidor. Nada de esto entra en el DOM de
+        // la página.
         this.document = this.html
-            ? this.sanitizer.bypassSecurityTrustHtml(bookTitleBannerDocument(this.html, this.styles))
+            ? this.sanitizer.bypassSecurityTrustHtml(bookTitleBannerDocument(this.html, this.styles, this.fontsUrl))
             : null;
     }
 }
