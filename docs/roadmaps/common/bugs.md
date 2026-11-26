@@ -29,6 +29,7 @@ Lo cerrado de la APK de Capacitor, Firebase, la sesión y el login propios, la p
 
 ### Web y APK
 
+- [x] Tipografías propias (26/11/2026, decisión del propietario para que la política de privacidad no nombre a terceros): la web sirve sus fuentes desde `src/assets/fonts/` (fuera Google Fonts) y la cabecera del título divertido, en la web y en el WebView de la APK, solo usa recursos propios, con una familia propia de respaldo para las cabeceras antiguas (`docs/GUIA_ESTILOS.md`, «Tipografías»). Falta que el backend deje de pedir y de admitir fuentes y hojas de fuera en la cabecera (`utils/titulo_divertido.py` y `utils/titulo_html.py`).
 - [x] Dragones del cargador (2026-10-25, aviso del propietario): uno de los tres al azar en cada arranque y el mismo en todas sus cargas, con sus frases.
 - [x] «Tu cuenta de Yosiftware tiene limitado el chat» / «limitada la comunidad» (`9c66276`); la APK compone la frase con el `detalle` de `cuenta_restringida`.
 - [x] Clubes en la vista móvil (25/10/2026, corregidos en web y APK): etiquetas legibles en `shared/club-labels.ts`; Mis clubes y Eventos completos al abrir su pestaña; a quien no es miembro solo se le piden los autores más leídos y no se le ofrecen debate, voto ni spoilers; perder el acceso vuelve a Clubes con aviso; volver y abandonar llevan a Clubes; sin dobles envíos; `pre-line` en los textos; métricas en dos columnas; crear club admite antologías; `forward_to_inbox`.
