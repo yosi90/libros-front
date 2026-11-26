@@ -9,6 +9,14 @@ const EXPECTED = Object.freeze({
     firebaseSiteId: 'libros-qa'
 });
 
+/**
+ * Los secretos de la campaña QA, en un solo sitio: los que vienen del archivo privado o de GitHub
+ * (`run-local-campaign.mjs`) y, con ellos, la lease que se adquiere en cada campaña. `scan-evidence-secrets.mjs` los
+ * busca todos en la evidencia.
+ */
+export const QA_PRIVATE_NAMES = Object.freeze(['QA_RESET_TOKEN']);
+export const QA_SECRET_NAMES = Object.freeze([...QA_PRIVATE_NAMES, 'QA_LEASE_ID']);
+
 const CONTROL_RETRY_OPTIONS = Object.freeze({
     retryCodes: ['qa_lease_busy', 'qa_reset_in_progress'],
     retryTimeoutMs: 120_000,

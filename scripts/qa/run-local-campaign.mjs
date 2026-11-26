@@ -1,11 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { parseEnv } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { acquireQaLease, qaSettings, releaseQaLease, renewQaLease, resetBaseline } from './campaign-control.mjs';
+import { QA_PRIVATE_NAMES, acquireQaLease, qaSettings, releaseQaLease, renewQaLease, resetBaseline } from './campaign-control.mjs';
 import { runWithLeaseKeepalive } from './run-with-lease.mjs';
 
 const PUBLIC_NAMES = ['QA_API_BASE_URL', 'QA_FRONT_BASE_URL', 'QA_DATASET_VERSION', 'QA_FIREBASE_PROJECT_ID', 'QA_FIREBASE_SITE_ID'];
-const PRIVATE_NAMES = ['QA_RESET_TOKEN'];
 
 export function localQaEnvironment(source, defaults) {
     const supplied = parseEnv(source.replace(/^\uFEFF/, ''));
@@ -15,7 +14,7 @@ export function localQaEnvironment(source, defaults) {
         throw new Error('El archivo privado contiene dos tokens de control QA distintos.');
     const environment = {};
     for (const name of PUBLIC_NAMES) environment[name] = supplied[name] || publicDefaults[name] || '';
-    for (const name of PRIVATE_NAMES) if (supplied[name]) environment[name] = supplied[name];
+    for (const name of QA_PRIVATE_NAMES) if (supplied[name]) environment[name] = supplied[name];
     environment.QA_RESET_TOKEN ||= supplied.LIBROS_QA_RESET_TOKEN || '';
     return environment;
 }
@@ -54,7 +53,7 @@ async function main() {
     const settings = qaSettings(process.env);
     try { await runLocalCampaign(settings, command, args); }
     catch (error) {
-        const secrets = [...PRIVATE_NAMES.map(name => environment[name]), settings.leaseId].filter(Boolean);
+        const secrets = [...QA_PRIVATE_NAMES.map(name => environment[name]), settings.leaseId].filter(Boolean);
         const errors = error instanceof AggregateError ? error.errors : [error];
         for (const failure of errors) {
             let message = failure instanceof Error ? failure.message : 'Error de campaña QA.';
