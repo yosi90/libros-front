@@ -40,13 +40,6 @@ import { bookWikiUrl } from '../../../../shared/book-wiki';
 
 type StructureEditorKind = 'part' | 'interlude';
 
-interface EntityToolbarAction {
-    label: string;
-    icon: string;
-    listRoute: string;
-    createRoute: string;
-}
-
 @Component({
     standalone: true,
     selector: 'app-book',
@@ -89,7 +82,7 @@ export class BookComponent implements OnInit, OnDestroy {
         }
     };
     actualStatus = '';
-    entityToolbarActions: EntityToolbarAction[] = [...BOOK_ELEMENT_TYPES];
+    readonly entityToolbarActions = BOOK_ELEMENT_TYPES;
 
     displayList: DisplayItem[] = [];
     structureEditorKind: StructureEditorKind | null = null;

@@ -26,7 +26,7 @@ describe('WebNarrativeEntityViewComponent', () => {
             },
             isUpdateMode: () => false,
             isCreatingEntity: () => false,
-            getConfig: () => ({ title: 'Localizaciones', singular: 'localización', icon: 'my_location' }),
+            getConfig: () => ({ label: 'Localizaciones', singular: 'localización', icon: 'my_location' }),
             getListPath: () => 'locations',
             getQuickCreateTitle: () => 'Nueva localización',
             getCurrentItems: () => items,

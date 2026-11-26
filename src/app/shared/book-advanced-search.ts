@@ -4,8 +4,9 @@ import { SceneCharacterDetail } from '../interfaces/scene';
 import { rtfToSingleLineText } from './rtf/rtf-text';
 import { findNarrativeEntityName } from './narrative-entity-names';
 import { foldText } from './text';
+import { BOOK_ELEMENT_TYPES, BookElementType } from './book-element-types';
 
-export type AdvancedSearchCategory = 'chapters' | 'characters' | 'organizations' | 'events' | 'locations' | 'concepts' | 'quotes';
+export type AdvancedSearchCategory = 'chapters' | BookElementType['listRoute'];
 
 export type AdvancedSearchFilters = Record<AdvancedSearchCategory, boolean>;
 
@@ -67,12 +68,7 @@ interface IndexedSearchItem {
 
 const categoryOptions: AdvancedSearchCategoryOption[] = [
     { id: 'chapters', label: 'Capítulos', icon: 'auto_stories' },
-    { id: 'characters', label: 'Personajes', icon: 'co_present' },
-    { id: 'organizations', label: 'Organizaciones', icon: 'groups' },
-    { id: 'events', label: 'Eventos', icon: 'event' },
-    { id: 'locations', label: 'Localizaciones', icon: 'my_location' },
-    { id: 'concepts', label: 'Conceptos', icon: 'auto_awesome' },
-    { id: 'quotes', label: 'Citas', icon: 'format_quote' }
+    ...BOOK_ELEMENT_TYPES.map(type => ({ id: type.listRoute, label: type.label, icon: type.icon }))
 ];
 
 export const advancedSearchCategoryOptions = categoryOptions;

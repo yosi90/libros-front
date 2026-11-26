@@ -36,7 +36,8 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileNarrativeEntityViewComponent } from '../../../mobile/book/mobile-narrative-entity-view/mobile-narrative-entity-view.component';
 import { WebNarrativeEntityViewComponent } from '../../../web/book/web-narrative-entity-view/web-narrative-entity-view.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
-import { foldText } from '../../../../shared/text';
+import { foldText, joinList } from '../../../../shared/text';
+import { BookElementType, bookElementTypeOf } from '../../../../shared/book-element-types';
 import { CharacterGroup, characterGroupRank, groupCharactersByGroup } from '../../../../shared/character-groups';
 import { CHARACTER_CREATE_TIMEOUT_MS, duplicateCharacterQuestion, findCharacterNamed, isRejectedCharacterClientRequestId } from '../../../../shared/scene-cast';
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
@@ -202,15 +203,6 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         characterId: this.editCharacterId,
         estadoId: this.editEstadoId
     });
-
-    entityConfig: Record<string, { title: string; singular: string; icon: string; bookKey: keyof Book; createRoute: string }> = {
-        characters: { title: 'Personajes', singular: 'personaje', icon: 'co_present', bookKey: 'Personajes', createRoute: 'character' },
-        organizations: { title: 'Organizaciones', singular: 'organización', icon: 'groups', bookKey: 'Organizaciones', createRoute: 'organization' },
-        events: { title: 'Eventos', singular: 'evento', icon: 'event', bookKey: 'Eventos', createRoute: 'event' },
-        locations: { title: 'Localizaciones', singular: 'localización', icon: 'my_location', bookKey: 'Localizaciones', createRoute: 'location' },
-        concepts: { title: 'Conceptos', singular: 'concepto', icon: 'auto_awesome', bookKey: 'Conceptos', createRoute: 'concept' },
-        quotes: { title: 'Citas', singular: 'cita', icon: 'format_quote', bookKey: 'Citas', createRoute: 'quote' },
-    };
 
     constructor(
         private route: ActivatedRoute,
@@ -471,19 +463,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     getListPath(): string {
-        const pathMap: Record<string, string> = {
-            character: 'characters',
-            organization: 'organizations',
-            event: 'events',
-            location: 'locations',
-            concept: 'concepts',
-            quote: 'quotes'
-        };
-        return pathMap[this.routePath] ?? this.routePath;
+        return bookElementTypeOf(this.routePath)?.listRoute ?? this.routePath;
     }
 
-    getConfig() {
-        return this.entityConfig[this.getListPath()] ?? this.entityConfig['concepts'];
+    getConfig(): BookElementType {
+        return bookElementTypeOf(this.routePath) ?? bookElementTypeOf('concepts')!;
     }
 
     getItems(): any[] {
@@ -493,7 +477,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     getTotalLabel(): string {
         const total = this.getItems().length;
-        return total === 1 ? this.getConfig().singular : this.getConfig().title.toLowerCase();
+        return total === 1 ? this.getConfig().singular : this.getConfig().label.toLowerCase();
     }
 
     getItemDescription(item: any): string {
@@ -1124,7 +1108,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.saveIndicator.notifySaved(bookId);
                 if (result.failedDetails.length)
                     this.snackBar.openSnackBar(
-                        `Personaje creado, pero no se ha podido guardar ${this.joinLabels(result.failedDetails)}. Revísalo en su ficha.`,
+                        `Personaje creado, pero no se ha podido guardar ${joinList(result.failedDetails, 'ni')}. Revísalo en su ficha.`,
                         'errorBar'
                     );
                 else
@@ -1188,12 +1172,6 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         this.isSubmittingEntity = false;
         if (ownsLoader)
             this.loader.deactivateLoader();
-    }
-
-    private joinLabels(labels: string[]): string {
-        return labels.length > 1
-            ? `${labels.slice(0, -1).join(', ')} ni ${labels[labels.length - 1]}`
-            : labels[0];
     }
 
     updateEntityFromForm(): void {

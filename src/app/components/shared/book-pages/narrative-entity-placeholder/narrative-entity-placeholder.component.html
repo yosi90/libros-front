@@ -7,7 +7,7 @@
   <header [class.list-header]="!isUpdateMode()">
     <div class="header-title">
       <mat-icon>{{ getConfig().icon }}</mat-icon>
-      <h1>{{ isUpdateMode() ? 'Modificar ' + getConfig().singular : getConfig().title }}</h1>
+      <h1>{{ isUpdateMode() ? 'Modificar ' + getConfig().singular : getConfig().label }}</h1>
     </div>
     @if (!isUpdateMode()) {
       <strong class="list-total">
@@ -15,7 +15,7 @@
       </strong>
     }
     @if (shouldShowViewMode()) {
-      <div class="list-view-mode" role="group" [attr.aria-label]="'Vista de ' + getConfig().title.toLowerCase()">
+      <div class="list-view-mode" role="group" [attr.aria-label]="'Vista de ' + getConfig().label.toLowerCase()">
         <button type="button" [class.is-active]="!groupItemsByOrigin" (click)="groupItemsByOrigin = false">
           Mezclados
         </button>
@@ -358,7 +358,7 @@
       } @else {
         <article class="empty-state">
           <mat-icon>{{ getConfig().icon }}</mat-icon>
-          <p>No hay {{ getConfig().title.toLowerCase() }} registrados.</p>
+          <p>No hay {{ getConfig().label.toLowerCase() }} registrados.</p>
         </article>
       }
       @if (canEditSelectedItem()) {

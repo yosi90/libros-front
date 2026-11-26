@@ -1,9 +1,9 @@
 <div class="elements" [class.elements--ficha]="hasFicha">
   <!-- La lista del tipo, en filas agrupadas como las manda el servidor. -->
-  <section class="list" [attr.aria-label]="c.getConfig().title">
+  <section class="list" [attr.aria-label]="c.getConfig().label">
     <div class="list__top">
       <label class="list__search"><mat-icon aria-hidden="true">search</mat-icon>
-        <input type="search" [formControl]="query" placeholder="Buscar" [attr.aria-label]="'Buscar en ' + c.getConfig().title.toLowerCase()"></label>
+        <input type="search" [formControl]="query" placeholder="Buscar" [attr.aria-label]="'Buscar en ' + c.getConfig().label.toLowerCase()"></label>
       <button class="web-button web-button--primary web-button--small" type="button" [attr.aria-label]="newLabel" (click)="c.navigateToCreate()"><mat-icon aria-hidden="true">add</mat-icon>Nuevo</button>
     </div>
     @for (group of listGroups; track group.label) {
@@ -19,7 +19,7 @@
         @if (query.value) {
           <p>Nada coincide con «{{query.value}}».</p>
         } @else {
-          <p>Aún no hay {{c.getConfig().title.toLowerCase()}}.</p>
+          <p>Aún no hay {{c.getConfig().label.toLowerCase()}}.</p>
           <button class="web-button web-button--primary" type="button" (click)="c.navigateToCreate()"><mat-icon aria-hidden="true">add</mat-icon>{{newLabel}}</button>
         }
       </div>
@@ -30,7 +30,7 @@
   <section class="ficha" [attr.aria-label]="hasFicha ? item?.Nombre : null">
     @if (hasFicha) {
       <div class="ficha__bar">
-        <button class="ficha__back icon-button" type="button" [attr.aria-label]="'Volver a la lista de ' + c.getConfig().title.toLowerCase()" (click)="backToList()"><mat-icon>arrow_back</mat-icon></button>
+        <button class="ficha__back icon-button" type="button" [attr.aria-label]="'Volver a la lista de ' + c.getConfig().label.toLowerCase()" (click)="backToList()"><mat-icon>arrow_back</mat-icon></button>
         @if (c.fichaStatusLabel) {
           <span class="ficha__status" role="status" aria-live="polite" [attr.data-state]="c.fichaStatus">
             <mat-icon aria-hidden="true">{{c.fichaStatus === 'saving' ? 'sync' : c.fichaStatus === 'saved' ? 'cloud_done' : c.fichaStatus === 'error' ? 'cloud_off' : 'error_outline'}}</mat-icon>{{c.fichaStatusLabel}}

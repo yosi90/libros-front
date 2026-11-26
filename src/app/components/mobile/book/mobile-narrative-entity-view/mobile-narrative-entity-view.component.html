@@ -6,7 +6,7 @@
     </button>
     <div>
       <span>{{ c.book.Nombre }}</span>
-      <h1>{{ c.isUpdateMode() ? 'Modificar ' + c.getConfig().singular : c.getConfig().title }}</h1>
+      <h1>{{ c.isUpdateMode() ? 'Modificar ' + c.getConfig().singular : c.getConfig().label }}</h1>
     </div>
     @if (!c.isUpdateMode()) {
       <button class="m-entity__create" type="button" [attr.aria-label]="'Crear ' + c.getConfig().singular"
@@ -163,7 +163,7 @@
           </div>
         }
       } @else {
-        <article class="m-empty"><mat-icon>{{ c.getConfig().icon }}</mat-icon><h2>Aún no hay {{ c.getConfig().title.toLowerCase() }}</h2><p>Créalo desde el botón superior cuando aparezca en la historia.</p></article>
+        <article class="m-empty"><mat-icon>{{ c.getConfig().icon }}</mat-icon><h2>Aún no hay {{ c.getConfig().label.toLowerCase() }}</h2><p>Créalo desde el botón superior cuando aparezca en la historia.</p></article>
       }
 
       @if (c.canEditSelectedItem()) {
