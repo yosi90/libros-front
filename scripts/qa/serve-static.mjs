@@ -28,6 +28,8 @@ const server = createServer(async (request, response) => {
 
         response.setHeader('Cache-Control', 'no-store');
         response.setHeader('Content-Type', contentType(filePath));
+        // Como Hosting (firebase.json): el marco aislado de la cabecera tiene un origen opaco y pide las fuentes con CORS.
+        if (pathname.startsWith('/assets/fonts/')) response.setHeader('Access-Control-Allow-Origin', '*');
         createReadStream(filePath).on('error', () => response.writeHead(500).end()).pipe(response);
     } catch {
         response.writeHead(400).end('Bad Request');
@@ -51,6 +53,7 @@ function contentType(filePath) {
         '.json': 'application/json; charset=utf-8',
         '.png': 'image/png',
         '.svg': 'image/svg+xml',
-        '.webp': 'image/webp'
+        '.webp': 'image/webp',
+        '.woff2': 'font/woff2'
     })[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
 }
