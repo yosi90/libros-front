@@ -209,9 +209,22 @@
     padding: 0
     list-style: none
 
+// Un nombre largo se corta con «…» y no se sale de su columna ni de su fila.
+.cast-list
+    max-width: 100%
+
+    li
+        min-width: 0
+        max-width: 100%
+
 .cast-list__item
+    display: block
+    max-width: 100%
     min-height: 26px
     padding: 0
+    overflow: hidden
+    white-space: nowrap
+    text-overflow: ellipsis
     color: var(--web-color-ink)
     font: 13.5px/1.3 var(--web-font-ui)
     text-align: left
