@@ -43,7 +43,6 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,9 +81,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.plegar
 import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
@@ -100,6 +96,7 @@ import es.yosiftware.libros.ui.libro.BotonDeTexto
 import es.yosiftware.libros.ui.libro.CampoDeTitulo
 import es.yosiftware.libros.ui.libro.Elemento
 import es.yosiftware.libros.ui.libro.EstadoDelGuardado
+import es.yosiftware.libros.ui.libro.GuardarAlSalir
 import es.yosiftware.libros.ui.libro.IndicadorDeGuardado
 import es.yosiftware.libros.ui.libro.LibroViewModel
 import es.yosiftware.libros.ui.libro.MenuDeEliminar
@@ -144,15 +141,7 @@ fun PantallaElementos(libroVm: LibroViewModel, vista: VistaDelLibro.DeElemento, 
     val libro = libroVm.libro ?: return
     LaunchedEffect(libro, vista) { vm.abrir(libro, vista) }
     vm.alGuardar = libroVm::recibirLibro
-    val ciclo = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(vm, ciclo) {
-        val observador = LifecycleEventObserver { _, evento -> if (evento == Lifecycle.Event.ON_STOP) vm.guardarAhora() }
-        ciclo.addObserver(observador)
-        onDispose {
-            ciclo.removeObserver(observador)
-            vm.guardarAhora()
-        }
-    }
+    GuardarAlSalir(vm) { vm.guardarAhora() }
     val clase = LocalVentana.current.clase
     val aLaVez = clase != ClaseDeVentana.Compacta
     val tipo = vista.elemento

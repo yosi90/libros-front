@@ -19,9 +19,11 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +49,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
 import es.yosiftware.libros.ui.editor.EditorRtf
 import es.yosiftware.libros.ui.tema.Espacios
@@ -111,6 +116,24 @@ internal fun BotonDeIconoPequeno(@DrawableRes icono: Int, descripcion: String, g
         Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClick = alPulsar).semantics { contentDescription = descripcion },
         contentAlignment = Alignment.Center,
     ) { Icon(painterResource(icono), contentDescription = null, tint = colores.tintaSuave, modifier = Modifier.size(if (grande) 22.dp else 18.dp)) }
+}
+
+/**
+ * «Autoguardado sin pérdidas»: lo escrito se envía en el acto al pasar la app a segundo plano (`ON_STOP`) y al salir de
+ * la vista, en el capítulo y en la ficha. [clave], el ViewModel que guarda.
+ */
+@Composable
+internal fun GuardarAlSalir(clave: Any, guardar: () -> Unit) {
+    val ciclo = LocalLifecycleOwner.current.lifecycle
+    val guardarAhora by rememberUpdatedState(guardar)
+    DisposableEffect(clave, ciclo) {
+        val observador = LifecycleEventObserver { _, evento -> if (evento == Lifecycle.Event.ON_STOP) guardarAhora() }
+        ciclo.addObserver(observador)
+        onDispose {
+            ciclo.removeObserver(observador)
+            guardarAhora()
+        }
+    }
 }
 
 // --- La escena y la entrada: leídas enteras y, al tocarlas, abiertas para escribir. ---

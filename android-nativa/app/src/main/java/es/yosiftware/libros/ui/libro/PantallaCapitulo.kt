@@ -33,7 +33,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,9 +64,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.modelos.PersonajeEnEscena
 import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
@@ -152,15 +148,7 @@ fun PantallaCapitulo(libroVm: LibroViewModel, vista: VistaDelLibro, vm: Capitulo
     vm.alGuardar = libroVm::ponerCapitulo
     vm.alCrearLugar = { lugar -> libroVm.libro?.let { actual -> if (actual.localizaciones.none { it.id == lugar.id }) libroVm.recibirLibro(actual.copy(localizaciones = actual.localizaciones + lugar)) } }
     personajes.alGuardar = libroVm::recibirLibro
-    val ciclo = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(vm, ciclo) {
-        val observador = LifecycleEventObserver { _, evento -> if (evento == Lifecycle.Event.ON_STOP) vm.guardarAhora() }
-        ciclo.addObserver(observador)
-        onDispose {
-            ciclo.removeObserver(observador)
-            vm.guardarAhora()
-        }
-    }
+    GuardarAlSalir(vm) { vm.guardarAhora() }
     val capitulo = vm.capitulo ?: return
     val enlaces = remember(libro) { enlacesDe(libro) }
     val cuaderno = Cuaderno(LocalVentana.current.clase)
