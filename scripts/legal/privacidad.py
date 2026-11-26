@@ -18,6 +18,19 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[2]
 FUENTE = RAIZ.parent / "Libros API" / "docs" / "legal" / "PRIVACIDAD_LIBROS_V1.md"
 DESTINO = RAIZ / "src" / "legal" / "privacidad" / "index.html"
+# La paleta sale de los tokens canónicos (`GUIA_ESTILOS.md`: «no duplican la paleta»), en claro y en oscuro.
+TOKENS = RAIZ / "src" / "assets" / "css" / "mobile" / "_tokens.sass"
+COLORES = {"papel": "surface", "lienzo": "canvas", "tinta": "ink", "suave": "ink-muted", "acento": "primary",
+           "borde": "outline"}
+
+
+def paleta(mixin: str) -> str:
+    """Las variables de la página con los valores de `--mobile-color-*` del mixin de `_tokens.sass`."""
+    bloques = {b.splitlines()[0].strip(): b for b in TOKENS.read_text(encoding="utf-8").split("@mixin ")[1:]}
+    if mixin not in bloques:
+        raise SystemExit(f"{TOKENS.relative_to(RAIZ)}: falta el mixin {mixin}")
+    valores = dict(re.findall(r"--mobile-color-([\w-]+):[ \t]*(\S.*)", bloques[mixin]))
+    return " ".join(f"--{nombre}: {valores[token].strip()};" for nombre, token in COLORES.items())
 
 
 def en_linea(texto: str) -> str:
@@ -105,8 +118,8 @@ PLANTILLA = """<!doctype html>
 <link rel="icon" href="/favicon.ico">
 <link rel="stylesheet" href="/assets/fonts/fuentes.css">
 <style>
-:root {{ color-scheme: light dark; --papel: #fffdf8; --lienzo: #f5f2ea; --tinta: #18211e; --suave: #4d5a55; --acento: #006b5d; --borde: #d9d3c7; }}
-@media (prefers-color-scheme: dark) {{ :root {{ --papel: #161b19; --lienzo: #101412; --tinta: #e8ece9; --suave: #a9b5b0; --acento: #7fd8c6; --borde: #2f3834; }} }}
+:root {{ color-scheme: light dark; {claro} }}
+@media (prefers-color-scheme: dark) {{ :root {{ {oscuro} }} }}
 * {{ box-sizing: border-box; }}
 html {{ background: var(--lienzo); }}
 body {{ margin: 0; color: var(--tinta); background: var(--papel); font: 400 1rem/1.65 Roboto, system-ui, sans-serif; max-inline-size: 52rem; margin-inline: auto; padding: 2rem clamp(1rem, 4vw, 3rem) 4rem; min-block-size: 100dvh; }}
@@ -139,7 +152,8 @@ def main() -> int:
     fuente = Path(sys.argv[1]) if len(sys.argv) > 1 else FUENTE
     titulo, cuerpo = convertir(fuente.read_text(encoding="utf-8"))
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    DESTINO.write_text(PLANTILLA.format(titulo=html.escape(titulo), cuerpo=cuerpo), encoding="utf-8")
+    DESTINO.write_text(PLANTILLA.format(titulo=html.escape(titulo), cuerpo=cuerpo, claro=paleta("mobile-tokens"),
+                                        oscuro=paleta("mobile-dark-tokens")), encoding="utf-8")
     print(f"{DESTINO.relative_to(RAIZ)}: {DESTINO.stat().st_size} bytes")
     return 0
 

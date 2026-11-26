@@ -231,6 +231,22 @@ test('la serif de lectura Web es Literata, propia y con los pesos de la vista de
     assert.deepEqual(faces, ['normal 400', 'normal 500', 'normal 600', 'italic 400', 'italic 500']);
 });
 
+test('la página de privacidad no copia la paleta: sus colores son los de los tokens Mobile', async () => {
+    // Si cambian los tokens, se regenera con `py -3 scripts/legal/privacidad.py`.
+    const [tokens, page] = await Promise.all([
+        readFile(path.join(root, 'src', 'assets', 'css', 'mobile', '_tokens.sass'), 'utf8'),
+        readFile(path.join(root, 'src', 'legal', 'privacidad', 'index.html'), 'utf8')
+    ]);
+    const mixins = Object.fromEntries(tokens.split('@mixin ').slice(1).map(block => [block.split('\n')[0].trim(),
+        new Set([...block.matchAll(/--mobile-color-[\w-]+:\s*(#[0-9a-f]+)/gi)].map(match => match[1]))]));
+    const [light, dark] = [/^:root \{([^}]*)\}/m, /prefers-color-scheme: dark\) \{ :root \{([^}]*)\}/].map(pattern =>
+        [...page.match(pattern)[1].matchAll(/--[\w-]+: (#[0-9a-f]+);/gi)].map(match => match[1]));
+    assert.equal(light.length, 6);
+    assert.equal(dark.length, 6);
+    assert.deepEqual(light.filter(color => !mixins['mobile-tokens'].has(color)), []);
+    assert.deepEqual(dark.filter(color => !mixins['mobile-dark-tokens'].has(color)), []);
+});
+
 test('la campaña de integración evalúa el flag después de cargar el environment QA', async () => {
     const workflow = await readFile(path.join(root, '.github', 'workflows', 'qa-nightly.yml'), 'utf8');
     const manualWorkflow = await readFile(path.join(root, '.github', 'workflows', 'qa-hosting-manual.yml'), 'utf8');
