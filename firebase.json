@@ -109,6 +109,13 @@
         "source": "**",
         "destination": "/index.html"
       }
+    ],
+    "redirects": [
+      {
+        "source": "/privacidad",
+        "destination": "/privacidad/",
+        "type": 301
+      }
     ]
   }
 }

@@ -35,6 +35,8 @@
   "navigationUrls": [
     "/**",
     "!/__/auth/**",
-    "!/**/*.*"
+    "!/**/*.*",
+    "!/privacidad",
+    "!/privacidad/**"
   ]
 }

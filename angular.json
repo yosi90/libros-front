@@ -29,7 +29,9 @@
               "src/favicon.ico",
               "src/tema-inicial.js",
               "src/manifest.webmanifest",
-              "src/assets"
+              "src/assets",
+
+              { "glob": "**/*", "input": "src/legal", "output": "/" }
             ],
             "styles": [
               "node_modules/material-icons/iconfont/filled.css",
@@ -44,6 +46,8 @@
                 "src/tema-inicial.js",
                 "src/manifest.webmanifest",
                 "src/assets",
+
+                { "glob": "**/*", "input": "src/legal", "output": "/" },
                 { "glob": "assetlinks.json", "input": "src/hosting/production/.well-known", "output": "/.well-known" }
               ],
               "optimization": {
@@ -77,6 +81,8 @@
                 "src/tema-inicial.js",
                 "src/manifest.webmanifest",
                 "src/assets",
+
+                { "glob": "**/*", "input": "src/legal", "output": "/" },
                 { "glob": "assetlinks.json", "input": "src/hosting/qa/.well-known", "output": "/.well-known" }
               ],
               "fileReplacements": [
@@ -161,7 +167,9 @@
               "src/favicon.ico",
               "src/tema-inicial.js",
               "src/manifest.webmanifest",
-              "src/assets"
+              "src/assets",
+
+              { "glob": "**/*", "input": "src/legal", "output": "/" }
             ],
             "styles": [
               "node_modules/material-icons/iconfont/filled.css",
