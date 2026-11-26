@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AbstractControl, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { A11yModule } from '@angular/cdk/a11y';
 import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
+import { DROPDOWN_POSITIONS } from '../../../../shared/overlay-positions';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -60,12 +61,7 @@ export class WebChapterViewComponent {
     }
 
     /** El desplegable, debajo de su botón (o encima si no cabe), alineado por su izquierda o su derecha. */
-    readonly pickerPositions: ConnectedPosition[] = [
-        { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 4 },
-        { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 },
-        { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -4 },
-        { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -4 }
-    ];
+    readonly pickerPositions = DROPDOWN_POSITIONS;
 
     /** La tarjeta de la @, debajo de la línea de la @ (o encima si no cabe). */
     readonly mentionPositions: ConnectedPosition[] = [

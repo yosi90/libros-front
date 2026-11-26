@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
-import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { DROPDOWN_POSITIONS } from '../../../../shared/overlay-positions';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,12 +25,7 @@ export class MobileChapterViewComponent {
     constructor(private host: ElementRef<HTMLElement>) { }
 
     /** El desplegable «+ Personaje», debajo del botón (o encima si no cabe), alineado por su izquierda o su derecha. */
-    readonly pickerPositions: ConnectedPosition[] = [
-        { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 4 },
-        { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 },
-        { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -4 },
-        { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -4 }
-    ];
+    readonly pickerPositions = DROPDOWN_POSITIONS;
 
     /** Despliega los datos del capítulo y lleva el foco a su título. */
     editChapterData(): void {
