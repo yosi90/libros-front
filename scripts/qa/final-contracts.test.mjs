@@ -219,6 +219,19 @@ test('las tipografías se sirven desde la propia web, sin Google Fonts ni CDN', 
     await Promise.all(files.map(file => readFile(path.join(root, 'src', 'assets', 'fonts', file))));
 });
 
+test('la serif de lectura Web es Literata, propia y con los pesos de la vista de libro', async () => {
+    const [tokens, fonts, license] = await Promise.all([
+        readFile(path.join(root, 'src', 'assets', 'css', 'web', '_tokens.sass'), 'utf8'),
+        readFile(path.join(root, 'src', 'assets', 'fonts', 'fuentes.css'), 'utf8'),
+        readFile(path.join(root, 'src', 'assets', 'fonts', 'literata', 'LICENSE'), 'utf8')
+    ]);
+    assert.match(tokens, /--web-font-reading: Literata, /);
+    assert.match(license, /SIL Open Font License, Version 1\.1/);
+    const faces = [...fonts.matchAll(/font-family:'Literata';font-style:(\w+);font-weight:(\d+);[^}]*literata-latin-\d+-\w+\.woff2/g)]
+        .map(match => `${match[1]} ${match[2]}`);
+    assert.deepEqual(faces, ['normal 400', 'normal 500', 'normal 600', 'italic 400', 'italic 500']);
+});
+
 test('la campaña de integración evalúa el flag después de cargar el environment QA', async () => {
     const workflow = await readFile(path.join(root, '.github', 'workflows', 'qa-nightly.yml'), 'utf8');
     const manualWorkflow = await readFile(path.join(root, '.github', 'workflows', 'qa-hosting-manual.yml'), 'utf8');

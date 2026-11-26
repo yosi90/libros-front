@@ -46,4 +46,19 @@ test.describe('Tipografías propias', () => {
         expect(requests.some(url => url.endsWith('/assets/fonts/fuentes.css'))).toBe(true);
         expect(requests.some(url => /\/assets\/fonts\/montserrat\/montserrat-latin-\d+-normal\.woff2$/.test(url))).toBe(true);
     });
+
+    test('la Web lee con Literata, también el RTF en Microsoft Sans Serif, la fuente por defecto del escritorio', async ({ page }) => {
+        const requests: string[] = [];
+        page.on('request', request => requests.push(request.url()));
+        await installLocalVisualSession(page, { webPresentation: true });
+
+        await page.goto('/book/73/chapter/11');
+        const text = page.locator('app-web-chapter-view .rtf-editor [style*="Microsoft Sans Serif" i]').first();
+        await expect(text).toBeVisible({ timeout: 15000 });
+        expect(await text.evaluate(element => getComputedStyle(element).fontFamily)).toMatch(/^Literata,/);
+        await expect.poll(() => page.evaluate(() =>
+            [...document.fonts].some(font => font.family.replace(/"/g, '') === 'Literata' && font.status === 'loaded'))).toBe(true);
+        expect(requests.some(url => /\/assets\/fonts\/literata\/literata-latin-400-normal\.woff2$/.test(url))).toBe(true);
+        expect(requests.filter(url => external.test(url))).toEqual([]);
+    });
 });
