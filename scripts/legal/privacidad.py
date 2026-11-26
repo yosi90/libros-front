@@ -18,18 +18,18 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[2]
 FUENTE = RAIZ.parent / "Libros API" / "docs" / "legal" / "PRIVACIDAD_LIBROS_V1.md"
 DESTINO = RAIZ / "src" / "legal" / "privacidad" / "index.html"
-# La paleta sale de los tokens canónicos (`GUIA_ESTILOS.md`: «no duplican la paleta»), en claro y en oscuro.
-TOKENS = RAIZ / "src" / "assets" / "css" / "mobile" / "_tokens.sass"
+# La paleta sale de los tokens Web, porque la página se abre en el navegador (`GUIA_ESTILOS.md`: «no duplican la paleta»).
+TOKENS = RAIZ / "src" / "assets" / "css" / "web" / "_tokens.sass"
 COLORES = {"papel": "surface", "lienzo": "canvas", "tinta": "ink", "suave": "ink-muted", "acento": "primary",
            "borde": "outline"}
 
 
 def paleta(mixin: str) -> str:
-    """Las variables de la página con los valores de `--mobile-color-*` del mixin de `_tokens.sass`."""
+    """Las variables de la página con los valores de `--web-color-*` del mixin de `_tokens.sass`."""
     bloques = {b.splitlines()[0].strip(): b for b in TOKENS.read_text(encoding="utf-8").split("@mixin ")[1:]}
     if mixin not in bloques:
         raise SystemExit(f"{TOKENS.relative_to(RAIZ)}: falta el mixin {mixin}")
-    valores = dict(re.findall(r"--mobile-color-([\w-]+):[ \t]*(\S.*)", bloques[mixin]))
+    valores = dict(re.findall(r"--web-color-([\w-]+):[ \t]*(\S.*)", bloques[mixin]))
     return " ".join(f"--{nombre}: {valores[token].strip()};" for nombre, token in COLORES.items())
 
 
@@ -152,8 +152,8 @@ def main() -> int:
     fuente = Path(sys.argv[1]) if len(sys.argv) > 1 else FUENTE
     titulo, cuerpo = convertir(fuente.read_text(encoding="utf-8"))
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    DESTINO.write_text(PLANTILLA.format(titulo=html.escape(titulo), cuerpo=cuerpo, claro=paleta("mobile-tokens"),
-                                        oscuro=paleta("mobile-dark-tokens")), encoding="utf-8")
+    DESTINO.write_text(PLANTILLA.format(titulo=html.escape(titulo), cuerpo=cuerpo, claro=paleta("web-tokens"),
+                                        oscuro=paleta("web-dark-tokens")), encoding="utf-8")
     print(f"{DESTINO.relative_to(RAIZ)}: {DESTINO.stat().st_size} bytes")
     return 0
 
