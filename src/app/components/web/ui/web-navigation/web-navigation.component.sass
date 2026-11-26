@@ -16,7 +16,8 @@
     padding: var(--web-space-4) var(--web-space-3)
     overflow-x: hidden
     overflow-y: auto
-    background: var(--web-color-surface)
+    // La navegación es una columna sobre el lienzo; el contenido, papel (`GUIA_ESTILOS.md`, «Web»).
+    background: var(--web-color-canvas)
     border-right: 1px solid var(--web-color-outline)
     transition: width var(--web-motion)
 
@@ -184,6 +185,8 @@
         inset: 0 auto 0 0
         z-index: 21
         width: min(300px, 86vw)
+        // Superpuesto, el cajón es papel, como cualquier hoja flotante.
+        background: var(--web-color-surface)
         transform: translateX(-100%)
         box-shadow: var(--web-shadow-float)
         transition: transform var(--web-motion)

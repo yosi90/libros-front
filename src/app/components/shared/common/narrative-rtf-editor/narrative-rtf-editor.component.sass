@@ -738,6 +738,12 @@
             color: var(--web-color-primary-hover) !important
             background: var(--web-color-primary-soft)
 
+    // Microsoft Sans Serif es la fuente por defecto del RTF del escritorio (todo el corpus heredado la usa) y la del
+    // editor: no es una fuente elegida. En Web cuenta como «sin fuente propia» y se pinta con la serif de lectura. El RTF
+    // guardado no cambia, y su tamaño explícito se respeta.
+    ::ng-deep .rtf-editor :is([style*="Microsoft Sans Serif" i], font[face="Microsoft Sans Serif" i])
+        font-family: var(--web-font-reading) !important
+
 ::ng-deep html[data-presentation-active="web"] .rtf-font-select-panel.mat-mdc-select-panel,
 ::ng-deep html[data-presentation-active="web"] .rtf-size-select-panel.mat-mdc-select-panel
     color: var(--web-color-ink)

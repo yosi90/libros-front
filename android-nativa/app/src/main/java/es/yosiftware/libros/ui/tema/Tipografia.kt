@@ -1,11 +1,14 @@
 package es.yosiftware.libros.ui.tema
 
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import es.yosiftware.libros.R
 
 /**
  * Las dos familias de `_tokens.sass`. La APK de Capacitor no carga Inter ni Iowan/Palatino: el cuerpo cae a Roboto
@@ -14,6 +17,20 @@ import androidx.compose.ui.unit.sp
 object Fuentes {
     val cuerpo: FontFamily = FontFamily.Default // --mobile-font-body
     val display: FontFamily = FontFamily.Serif // --mobile-font-display
+
+    /**
+     * La serif de lectura de la web (`--web-font-reading`): Literata, con los grosores de la vista de libro. Una fuente
+     * fija por cada grosor, sin `FontVariation` (`ecosistema-kit/APK.md`, «Las fuentes»); su origen, en
+     * `android-nativa/fuentes/ORIGEN.md`. Preparada para el rediseño de la vista de libro (F5): aún no la usa ninguna
+     * pantalla.
+     */
+    val lectura: FontFamily = FontFamily(
+        Font(R.font.literata_400, FontWeight.Normal),
+        Font(R.font.literata_500, FontWeight.Medium),
+        Font(R.font.literata_600, FontWeight.SemiBold),
+        Font(R.font.literata_cursiva_400, FontWeight.Normal, FontStyle.Italic),
+        Font(R.font.literata_cursiva_500, FontWeight.Medium, FontStyle.Italic),
+    )
 }
 
 /** El `line-height` de CSS reparte el interlineado a partes iguales arriba y abajo del texto. */
