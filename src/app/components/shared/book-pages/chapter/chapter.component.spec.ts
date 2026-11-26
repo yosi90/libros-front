@@ -5,6 +5,7 @@ import { NEVER, of } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
 import { ChapterService } from '../../../../services/entities/chapter.service';
 import { CharacterService } from '../../../../services/entities/character.service';
+import { NarrativeEntityService } from '../../../../services/entities/narrative-entity.service';
 import { SceneService } from '../../../../services/entities/scene.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
@@ -52,7 +53,8 @@ describe('ChapterComponent', () => {
                     useValue: { isRefreshing$: jasmine.createSpy('isRefreshing$').and.returnValue(of(false)), refresh: jasmine.createSpy('refresh') }
                 },
                 { provide: NarrativeEditorFontPreferenceService, useValue: { preferredFont: jasmine.createSpy('preferredFont').and.returnValue('Arial') } },
-                { provide: CharacterService, useValue: jasmine.createSpyObj<CharacterService>('CharacterService', ['create']) }
+                { provide: CharacterService, useValue: jasmine.createSpyObj<CharacterService>('CharacterService', ['create']) },
+                { provide: NarrativeEntityService, useValue: jasmine.createSpyObj<NarrativeEntityService>('NarrativeEntityService', ['createLocation']) }
             ]
         }).compileComponents();
 
@@ -376,24 +378,26 @@ describe('ChapterComponent', () => {
             });
         }
 
-        it('Web: el título con sus páginas y el lápiz, y la escena desplegada con «+» y sus fichas', () => {
+        it('Web («Cuaderno»): el número y el título con sus páginas, el lápiz y el reparto al margen', () => {
             saveChapter();
             const scene = component.scenesControls.at(0);
             component.assignCharacterById(scene, 30, false);
             component.assignCharacterById(scene, 20, true);
             fixture.detectChanges();
 
-            expect(text(host().querySelector('.chapter__name'))).toBe('Indiscreciones');
-            expect(text(host().querySelector('.chapter__sub'))).toBe('Cap. 11 · págs. 145–151');
-            expect(host().querySelector('input[aria-label="Título del capítulo"]')).toBeNull();
-            expect(host().querySelector('.rtf-toolbar')).withContext('la barra, solo al escribir').toBeNull();
-            expect([...host().querySelectorAll('.chip .chip__name')].map(text)).toEqual(['Bruno', '@ Zelda']);
+            expect(text(host().querySelector('.chapter-head__number'))).toBe('11');
+            expect(text(host().querySelector('.chapter-head__title'))).toBe('Indiscreciones');
+            expect(text(host().querySelector('.chapter-head__meta'))).toBe('págs. 145–151edit');
+            expect(host().querySelector('.chapter-fields__title')).toBeNull();
+            expect([...host().querySelectorAll('.cast-list__item')].map(text)).toEqual(['Bruno', '@ Zelda']);
+            expect(text(host().querySelector('.place'))).toBe('placeSin localización');
 
-            host().querySelector<HTMLButtonElement>('button[aria-label="Editar los datos del capítulo"]')!.click();
+            host().querySelector<HTMLButtonElement>('button[aria-label="Editar los datos del capítulo 11"]')!.click();
             fixture.detectChanges();
-            expect(host().querySelector('input[aria-label="Título del capítulo"]')).not.toBeNull();
+            expect(host().querySelector('.chapter-fields__title')).not.toBeNull();
+            expect(host().querySelector('input[inputmode="numeric"]')).not.toBeNull();
 
-            host().querySelector<HTMLButtonElement>('button[aria-label="Añadir personaje"]')!.click();
+            host().querySelector<HTMLButtonElement>('button[aria-label="Añadir personaje a la escena 1"]')!.click();
             fixture.detectChanges();
             const sheet = document.querySelector<HTMLElement>('[role="dialog"][aria-label="Personajes de la escena"]');
             expect(sheet?.querySelector('input[aria-label="Buscar o crear personaje"]')).not.toBeNull();
@@ -406,25 +410,76 @@ describe('ChapterComponent', () => {
             fixture.detectChanges();
         });
 
-        it('pliega todas las escenas menos la abierta (al abrir, la última) y la nueva se abre', () => {
+        it('Web: las escenas se leen enteras, solo una se escribe, y la nueva empieza vacía', () => {
             const first = component.scenesControls.at(0);
             first.patchValue({ nombre: 'La entrada', descripcion: plainTextToRtf('Rowan llega tarde a la cena, como siempre.') });
             component.assignCharacterById(first, 30, false);
-            expect(component.openSceneIndex).toBe(0);
 
             expect(component.addScene()).toBeTrue();
             expect(component.openSceneIndex).toBe(1);
+            expect(component.scenesControls.at(1).get('descripcion')?.value).withContext('sin texto de relleno').toBe('');
             fixture.detectChanges();
-            const folded = host().querySelector<HTMLElement>('.scene--folded');
-            expect(text(folded?.querySelector('.scene__row strong') ?? null)).toBe('La entrada');
-            expect(text(folded?.querySelector('.scene__excerpt') ?? null)).toBe('Rowan llega tarde a la cena, como siempre.');
-            expect(text(folded?.querySelector('.scene__cast') ?? null)).toBe('Bruno');
-            expect(host().querySelectorAll('.scene--open').length).toBe(1);
 
-            folded!.querySelector<HTMLButtonElement>('.scene__open')!.click();
+            const read = host().querySelector<HTMLElement>('[data-scene-index="0"]');
+            expect(text(read?.querySelector('.scene__title') ?? null)).toBe('La entrada');
+            expect(read?.querySelector('.rtf--reading')).not.toBeNull();
+            expect(text(read?.querySelector('.cast-list') ?? null)).toBe('Bruno');
+            expect(host().querySelectorAll('.scene--editing').length).toBe(1);
+            expect(text(host().querySelector('.scene--editing .scene__missing'))).toBe('error_outlineFalta el texto (15 caracteres) y un personaje.');
+            expect(text(host().querySelector('.same-cast'))).toBe('Mismo reparto que la 1');
+
+            host().querySelector<HTMLButtonElement>('.same-cast')!.click();
+            expect(component.getSelectedSceneCharacters(component.scenesControls.at(1) as FormGroup)).toEqual([{ Id: 30, Nombrado: false }]);
+
+            read!.querySelector<HTMLButtonElement>('.scene__title button')!.click();
             expect(component.openSceneIndex).toBe(0);
             component.removeScene(0);
             expect(component.openSceneIndex).toBe(0);
+        });
+
+        it('Web: guarda lo completo aunque otra escena esté a medias, y la incompleta sigue pendiente', () => {
+            component.chapter = { ...component.chapter, Id: 91 };
+            const first = component.scenesControls.at(0);
+            first.patchValue({ id: 301, nombre: 'La entrada', descripcion: plainTextToRtf('Rowan llega tarde a la cena, como siempre.') });
+            component.assignCharacterById(first, 30, false);
+            component.addScene();
+            component.scenesControls.at(1).patchValue({ nombre: 'A medias', descripcion: plainTextToRtf('Solo esto') });
+            sceneService.update.and.returnValue(of({ Id: 301 } as any));
+
+            (component as any).queueAutosave();
+
+            expect(sceneService.update).toHaveBeenCalledOnceWith(301, jasmine.objectContaining({ Nombre: 'La entrada' }));
+            expect(sceneService.createForChapter).not.toHaveBeenCalled();
+            expect(component.incompleteSceneNumbers()).toEqual([2]);
+            expect(component.autosaveStatus).toBe('invalid');
+            expect(component.autosaveLabel).toBe('Sin guardar: a la escena 2 le faltan datos');
+            expect((component as any).hasPendingChanges()).withContext('la escena 2 sigue sin enviar').toBeTrue();
+        });
+
+        it('Web: un capítulo nuevo se crea solo cuando la persona escribe algo, sin la escena vacía', () => {
+            (component as any).queueAutosave();
+            expect(chapterService.createForBook).not.toHaveBeenCalled();
+
+            component.name.setValue('La partida');
+            component.fgChapter.markAsDirty();
+            (component as any).queueAutosave();
+
+            expect(chapterService.createForBook).toHaveBeenCalledOnceWith(1, jasmine.objectContaining({ Nombre: 'La partida' }));
+            expect(sceneService.createForChapter).not.toHaveBeenCalled();
+        });
+
+        it('Web: crear un lugar desde la escena lo añade al libro y lo pone en ella', () => {
+            const narrative = TestBed.inject(NarrativeEntityService) as jasmine.SpyObj<NarrativeEntityService>;
+            narrative.createLocation.and.returnValue(of({ Id: 99, Nombre: 'El faro', Entradas: [] } as any));
+            const scene = component.scenesControls.at(0);
+
+            expect(component.getLocationNameToCreate('sin localización')).withContext('ya existe').toBeNull();
+            component.createSceneLocation(scene, ' El faro ');
+
+            expect(narrative.createLocation).toHaveBeenCalledOnceWith({ LibroId: 1, Nombre: 'El faro', Entradas: [] });
+            expect(scene.get('localizacion')?.value).toBe(99);
+            expect(bookStore.getBook().Localizaciones.some(location => location.Id === 99)).toBeTrue();
+            expect(component.creatingSceneLocation).toBeNull();
         });
 
         it('los dos iconos del reparto cambian la escena al momento, como un radio que se apaga', () => {
@@ -464,11 +519,13 @@ describe('ChapterComponent', () => {
             expect(component.getMentionOptions('a').map(character => character.Nombre)).toEqual(['Ágata', 'Zelda']);
         });
 
-        it('avisa si a la escena de un capítulo guardado le falta un personaje', () => {
+        it('avisa de lo que le falta a la escena de un capítulo guardado', () => {
             saveChapter();
+            component.scenesControls.at(0).patchValue({ descripcion: '' });
+            component.scenesControls.at(0).markAsTouched();
             fixture.detectChanges();
 
-            expect(text(host())).toContain('Necesita al menos un personaje presente o nombrado.');
+            expect(text(host())).toContain('Falta el texto (15 caracteres) y un personaje.');
         });
     });
 

@@ -77,6 +77,19 @@ export class BookStoreService {
         this.bookSubject.next({ ...book, Personajes: personajes });
     }
 
+    /** Añade o actualiza una localización del libro abierto (la creada desde una escena) sin recargar el libro. */
+    upsertLocation(bookId: number, location: Book['Localizaciones'][number]): void {
+        const book = this.getBook();
+        if (book.Id !== bookId || !location?.Id)
+            return;
+        const locations = book.Localizaciones ?? [];
+        const exists = locations.some(current => Number(current.Id) === Number(location.Id));
+        const localizaciones = exists
+            ? locations.map(current => Number(current.Id) === Number(location.Id) ? { ...current, ...location } : current)
+            : [...locations, location];
+        this.bookSubject.next({ ...book, Localizaciones: localizaciones });
+    }
+
     getChapter(chapterId: number): Chapter {
         return this.getBook().Capitulos.find(c => +c.Id === chapterId) ?? this.capituloVacio;
     }

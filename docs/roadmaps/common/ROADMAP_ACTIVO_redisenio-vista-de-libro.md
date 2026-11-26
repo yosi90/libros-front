@@ -46,7 +46,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 
 ## F2. El capítulo como cuaderno
 
-- [ ] **Escenas enteras, editables en el sitio.**
+- [x] **Escenas enteras, editables en el sitio** (26/11/2026).
   - *Descripción:*
     - las escenas en serif, a 68 caracteres como mucho, con el lugar y el reparto como apostillas al margen (debajo, en el móvil);
     - al pulsar, el editor se monta en esa escena (uno a la vez) y el formato cabe en una fila;
@@ -55,7 +55,8 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
   - *Qué se espera:* escribir mientras se lee y releer después.
   - *Peligro si no:* la vista que el propietario ve fea.
   - *Peligro del cambio:* el autoguardado. Lo escrito no se pierde nunca, ni cerrando la app (`PendingWorkService`), y hay que dejar el cursor donde se pulsó (al final es aceptable).
-- [ ] **Reparto y lugar.**
+  - *Cómo quedó:* cada escena se lee con el editor en solo lectura (`rtf--reading`), así conserva las fuentes, las tintas y los enlaces a elementos; un clic que no sea en un enlace ni una selección la abre con el cursor al final. La barra de formato se queda mientras la escena está abierta: esconderla al perder el foco movía 36 px lo de debajo y el toque caía en otro sitio.
+- [x] **Reparto y lugar** (26/11/2026).
   - *Descripción:*
     - un desplegable junto al «+» o al lugar (`popover` anclado, con el overlay del CDK como respaldo); hoja desde abajo en el móvil;
     - «Mismo reparto que la escena anterior»;
@@ -64,12 +65,14 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
   - *Qué se espera:* menos pasos al rellenar escenas.
   - *Peligro si no:* volver a buscar el mismo reparto en cada escena.
   - *Peligro del cambio:* la compatibilidad del anclaje: hay que mirar la guía de Modern Web Guidance antes de implementarlo.
-- [ ] **Datos del capítulo y escena nueva, sin botón de guardar.**
+  - *Cómo quedó:* el reparto y el lugar siguen con el overlay del CDK (ya posicionaba y volteaba en todos los navegadores, también en Firefox, que no tiene anclaje CSS); el `popover` anclado se usa en el editor de parte (F1). Crear un lugar manda solo el nombre (`Entradas: []`, posible desde la API `768b06a`).
+- [x] **Datos del capítulo y escena nueva, sin botón de guardar** (26/11/2026).
   - *Descripción:* el nombre y las páginas se guardan solos, con el indicador. Las páginas, con `inputmode="numeric"`. La validación se hace al salir del campo (`:user-invalid` y `aria-describedby`), sin deshabilitar nada.
   - *Por qué:* decisión 6.
   - *Qué se espera:* formularios sin pasos de más.
   - *Peligro si no:* «Guardar capítulo» deshabilitado sin decir por qué.
   - *Peligro del cambio:* guardar a medias un nombre inválido. Mientras no es válido, no se envía y se guarda en local.
+  - *Cómo quedó (solo Web, la fachada es común):* el capítulo nuevo se crea en cuanto la persona escribe algo válido. La escena nueva empieza vacía, sin «Descripción de la escena». El guardado va por partes: los datos del capítulo y las escenas completas se envían, y las incompletas se quedan en el borrador local hasta que lo están. Una escena nueva sin nada propio (título por defecto, sin texto ni personajes) no cuenta como cambio. Al salir, se guarda lo completo y se avisa de lo que queda en el dispositivo; con los datos del capítulo mal, la salida sigue bloqueada.
 
 ## F3. Elementos
 

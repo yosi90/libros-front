@@ -6,9 +6,9 @@ Roadmap: `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`. Cada
 
 - [x] La cabecera tiene cuatro destinos y, por debajo de 600 px, barra inferior; la wiki está en el Resumen (F1, 26/11/2026: capturas a 360, 680, 840 y 1440 px en los dos temas; unitarias del marco).
 - [x] El índice solo sale en Capítulos: columna en ancha y panel superpuesto en móvil y plegable, con «1 de 5», anterior y siguiente (F1, igual). El editor de parte se despliega junto a su lápiz y, en el móvil, como hoja.
-- [ ] Una escena se edita al pulsarla, solo una a la vez, y lo escrito sobrevive a cerrar la pestaña.
-- [ ] El reparto y el lugar se eligen junto al «+» o al lugar (hoja en el móvil); «Mismo reparto que la escena anterior» y crear un lugar funcionan.
-- [ ] Sin panel de arrastrar personajes; el «+» y la @ siguen.
+- [ ] Una escena se edita al pulsarla, solo una a la vez, y lo escrito sobrevive a cerrar la pestaña. (F2: lo primero, comprobado con capturas y unitarias; lo de cerrar la pestaña lo cubre `e2e/account-switch.spec.ts`, que recarga y recupera el borrador. Falta probarlo a mano en producción.)
+- [x] El reparto y el lugar se eligen junto al «+» o al lugar (hoja en el móvil); «Mismo reparto que la escena anterior» y crear un lugar funcionan (F2, 26/11/2026: capturas a 360, 840 y 1440 px con la API simulada, y unitarias).
+- [x] Sin panel de arrastrar personajes; el «+» y la @ siguen (F2).
 - [ ] Ni la ficha, ni el capítulo nuevo, ni las notas tienen botón de guardar; el indicador pasa por sus cinco estados.
 - [ ] El cambio de nombre de un personaje pregunta entre nombre nuevo y errata.
 - [ ] El alta rápida de personaje se completa con el nombre y Intro; Esc y el gesto de volver la cierran.

@@ -36,6 +36,7 @@ import { CharacterGroup, groupCharactersByGroup } from '../../../../shared/chara
 import { PendingWorkOwner, PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { AppToastService } from '../../../../shared/toast/app-toast.service';
 import { CharacterService } from '../../../../services/entities/character.service';
+import { NarrativeEntityService } from '../../../../services/entities/narrative-entity.service';
 import {
     CHARACTER_CREATE_TIMEOUT_MS, castNameToCreate, duplicateCharacterQuestion, filterSceneCast, findCharacterNamed, isRejectedCharacterClientRequestId,
     pressCastIcon, withSceneCastFirst
@@ -165,6 +166,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     openSceneIndex: number | null = null;
     /** El nombre del personaje que se está creando desde una escena (el reparto o la @), o `null`. */
     creatingSceneCharacter: string | null = null;
+    /** La localización que se está creando desde una escena (Web). */
+    creatingSceneLocation: string | null = null;
     /** Los que estaban en la escena al abrir su reparto: salen arriba y la lista no salta al pulsar. */
     private castSheetFirst = new Set<number>();
     /** El `IdCliente` de cada nombre que se crea desde una escena: el mismo en cada reintento, para no duplicarlo. */
@@ -242,7 +245,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private saveIndicator: BookSaveIndicatorService,
         private pendingWork: PendingWorkService,
         private toasts: AppToastService,
-        private characterSrv: CharacterService
+        private characterSrv: CharacterService,
+        private narrativeSrv: NarrativeEntityService
     ) {
         this.stopPendingWork = this.pendingWork.register(this);
         merge(this.name.statusChanges, this.name.valueChanges)
@@ -498,17 +502,26 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         }
         if (this.scenesControls.length === 0)
             this.appendScene();
-        this.openSceneIndex = this.scenesControls.length - 1;
+        this.openSceneIndex = this.initialOpenSceneIndex();
         this.refreshSavedSnapshots();
         this.fgChapter.markAsPristine();
         this.autosaveStatus = 'idle';
         this.isInitializingForm = false;
     }
 
+    /** La Web abre el capítulo para leerlo: solo se edita de entrada la última escena si le falta algo. */
+    private initialOpenSceneIndex(): number | null {
+        const last = this.scenesControls.length - 1;
+        if (!this.isWebView || last < 0)
+            return last < 0 ? null : last;
+        return this.isSceneValid(this.scenesControls.at(last) as FormGroup) ? null : last;
+    }
+
     createSceneGroup(data?: Scene, sceneNumber?: number): FormGroup {
         const sceneCharacters = this.getSceneCharacterDetails(data);
         const defaultSceneName = sceneNumber ? `Escena ${sceneNumber}` : '';
-        const defaultSceneDescription = this.createDefaultSceneDescription();
+        // En la Web la escena nueva empieza vacía: un texto de relleno se leería como de la persona («Cuaderno», F2).
+        const defaultSceneDescription = this.isWebView ? '' : this.createDefaultSceneDescription();
         return this.fBuild.group({
             id: [data?.Id ?? 0],
             nombre: [data?.Nombre || defaultSceneName, [Validators.required, Validators.minLength(3)]],
@@ -620,7 +633,19 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     isSceneEliminable(sceneGroup: FormGroup): boolean {
         const value = sceneGroup.value;
         const description = rtfToPlainText(value.descripcion ?? '');
-        return Number(value.id ?? 0) === 0 && (!value.nombre || value.nombre.trim().length < 3) && (!description || description.trim().length < 15);
+        if (Number(value.id ?? 0) === 0 && (!value.nombre || value.nombre.trim().length < 3) && (!description || description.trim().length < 15))
+            return true;
+        return this.isWebView && this.isUntouchedNewScene(sceneGroup);
+    }
+
+    /** Una escena nueva con su título por defecto, sin texto y sin personajes: no hay nada que guardar ni que recuperar. */
+    private isUntouchedNewScene(sceneGroup: FormGroup): boolean {
+        const value = sceneGroup.getRawValue();
+        if (Number(value.id ?? 0) > 0)
+            return false;
+        const name = String(value.nombre ?? '').trim();
+        const text = rtfToPlainText(value.descripcion ?? '').trim();
+        return (!name || /^Escena \d+$/.test(name)) && (!text || text === 'Descripción de la escena') && !(value.personajes?.length);
     }
 
     trackByIndex(index: number, item: any): number {
@@ -940,6 +965,78 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         });
     }
 
+    /** El número de la escena anterior si su reparto se puede copiar a esta (que aún no tiene a nadie). */
+    getSameCastSource(sceneIndex: number): number | null {
+        if (sceneIndex <= 0)
+            return null;
+        const scene = this.scenesControls.at(sceneIndex) as FormGroup | undefined;
+        const previous = this.scenesControls.at(sceneIndex - 1) as FormGroup | undefined;
+        if (!scene || !previous || this.hasAssignedCharacter(scene) || !this.hasAssignedCharacter(previous))
+            return null;
+        return sceneIndex;
+    }
+
+    /** «Mismo reparto que la escena anterior»: los mismos personajes, en escena o solo nombrados. */
+    copyPreviousCast(sceneIndex: number): void {
+        if (this.getSameCastSource(sceneIndex) === null)
+            return;
+        const scene = this.scenesControls.at(sceneIndex);
+        for (const character of this.getSelectedSceneCharacters(this.scenesControls.at(sceneIndex - 1) as FormGroup))
+            this.assignCharacterById(scene, character.Id, !!character.Nombrado);
+        scene.markAsDirty();
+    }
+
+    /** Las localizaciones que coinciden con lo escrito, con la de la escena arriba. */
+    getSceneLocationOptions(sceneGroup: AbstractControl, query: string | null | undefined): Book['Localizaciones'] {
+        const folded = foldText(query ?? '').trim();
+        const current = Number(sceneGroup.get('localizacion')?.value);
+        return this.book.Localizaciones
+            .filter(location => !folded || foldText(location.Nombre).includes(folded))
+            .sort((a, b) => Number(Number(b.Id) === current) - Number(Number(a.Id) === current) || a.Nombre.localeCompare(b.Nombre, 'es'));
+    }
+
+    /** El nombre de «Crear «…»» para una localización, si no hay ya una que se llame así. */
+    getLocationNameToCreate(query: string | null | undefined): string | null {
+        const name = castNameToCreate(query ?? '');
+        if (!name)
+            return null;
+        const folded = foldText(name).trim();
+        return this.book.Localizaciones.some(location => foldText(location.Nombre).trim() === folded) ? null : name;
+    }
+
+    chooseSceneLocation(sceneGroup: AbstractControl, locationId: number): void {
+        const control = sceneGroup.get('localizacion');
+        control?.setValue(Number(locationId));
+        control?.markAsTouched();
+        sceneGroup.markAsDirty();
+    }
+
+    /** Crea la localización en el libro (basta el nombre) y la pone en la escena. */
+    createSceneLocation(sceneGroup: AbstractControl, rawName: string, created?: () => void): void {
+        const name = this.getLocationNameToCreate(rawName);
+        if (!name || this.creatingSceneLocation || this.abandoned || this.book.Id <= 0)
+            return;
+        const bookId = this.book.Id;
+        this.creatingSceneLocation = name;
+        this.narrativeSrv.createLocation({ LibroId: bookId, Nombre: name, Entradas: [] }).pipe(
+            finalize(() => this.creatingSceneLocation = null),
+            takeUntil(this.destroy$)
+        ).subscribe({
+            next: location => {
+                if (this.abandoned || this.book.Id !== bookId)
+                    return;
+                this.skipNextBookStoreSync = true;
+                this.bookStore.upsertLocation(bookId, location);
+                this.skipNextBookStoreSync = false;
+                if (this.scenesControls.controls.includes(sceneGroup))
+                    this.chooseSceneLocation(sceneGroup, location.Id);
+                this._snackBar.openSnackBar('Localización creada', 'successBar');
+                created?.();
+            },
+            error: errorData => this._snackBar.openApiError(errorData, 'Error al crear la localización')
+        });
+    }
+
     isNamedSceneCharacter(characterGroup: AbstractControl): boolean {
         return !!characterGroup.get('Nombrado')?.value;
     }
@@ -1070,14 +1167,32 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             this.page.setValue(String(end));
     }
 
+    /** «La escena 2», «Las escenas 2 y 3». */
+    private describeScenes(numbers: number[]): string {
+        if (numbers.length === 1)
+            return `La escena ${numbers[0]}`;
+        return `Las escenas ${numbers.slice(0, -1).join(', ')} y ${numbers[numbers.length - 1]}`;
+    }
+
     get autosaveLabel(): string {
         switch (this.autosaveStatus) {
             case 'saving': return 'Guardando…';
             case 'saved': return 'Guardado';
             case 'error': return 'Error al guardar';
-            case 'invalid': return 'Cambios incompletos';
+            case 'invalid': return this.savesPartially ? this.partialSaveLabel() : 'Cambios incompletos';
             default: return '';
         }
+    }
+
+    /** «Sin guardar: a la escena 2 le faltan datos». */
+    private partialSaveLabel(): string {
+        if (this.chapterFieldsError())
+            return 'Sin guardar: revisa los datos del capítulo';
+        const numbers = this.incompleteSceneNumbers();
+        if (!numbers.length)
+            return 'Sin guardar';
+        const scenes = this.describeScenes(numbers);
+        return `Sin guardar: a ${scenes.charAt(0).toLowerCase()}${scenes.slice(1)} le${numbers.length > 1 ? 's' : ''} faltan datos`;
     }
 
     get autosaveIcon(): string {
@@ -1127,14 +1242,23 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             return true;
 
         const editableScenes = this.getEditableScenes();
-        const validationError = this.validateChapterForSave(editableScenes);
+        const validationError = this.savesPartially ? this.chapterFieldsError() : this.validateChapterForSave(editableScenes);
         if (validationError) {
             this.autosaveStatus = 'invalid';
             this._snackBar.openSnackBar(validationError, 'errorBar');
             return false;
         }
 
-        return this.persistChapter(editableScenes, { skipFormSync: false }).pipe(
+        const incomplete = this.savesPartially ? this.incompleteSceneNumbers() : [];
+        const scenesToSave = this.savesPartially ? editableScenes.filter(scene => this.isSceneValid(scene)) : editableScenes;
+        return this.persistChapter(scenesToSave, { skipFormSync: false }).pipe(
+            tap(() => {
+                if (incomplete.length)
+                    this._snackBar.openSnackBar(
+                        `${this.describeScenes(incomplete)} se queda en este dispositivo hasta que la completes.`,
+                        'infoBar', 5000, { title: 'Sin guardar del todo', icon: 'help_outline', dedupeKey: `capitulo:incompleto:${this.draftKey()}` }
+                    );
+            }),
             map(() => true),
             catchError(() => {
                 this.autosaveStatus = 'error';
@@ -1176,11 +1300,14 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     private queueAutosave(): void {
-        if (this.abandoned || this.isInitializingForm || this.chapter.Id <= 0 || !this.hasPendingChanges())
+        if (this.abandoned || this.isInitializingForm || !this.hasPendingChanges())
+            return;
+        // Un capítulo nuevo se crea solo en la Web, y solo cuando la persona ha escrito algo en él.
+        if (this.chapter.Id <= 0 && !(this.savesPartially && this.fgChapter.dirty))
             return;
 
         const editableScenes = this.getEditableScenes();
-        const validationError = this.validateChapterForSave(editableScenes);
+        const validationError = this.savesPartially ? this.chapterFieldsError() : this.validateChapterForSave(editableScenes);
         if (validationError) {
             this.autosaveStatus = 'invalid';
             return;
@@ -1191,7 +1318,44 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             return;
         }
 
-        this.runAutosave(editableScenes);
+        this.runAutosave(this.savesPartially ? editableScenes.filter(scene => this.isSceneValid(scene)) : editableScenes);
+    }
+
+    /**
+     * Web («Cuaderno», F2): una escena a medias no frena el guardado de las demás ni el de los datos del capítulo; se
+     * queda en el dispositivo (`PendingWorkService`) hasta que está completa, y el indicador dice cuál falta.
+     */
+    private get savesPartially(): boolean {
+        return this.isWebView;
+    }
+
+    private chapterFieldsError(): string | null {
+        if (this.name.invalid || this.order.invalid || this.page.invalid || this.endPage.invalid)
+            return 'Revisa título, páginas y orden del capítulo';
+        if (this.endPage.value && Number(this.endPage.value) < Number(this.page.value))
+            return 'La página final no puede ser menor que la inicial';
+        return null;
+    }
+
+    /** Los números (desde 1) de las escenas con algo propio a las que aún les falta algo para guardarse. */
+    incompleteSceneNumbers(): number[] {
+        return this.scenesControls.controls
+            .map((control, index) => ({ group: control as FormGroup, number: index + 1 }))
+            .filter(({ group }) => !this.isSceneEliminable(group) && !this.isSceneValid(group))
+            .map(({ number }) => number);
+    }
+
+    /** «Falta el texto (15 caracteres) y un personaje.», o `null` si a la escena no le falta nada. */
+    getSceneMissing(sceneGroup: AbstractControl): string | null {
+        const missing: string[] = [];
+        if (sceneGroup.get('nombre')?.invalid) missing.push('el título (3 caracteres)');
+        if (sceneGroup.get('descripcion')?.invalid) missing.push('el texto (15 caracteres)');
+        if (sceneGroup.get('localizacion')?.invalid) missing.push('el lugar');
+        if (!this.hasAssignedCharacter(sceneGroup)) missing.push('un personaje');
+        if (!missing.length)
+            return null;
+        const list = missing.length === 1 ? missing[0] : `${missing.slice(0, -1).join(', ')} y ${missing[missing.length - 1]}`;
+        return `Falta ${list}.`;
     }
 
     private runAutosave(editableScenes: FormGroup[]): void {
@@ -1207,7 +1371,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             })
         ).subscribe({
             next: () => {
-                this.autosaveStatus = 'saved';
+                this.autosaveStatus = this.savesPartially && this.incompleteSceneNumbers().length ? 'invalid' : 'saved';
                 this.saveIndicator.notifySaved(this.book.Id);
             },
             error: () => {
@@ -1234,7 +1398,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
         const descriptionControl = sceneGroup.get('descripcion');
         const description = rtfToPlainText(descriptionControl?.value ?? '').trim();
-        if (!description)
+        if (!description && !this.isWebView)
             descriptionControl?.setValue(this.createDefaultSceneDescription(), { emitEvent: false });
     }
 
@@ -1276,7 +1440,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
                 this.bookStore.setBook(this.book);
                 this.deletedSceneIds = this.deletedSceneIds.filter(sceneId => !batch.deletedSceneIds.includes(sceneId));
                 if (this.formRevision === batch.revision)
-                    this.refreshSavedSnapshots();
+                    this.refreshSavedSnapshots(this.unsentScenes(batch));
                 if (!this.hasPendingChanges())
                     this.fgChapter.markAsPristine();
                 this.keepLocalDraft();
@@ -1294,19 +1458,39 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             return true;
         return currentGroups.some(sceneGroup => {
             const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
+            if (sceneId <= 0 && this.isWebView && this.isUntouchedNewScene(sceneGroup))
+                return false;
             return sceneId <= 0
                 ? this.createSceneSnapshot(sceneGroup) !== this.lastSavedNewSceneSnapshots.get(sceneGroup)
                 : this.createSceneSnapshot(sceneGroup) !== this.lastSavedSceneSnapshots.get(sceneId);
         });
     }
 
-    private refreshSavedSnapshots(): void {
+    /** Las escenas con cambios que este envío deja fuera (las incompletas, en la Web). */
+    private unsentScenes(batch: ChapterPersistBatch): Set<FormGroup> {
+        if (!this.savesPartially)
+            return new Set();
+        const sent = new Set(batch.sceneOperations.map(operation => operation.sceneGroup));
+        return new Set((this.scenesControls.controls as FormGroup[]).filter(group => !sent.has(group) && !this.isSceneValid(group)));
+    }
+
+    private refreshSavedSnapshots(unsent: ReadonlySet<FormGroup> = new Set()): void {
+        const previousScenes = this.lastSavedSceneSnapshots;
+        const previousNewScenes = this.lastSavedNewSceneSnapshots;
         this.lastSavedChapterSnapshot = this.createChapterSnapshot();
         this.lastSavedSceneSnapshots = new Map<number, string>();
         this.lastSavedNewSceneSnapshots = new Map<FormGroup, string>();
         this.scenesControls.controls.forEach(control => {
             const sceneGroup = control as FormGroup;
             const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
+            if (unsent.has(sceneGroup)) {
+                // Lo guardado de esa escena sigue siendo lo de antes: sus cambios siguen pendientes.
+                if (sceneId > 0 && previousScenes.has(sceneId))
+                    this.lastSavedSceneSnapshots.set(sceneId, previousScenes.get(sceneId)!);
+                else if (sceneId <= 0 && previousNewScenes.has(sceneGroup))
+                    this.lastSavedNewSceneSnapshots.set(sceneGroup, previousNewScenes.get(sceneGroup)!);
+                return;
+            }
             if (sceneId > 0)
                 this.lastSavedSceneSnapshots.set(sceneId, this.createSceneSnapshot(sceneGroup));
             else

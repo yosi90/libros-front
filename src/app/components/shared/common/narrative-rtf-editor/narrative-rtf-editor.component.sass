@@ -790,3 +790,21 @@
     :host-context(html[data-presentation-active="mobile"])
         .rtf-editor.rtf--bare-editor
             border-radius: 8px
+
+// La escena en lectura (Web, «Cuaderno»): el texto sin caja ni fondo, en la serif de lectura y a 68 caracteres como
+// mucho. `.rtf-editor--readonly` sube la especificidad por encima de la de la presentación Web.
+:host(.rtf--reading)
+    display: block
+    min-height: 0
+
+    .rtf-editor.rtf-editor--readonly
+        min-height: 0
+        max-width: 68ch
+        padding: 0
+        font-size: 16.5px
+        line-height: 1.62
+        background: transparent
+        border: 0
+        border-radius: 0
+        box-shadow: none
+        cursor: text
