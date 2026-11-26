@@ -161,11 +161,11 @@ class LibroViewModel(
         private set
     private var nube: kotlinx.coroutines.Job? = null
     /**
-     * El título del capítulo abierto y «Cap. N · págs. X–Y», para la barra (rediseño «Escenas plegadas», 6/11/2026): los
-     * pone la pantalla del capítulo mientras se ve, con lo que se está escribiendo.
+     * El capítulo nuevo que se está viendo, una vez creado: la vista sigue siendo la de «nuevo» (para no rehacer la
+     * pantalla mientras se escribe), pero la barra ya dice cuál es de cuántos.
      */
-    var cabeceraDelCapitulo by mutableStateOf<Pair<String, String>?>(null)
-    /** Los datos del capítulo (título, páginas y orden) desplegados con el lápiz de la barra. */
+    private var nuevoCreado by mutableStateOf<VistaDelLibro.DeCapitulo?>(null)
+    /** Los datos del capítulo (título, páginas y orden) desplegados con el lápiz de su cabecera. */
     var datosDelCapitulo by mutableStateOf(false)
         private set
 
@@ -199,7 +199,7 @@ class LibroViewModel(
     val posicion: Pair<Int, Int>?
         get() {
             val lista = secuencia
-            val actual = lista.indexOf(vista)
+            val actual = lista.indexOf(nuevoCreado ?: vista)
             return if (actual < 0) null else (actual + 1) to lista.size
         }
 
@@ -334,6 +334,7 @@ class LibroViewModel(
         if (nueva is VistaDelLibro.NuevoCapitulo || nueva is VistaDelLibro.NuevoCapituloDeInterludio) visitaDeNuevo++
         if (historial.lastOrNull() != nueva) historial = historial + nueva
         if (vista != nueva) datosDelCapitulo = false
+        nuevoCreado = null
         vista = nueva
         if (nueva is VistaDelLibro.DeCapitulo) ultimoCapitulo = nueva
         if (nueva is VistaDelLibro.DeElemento) ambito.clave("elemento")?.let { almacen.guardar(it, nueva.elemento.name) }
@@ -403,6 +404,12 @@ class LibroViewModel(
     /** Un capítulo recién guardado entra en el libro (en su sitio por orden) y la barra enseña la nube. */
     fun ponerCapitulo(capitulo: Capitulo) {
         val actual = libro ?: return
+        if (vista == VistaDelLibro.NuevoCapitulo || vista is VistaDelLibro.NuevoCapituloDeInterludio) {
+            VistaDelLibro.DeCapitulo(capitulo.id, capitulo.esInterludio).let {
+                nuevoCreado = it
+                ultimoCapitulo = it
+            }
+        }
         fun encajar(lista: List<Capitulo>) = (lista.filter { it.id != capitulo.id } + capitulo).sortedBy { it.orden }
         ponerLibro(
             if (capitulo.esInterludio) actual.copy(interludios = actual.interludios.map { if (it.id == capitulo.idInterludio) it.copy(capitulos = encajar(it.capitulos)) else it })

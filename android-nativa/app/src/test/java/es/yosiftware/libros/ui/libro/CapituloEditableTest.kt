@@ -65,7 +65,7 @@ class CapituloEditableTest {
     fun soloSeEnviaLoQueCambiaYUnaEscenaAMediasNoBloqueaLoDemas() {
         val capitulo = abierto()
         val guardado = ReglasDelCapitulo.guardadoDe(capitulo)
-        val nueva = ReglasDelCapitulo.escenaNueva(libro, 2, claves())
+        val nueva = ReglasDelCapitulo.escenaNueva(libro, 2, claves()).copy(descripcion = "Citra sale a la calle de noche.")
         val cambiado = capitulo.copy(
             nombre = "Uno, revisado",
             escenas = listOf(capitulo.escenas[0].copy(nombre = "La carta de Citra"), nueva),
@@ -92,7 +92,9 @@ class CapituloEditableTest {
         val nuevo = ReglasDelCapitulo.nuevo(libro, null, claves)
         assertEquals(listOf("Capítulo 3", "3", "31", "31"), listOf(nuevo.nombre, nuevo.orden, nuevo.pagina, nuevo.paginaFinal))
         assertEquals(4, nuevo.escenas[0].idLocalizacion)
-        assertTrue(ReglasDelCapitulo.esDescripcionPorDefecto(nuevo.escenas[0].descripcion))
+        // La escena nueva empieza vacía (sin «Descripción de la escena») y, sin nada propio, no cuenta.
+        assertEquals("", nuevo.escenas[0].descripcion)
+        assertTrue(ReglasDelCapitulo.escenaEliminable(nuevo.escenas[0]))
         val lote = ReglasDelCapitulo.lote(nuevo, LoGuardado(null, emptyMap()))
         assertEquals("Capítulo 3", lote.capitulo?.nombre)
         assertTrue(lote.escenas.isEmpty())
@@ -111,6 +113,20 @@ class CapituloEditableTest {
             DocumentoRtf(listOf(Parrafo(EstiloDeParrafo(), listOf(Tramo("Descripción de la escena", EstiloDeLetra(fuente = "Georgia")))))),
             DocumentoRtf.de(georgia),
         )
+    }
+
+    @Test
+    fun loQueFaltaAUnaEscenaYLasPaginasDeLaCabecera() {
+        val nueva = ReglasDelCapitulo.escenaNueva(libro, 2, claves())
+        assertEquals("Falta el texto (15 caracteres) y un personaje.", ReglasDelCapitulo.loQueFalta(nueva))
+        assertEquals("Falta el título (3 caracteres), el texto (15 caracteres) y un personaje.", ReglasDelCapitulo.loQueFalta(nueva.copy(nombre = "")))
+        assertNull(ReglasDelCapitulo.loQueFalta(abierto().escenas[0]))
+        // Con un personaje ya no es «intacta»: cuenta (y espera) aunque le falte el texto.
+        assertFalse(ReglasDelCapitulo.escenaEliminable(nueva.copy(personajes = listOf(PersonajeEnEscena(2, false)))))
+        val capitulo = abierto().copy(pagina = "145", paginaFinal = "151")
+        assertEquals("págs. 145–151", ReglasDelCapitulo.paginas(capitulo))
+        assertEquals("pág. 145", ReglasDelCapitulo.paginas(capitulo.copy(paginaFinal = "145")))
+        assertNull(ReglasDelCapitulo.paginas(capitulo.copy(pagina = "")))
     }
 
     @Test

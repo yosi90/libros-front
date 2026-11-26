@@ -7,6 +7,7 @@ import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
 import es.yosiftware.libros.datos.modelos.Capitulo
 import es.yosiftware.libros.datos.modelos.Escena
 import es.yosiftware.libros.datos.modelos.Libro
+import es.yosiftware.libros.datos.modelos.Localizacion
 import es.yosiftware.libros.datos.repositorios.CapituloAGuardar
 import es.yosiftware.libros.datos.repositorios.EscenaAGuardar
 import es.yosiftware.libros.datos.repositorios.ServidorDeCapitulos
@@ -80,6 +81,9 @@ class CapituloViewModelTest {
         override suspend fun crearEscenaDeInterludio(capituloId: Int, escena: EscenaAGuardar) = anotar("crearEscenaDeInterludio") { escena(siguienteId++, escena) }
         override suspend fun cambiarEscena(id: Int, escena: EscenaAGuardar) = anotar("cambiarEscena $id ${escena.nombre}") { escena(id, escena) }
         override suspend fun borrarEscena(id: Int) = anotar("borrarEscena $id") { true }
+        fun crearLugar(libroId: Int, nombre: String) = anotar("crearLocalizacion $libroId $nombre") {
+            Localizacion.de(JSONObject().put("Id", siguienteId++).put("Nombre", nombre))
+        }
     }
 
     private class Montaje(val ambito: AmbitoDeCuenta, val servidor: ServidorFalso, val base: File, val tienda: ViewModelStore)
@@ -96,12 +100,13 @@ class CapituloViewModelTest {
     }
 
     /** Un ViewModel en su tienda, como en la app: al «matar la app» se limpia la tienda. */
-    private fun Montaje.abrir(tienda: ViewModelStore = this.tienda): CapituloViewModel {
+    private fun Montaje.abrir(tienda: ViewModelStore = this.tienda, vista: VistaDelLibro = VistaDelLibro.DeCapitulo(1)): CapituloViewModel {
         val fabrica = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = CapituloViewModel(ambito, servidor, Avisador.Mudo, base) as T
+            override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                CapituloViewModel(ambito, servidor, Avisador.Mudo, base, crearLugarEnElServidor = { id, nombre -> servidor.crearLugar(id, nombre) }) as T
         }
-        return ViewModelProvider(tienda, fabrica)[CapituloViewModel::class.java].also { it.abrir(libro, VistaDelLibro.DeCapitulo(1)) }
+        return ViewModelProvider(tienda, fabrica)[CapituloViewModel::class.java].also { it.abrir(libro, vista) }
     }
 
     private fun Montaje.borrador(): File? = base.walkTopDown().firstOrNull { it.name == "capitulo-9-capitulo-1.json" }
@@ -157,6 +162,8 @@ class CapituloViewModelTest {
         val m = montar()
         val vm = m.abrir()
         assertTrue(vm.anadirEscena())
+        // La escena nueva sin nada propio no cuenta: con texto, ya es una escena a medias (sin personajes).
+        vm.cambiarEscena(vm.capitulo!!.escenas[1].clave) { it.copy(descripcion = "Citra sale a la calle de noche.") }
         vm.cambiar { it.copy(nombre = "Uno, revisado") }
         advanceTimeBy(2000)
         runCurrent()
@@ -170,6 +177,62 @@ class CapituloViewModelTest {
         assertEquals("crearEscena 1 Escena 2", m.servidor.llamadas.last())
         assertEquals(EstadoDelGuardado.GUARDADO, vm.estado)
         assertEquals(null, m.borrador())
+    }
+
+    @Test
+    fun unCapituloNuevoSeCreaSoloAlTocarloSinBotonDeGuardar() = runTest {
+        val m = montar()
+        val vm = m.abrir(vista = VistaDelLibro.NuevoCapitulo)
+        // Abrirlo no crea nada.
+        advanceTimeBy(3000)
+        runCurrent()
+        assertTrue(m.servidor.llamadas.isEmpty())
+        vm.cambiar { it.copy(nombre = "Dos") }
+        advanceTimeBy(2000)
+        runCurrent()
+        assertEquals(listOf("crearCapitulo Dos"), m.servidor.llamadas)
+        assertFalse(vm.capitulo!!.esNuevo)
+        // Con los datos mal, no se envía: espera en el borrador.
+        vm.cambiar { it.copy(nombre = "") }
+        advanceTimeBy(2000)
+        runCurrent()
+        assertEquals(1, m.servidor.llamadas.size)
+    }
+
+    @Test
+    fun mismoRepartoQueLaAnteriorYLaEscenaAbiertaAlEntrar() = runTest {
+        val m = montar()
+        val vm = m.abrir()
+        // La última está completa: se abre el capítulo leyendo, sin ninguna escena abierta.
+        assertEquals(null, vm.escenaAbierta)
+        assertTrue(vm.anadirEscena())
+        val nueva = vm.capitulo!!.escenas[1].clave
+        assertEquals(nueva, vm.escenaAbierta)
+        assertEquals(1, vm.mismoRepartoQue(nueva))
+        assertEquals(null, vm.mismoRepartoQue(vm.escena().clave))
+        vm.copiarRepartoAnterior(nueva)
+        assertEquals(listOf(2), vm.capitulo!!.escenas[1].personajes.map { it.id })
+        assertEquals(null, vm.mismoRepartoQue(nueva))
+    }
+
+    @Test
+    fun unLugarSeCreaDesdeLaEscenaYQuedaElegido() = runTest {
+        val m = montar()
+        val vm = m.abrir()
+        var avisado: Localizacion? = null
+        vm.alCrearLugar = { avisado = it }
+        val clave = vm.escena().clave
+        assertEquals(null, vm.lugarParaCrear("sin localizacion"))
+        assertEquals("El Thunderhead", vm.lugarParaCrear("  El   Thunderhead "))
+        vm.abrirLugar(clave)
+        vm.crearLugar(clave, "El Thunderhead")
+        runCurrent()
+        assertEquals("crearLocalizacion 9 El Thunderhead", m.servidor.llamadas.first())
+        assertEquals("El Thunderhead", avisado?.nombre)
+        assertEquals(avisado?.id, vm.escena().idLocalizacion)
+        assertEquals(null, vm.lugarDe)
+        // La de la escena, arriba.
+        assertEquals("El Thunderhead", vm.opcionesDeLugar(vm.escena(), "").first().nombre)
     }
 
     @Test

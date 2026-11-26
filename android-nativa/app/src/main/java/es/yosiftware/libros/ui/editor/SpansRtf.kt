@@ -18,16 +18,46 @@ import android.util.TypedValue
 import es.yosiftware.libros.datos.rtf.Alineacion
 import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
 import es.yosiftware.libros.datos.rtf.EstiloDeLetra
+import es.yosiftware.libros.datos.rtf.FUENTE_POR_DEFECTO
 import es.yosiftware.libros.datos.rtf.EstiloDeParrafo
 import es.yosiftware.libros.datos.rtf.TAMANO_POR_DEFECTO
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-/** Con qué se pinta el texto: la tinta y el primario del tema, si es oscuro y la densidad de la pantalla. */
-class PinturaRtf(val tinta: Int, val primario: Int, val oscuro: Boolean, private val medidas: DisplayMetrics) {
+/**
+ * Con qué se pinta el texto: la tinta y el primario del tema, si es oscuro, la densidad de la pantalla y la serif de
+ * lectura ([lectura]).
+ */
+class PinturaRtf(
+    val tinta: Int,
+    val primario: Int,
+    val oscuro: Boolean,
+    private val medidas: DisplayMetrics,
+    /** Literata, para el texto sin fuente propia; `null`, la de Android. */
+    private val lectura: LecturaRtf? = null,
+) {
     /** Los puntos del RTF en píxeles: 12 pt son 16 px de CSS en la web, 16 dp aquí (con el tamaño de letra del sistema). */
     fun puntos(pt: Float): Float = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, pt * 4f / 3f, medidas)
     fun twips(twips: Int): Float = puntos(twips / 20f)
+
+    /**
+     * La letra de un tramo. Sin fuente propia (o con Microsoft Sans Serif, la de todo el texto heredado), Literata, como
+     * en la web («Cuaderno», F1); las demás, como siempre ([FamiliasRtf]).
+     */
+    fun tipo(fuente: String?, negrita: Boolean, cursiva: Boolean): Typeface {
+        val sinFuente = fuente.isNullOrBlank() || fuente.equals(FUENTE_POR_DEFECTO, ignoreCase = true)
+        return if (sinFuente && lectura != null) lectura.tipo(negrita, cursiva) else FamiliasRtf.tipo(fuente, negrita, cursiva)
+    }
+}
+
+/** Las letras de Literata que hay en `res/font` (sin negrita de 700: la de 600 hace de negrita; la cursiva, de 400 y 500). */
+class LecturaRtf(private val normal: Typeface, private val negrita: Typeface, private val cursiva: Typeface, private val cursivaNegrita: Typeface) {
+    fun tipo(conNegrita: Boolean, conCursiva: Boolean): Typeface = when {
+        conNegrita && conCursiva -> cursivaNegrita
+        conNegrita -> negrita
+        conCursiva -> cursiva
+        else -> normal
+    }
 }
 
 /**
@@ -73,7 +103,7 @@ class LetraSpan(val estilo: EstiloDeLetra, private val pintura: PinturaRtf) : Me
     }
 
     private fun medir(paint: TextPaint) {
-        paint.typeface = FamiliasRtf.tipo(estilo.fuente, estilo.negrita, estilo.cursiva)
+        paint.typeface = pintura.tipo(estilo.fuente, estilo.negrita, estilo.cursiva)
         paint.textSize = pintura.puntos(estilo.tamano / 2f)
     }
 

@@ -13,11 +13,15 @@ import es.yosiftware.libros.datos.cuenta.ViewModelDeCuenta
 import es.yosiftware.libros.datos.modelos.Capitulo
 import es.yosiftware.libros.datos.modelos.Escena
 import es.yosiftware.libros.datos.modelos.Libro
+import es.yosiftware.libros.datos.modelos.Localizacion
+import es.yosiftware.libros.datos.plegar
 import es.yosiftware.libros.datos.modelos.PersonajeEnEscena
 import es.yosiftware.libros.datos.repositorios.EscenaAGuardar
 import es.yosiftware.libros.datos.repositorios.ServidorDeCapitulos
 import es.yosiftware.libros.ui.componentes.Avisador
 import java.io.File
+import java.text.Collator
+import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -41,7 +45,8 @@ enum class EstadoDelGuardado(val texto: String) {
  *    esperan en el borrador sin frenar lo demás, a diferencia de la web);
  * 3. al pasar a segundo plano o salir de la vista ([guardarAhora]), el borrador se escribe en el acto y se envía;
  * 4. al volver a abrir el capítulo, lo que no llegó se recupera.
- * Un capítulo nuevo se crea con «Guardar capítulo», como en la web; hasta entonces vive en su borrador.
+ * Un capítulo nuevo se crea solo en cuanto se toca y sus datos valen («Cuaderno», F5, como la web desde la F2); hasta
+ * entonces vive en su borrador.
  */
 class CapituloViewModel(
     ambito: AmbitoDeCuenta,
@@ -51,6 +56,8 @@ class CapituloViewModel(
     private val base: File,
     private val esperaDelBorrador: Long = 400,
     private val esperaDelGuardado: Long = 1800,
+    /** Crear un lugar desde la escena: solo con el nombre (`Entradas: []`, posible desde la API `768b06a`). */
+    private val crearLugarEnElServidor: suspend (libroId: Int, nombre: String) -> Localizacion = { _, _ -> error("Sin servidor de localizaciones") },
 ) : ViewModelDeCuenta(ambito) {
     var capitulo by mutableStateOf<CapituloEditable?>(null)
         private set
@@ -60,9 +67,23 @@ class CapituloViewModel(
         private set
     /** Para el libro abierto: el capítulo como queda tras guardar (el índice, las estadísticas…). */
     var alGuardar: (Capitulo) -> Unit = {}
-    /** La escena desplegada: solo una a la vez (rediseño «Escenas plegadas», 6/11/2026); al abrir, la última. */
+    /**
+     * La escena que se escribe: solo una a la vez. Al abrir el capítulo, la última si le falta algo; si no, ninguna, y
+     * todas se leen enteras («Cuaderno», F2).
+     */
     var escenaAbierta by mutableStateOf<Long?>(null)
         private set
+    /** Dónde poner el cursor al abrir la escena: donde se tocó el texto (`-1`, al final; `null`, sin foco). */
+    var cursorAlAbrir by mutableStateOf<Int?>(null)
+        private set
+    /** La escena cuya hoja de lugar está abierta, o `null`. */
+    var lugarDe by mutableStateOf<Long?>(null)
+        private set
+    /** El lugar que se está creando desde la escena, o `null`. */
+    var creandoLugar by mutableStateOf<String?>(null)
+        private set
+    /** Para el libro abierto: el lugar recién creado. */
+    var alCrearLugar: (Localizacion) -> Unit = {}
     /** La escena cuya hoja de reparto está abierta, o `null`. */
     var repartoDe by mutableStateOf<Long?>(null)
         private set
@@ -80,6 +101,8 @@ class CapituloViewModel(
     private var guardando = false
     private var otraVez = false
     private var abandonado = false
+
+    private val porNombre: Collator = Collator.getInstance(Locale.forLanguageTag("es")).apply { strength = Collator.PRIMARY }
 
     private fun nuevaClave(): Long = ++siguienteClave
 
@@ -104,8 +127,11 @@ class CapituloViewModel(
         guardado = ReglasDelCapitulo.guardadoDe(abierto)
         capitulo = abierto
         recuperar(abierto)
-        escenaAbierta = capitulo?.escenas?.lastOrNull()?.clave
+        escenaAbierta = escenaInicial()
     }
+
+    /** `initialOpenSceneIndex`: la última, si le falta algo. */
+    private fun escenaInicial(): Long? = capitulo?.escenas?.lastOrNull()?.takeUnless { ReglasDelCapitulo.escenaValida(it, capituloNuevo = false) }?.clave
 
     fun actualizarLibro(nuevo: Libro) {
         libro = nuevo
@@ -135,7 +161,7 @@ class CapituloViewModel(
         }
         val nueva = ReglasDelCapitulo.escenaNueva(libro, actual.escenas.size + 1, nuevaClave())
         cambiar { it.copy(escenas = it.escenas + nueva) }
-        escenaAbierta = nueva.clave
+        abrirEscena(nueva.clave)
         return true
     }
 
@@ -146,13 +172,84 @@ class CapituloViewModel(
             val escena = capitulo.escenas.firstOrNull { it.clave == clave } ?: return@cambiar capitulo
             capitulo.copy(escenas = capitulo.escenas - escena, borradas = if (escena.id > 0) capitulo.borradas + escena.id else capitulo.borradas)
         }
-        if (escenaAbierta == clave) escenaAbierta = capitulo?.escenas?.lastOrNull()?.clave
+        if (escenaAbierta == clave) escenaAbierta = null
         if (repartoDe == clave) repartoDe = null
+        if (lugarDe == clave) lugarDe = null
     }
 
-    /** Despliega esa escena y pliega la que estuviera abierta. */
-    fun abrirEscena(clave: Long) {
+    /** Abre esa escena para escribir (y cierra la que estuviera abierta), con el cursor en [cursor] o al final. */
+    fun abrirEscena(clave: Long, cursor: Int? = null) {
+        if (escenaAbierta != clave && escenaAbierta != null) guardarAhora()
+        cursorAlAbrir = cursor ?: -1
         escenaAbierta = clave
+    }
+
+    /** El cursor ya está puesto: un cambio de tema o de libro no vuelve a moverlo. */
+    fun cursorPuesto() {
+        cursorAlAbrir = null
+    }
+
+    // --- «Mismo reparto que la escena N» y el lugar. ---
+
+    /**
+     * `getSameCastSource`: el número de la escena anterior si esta no tiene personajes y la anterior sí (el botón dice
+     * «Mismo reparto que la escena N»); si no, `null`.
+     */
+    fun mismoRepartoQue(clave: Long): Int? {
+        val escenas = capitulo?.escenas ?: return null
+        val i = escenas.indexOfFirst { it.clave == clave }
+        if (i <= 0 || escenas[i].personajes.isNotEmpty() || escenas[i - 1].personajes.isEmpty()) return null
+        return i
+    }
+
+    fun copiarRepartoAnterior(clave: Long) {
+        if (mismoRepartoQue(clave) == null) return
+        val escenas = capitulo?.escenas ?: return
+        val anterior = escenas[escenas.indexOfFirst { it.clave == clave } - 1]
+        cambiarEscena(clave) { it.copy(personajes = ordenar(anterior.personajes)) }
+    }
+
+    fun abrirLugar(clave: Long) {
+        lugarDe = clave
+    }
+
+    fun cerrarLugar() {
+        lugarDe = null
+    }
+
+    /** `getSceneLocationOptions`: las del libro que coinciden (sin tildes), la de la escena arriba y las demás por nombre. */
+    fun opcionesDeLugar(escena: EscenaEditable, consulta: String): List<Localizacion> {
+        val libro = libro ?: return emptyList()
+        val buscado = plegar(consulta).trim()
+        return libro.localizaciones.filter { buscado.isEmpty() || plegar(it.nombre).contains(buscado) }
+            .sortedWith(compareByDescending<Localizacion> { it.id == escena.idLocalizacion }.thenBy(porNombre) { it.nombre })
+    }
+
+    /** `getLocationNameToCreate`: lo buscado, si vale como nombre y no hay ya un lugar que se llame así. */
+    fun lugarParaCrear(consulta: String): String? {
+        val nombre = RepartoDeEscena.nombreParaCrear(consulta) ?: return null
+        val plegado = plegar(nombre).trim()
+        return nombre.takeUnless { libro?.localizaciones?.any { plegar(it.nombre).trim() == plegado } == true }
+    }
+
+    /** `createSceneLocation`: lo crea en el libro y lo elige para la escena. */
+    fun crearLugar(clave: Long, consulta: String) {
+        val nombre = lugarParaCrear(consulta) ?: return
+        val libroId = libro?.id ?: return
+        if (creandoLugar != null || abandonado || libroId <= 0) return
+        creandoLugar = nombre
+        cargar({ crearLugarEnElServidor(libroId, nombre) }, alFallar = { error ->
+            creandoLugar = null
+            avisos.deError(error, "Error al crear la localización")
+        }) { lugar ->
+            creandoLugar = null
+            if (abandonado || libro?.id != libroId) return@cargar
+            libro = libro?.let { it.copy(localizaciones = it.localizaciones + lugar) }
+            alCrearLugar(lugar)
+            if (capitulo?.escenas?.any { it.clave == clave } == true) elegirLocalizacion(clave, lugar.id)
+            lugarDe = null
+            avisos.exito("Localización creada")
+        }
     }
 
     fun abrirReparto(clave: Long) {
@@ -187,16 +284,9 @@ class CapituloViewModel(
 
     // --- Guardar. ---
 
-    /** «Guardar capítulo» de un capítulo nuevo (`setChapter`). */
-    fun guardarCapituloNuevo() {
-        val actual = capitulo ?: return
-        ReglasDelCapitulo.errorDelCapitulo(actual)?.let {
-            avisos.error(it)
-            return
-        }
-        escribirBorrador()
-        enviar()
-    }
+    /** Un capítulo nuevo se crea en cuanto se toca y sus datos valen; uno que ya existe se envía siempre. */
+    private val sePuedeEnviar: Boolean
+        get() = capitulo?.let { !it.esNuevo || (it.tocado && ReglasDelCapitulo.errorDelCapitulo(it) == null) } == true
 
     /** Al pasar a segundo plano o salir de la vista: el borrador en el acto y lo que se pueda, al servidor. */
     fun guardarAhora() {
@@ -204,7 +294,7 @@ class CapituloViewModel(
         borrador?.cancel()
         autoguardado?.cancel()
         escribirBorrador()
-        if (capitulo?.esNuevo == false) enviar()
+        if (sePuedeEnviar) enviar()
     }
 
     private fun programar() {
@@ -214,7 +304,7 @@ class CapituloViewModel(
             delay(esperaDelBorrador)
             escribirBorrador()
         }
-        if (capitulo?.esNuevo == false) {
+        if (sePuedeEnviar) {
             autoguardado?.cancel()
             autoguardado = viewModelScope.launch {
                 delay(esperaDelGuardado)
@@ -390,7 +480,7 @@ class CapituloViewModel(
         capitulo = borrador.copy(tocado = true)
         claveEscrita = borrador.claveDelBorrador
         avisos.avisarDelSistema("Hemos recuperado los cambios de este capítulo que no llegaron a guardarse.", "Cambios recuperados", "capitulo:recuperado:${borrador.claveDelBorrador}")
-        if (!borrador.esNuevo) enviar()
+        if (sePuedeEnviar) enviar()
     }
 
     private fun buscar(libro: Libro, id: Int, deInterludio: Boolean): Pair<Capitulo, Int?>? =
@@ -407,12 +497,19 @@ class CapituloViewModel(
         val abierto = ReglasDelCapitulo.deCapitulo(libro, capitulo, vista.deInterludio, idInterludio, ::nuevaClave)
         guardado = ReglasDelCapitulo.guardadoDe(abierto)
         this.capitulo = abierto
-        escenaAbierta = abierto.escenas.lastOrNull()?.clave
+        escenaAbierta = escenaInicial()
     }
 
-    /** Solo para las muestras de depuración: abre la hoja de reparto de la escena desplegada. */
+    /** Solo para las muestras de depuración: abre la última escena y su hoja de reparto. */
     internal fun abrirRepartoDeMuestra() {
-        escenaAbierta?.let { repartoDe = it }
+        val ultima = capitulo?.escenas?.lastOrNull()?.clave ?: return
+        escenaAbierta = ultima
+        repartoDe = ultima
+    }
+
+    /** Solo para las muestras de depuración: abre la última escena para escribir. */
+    internal fun abrirEscenaDeMuestra() {
+        escenaAbierta = capitulo?.escenas?.lastOrNull()?.clave
     }
 
     /** Cambio de cuenta: deja de enviar y lo que no se había guardado se queda en el borrador de la cuenta que lo escribió. */

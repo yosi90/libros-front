@@ -329,7 +329,7 @@ fun AppLibros(app: LibrosApp) {
             is VistaDelLibro.NuevoCapituloDeInterludio -> "nuevo-${vista.interludioId}-${libro.visitaDeNuevo}"
             else -> "nuevo-${libro.visitaDeNuevo}"
         }
-        viewModel(key = "$cuenta-${libro.abierto?.id}-$sitio") { CapituloViewModel(app.datos.ambito, app.datos.libro, avisos, File(app.filesDir, "borradores")) }
+        viewModel(key = "$cuenta-${libro.abierto?.id}-$sitio") { CapituloViewModel(app.datos.ambito, app.datos.libro, avisos, File(app.filesDir, "borradores"), crearLugarEnElServidor = { id, nombre -> app.datos.entidades.crearLocalizacion(id, nombre, emptyList()) }) }
     }
     // Un ViewModel por tipo de elemento, libro y cuenta: la ficha a medias se queda al ir a otra vista.
     val elementosPara: @Composable (Elemento) -> ElementosViewModel = { tipo ->

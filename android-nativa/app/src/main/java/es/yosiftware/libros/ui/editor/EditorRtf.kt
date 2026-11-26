@@ -110,11 +110,46 @@ fun EditorRtf(
      * tarjeta flotante bajo la línea con lo que pinte esto; `sustituir` cambia lo escrito desde la @ por un nombre.
      */
     menciones: (@Composable (consulta: String, sustituir: (String) -> Unit) -> Unit)? = null,
+    /**
+     * Solo para leer («Cuaderno», F5, `rtf--reading` de la web): el texto sin caja ni barra; tocar una palabra clave abre
+     * su elemento y tocar el resto avisa con la posición ([alTocarParaEscribir]).
+     */
+    soloLectura: Boolean = false,
+    alTocarParaEscribir: (Int) -> Unit = {},
+    /** Al montarse, el foco y el cursor ahí (`-1`: al final); `null`, sin foco. Luego se avisa con [alPonerElCursor]. */
+    cursorAlMontar: Int? = null,
+    alPonerElCursor: () -> Unit = {},
 ) {
     val colores = LocalColores.current
     val contexto = LocalContext.current
     val oscuro = colores.oscuro
-    val pintura = remember(colores, oscuro) { PinturaRtf(colores.tinta.toArgb(), colores.primario.toArgb(), oscuro, contexto.resources.displayMetrics) }
+    val lectura = remember(contexto) { lecturaDe(contexto) }
+    val pintura = remember(colores, oscuro, lectura) { PinturaRtf(colores.tinta.toArgb(), colores.primario.toArgb(), oscuro, contexto.resources.displayMetrics, lectura) }
+    val tocar by rememberUpdatedState(alTocarParaEscribir)
+    val cursorPuesto by rememberUpdatedState(alPonerElCursor)
+    if (soloLectura) {
+        AndroidView(
+            modifier = modifier.semantics { contentDescription = descripcion },
+            factory = { context ->
+                CampoRtf(context, pintura).apply {
+                    setPadding(0, 0, 0, 0)
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
+                    // 1,62 de la lectura en la web, sobre lo que mide Literata (1,32 veces su tamaño).
+                    setLineSpacing(0f, 1.23f)
+                    setTextColor(colores.tinta.toArgb())
+                    soloParaLeer()
+                    this.alTocarParaEscribir = { tocar(it) }
+                    cargar(valor, enlaces)
+                }
+            },
+            update = { vista ->
+                vista.alAbrirEnlace = alAbrirEnlace
+                vista.cambiarPintura(pintura)
+                vista.cargar(valor, enlaces)
+            },
+        )
+        return
+    }
     val cambiar by rememberUpdatedState(alCambiar)
     val terminar by rememberUpdatedState(alTerminarDeEditar)
     var campo by remember { mutableStateOf<CampoRtf?>(null) }
@@ -164,6 +199,10 @@ fun EditorRtf(
                         if (menciones != null) alCambiarLaMencion = { mencion = it }
                         cargar(valor, enlaces)
                         campo = this
+                        if (cursorAlMontar != null) post {
+                            escribirEn(cursorAlMontar.takeIf { it >= 0 })
+                            cursorPuesto()
+                        }
                     }
                 },
                 update = { vista ->
@@ -183,6 +222,17 @@ fun EditorRtf(
         }
     }
 }
+
+/** Literata, de `res/font` ([es.yosiftware.libros.ui.tema.Fuentes.lectura]), para el RTF; sin ella, la de Android. */
+private fun lecturaDe(contexto: android.content.Context): LecturaRtf? = runCatching {
+    fun letra(id: Int) = requireNotNull(androidx.core.content.res.ResourcesCompat.getFont(contexto, id))
+    LecturaRtf(
+        normal = letra(es.yosiftware.libros.R.font.literata_400),
+        negrita = letra(es.yosiftware.libros.R.font.literata_600),
+        cursiva = letra(es.yosiftware.libros.R.font.literata_cursiva_400),
+        cursivaNegrita = android.graphics.Typeface.create(letra(es.yosiftware.libros.R.font.literata_cursiva_500), android.graphics.Typeface.BOLD),
+    )
+}.getOrNull()
 
 /**
  * La tarjeta de la @: bajo la línea donde se escribe (encima, si el teclado no la deja caber), sin quitarle el foco al

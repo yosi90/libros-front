@@ -179,24 +179,15 @@ private fun Barra(vm: LibroViewModel, nombre: String, portada: String?) {
         verticalAlignment = Alignment.Bottom,
     ) {
         BotonDeIcono(Iconos.keyboardArrowDown, "Minimizar libro", vm::minimizar)
-        // En el capítulo (rediseño «Escenas plegadas», 6/11/2026): su título y sus páginas en vez del libro, el lápiz de
-        // sus datos y, en el móvil, las herramientas en «Más» para que el título quepa.
-        val cabecera = vm.cabeceraDelCapitulo.takeIf { vm.vista.esDeCapitulo }
+        // El título del capítulo va en su página («Cuaderno», F5): aquí, siempre el libro.
         Row(
             Modifier.weight(1f).heightIn(min = 48.dp),
             horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (cabecera != null) {
-                Column(Modifier.weight(1f, fill = false)) {
-                    Text(cabecera.first, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = 17.sp, fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    if (cabecera.second.isNotEmpty()) Text(cabecera.second, style = Textos.cuerpo.copy(fontSize = 12.5.sp, lineHeight = 1.2.em, color = colores.tintaSuave), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            } else {
-                if (!portada.isNullOrEmpty()) Portada(portada, null, Modifier.width(30.dp).height(42.dp).clip(RoundedCornerShape(3.dp)))
-                // Hasta dos líneas: la barra tiene alto de sobra, y un título largo no se corta a la primera.
-                Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(0.94), fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
+            if (!portada.isNullOrEmpty()) Portada(portada, null, Modifier.width(30.dp).height(42.dp).clip(RoundedCornerShape(3.dp)))
+            // Hasta dos líneas: la barra tiene alto de sobra, y un título largo no se corta a la primera.
+            Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(0.94), fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             // `.m-book-bar__saved`: 3 s tras guardar, la nube en un círculo del primario con su halo.
@@ -209,7 +200,6 @@ private fun Barra(vm: LibroViewModel, nombre: String, portada: String?) {
                     contentAlignment = Alignment.Center,
                 ) { Icon(painterResource(Iconos.cloudDone), contentDescription = null, tint = colores.sobrePrimario, modifier = Modifier.size(24.dp)) }
             }
-            if (cabecera != null) Herramienta(Iconos.edit, "Editar los datos del capítulo", vm.datosDelCapitulo, alPulsar = vm::alternarDatosDelCapitulo)
             Herramienta(Iconos.manageSearch, "Buscar dentro del libro", vm.estaActiva(VistaDelLibro.Busqueda)) { vm.ir(VistaDelLibro.Busqueda) }
         }
     }

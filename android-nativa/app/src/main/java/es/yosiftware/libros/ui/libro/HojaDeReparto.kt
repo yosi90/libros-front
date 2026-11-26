@@ -166,7 +166,7 @@ private fun Inicial(nombre: String, tamano: Dp) {
 
 /** El «+» en un círculo discontinuo del primario, delante de «Crear «…»». */
 @Composable
-private fun CirculoDeCrear(tamano: Dp) {
+internal fun CirculoDeCrear(tamano: Dp) {
     val colores = LocalColores.current
     Box(
         Modifier.size(tamano).drawBehind {
@@ -213,80 +213,6 @@ private fun IconoDeReparto(icono: Int, descripcion: String, encendido: Boolean, 
                 .border(1.dp, if (encendido) colores.primario else colores.contorno, CircleShape),
             contentAlignment = Alignment.Center,
         ) { Icon(painterResource(icono), contentDescription = null, tint = if (encendido) colores.sobrePrimario else colores.tintaSuave, modifier = Modifier.size(16.dp)) }
-    }
-}
-
-/**
- * Una ficha de personaje: presente, rellena del contenedor primario; solo nombrado, «@ Nombre» en cursiva con borde.
- * [alto] es lo que se ve; el objetivo táctil es de 44 dp.
- */
-@Composable
-private fun Ficha(nombre: String, nombrado: Boolean, alto: Dp, descripcion: String, alPulsar: () -> Unit) {
-    val colores = LocalColores.current
-    Box(Modifier.heightIn(min = 44.dp).clickable(role = Role.Button, onClickLabel = descripcion, onClick = alPulsar), contentAlignment = Alignment.Center) {
-        Row(
-            Modifier.height(alto).clip(Radios.pildora)
-                .background(if (nombrado) Color.Transparent else colores.contenedorPrimario)
-                .drawBehind {
-                    if (!nombrado) return@drawBehind
-                    val ancho = 1.dp.toPx()
-                    drawRoundRect(
-                        colores.contornoFuerte, Offset(ancho / 2, ancho / 2), Size(size.width - ancho, size.height - ancho), CornerRadius(size.height / 2),
-                        style = Stroke(ancho),
-                    )
-                }
-                .padding(horizontal = if (alto > 32.dp) Espacios.e3 else 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                if (nombrado) "@ $nombre" else nombre,
-                style = Textos.cuerpo.copy(
-                    fontSize = if (alto > 32.dp) 14.sp else 13.sp, lineHeight = 1.2.em,
-                    fontWeight = if (nombrado) FontWeight.Normal else FontWeight.SemiBold,
-                    fontStyle = if (nombrado) FontStyle.Italic else FontStyle.Normal,
-                    color = if (nombrado) colores.tintaSuave else colores.sobreContenedorPrimario,
-                ),
-                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 220.dp),
-            )
-        }
-    }
-}
-
-/** Un personaje de la escena: al tocarlo, pasarlo a solo nombrado (o a presente) o quitarlo. */
-@Composable
-internal fun FichaDePersonaje(vm: CapituloViewModel, libro: Libro, escena: EscenaEditable, personaje: PersonajeEnEscena) {
-    val colores = LocalColores.current
-    val nombre = ReglasDelCapitulo.nombreDePersonaje(libro, personaje.id)
-    var abierto by remember { mutableStateOf(false) }
-    Box {
-        Ficha(nombre, personaje.nombrado, alto = 32.dp, descripcion = "Cambiar o quitar a $nombre") { abierto = true }
-        DropdownMenu(abierto, onDismissRequest = { abierto = false }, containerColor = colores.superficie) {
-            DropdownMenuItem(
-                text = { Text(if (personaje.nombrado) "En escena" else "Solo nombrado", style = Textos.cuerpo.copy(color = colores.tinta)) },
-                leadingIcon = { Icon(painterResource(if (personaje.nombrado) Iconos.person else Iconos.alternateEmail), contentDescription = null, tint = colores.tinta, modifier = Modifier.size(20.dp)) },
-                onClick = { abierto = false; vm.asignarPersonaje(escena.clave, personaje.id, !personaje.nombrado) },
-            )
-            DropdownMenuItem(
-                text = { Text("Quitar", style = Textos.cuerpo.copy(color = colores.error)) },
-                leadingIcon = { Icon(painterResource(Iconos.close), contentDescription = null, tint = colores.error, modifier = Modifier.size(20.dp)) },
-                onClick = { abierto = false; vm.quitarPersonaje(escena.clave, personaje.id) },
-            )
-        }
-    }
-}
-
-/** «+» tras las fichas: 36 dp sobre el contenedor de la superficie, 44 de objetivo; abre la hoja de reparto. */
-@Composable
-internal fun BotonDeAnadirPersonaje(alPulsar: () -> Unit) {
-    val colores = LocalColores.current
-    Box(
-        Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClick = alPulsar).semantics { contentDescription = "Añadir personaje" },
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(Modifier.size(36.dp).clip(CircleShape).background(colores.superficieContenedor), contentAlignment = Alignment.Center) {
-            Icon(painterResource(Iconos.add), contentDescription = null, tint = colores.primario, modifier = Modifier.size(18.dp))
-        }
     }
 }
 

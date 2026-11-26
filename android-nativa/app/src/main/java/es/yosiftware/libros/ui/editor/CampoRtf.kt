@@ -44,6 +44,11 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
     var alCambiar: (String) -> Unit = {}
     var alCambiarLaBarra: (EstadoDeLaBarra) -> Unit = {}
     var alAbrirEnlace: (EnlaceNarrativo) -> Unit = {}
+    /**
+     * Solo para leer («Cuaderno», F5): un toque que no cae en una palabra clave avisa con su posición en el texto (para
+     * abrir la escena con el cursor ahí). `null`: se escribe.
+     */
+    var alTocarParaEscribir: ((Int) -> Unit)? = null
     /** La @ que se está escribiendo y dónde está, o `null` ([Menciones]); solo si alguien la escucha. */
     var alCambiarLaMencion: ((MencionEnElCampo?) -> Unit)? = null
 
@@ -65,8 +70,14 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
 
     private val gestos = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapUp(e: MotionEvent): Boolean {
-            val enlace = enlaceEn(getOffsetForPosition(e.x, e.y)) ?: return false
-            alAbrirEnlace(enlace)
+            val posicion = getOffsetForPosition(e.x, e.y)
+            val enlace = enlaceEn(posicion)
+            if (enlace != null) {
+                alAbrirEnlace(enlace)
+                return true
+            }
+            val tocar = alTocarParaEscribir ?: return false
+            tocar(posicion)
             return true
         }
     })
@@ -121,6 +132,23 @@ class CampoRtf(context: Context, private var pintura: PinturaRtf) : EditText(con
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (gestos.onTouchEvent(event)) return true
         return super.onTouchEvent(event)
+    }
+
+    /** Solo para leer: sin foco, cursor ni teclado; los toques los atiende [alTocarParaEscribir]. */
+    fun soloParaLeer() {
+        isFocusable = false
+        isFocusableInTouchMode = false
+        isCursorVisible = false
+        isLongClickable = false
+        showSoftInputOnFocus = false
+        keyListener = null
+    }
+
+    /** Escribir en el acto: el foco, el cursor en [posicion] (o al final) y el teclado. */
+    fun escribirEn(posicion: Int?) {
+        requestFocus()
+        setSelection((posicion ?: length()).coerceIn(0, length()))
+        context.getSystemService(android.view.inputmethod.InputMethodManager::class.java)?.showSoftInput(this, 0)
     }
 
     /** Pega siempre como texto plano (`handlePaste`). */

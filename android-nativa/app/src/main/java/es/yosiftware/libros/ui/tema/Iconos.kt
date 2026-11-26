@@ -131,6 +131,7 @@ object Iconos {
     @DrawableRes val category = R.drawable.mi_category
     @DrawableRes val coPresent = R.drawable.mi_co_present
     @DrawableRes val myLocation = R.drawable.mi_my_location
+    @DrawableRes val place = R.drawable.mi_place
     @DrawableRes val formatQuote = R.drawable.mi_format_quote
     @DrawableRes val movieFilter = R.drawable.mi_movie_filter
     @DrawableRes val theaterComedy = R.drawable.mi_theater_comedy

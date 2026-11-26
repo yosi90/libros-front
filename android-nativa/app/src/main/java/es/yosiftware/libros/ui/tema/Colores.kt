@@ -27,6 +27,8 @@ data class Colores(
     val secundario: Color, // --mobile-color-secondary
     val contenedorSecundario: Color, // --mobile-color-secondary-container
     val terciario: Color, // --mobile-color-tertiary
+    /** El acento de la vista de libro de la web (`--web-color-accent`): los números del capítulo y de sus escenas. */
+    val acento: Color,
     val error: Color, // --mobile-color-error
     val contenedorError: Color, // --mobile-color-error-container
     val exito: Color, // --mobile-color-success
@@ -57,6 +59,7 @@ val ColoresClaros = Colores(
     secundario = Color(0xFF4B635D),
     contenedorSecundario = Color(0xFFCEE9E1),
     terciario = Color(0xFF5D5F7D),
+    acento = Color(0xFF9A5B2E),
     error = Color(0xFFBA1A1A),
     contenedorError = Color(0xFFFFDAD6),
     exito = Color(0xFF276A45),
@@ -87,6 +90,7 @@ val ColoresOscuros = Colores(
     secundario = Color(0xFFB3CCC4),
     contenedorSecundario = Color(0xFF344B44),
     terciario = Color(0xFFC4C5EB),
+    acento = Color(0xFFE3A877),
     error = Color(0xFFFFB4AB),
     contenedorError = Color(0xFF6F2525),
     exito = Color(0xFF8ED8A8),

@@ -78,6 +78,7 @@ data class LoteDelCapitulo(
 object ReglasDelCapitulo {
     const val DESCRIPCION_POR_DEFECTO = "Descripción de la escena"
     private val ordenValido = Regex("^[1-9][0-9]?$")
+    private val tituloPorDefecto = Regex("^Escena \\d+$")
     private val paginaValida = Regex("^[1-9][0-9]{0,3}$")
     private val porNombre: Collator = Collator.getInstance(Locale.forLanguageTag("es")).apply { strength = Collator.PRIMARY }
 
@@ -90,19 +91,11 @@ object ReglasDelCapitulo {
         return "${capitulo.nombre.trim()} · $paginas · nº ${capitulo.orden}"
     }
 
-    /**
-     * «Cap. 11 · págs. 145–151» (o «pág. 145»), bajo el título en la barra del capítulo (rediseño «Escenas plegadas», 6/11/2026).
-     * Sin páginas válidas, solo el número.
-     */
-    fun subtitulo(capitulo: CapituloEditable): String {
-        val inicio = capitulo.pagina.takeIf { errorDePagina(it) == null }
+    /** «págs. 145–151» (o «pág. 145» si empieza y acaba en la misma), bajo el título del capítulo; sin páginas válidas, `null`. */
+    fun paginas(capitulo: CapituloEditable): String? {
+        val inicio = capitulo.pagina.takeIf { errorDePagina(it) == null } ?: return null
         val fin = capitulo.paginaFinal.takeIf { it.isNotEmpty() && errorDePaginaFinal(it) == null }
-        val paginas = when {
-            inicio == null -> null
-            fin == null || fin == inicio -> "pág. $inicio"
-            else -> "págs. $inicio–$fin"
-        }
-        return listOfNotNull("Cap. ${capitulo.orden}".takeIf { errorDeOrden(capitulo.orden) == null }, paginas).joinToString(" · ")
+        return if (fin == null || fin == inicio) "pág. $inicio" else "págs. $inicio–$fin"
     }
 
     /** El texto de una escena sin formato, para su tarjeta plegada; vacío si es el de por defecto. */
@@ -167,9 +160,31 @@ object ReglasDelCapitulo {
     fun escenaValida(escena: EscenaEditable, capituloNuevo: Boolean): Boolean =
         errorDeNombreDeEscena(escena) == null && localizacionValida(escena) && descripcionValida(escena) && (capituloNuevo || escena.personajes.isNotEmpty())
 
-    /** `isSceneEliminable`: nueva, sin título y sin descripción; ni se guarda ni bloquea. */
-    fun escenaEliminable(escena: EscenaEditable): Boolean =
-        escena.id == 0 && escena.nombre.trim().length < 3 && rtfATextoPlano(escena.descripcion).trim().length < 15
+    /**
+     * Nueva y sin nada propio, así que ni se guarda ni bloquea: sin título ni texto (`isSceneEliminable`), o con el título
+     * por defecto, sin texto y sin personajes (`isUntouchedNewScene`, «Cuaderno» F2).
+     */
+    fun escenaEliminable(escena: EscenaEditable): Boolean {
+        if (escena.id != 0) return false
+        val nombre = escena.nombre.trim()
+        val texto = rtfATextoPlano(escena.descripcion).trim()
+        val sinNada = nombre.length < 3 && texto.length < 15
+        val intacta = (nombre.isEmpty() || tituloPorDefecto.matches(nombre)) && (texto.isEmpty() || texto == DESCRIPCION_POR_DEFECTO) && escena.personajes.isEmpty()
+        return sinNada || intacta
+    }
+
+    /** «Falta el título (3 caracteres), el lugar y un personaje.» (`getSceneMissing`), o `null` si está completa. */
+    fun loQueFalta(escena: EscenaEditable): String? {
+        val falta = listOfNotNull(
+            "el título (3 caracteres)".takeIf { errorDeNombreDeEscena(escena) != null },
+            "el texto (15 caracteres)".takeIf { !descripcionValida(escena) },
+            "el lugar".takeIf { !localizacionValida(escena) },
+            "un personaje".takeIf { escena.personajes.isEmpty() },
+        )
+        if (falta.isEmpty()) return null
+        val lista = if (falta.size == 1) falta[0] else falta.dropLast(1).joinToString(", ") + " y " + falta.last()
+        return "Falta $lista."
+    }
 
     fun esDescripcionPorDefecto(descripcion: String): Boolean = rtfATextoPlano(descripcion).trim() == DESCRIPCION_POR_DEFECTO
 
@@ -186,10 +201,12 @@ object ReglasDelCapitulo {
 
     private fun rtfATextoPlano(valor: String): String = rtfATexto(valor)
 
-    /** `applySceneDefaults`: sin título, «Escena N»; sin texto, la descripción por defecto. */
+    /**
+     * `applySceneDefaults`: sin título, «Escena N». Sin texto se queda vacía, como en la web («Cuaderno», F2): un texto de
+     * relleno se leería como de la persona.
+     */
     fun conValoresPorDefecto(escena: EscenaEditable, numero: Int): EscenaEditable = escena.copy(
         nombre = escena.nombre.takeIf { it.trim().isNotEmpty() } ?: "Escena $numero",
-        descripcion = escena.descripcion.takeIf { rtfATextoPlano(it).trim().isNotEmpty() } ?: descripcionPorDefecto(),
     )
 
     fun paraEnviar(escena: EscenaEditable): EscenaAGuardar =
@@ -229,7 +246,7 @@ object ReglasDelCapitulo {
             EscenaEditable(
                 clave = claves(), id = escena.id, nombre = escena.nombre,
                 idLocalizacion = escena.idLocalizacion?.takeIf { it > 0 } ?: localizacionNeutra(libro),
-                descripcion = escena.descripcion.ifEmpty { descripcionPorDefecto() },
+                descripcion = escena.descripcion,
                 personajes = ordenarPersonajes(escena.personajes, nombreDe),
             )
         }
@@ -255,7 +272,7 @@ object ReglasDelCapitulo {
     }
 
     fun escenaNueva(libro: Libro, numero: Int, clave: Long) =
-        EscenaEditable(clave = clave, nombre = "Escena $numero", idLocalizacion = localizacionNeutra(libro), descripcion = descripcionPorDefecto())
+        EscenaEditable(clave = clave, nombre = "Escena $numero", idLocalizacion = localizacionNeutra(libro), descripcion = "")
 
     fun guardadoDe(capitulo: CapituloEditable): LoGuardado = LoGuardado(
         if (capitulo.esNuevo) null else paraEnviar(capitulo),

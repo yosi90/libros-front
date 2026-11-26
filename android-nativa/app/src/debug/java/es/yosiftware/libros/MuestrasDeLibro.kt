@@ -45,7 +45,7 @@ import org.json.JSONObject
  * las cifras se parecen, no son las mismas), `notas-vacias`, `notas-con-notas` (las dos de «El ritmo de la guerra» de
  * la captura y dos más, con el buscador), `nota-nueva` (el formulario con los avisos), `nota-borrar` (la confirmación),
  * `busqueda-vacia`, `busqueda-sin-resultados` («Vin» en «El imperio final», como la captura), `busqueda-con-resultados`
- * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 3 de «Siega», con sus escenas plegadas y la última desplegada), `capitulo-reparto` (con la hoja de reparto abierta), `capitulo-datos` (con los datos del capítulo desplegados), `capitulo-nuevo`, `minimizado` (la isla del lector), `elementos-lista` (los personajes de «Siega»), `elementos-ficha`
+ * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 3 de «Siega» como cuaderno, con sus escenas enteras), `capitulo-escena` (con la última abierta para escribir), `capitulo-reparto` (con la hoja de reparto abierta), `capitulo-lugar` (con la hoja del lugar), `capitulo-datos` (con los datos del capítulo desplegados), `capitulo-nuevo`, `minimizado` (la isla del lector), `elementos-lista` (los personajes de «Siega»), `elementos-ficha`
  * (la de Citra) y `elementos-alta` (una organización nueva).
  */
 class MuestrasDeLibro : ActividadDeLibros() {
@@ -70,10 +70,12 @@ class MuestrasDeLibro : ActividadDeLibros() {
             "estructura" -> vm.abrirEstructura(TipoDeGrupo.PARTE, 1)
         }
         when (vista) {
-            "capitulo", "capitulo-reparto", "capitulo-datos" -> {
+            "capitulo", "capitulo-escena", "capitulo-reparto", "capitulo-lugar", "capitulo-datos" -> {
                 vm.ir(VistaDelLibro.DeCapitulo(3))
                 capitulo.abrirMuestra(vm.libro!!, VistaDelLibro.DeCapitulo(3), cacheDir)
+                if (vista == "capitulo-escena") capitulo.abrirEscenaDeMuestra()
                 if (vista == "capitulo-reparto") capitulo.abrirRepartoDeMuestra()
+                if (vista == "capitulo-lugar") capitulo.capitulo?.escenas?.lastOrNull()?.let { capitulo.abrirLugar(it.clave) }
                 if (vista == "capitulo-datos") vm.alternarDatosDelCapitulo()
             }
             "capitulo-nuevo" -> vm.ir(VistaDelLibro.NuevoCapitulo)
