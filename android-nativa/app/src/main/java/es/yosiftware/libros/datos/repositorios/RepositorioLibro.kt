@@ -63,7 +63,15 @@ interface ServidorDeCapitulos {
  * una antología abierta como libro, el orden de sus personajes, y la escritura de capítulos, escenas, partes,
  * interludios y notas.
  */
-class RepositorioLibro(private val api: ClienteLibros) : ServidorDeCapitulos {
+/** Lo que las notas piden al servidor (para probarlas sin red). */
+interface ServidorDeNotas {
+    suspend fun notas(libroId: Int): List<Nota>
+    suspend fun crearNota(libroId: Int, nombre: String, descripcion: String): Nota
+    suspend fun cambiarNota(id: Int, nombre: String? = null, descripcion: String? = null): Nota
+    suspend fun borrarNota(id: Int)
+}
+
+class RepositorioLibro(private val api: ClienteLibros) : ServidorDeCapitulos, ServidorDeNotas {
     suspend fun libro(id: Int): Libro = api.get("libros/$id").objeto(Libro::de)
 
     /** Una sección de antología abierta como libro, con su antología y sus páginas. */
@@ -113,16 +121,16 @@ class RepositorioLibro(private val api: ClienteLibros) : ServidorDeCapitulos {
 
     // ---------- Notas ----------
 
-    suspend fun notas(libroId: Int): List<Nota> = api.get("notas/libro/$libroId").lista(Nota::de)
+    override suspend fun notas(libroId: Int): List<Nota> = api.get("notas/libro/$libroId").lista(Nota::de)
 
-    suspend fun crearNota(libroId: Int, nombre: String, descripcion: String): Nota =
+    override suspend fun crearNota(libroId: Int, nombre: String, descripcion: String): Nota =
         api.post("notas", json("Nombre" to nombre, "Descripcion" to descripcion, "LibroId" to libroId)).objeto(Nota::de)
 
     /** Cambia el nombre, el texto o los dos (lo que no sea `null`). La fecha y el libro no cambian. */
-    suspend fun cambiarNota(id: Int, nombre: String? = null, descripcion: String? = null): Nota =
+    override suspend fun cambiarNota(id: Int, nombre: String?, descripcion: String?): Nota =
         api.patch("notas", json("Id" to id, "Nombre" to nombre, "Descripcion" to descripcion)).objeto(Nota::de)
 
-    suspend fun borrarNota(id: Int) {
+    override suspend fun borrarNota(id: Int) {
         api.delete("notas/$id")
     }
 }

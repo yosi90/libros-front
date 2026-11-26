@@ -48,6 +48,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -159,6 +161,7 @@ fun PantallaCapitulo(libroVm: LibroViewModel, vista: VistaDelLibro, vm: Capitulo
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(Modifier.widthIn(max = 1060.dp).fillMaxWidth()) {
+                vm.recuperadoEl?.let { AvisoDeRecuperado(vm, it) }
                 CabeceraDelCapitulo(libroVm, vm, capitulo, cuaderno)
                 capitulo.escenas.forEachIndexed { i, escena ->
                     val abierta = escena.clave == vm.escenaAbierta
@@ -213,6 +216,37 @@ private fun estiloDeNumeroDeEscena(color: Color) =
  * La cabecera del capítulo: su número al margen, en el acento; su título en serif y sus páginas con el lápiz, que
  * despliega sus datos (solos en un capítulo nuevo o con algún dato mal). El estado del guardado, a la derecha o debajo.
  */
+/**
+ * Lo que se escribió y no llegó a guardarse (la app se cerró), recuperado al abrir: cuándo, «Volver a lo guardado» (lo
+ * descarta) y la «×» (se queda y se envía). Seguir escribiendo también se queda con ello.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AvisoDeRecuperado(vm: CapituloViewModel, cuando: Long) {
+    val colores = LocalColores.current
+    val momento = remember(cuando) { java.time.Instant.ofEpochMilli(cuando).atZone(java.time.ZoneId.systemDefault()) }
+    val dia = remember(momento) { java.time.format.DateTimeFormatter.ofPattern("d MMM", java.util.Locale.forLanguageTag("es")).format(momento).trimEnd('.') }
+    val hora = remember(momento) { java.time.format.DateTimeFormatter.ofPattern("HH:mm").format(momento) }
+    val forma = RoundedCornerShape(8.dp)
+    Row(
+        Modifier.fillMaxWidth().padding(bottom = Espacios.e4).clip(forma).background(colores.lienzo).border(1.dp, colores.contorno, forma)
+            .padding(start = Espacios.e3, top = Espacios.e1, bottom = Espacios.e1)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(painterResource(Iconos.history), contentDescription = null, tint = colores.tintaSuave, modifier = Modifier.size(20.dp))
+        FlowRow(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+            Text(
+                "Recuperado lo que escribiste el $dia a las $hora y no llegó a guardarse.",
+                style = Textos.cuerpo.copy(fontSize = 14.sp, color = colores.tinta), modifier = Modifier.padding(vertical = Espacios.e2).padding(end = Espacios.e2),
+            )
+            BotonDeTexto("Volver a lo guardado", alPulsar = vm::volverALoGuardado)
+        }
+        BotonDeIconoPequeno(Iconos.close, "Cerrar el aviso", alPulsar = vm::quedarseConLoRecuperado)
+    }
+}
+
 @Composable
 private fun CabeceraDelCapitulo(libroVm: LibroViewModel, vm: CapituloViewModel, capitulo: CapituloEditable, cuaderno: Cuaderno) {
     val colores = LocalColores.current

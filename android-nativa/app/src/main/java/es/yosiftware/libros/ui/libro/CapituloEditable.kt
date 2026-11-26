@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.datos.enumerar
 import es.yosiftware.libros.datos.comparadorDeNombres
 import es.yosiftware.libros.datos.modelos.Capitulo
 import es.yosiftware.libros.datos.modelos.Libro
@@ -180,8 +181,7 @@ object ReglasDelCapitulo {
             "un personaje".takeIf { escena.personajes.isEmpty() },
         )
         if (falta.isEmpty()) return null
-        val lista = if (falta.size == 1) falta[0] else falta.dropLast(1).joinToString(", ") + " y " + falta.last()
-        return "Falta $lista."
+        return "Falta ${enumerar(falta)}."
     }
 
     fun esDescripcionPorDefecto(descripcion: String): Boolean = rtfATextoPlano(descripcion).trim() == DESCRIPCION_POR_DEFECTO

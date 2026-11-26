@@ -45,19 +45,18 @@ class NotasDelLibroTest {
     }
 
     @Test
-    fun losAvisosDelFormulario() {
+    fun loQueFaltaParaGuardarLaNota() {
         val vacio = EditorDeNota()
         assertFalse(vacio.valido)
-        assertNull(vacio.avisoDeNombre)
-        val tocado = vacio.copy(nombreTocado = true, descripcionTocada = true, nombre = "N", descripcion = "corta")
-        assertEquals("El título necesita al menos 2 caracteres.", tocado.avisoDeNombre)
-        assertEquals("La nota necesita al menos 15 caracteres.", tocado.avisoDeDescripcion)
-        val bueno = tocado.copy(nombre = "No", descripcion = "Quince letras..")
-        assertTrue(bueno.valido)
-        assertNull(bueno.avisoDeNombre)
-        val delServidor = bueno.copy(errorDelServidorEnNombre = "Ya tienes una nota con ese título.")
+        assertTrue(vacio.vacio)
+        val corta = vacio.copy(nombre = "N", descripcion = "corta")
+        assertEquals("Sin guardar: falta el título (2 caracteres) y el texto (15 caracteres)", corta.sinGuardar)
+        val buena = corta.copy(nombre = "No", descripcion = "Quince letras..")
+        assertTrue(buena.valido)
+        val delServidor = buena.copy(errorDelServidorEnNombre = "Ya tienes una nota con ese título.")
         assertFalse(delServidor.valido)
-        assertEquals("Ya tienes una nota con ese título.", delServidor.avisoDeNombre)
-        assertEquals("Editar nota", bueno.copy(id = 3).titulo)
+        assertEquals("Sin guardar: Ya tienes una nota con ese título.", delServidor.sinGuardar)
+        assertEquals(buena, NotasDelLibro.deJson(NotasDelLibro.aJson(buena)))
+        assertEquals("nota-9-nueva", NotasDelLibro.claveDelBorrador(9, null))
     }
 }

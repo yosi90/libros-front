@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
+import es.yosiftware.libros.datos.enumerar
 import es.yosiftware.libros.datos.BorradoresLocales
 import es.yosiftware.libros.datos.ErrorDeLibros
 import es.yosiftware.libros.datos.cuenta.AmbitoDeCuenta
@@ -24,6 +25,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
@@ -55,6 +57,8 @@ class ElementosViewModel(
     private val esperaDelBorrador: Long = 400,
     private val esperaDelAlta: Long = 30_000,
     private val esperaDelAutoguardado: Long = 1_200,
+    /** Si hay red: al volver, se envía la ficha que se quedó sin conexión. */
+    private val enLinea: StateFlow<Boolean>? = null,
 ) : ViewModelDeCuenta(ambito) {
     var tipo by mutableStateOf(Elemento.PERSONAJES)
         private set
@@ -118,6 +122,10 @@ class ElementosViewModel(
     private var otroDespues = false
     private var siguienteClave = System.nanoTime()
     private fun clave() = ++siguienteClave
+
+    init {
+        enLinea?.let { red -> viewModelScope.launch { red.collect { conRed -> if (conRed && estado == EstadoDelGuardado.SIN_CONEXION) autoguardar() } } }
+    }
 
     // --- Abrir. ---
 
@@ -518,7 +526,7 @@ class ElementosViewModel(
 
     private fun avisarDelAlta(fallos: List<String>) {
         if (fallos.isEmpty()) avisos.exito("Personaje creado")
-        else avisos.error("Personaje creado, pero no se ha podido guardar ${unir(fallos)}. Revísalo en su ficha.")
+        else avisos.error("Personaje creado, pero no se ha podido guardar ${enumerar(fallos, "ni")}. Revísalo en su ficha.")
     }
 
     // --- El alta rápida desde una escena. ---
@@ -571,8 +579,6 @@ class ElementosViewModel(
         }
     }
 
-    /** «A, B ni C». */
-    private fun unir(partes: List<String>): String = if (partes.size == 1) partes[0] else partes.dropLast(1).joinToString(", ") + " ni " + partes.last()
 
     /** Tras crear: otra hoja vacía («Crear y otro») o la ficha del nuevo; sin el libro recargado, la lista. */
     private fun terminarAlta(actual: FichaEditable, id: Int) {
@@ -608,13 +614,13 @@ class ElementosViewModel(
             otraVez = false
             marcar(error)
             escribirBorrador()
-            estado = EstadoDelGuardado.ERROR
+            estado = if (error.sinConexion) EstadoDelGuardado.SIN_CONEXION else EstadoDelGuardado.ERROR
             val luego = despuesDeGuardar
             despuesDeGuardar = null
             if (luego != null) {
                 avisos.deError(error, "No se pudo guardar la ficha: los cambios se quedan en este dispositivo")
                 luego()
-            } else if (!avisadoDelError) {
+            } else if (!avisadoDelError && !error.sinConexion) {
                 avisadoDelError = true
                 avisos.deError(error, "No se pudo guardar la ficha")
             }

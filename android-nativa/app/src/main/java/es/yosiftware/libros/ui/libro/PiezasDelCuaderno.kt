@@ -81,6 +81,7 @@ internal fun IndicadorDeGuardado(estado: EstadoDelGuardado, texto: String = esta
         EstadoDelGuardado.GUARDADO -> Iconos.cloudDone to colores.tintaSuave
         EstadoDelGuardado.ERROR -> Iconos.errorOutline to colores.error
         EstadoDelGuardado.INCOMPLETO -> Iconos.warning to colores.atencion
+        EstadoDelGuardado.SIN_CONEXION -> Iconos.cloudOff to colores.tintaSuave
     }
     Row(
         Modifier.heightIn(min = 28.dp).semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },

@@ -43,7 +43,7 @@ import org.json.JSONObject
  * `indice-partes-interludios` («El camino de los reyes», en marcha, con partes e interludios), `estructura` (el
  * editor de una parte), `resumen-con-datos` (un libro como «Siega» de la captura, con capítulos, escenas y personajes;
  * las cifras se parecen, no son las mismas), `notas-vacias`, `notas-con-notas` (las dos de «El ritmo de la guerra» de
- * la captura y dos más, con el buscador), `nota-nueva` (el formulario con los avisos), `nota-borrar` (la confirmación),
+ * la captura y dos más, con el buscador), `nota-nueva` (el compositor con una nota a medias y su aviso), `nota-editada` (una nota en el compositor, guardada), `nota-borrar` (la confirmación),
  * `busqueda-vacia`, `busqueda-sin-resultados` («Vin» en «El imperio final», como la captura), `busqueda-con-resultados`
  * («citra» en «Siega») y `busqueda-aproximada` («citrra»), `capitulo` (el capítulo 3 de «Siega» como cuaderno, con sus escenas enteras), `capitulo-escena` (con la última abierta para escribir), `capitulo-reparto` (con la hoja de reparto abierta), `capitulo-lugar` (con la hoja del lugar), `capitulo-datos` (con los datos del capítulo desplegados), `capitulo-nuevo`, `minimizado` (la isla del lector), `elementos-lista` (los personajes de «Siega»), `elementos-ficha`
  * (la de Citra) y `elementos-alta` (una organización nueva).
@@ -98,7 +98,8 @@ class MuestrasDeLibro : ActividadDeLibros() {
             vm.ir(VistaDelLibro.Notas)
             notas.mostrarMuestra(imperio.id, if (vista == "notas-vacias") emptyList() else ritmo)
             when (vista) {
-                "nota-nueva" -> { notas.crear(); notas.guardar() }
+                "nota-nueva" -> notas.escribirMuestra(es.yosiftware.libros.ui.libro.EditorDeNota(nombre = "K", descripcion = "Lift curó a"))
+                "nota-editada" -> notas.escribirMuestra(es.yosiftware.libros.ui.libro.EditorDeNota(ritmo[0].id, ritmo[0].nombre, ritmo[0].descripcion))
                 "nota-borrar" -> notas.pedirBorrar(ritmo[1])
             }
         }

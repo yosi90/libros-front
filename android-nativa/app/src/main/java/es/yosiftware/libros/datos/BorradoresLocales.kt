@@ -26,6 +26,9 @@ object BorradoresLocales {
 
     fun leer(carpeta: File, nombre: String): String? = File(carpeta, "$nombre.json").takeIf { it.exists() }?.readText()
 
+    /** Cuándo se escribió el borrador (en milisegundos), o `null` si no lo hay: para decir de cuándo es lo recuperado. */
+    fun cuando(carpeta: File, nombre: String): Long? = File(carpeta, "$nombre.json").takeIf { it.exists() }?.lastModified()?.takeIf { it > 0 }
+
     fun borrar(carpeta: File, nombre: String) {
         File(carpeta, "$nombre.json").delete()
         File(carpeta, "$nombre.tmp").delete()

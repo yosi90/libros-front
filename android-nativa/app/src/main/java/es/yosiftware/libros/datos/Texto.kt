@@ -19,3 +19,7 @@ val comparadorDeNombres: Comparator<String> = Collator.getInstance(Locale.forLan
 
 /** Un número con un decimal y punto («4.0», «12.5»): las medias y los días de la ficha y de las estadísticas. */
 fun conUnDecimal(valor: Double): String = String.format(Locale.ROOT, "%.1f", valor)
+
+/** «a», «a y b», «a, b y c» (con [ultimo] en lugar de «y», «ni» por ejemplo): para decir lo que falta. */
+fun enumerar(partes: List<String>, ultimo: String = "y"): String =
+    if (partes.size <= 1) partes.firstOrNull().orEmpty() else partes.dropLast(1).joinToString(", ") + " $ultimo " + partes.last()

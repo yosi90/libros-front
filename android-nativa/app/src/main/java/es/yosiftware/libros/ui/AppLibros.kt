@@ -318,7 +318,7 @@ fun AppLibros(app: LibrosApp) {
     val libro: LibroViewModel = viewModel {
         LibroViewModel(app.datos.ambito, app.datos.libro, app.datos.coleccion, avisos, AlmacenDelMovil(app))
     }
-    val notas: NotasViewModel = viewModel { NotasViewModel(app.datos.ambito, app.datos.libro, avisos) }
+    val notas: NotasViewModel = viewModel { NotasViewModel(app.datos.ambito, app.datos.libro, avisos, File(app.filesDir, "borradores"), enLinea = app.datos.red.enLinea) }
     val busqueda: BusquedaViewModel = viewModel { BusquedaViewModel(app.datos.ambito) }
     // Un ViewModel por capítulo y cuenta: el capítulo se queda con lo suyo aunque se vaya a otra vista. Cada visita a
     // «Nuevo capítulo» empieza uno nuevo.
@@ -329,13 +329,13 @@ fun AppLibros(app: LibrosApp) {
             is VistaDelLibro.NuevoCapituloDeInterludio -> "nuevo-${vista.interludioId}-${libro.visitaDeNuevo}"
             else -> "nuevo-${libro.visitaDeNuevo}"
         }
-        viewModel(key = "$cuenta-${libro.abierto?.id}-$sitio") { CapituloViewModel(app.datos.ambito, app.datos.libro, avisos, File(app.filesDir, "borradores"), crearLugarEnElServidor = { id, nombre -> app.datos.entidades.crearLocalizacion(id, nombre, emptyList()) }) }
+        viewModel(key = "$cuenta-${libro.abierto?.id}-$sitio") { CapituloViewModel(app.datos.ambito, app.datos.libro, avisos, File(app.filesDir, "borradores"), crearLugarEnElServidor = { id, nombre -> app.datos.entidades.crearLocalizacion(id, nombre, emptyList()) }, enLinea = app.datos.red.enLinea) }
     }
     // Un ViewModel por tipo de elemento, libro y cuenta: la ficha a medias se queda al ir a otra vista.
     val elementosPara: @Composable (Elemento) -> ElementosViewModel = { tipo ->
         val cuenta = app.datos.ambito.clave("elementos") ?: "sin-cuenta"
         viewModel(key = "$cuenta-${libro.abierto?.id}-${tipo.name}") {
-            ElementosViewModel(app.datos.ambito, app.datos.entidades, avisos, File(app.filesDir, "borradores"), cargarLibro = { id -> app.datos.libro.libro(id) })
+            ElementosViewModel(app.datos.ambito, app.datos.entidades, avisos, File(app.filesDir, "borradores"), cargarLibro = { id -> app.datos.libro.libro(id) }, enLinea = app.datos.red.enLinea)
         }
     }
     val abrirLibro: (Obra) -> Unit = libro::abrir

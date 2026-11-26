@@ -62,10 +62,12 @@ class CapituloViewModelTest {
     private class ServidorFalso : ServidorDeCapitulos {
         val llamadas = mutableListOf<String>()
         var fallar = false
+        var sinRed = false
         private var siguienteId = 100
 
         private fun <T> anotar(llamada: String, respuesta: () -> T): T {
             if (fallar) throw IOException("Sin conexión")
+            if (sinRed) throw es.yosiftware.libros.datos.ErrorDeLibros.sinConexion()
             llamadas += llamada
             return respuesta()
         }
@@ -100,11 +102,11 @@ class CapituloViewModelTest {
     }
 
     /** Un ViewModel en su tienda, como en la app: al «matar la app» se limpia la tienda. */
-    private fun Montaje.abrir(tienda: ViewModelStore = this.tienda, vista: VistaDelLibro = VistaDelLibro.DeCapitulo(1)): CapituloViewModel {
+    private fun Montaje.abrir(tienda: ViewModelStore = this.tienda, vista: VistaDelLibro = VistaDelLibro.DeCapitulo(1), enLinea: kotlinx.coroutines.flow.StateFlow<Boolean>? = null): CapituloViewModel {
         val fabrica = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                CapituloViewModel(ambito, servidor, Avisador.Mudo, base, crearLugarEnElServidor = { id, nombre -> servidor.crearLugar(id, nombre) }) as T
+                CapituloViewModel(ambito, servidor, Avisador.Mudo, base, crearLugarEnElServidor = { id, nombre -> servidor.crearLugar(id, nombre) }, enLinea = enLinea) as T
         }
         return ViewModelProvider(tienda, fabrica)[CapituloViewModel::class.java].also { it.abrir(libro, vista) }
     }
@@ -129,7 +131,7 @@ class CapituloViewModelTest {
     }
 
     @Test
-    fun siLaAppSeCierraAntesDeEnviarLoEscritoVuelveYSeEnvia() = runTest {
+    fun siLaAppSeCierraLoEscritoVuelveConSuAvisoYSeEnviaAlQuedarseConEllo() = runTest {
         val m = montar()
         val vm = m.abrir()
         vm.cambiarEscena(vm.escena().clave) { it.copy(nombre = "Lo que casi se pierde") }
@@ -138,11 +140,56 @@ class CapituloViewModelTest {
         m.tienda.clear()
         advanceTimeBy(5000)
         assertTrue(m.servidor.llamadas.isEmpty())
-        // Al volver a abrirla, otro ViewModel recupera el borrador y lo envía.
+        // Al volver a abrirla, otro ViewModel recupera el borrador y lo dice en la página, con su hora; aún no lo envía.
         val otro = m.abrir(ViewModelStore())
         assertEquals("Lo que casi se pierde", otro.escena().nombre)
+        assertTrue(otro.recuperadoEl != null)
+        otro.guardarAhora()
+        runCurrent()
+        assertTrue(m.servidor.llamadas.isEmpty())
+        // Cerrar el aviso es quedarse con ello: se envía y el borrador se va.
+        otro.quedarseConLoRecuperado()
         runCurrent()
         assertEquals(listOf("cambiarEscena 7 Lo que casi se pierde"), m.servidor.llamadas)
+        assertEquals(null, m.borrador())
+        assertEquals(null, otro.recuperadoEl)
+    }
+
+    @Test
+    fun volverALoGuardadoDescartaLoRecuperado() = runTest {
+        val m = montar()
+        val vm = m.abrir()
+        vm.cambiarEscena(vm.escena().clave) { it.copy(nombre = "Mejor no") }
+        advanceTimeBy(500)
+        m.tienda.clear()
+        val otro = m.abrir(ViewModelStore())
+        assertEquals("Mejor no", otro.escena().nombre)
+        otro.volverALoGuardado()
+        assertEquals("La carta", otro.escena().nombre)
+        assertEquals(null, otro.recuperadoEl)
+        assertEquals(null, m.borrador())
+        advanceTimeBy(5000)
+        runCurrent()
+        assertTrue(m.servidor.llamadas.isEmpty())
+    }
+
+    @Test
+    fun sinConexionSeQuedaEnElMovilYSeEnviaAlVolverLaRed() = runTest {
+        val m = montar()
+        val red = kotlinx.coroutines.flow.MutableStateFlow(true)
+        val vm = m.abrir(enLinea = red)
+        m.servidor.sinRed = true
+        red.value = false
+        vm.cambiarEscena(vm.escena().clave) { it.copy(nombre = "En el metro") }
+        advanceTimeBy(2000)
+        runCurrent()
+        assertEquals(EstadoDelGuardado.SIN_CONEXION, vm.estado)
+        assertTrue(m.borrador()!!.readText().contains("En el metro"))
+        m.servidor.sinRed = false
+        red.value = true
+        runCurrent()
+        assertEquals(listOf("cambiarEscena 7 En el metro"), m.servidor.llamadas)
+        assertEquals(EstadoDelGuardado.GUARDADO, vm.estado)
         assertEquals(null, m.borrador())
     }
 

@@ -22,6 +22,7 @@ import es.yosiftware.libros.datos.repositorios.ServidorDeCapitulos
 import es.yosiftware.libros.ui.componentes.Avisador
 import java.io.File
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -32,6 +33,8 @@ enum class EstadoDelGuardado(val texto: String) {
     GUARDADO("Guardado"),
     ERROR("Error al guardar"),
     INCOMPLETO("Cambios incompletos"),
+    /** El envío no llegó por falta de red: lo escrito sigue en el borrador y se envía al volver la conexión. */
+    SIN_CONEXION("Sin conexión · guardado en el dispositivo"),
 }
 
 /**
@@ -57,6 +60,8 @@ class CapituloViewModel(
     private val esperaDelGuardado: Long = 1800,
     /** Crear un lugar desde la escena: solo con el nombre (`Entradas: []`, posible desde la API `768b06a`). */
     private val crearLugarEnElServidor: suspend (libroId: Int, nombre: String) -> Localizacion = { _, _ -> error("Sin servidor de localizaciones") },
+    /** Si hay red ([es.yosiftware.libros.datos.red.EstadoDeRed.enLinea]): al volver, se envía lo que se quedó sin conexión. */
+    private val enLinea: StateFlow<Boolean>? = null,
 ) : ViewModelDeCuenta(ambito) {
     var capitulo by mutableStateOf<CapituloEditable?>(null)
         private set
@@ -86,8 +91,17 @@ class CapituloViewModel(
     /** La escena cuya hoja de reparto está abierta, o `null`. */
     var repartoDe by mutableStateOf<Long?>(null)
         private set
+    /**
+     * Cuándo se escribió lo recuperado al abrir (lo que no llegó a guardarse porque la app se cerró), mientras el aviso
+     * de la página lo dice; `null`, sin aviso. Hasta que se sigue escribiendo o se cierra el aviso, no se envía: así
+     * «Volver a lo guardado» ([volverALoGuardado]) aún puede descartarlo.
+     */
+    var recuperadoEl by mutableStateOf<Long?>(null)
+        private set
 
     private var guardado = LoGuardado(null, emptyMap())
+    /** El capítulo como lo tiene el servidor al abrirlo, para «Volver a lo guardado». */
+    private var alAbrir: CapituloEditable? = null
     private val escenasDelServidor = mutableMapOf<Int, Escena>()
     /** La carpeta de la cuenta con la que se abrió: sus borradores son suyos aunque luego cambie. */
     private var carpeta: File? = null
@@ -102,6 +116,10 @@ class CapituloViewModel(
     private var abandonado = false
 
     private fun nuevaClave(): Long = ++siguienteClave
+
+    init {
+        enLinea?.let { red -> viewModelScope.launch { red.collect { conRed -> if (conRed && estado == EstadoDelGuardado.SIN_CONEXION) enviar() } } }
+    }
 
     /** Abre el capítulo de [vista] (o uno nuevo) y recupera lo que hubiera quedado sin enviar. */
     fun abrir(libro: Libro, vista: VistaDelLibro) {
@@ -123,8 +141,29 @@ class CapituloViewModel(
         }
         guardado = ReglasDelCapitulo.guardadoDe(abierto)
         capitulo = abierto
+        alAbrir = abierto
         recuperar(abierto)
         escenaAbierta = escenaInicial()
+    }
+
+    /** «Volver a lo guardado»: se descarta lo recuperado y el capítulo vuelve a lo que tiene el servidor. */
+    fun volverALoGuardado() {
+        val servidor = alAbrir ?: return
+        autoguardado?.cancel()
+        borrador?.cancel()
+        borradorPendiente = false
+        carpeta?.let { c -> runCatching { BorradoresLocales.borrar(c, servidor.claveDelBorrador) } }
+        claveEscrita = null
+        recuperadoEl = null
+        capitulo = servidor
+        estado = EstadoDelGuardado.NADA
+        escenaAbierta = escenaInicial()
+    }
+
+    /** Cerrar el aviso de lo recuperado: se queda y se envía. */
+    fun quedarseConLoRecuperado() {
+        recuperadoEl = null
+        if (sePuedeEnviar) enviar()
     }
 
     /** `initialOpenSceneIndex`: la última, si le falta algo. */
@@ -291,10 +330,13 @@ class CapituloViewModel(
         borrador?.cancel()
         autoguardado?.cancel()
         escribirBorrador()
-        if (sePuedeEnviar) enviar()
+        // Lo recuperado sin decidir espera en el borrador: se envía al seguir escribiendo o al cerrar el aviso.
+        if (sePuedeEnviar && recuperadoEl == null) enviar()
     }
 
     private fun programar() {
+        // Seguir escribiendo es quedarse con lo recuperado.
+        recuperadoEl = null
         borradorPendiente = true
         borrador?.cancel()
         borrador = viewModelScope.launch {
@@ -398,7 +440,7 @@ class CapituloViewModel(
         capitulo = actual
         if (resultado.capitulo != null || resultado.escenas.isNotEmpty() || resultado.borradas.isNotEmpty()) alGuardar(paraElLibro(actual, resultado.capitulo))
         if (resultado.error != null) {
-            estado = EstadoDelGuardado.ERROR
+            estado = if (resultado.error.sinConexion) EstadoDelGuardado.SIN_CONEXION else EstadoDelGuardado.ERROR
             escribirBorrador()
             return
         }
@@ -476,8 +518,8 @@ class CapituloViewModel(
         siguienteClave = maxOf(siguienteClave, (borrador.escenas.maxOfOrNull { it.clave } ?: 0) + 1)
         capitulo = borrador.copy(tocado = true)
         claveEscrita = borrador.claveDelBorrador
-        avisos.avisarDelSistema("Hemos recuperado los cambios de este capítulo que no llegaron a guardarse.", "Cambios recuperados", "capitulo:recuperado:${borrador.claveDelBorrador}")
-        if (sePuedeEnviar) enviar()
+        // El aviso va en la página, con la hora y «Volver a lo guardado» («Cuaderno», F4 de la web).
+        recuperadoEl = runCatching { BorradoresLocales.cuando(carpeta, abierto.claveDelBorrador) }.getOrNull() ?: System.currentTimeMillis()
     }
 
     private fun buscar(libro: Libro, id: Int, deInterludio: Boolean): Pair<Capitulo, Int?>? =

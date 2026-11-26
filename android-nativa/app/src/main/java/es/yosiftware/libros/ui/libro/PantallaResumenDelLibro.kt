@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import es.yosiftware.libros.ui.adaptable.ClaseDeVentana
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -82,24 +86,53 @@ fun PantallaResumenDelLibro(vm: LibroViewModel) {
         return
     }
     val resumen = remember(libro) { EstadisticasDelLibro.de(libro) }
-    val ventana = LocalVentana.current
-    val ancha = ventana.anchoDp >= 600
-    val muyAncha = ventana.anchoDp >= 900
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        Column(
-            Modifier.widthIn(max = 920.dp).fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(start = if (ancha) Espacios.e6 else Espacios.e3, end = if (ancha) Espacios.e6 else Espacios.e3, top = if (ancha) Espacios.e5 else Espacios.e3, bottom = Espacios.e8),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
+    val clase = LocalVentana.current.clase
+    val compacta = clase == ClaseDeVentana.Compacta
+    // `.summary`: 232 dp de lado y 48 de hueco en lo ancho; 168 y 28 en el plegable; en el móvil, una columna.
+    val (lado, hueco, margen) = when (clase) {
+        ClaseDeVentana.Expandida -> Triple(232.dp, 48.dp, 32.dp)
+        ClaseDeVentana.Media -> Triple(168.dp, 28.dp, 28.dp)
+        ClaseDeVentana.Compacta -> Triple(92.dp, 20.dp, Espacios.e4)
+    }
+    val obra = vm.abierto
+    val portada: @Composable () -> Unit = { PortadaGrande(obra?.nombre ?: libro.obra.nombre, obra?.portada, lado) }
+    val wiki: @Composable () -> Unit = {
+        vm.wiki?.let { direccion ->
+            val uri = androidx.compose.ui.platform.LocalUriHandler.current
+            BotonDeTexto("Wiki", Iconos.openInNew) { runCatching { uri.openUri(direccion) } }
+        }
+    }
+    Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
+        val dentro = Modifier.widthIn(max = 1040.dp).fillMaxWidth().padding(horizontal = margen, vertical = if (compacta) Espacios.e4 else margen).padding(bottom = Espacios.e6)
+        if (compacta) {
+            Column(dentro, verticalArrangement = Arrangement.spacedBy(hueco)) {
+                Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Espacios.e4)) {
+                    portada()
+                    wiki()
+                }
+                Cifras(vm, libro, resumen)
+            }
+        } else {
+            Row(dentro, horizontalArrangement = Arrangement.spacedBy(hueco)) {
+                Column(Modifier.width(lado).semantics { contentDescription = "El libro" }, verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
+                    portada()
+                    wiki()
+                }
+                Column(Modifier.weight(1f)) { Cifras(vm, libro, resumen) }
+            }
+        }
+    }
+}
+
+/** Las cifras: el título divertido, el panel y «Ver gráficos», con el ancho de su columna. */
+@Composable
+private fun Cifras(vm: LibroViewModel, libro: Libro, resumen: EstadisticasDelLibro) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val ancha = maxWidth >= 600.dp
+        val muyAncha = maxWidth >= 900.dp
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // Tu título divertido (IA2), solo de los libros: la portada viva, arriba del todo.
             if (!libro.obra.esAntologia) TituloDelLibro(libro.obra.id, SitioDelTitulo.CABECERA)
-            // La wiki del libro, aquí y no en la barra («Cuaderno», F5).
-            vm.wiki?.let { wiki ->
-                val uri = androidx.compose.ui.platform.LocalUriHandler.current
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Boton("Wiki", { runCatching { uri.openUri(wiki) } }, variante = VarianteDeBoton.Contorno, icono = Iconos.openInNew)
-                }
-            }
             Panel(vm, libro, resumen)
             MasGraficos(libro, resumen, ancha, muyAncha)
         }

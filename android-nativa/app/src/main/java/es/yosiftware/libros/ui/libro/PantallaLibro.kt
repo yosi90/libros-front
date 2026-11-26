@@ -18,6 +18,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -283,15 +284,28 @@ private fun BarraDelDestino(vm: LibroViewModel) {
 private fun SinEmpezar(vm: LibroViewModel, nombre: String, portada: String?) {
     val colores = LocalColores.current
     Column(Modifier.fillMaxSize().background(colores.superficie).padding(Espacios.e6), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Espacios.e5, Alignment.CenterVertically)) {
-        val forma = RoundedCornerShape(6.dp)
-        if (!portada.isNullOrEmpty()) {
-            Portada(portada, null, Modifier.width(168.dp).height(252.dp).clip(forma).border(1.dp, colores.contorno, forma))
-        } else {
-            Box(Modifier.width(168.dp).height(252.dp).clip(forma).background(colores.contenedorPrimario).padding(Espacios.e4)) {
-                Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.lectura, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = colores.tinta))
-            }
-        }
+        PortadaGrande(nombre, portada, 168.dp)
         Boton("Poner en marcha", vm::ponerEnMarcha, habilitado = !vm.poniendoEnMarcha)
+    }
+}
+
+/**
+ * La portada del libro en grande (2:3, con su borde y radio de 6 dp); sin imagen, el título en serif sobre el contenedor
+ * del primario. Para «Sin empezar» y el resumen.
+ */
+@Composable
+internal fun PortadaGrande(nombre: String, portada: String?, ancho: androidx.compose.ui.unit.Dp, modifier: Modifier = Modifier) {
+    val colores = LocalColores.current
+    val forma = RoundedCornerShape(6.dp)
+    val marco = modifier.width(ancho).aspectRatio(2f / 3f).clip(forma)
+    if (!portada.isNullOrEmpty()) {
+        Portada(portada, null, marco.border(1.dp, colores.contorno, forma))
+    } else {
+        // El título, a escala de la portada: 18 sp a 168 dp de ancho.
+        val tamano = (ancho.value * 18f / 168f).coerceIn(11f, 21f)
+        Box(marco.background(colores.contenedorPrimario).padding(horizontal = (ancho * 0.08f), vertical = (ancho * 0.1f))) {
+            Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.lectura, fontSize = tamano.sp, fontWeight = FontWeight.SemiBold, lineHeight = 1.15.em, color = colores.tinta))
+        }
     }
 }
 
