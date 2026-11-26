@@ -27,8 +27,9 @@ El lector del feed aplica los plazos de conservación al arrancar y cada día a 
 | Reportes de reseñas y denuncias de clubes resueltos, con sus motivos, su decisión y la copia del club denunciado; el motivo en la actividad de quien reportó; su resolución en la auditoría del plugin | 12 meses después de resolverse (los resueltos sin fecha de resolución, 12 meses después de crearse). Los pendientes no se borran |
 | `club_auditoria` y `comunidad_auditoria` | 12 meses |
 | `ia_llamadas` (las peticiones y propuestas que las apuntaban se quedan sin la llamada) | 400 días. Nunca dentro del mes en curso: los límites diarios y el gasto del mes salen de esas filas |
-| Publicaciones, comentarios y debates marcados como borrados | Al momento (la API ya los borra al borrarlos) |
+| Publicaciones, comentarios y debates que siguieran marcados como borrados | En cada pasada (la API ya los borra al momento) |
 | Clubes borrados, enteros | 30 días después de borrarse (hasta entonces se pueden restaurar) |
+| Los SQL de datos `1` a `10` de `Base de datos/@Producción/` (la última copia, fuera de Git) | Si tienen más de 7 días, se rehace la copia completa. Sin ellos no se puede, y queda un aviso en el registro |
 | ZIP de `.runtime/copias/` y snapshots de `Base de datos/@Producción/versiones_previas/` (de estas, solo las cinco más recientes) | 30 días. En QA no hay copias |
 
 **Las copias `COPY_ONLY` de antes de cada migración** (carpeta `Backup` de SQL Server) también se guardan 30 días, pero las borra una persona: la cuenta de servicio no llega a esa carpeta, y la comparten otras bases del servidor. Desde una PowerShell elevada:

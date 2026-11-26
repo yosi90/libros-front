@@ -17,7 +17,7 @@ La escritura de `1` a `10` es conjunta: una tabla o columna inexistente, un bloq
 
 ## Plazo
 
-Las copias se guardan 30 dias como mucho: los ZIP de `.runtime/copias/` (cualquier archivo de esa carpeta) y las snapshots de `versiones_previas/`. Se podan al terminar cada copia y en el trabajo diario del lector del feed (`utils/data_retention.py`, `docs/backend/api/OPERACION.md`). Los SQL canonicos de nivel superior no caducan: son la ultima fotografia y estan en Git.
+Las copias se guardan 30 dias como mucho: los ZIP de `.runtime/copias/` (cualquier archivo de esa carpeta) y las snapshots de `versiones_previas/`. Se podan al terminar cada copia y en el trabajo diario del lector del feed (`utils/data_retention.py`, `docs/backend/api/OPERACION.md`). Los SQL canonicos de nivel superior no caducan: son la ultima fotografia.
 
 ## ZIP
 

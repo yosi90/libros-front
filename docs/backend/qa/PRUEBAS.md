@@ -21,7 +21,7 @@ GitHub Actions reproduce los niveles de backend en `.github/workflows/quality.ym
 | Documentacion solamente | Enlaces/documentacion Python aplicable y `git diff --check` |
 | Logica Python aislada | Tests dirigidos del modulo y suite Python completa |
 | Ruta o contrato HTTP | Suite Python, OpenAPI lint y revision conjunta de OpenAPI, `api/ENDPOINTS.md` y `api/RUTAS_RETIRADAS.md` |
-| Firebase, Firestore o RTDB | Suite Python y emuladores Firebase |
+| Reglas de Firestore o RTDB (`docs/firebase/`, todo cerrado) | Suite Python; se despliegan a mano con `npx firebase-tools` |
 | Lector del feed o puntos únicos hacia la plataforma | Suite Python y `scripts/qa-plataforma-smoke.py` contra la plataforma de QA |
 | Esquema, reset, fixtures o perfiles QA | Suite Python, provision/reset repetido, integracion SQL/realtime y restauracion final a `baseline` |
 | Seguridad, autenticacion, permisos, despliegue, CI o cambio transversal | Todos los niveles de backend aplicables y workflow manual completo contra QA |

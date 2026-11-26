@@ -185,7 +185,7 @@
                 success: {type: boolean}
                 Titulo: {type: [string, 'null'], maxLength: 200, description: El título divertido de la persona; null si no tiene.}
                 Html: {type: [string, 'null'], description: 'La cabecera animada (fragmento HTML saneado: sin scripts, enlaces, imágenes ni manejadores). Se pinta en un marco aislado (iframe con sandbox vacío, o WebView sin JavaScript). Null sin cabecera.'}
-                Estilos: {type: [string, 'null'], description: 'El CSS de la cabecera, saneado: solo carga hojas de estilos y fuentes de fonts.googleapis.com, fonts.gstatic.com, cdnjs.cloudflare.com, unpkg.com y cdn.jsdelivr.net.'}
+                Estilos: {type: [string, 'null'], description: 'El CSS de la cabecera, saneado: no carga nada de fuera (sin @import y sin url() que no sea una fuente data:). Las tipografías las pone la web.'}
                 Generaciones:
                   type: object
                   properties:
@@ -224,7 +224,7 @@
                 success: {type: boolean}
                 Titulo: {type: [string, 'null'], maxLength: 200, description: El título divertido de la persona; null si no tiene.}
                 Html: {type: [string, 'null'], description: 'La cabecera animada (fragmento HTML saneado: sin scripts, enlaces, imágenes ni manejadores). Se pinta en un marco aislado (iframe con sandbox vacío, o WebView sin JavaScript). Null sin cabecera.'}
-                Estilos: {type: [string, 'null'], description: 'El CSS de la cabecera, saneado: solo carga hojas de estilos y fuentes de fonts.googleapis.com, fonts.gstatic.com, cdnjs.cloudflare.com, unpkg.com y cdn.jsdelivr.net.'}
+                Estilos: {type: [string, 'null'], description: 'El CSS de la cabecera, saneado: no carga nada de fuera (sin @import y sin url() que no sea una fuente data:). Las tipografías las pone la web.'}
                 Generaciones:
                   type: object
                   properties:
@@ -270,7 +270,7 @@
                 success: {type: boolean}
                 Titulo: {type: [string, 'null'], maxLength: 200, description: El título divertido de la persona; null si no tiene.}
                 Html: {type: [string, 'null'], description: 'La cabecera animada (fragmento HTML saneado: sin scripts, enlaces, imágenes ni manejadores). Se pinta en un marco aislado (iframe con sandbox vacío, o WebView sin JavaScript). Null sin cabecera.'}
-                Estilos: {type: [string, 'null'], description: 'El CSS de la cabecera, saneado: solo carga hojas de estilos y fuentes de fonts.googleapis.com, fonts.gstatic.com, cdnjs.cloudflare.com, unpkg.com y cdn.jsdelivr.net.'}
+                Estilos: {type: [string, 'null'], description: 'El CSS de la cabecera, saneado: no carga nada de fuera (sin @import y sin url() que no sea una fuente data:). Las tipografías las pone la web.'}
                 Generaciones:
                   type: object
                   properties:
