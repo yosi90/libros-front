@@ -76,13 +76,14 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 
 ## F3. Elementos
 
-- [ ] **Elementos agrupa los seis tipos, con lista y ficha a la vez.**
+- [x] **Elementos agrupa los seis tipos, con lista y ficha a la vez** (26/11/2026).
   - *Descripción:* el selector de tipo; las listas, en filas agrupadas en lugar de tarjetas; desde 600 px, lista y ficha a la vez; en el móvil, la lista y, al tocar, la ficha.
   - *Por qué:* decisiones 2 y 7 de la maqueta.
   - *Qué se espera:* ver y editar sin cambiar de pantalla en el plegable.
   - *Peligro si no:* ida y vuelta para cada ficha.
   - *Peligro del cambio:* las rutas `character/:crid` y compañía siguen valiendo, como enlaces directos.
-- [ ] **La ficha, sin «Guardar cambios».**
+  - *Cómo quedó:* la ficha se abre en la misma instancia que la lista (como ya hacía `?selected=`), sin cambiar la dirección; la apertura pendiente de la dirección se consume al abrirla, para que recargar el libro tras guardar no rehaga el formulario. «Aparece en» se calcula con las escenas del libro que ya se tienen.
+- [x] **La ficha, sin «Guardar cambios»** (26/11/2026).
   - *Descripción:*
     - todo se guarda en el sitio: los apodos, los estados, el sexo, las entradas y las relaciones;
     - el cambio de nombre pide elegir entre «se llama así desde este libro» (apodo contextual, `PATCH`) y «estaba mal escrito» (`PUT`);
@@ -91,7 +92,8 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
   - *Qué se espera:* editar sin perder nada.
   - *Peligro si no:* cambios perdidos al salir sin guardar.
   - *Peligro del cambio:* el cliente coordina varios endpoints. Cada uno guarda lo suyo y el indicador dice si queda algo pendiente.
-- [ ] **Las altas rápidas.**
+  - *Cómo quedó (solo Web):* el guardado usa la misma cadena que «Guardar cambios» (raíz, entradas, relaciones y el libro), sin cerrar la ficha. Tras guardar, las entradas y relaciones nuevas toman su id del servidor sin rehacer sus controles, así que no se crean dos veces ni se pierde lo que se escribe mientras tanto; si algo cambió durante el envío, se vuelve a guardar. El nombre se envía al salir de su campo, no mientras se escribe (un cambio narrativo a medias crearía apodos de más). La entrada por defecto no se envía nunca.
+- [x] **Las altas rápidas** (26/11/2026).
   - *Descripción:*
     - `<dialog>` con `showModal()` (hoja desde abajo en el móvil), sin `role="dialog"`, `aria-modal` ni `cdkTrapFocus` propios;
     - personaje: solo el nombre obliga, y el sexo, con tres opciones a la vista, empieza en «No sé»;
@@ -100,6 +102,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
   - *Qué se espera:* que crear cueste un nombre y un Intro.
   - *Peligro si no:* la hoja actual, con un `select` obligatorio.
   - *Peligro del cambio:* la guarda de `cancel` para Safari, que no tiene `closedby`.
+  - *Cómo quedó:* `ModalDialogDirective` abre el `<dialog>` con `showModal()`, impide que `cancel` lo cierre por su cuenta y avisa del toque en el fondo; Angular decide (Escape y la X cierran, el fondo solo sin nombre). El alta en Web manda `Entradas: []`.
 
 ## F4. Notas, Resumen y estados
 

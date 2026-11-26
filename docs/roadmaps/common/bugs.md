@@ -7,7 +7,7 @@
 - [ ] Registrar la tarea programada «Libros QA nocturna» con `scripts/qa/registrar-nocturna-servidor.ps1`. Depende del propietario: el modo automático del agente no puede registrarla. La campaña ya pasa entera desde el servidor (`scripts/qa/nocturna-servidor.ps1`, registros en `.runtime/qa-nocturna/`, aviso por Notificapp si falla). Desde GitHub no se puede: Cloudflare desafía al runner (`cf-mitigated=challenge`), y `qa-nightly.yml` solo corre `qa:ci` y `qa:browsers`.
 - [ ] Mejora tras el clon: reenviar una petición devuelta no deja corregir sus campos (el ISBN, por ejemplo), solo añadir un comentario.
 - [ ] Regenerar con Docker la referencia Linux de `chapter-editor` (Wood): cambió la alineación de los iconos de prefijo al compartir la paleta de campos.
-- [ ] El Sass de `narrative-entity-placeholder` pasa de su presupuesto: 60 kB de 40 (aviso del `ng build` de producción, 26/11/2026). Viene de antes de la F1; F3 rehace Elementos y es el momento de repartirlo.
+- [ ] El Sass de `narrative-entity-placeholder` pasa de su presupuesto: 60 kB de 40 (aviso del `ng build` de producción, 26/11/2026). Viene de antes de la F1. Son los estilos de Mobile y Wood de ese controlador: la F3 rehízo los de la Web en su propia vista y no lo cambió. Repartirlo por presentación, al tocar Mobile o Wood.
 
 ## Finalizado
 

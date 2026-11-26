@@ -9,10 +9,10 @@ Roadmap: `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`. Cada
 - [ ] Una escena se edita al pulsarla, solo una a la vez, y lo escrito sobrevive a cerrar la pestaña. (F2: lo primero, comprobado con capturas y unitarias; lo de cerrar la pestaña lo cubre `e2e/account-switch.spec.ts`, que recarga y recupera el borrador. Falta probarlo a mano en producción.)
 - [x] El reparto y el lugar se eligen junto al «+» o al lugar (hoja en el móvil); «Mismo reparto que la escena anterior» y crear un lugar funcionan (F2, 26/11/2026: capturas a 360, 840 y 1440 px con la API simulada, y unitarias).
 - [x] Sin panel de arrastrar personajes; el «+» y la @ siguen (F2).
-- [ ] Ni la ficha, ni el capítulo nuevo, ni las notas tienen botón de guardar; el indicador pasa por sus cinco estados.
-- [ ] El cambio de nombre de un personaje pregunta entre nombre nuevo y errata.
-- [ ] El alta rápida de personaje se completa con el nombre y Intro; Esc y el gesto de volver la cierran.
-- [ ] Elementos: lista y ficha a la vez desde 600 px.
+- [ ] Ni la ficha, ni el capítulo nuevo, ni las notas tienen botón de guardar; el indicador pasa por sus cinco estados. (La ficha y el capítulo, hechos en F2 y F3; faltan las notas y el indicador común, en F4.)
+- [x] El cambio de nombre de un personaje pregunta entre nombre nuevo y errata (F3, 26/11/2026: capturas y envíos con la API simulada).
+- [x] El alta rápida de personaje se completa con el nombre y Intro; Esc y el gesto de volver la cierran (F3: `e2e/web-character-creation.spec.ts` y unitarias).
+- [x] Elementos: lista y ficha a la vez desde 600 px (F3: capturas a 360, 840 y 1440 px).
 - [ ] Estados: libro sin empezar, lista vacía, cargando, error y recuperado.
 - [ ] axe sin infracciones críticas ni graves en las vistas nuevas, en los dos temas.
 - [ ] Sin peticiones a orígenes de fuentes externos.

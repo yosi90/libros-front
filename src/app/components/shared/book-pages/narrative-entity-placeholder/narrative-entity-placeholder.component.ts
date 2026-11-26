@@ -188,6 +188,13 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     private readonly edited$ = new Subject<void>();
     private readonly stopPendingWork: () => void;
 
+    /** Web («Cuaderno», F3): cómo va el guardado de la ficha, que se guarda sola. */
+    fichaStatus: 'idle' | 'saving' | 'saved' | 'error' | 'invalid' = 'idle';
+    /** Mientras se escribe el nombre (y se elige qué ha cambiado en él), no se envía: se guarda al salir del campo. */
+    nameBeingEdited = false;
+    private fichaSaving = false;
+    private fichaSaveAgain = false;
+
     editForm = this.fBuild.group({
         name: this.editName,
         locationId: this.editLocationId,
@@ -241,6 +248,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         this.edited$
             .pipe(debounceTime(400), takeUntil(this.destroy$))
             .subscribe(() => this.keepEntityDraft());
+        this.edited$
+            .pipe(debounceTime(1200), takeUntil(this.destroy$))
+            .subscribe(() => this.runFichaAutosave());
         this.route.url
             .pipe(takeUntil(this.destroy$))
             .subscribe(segments => {
@@ -539,6 +549,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     openItem(item: any): void {
+        this.fichaStatus = 'idle';
+        this.nameBeingEdited = false;
         try {
             this.selectedItem = item;
             this.formMode = 'update';
@@ -1208,6 +1220,183 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         });
     }
 
+    /**
+     * Web: la ficha se guarda sola, 1,2 s después del último cambio (sin «Guardar cambios»). No envía mientras se escribe
+     * el nombre ni si algo no es válido; lo que no se envía se queda en el borrador local. Tras guardar, las entradas y
+     * relaciones nuevas reciben su id del servidor sin rehacer el formulario, así que lo que se escribe mientras tanto no
+     * se pierde ni se crea dos veces.
+     */
+    private get savesInPlace(): boolean {
+        return this.isWebView;
+    }
+
+    /** La ficha ha cambiado por algo que no es un `input` (un apodo, una relación, un selector): que se guarde. */
+    notifyFichaEdited(): void {
+        this.edited$.next();
+    }
+
+    /** El nombre ya no se está escribiendo: si ha cambiado, se guarda ahora (con lo elegido sobre qué ha cambiado). */
+    commitName(): void {
+        this.nameBeingEdited = false;
+        this.runFichaAutosave();
+    }
+
+    isNameChanged(): boolean {
+        return this.isUpdateMode() && (this.name.value ?? '') !== (this.selectedItem?.Nombre ?? '');
+    }
+
+    get fichaStatusLabel(): string {
+        switch (this.fichaStatus) {
+            case 'saving': return 'Guardando…';
+            case 'saved': return 'Guardado';
+            case 'error': return 'Error al guardar';
+            case 'invalid': return this.areCreateEntriesValid() ? 'Sin guardar: revisa los datos' : 'Sin guardar: falta texto en una entrada';
+            default: return '';
+        }
+    }
+
+    private runFichaAutosave(): void {
+        if (!this.savesInPlace || this.abandoned || !this.isUpdateMode() || !this.selectedItem || !this.hasPendingUpdateChanges())
+            return;
+        if (this.nameBeingEdited && this.isNameChanged())
+            return;
+        if (!this.canSubmit()) {
+            this.fichaStatus = 'invalid';
+            return;
+        }
+        if (this.fichaSaving) {
+            this.fichaSaveAgain = true;
+            return;
+        }
+        const request = this.getFormUpdateRequest();
+        if (!request)
+            return;
+
+        const itemId = this.selectedItem.Id;
+        const startSnapshot = this.createUpdateSnapshot(true);
+        const sentEntries = this.createEntryDrafts
+            .filter(entry => !entry.id && !this.isUnsentPlaceholderEntry(entry))
+            .map(entry => ({ draft: entry, title: entry.title.value ?? '' }));
+        this.fichaSaving = true;
+        this.fichaStatus = 'saving';
+        request.pipe(
+            switchMap(() => this.syncEntriesFromForm(itemId)),
+            switchMap(() => this.syncSpecificRelationsFromForm(itemId)),
+            switchMap(() => this.bookSrv.getBook(this.book.Id)),
+            finalize(() => {
+                this.fichaSaving = false;
+                if (this.fichaSaveAgain) {
+                    this.fichaSaveAgain = false;
+                    this.edited$.next();
+                }
+            }),
+            takeUntil(this.destroy$)
+        ).subscribe({
+            next: book => {
+                if (this.abandoned)
+                    return;
+                this.book = book;
+                this.bookStore.setBook(book);
+                const fresh = this.findItemInBook(itemId);
+                if (!fresh || this.selectedItem?.Id !== itemId)
+                    return;
+                this.selectedItem = fresh;
+                this.reconcileSavedIds(fresh, sentEntries);
+                if (this.createUpdateSnapshot(true) === startSnapshot) {
+                    // Un cambio de nombre narrativo deja el anterior como apodo: la lista de apodos es la del servidor.
+                    if (this.getListPath() === 'characters')
+                        this.characterAliases = (fresh.Apodos ?? []).map((alias: CharacterAlias) => alias.Apodo).filter((alias: string) => !!alias);
+                    this.refreshUpdateSnapshot();
+                    this.fichaStatus = 'saved';
+                } else {
+                    this.fichaSaveAgain = true;
+                }
+                if (this.getListPath() === 'organizations')
+                    this.refreshOrganizationRelationRows(itemId);
+                this.keepEntityDraft();
+                this.saveIndicator.notifySaved(book.Id);
+            },
+            error: errorData => {
+                this.fichaStatus = 'error';
+                this.markBackendField(errorData);
+                this.snackBar.openApiError(errorData, 'No se pudo guardar la ficha');
+            }
+        });
+    }
+
+    /** Las entradas y relaciones nuevas que se acaban de crear toman su id (sin tocar sus controles ni lo que se escribe). */
+    private reconcileSavedIds(fresh: any, sentEntries: Array<{ draft: CreateEntryDraft; title: string }>): void {
+        const claimed = new Set(this.createEntryDrafts.map(entry => entry.id).filter((id): id is number => !!id));
+        for (const sent of sentEntries) {
+            if (sent.draft.id)
+                continue;
+            const match = (fresh.Entradas ?? []).find((entry: NarrativeEntry) => !claimed.has(entry.Id) && (entry.Nombre ?? '') === sent.title)
+                ?? (fresh.Entradas ?? []).find((entry: NarrativeEntry) => !claimed.has(entry.Id));
+            if (match) {
+                sent.draft.id = match.Id;
+                claimed.add(match.Id);
+            }
+        }
+        if (this.getListPath() !== 'characters')
+            return;
+        for (const relation of this.createCharacterRelations) {
+            if (relation.relationId)
+                continue;
+            const saved = (fresh.Relaciones ?? []).find((row: CharacterRelation) => (row.Relativo?.Id ?? row.PersonajeRelacionadoId) === relation.id);
+            const rowId = saved ? relationRowId(saved) : null;
+            if (rowId)
+                relation.relationId = rowId;
+        }
+    }
+
+    /** Las relaciones de la organización que ya tiene el servidor (para saber si la próxima vez se actualizan o se crean). */
+    private refreshOrganizationRelationRows(organizationId: number): void {
+        forkJoin({
+            characters: this.narrativeSrv.getOrganizationCharacters(organizationId, this.book.Id),
+            locations: this.narrativeSrv.getOrganizationLocations(organizationId, this.book.Id)
+        }).pipe(takeUntil(this.destroy$)).subscribe({
+            next: result => {
+                if (this.selectedItem?.Id !== organizationId)
+                    return;
+                this.organizationCharacterRelations = result.characters;
+                this.organizationLocationRelations = result.locations;
+            },
+            error: () => undefined
+        });
+    }
+
+    /**
+     * Web: pasar a otro elemento de la lista guarda antes la ficha abierta. Si no se puede (algo no es válido), sus
+     * cambios se quedan en el dispositivo y vuelven al abrirla.
+     */
+    switchToItem(item: any): void {
+        if (this.isUpdateMode() && this.selectedItem?.Id === item?.Id)
+            return;
+        if (!this.isUpdateMode() || this.abandoned || !this.hasPendingUpdateChanges()) {
+            this.openItem(item);
+            return;
+        }
+        if (!this.canSubmit()) {
+            this.keepEntityDraft();
+            this.snackBar.openSnackBar(`Los cambios de «${this.selectedItem?.Nombre ?? ''}» se quedan en este dispositivo hasta que vuelvas a su ficha`, 'infoBar');
+            this.openItem(item);
+            return;
+        }
+        this.fichaStatus = 'saving';
+        this.persistCurrentEntityUpdate().pipe(takeUntil(this.destroy$)).subscribe({
+            next: () => this.openItem(item),
+            error: errorData => {
+                this.fichaStatus = 'error';
+                this.snackBar.openApiError(errorData, 'No se pudo guardar la ficha antes de cambiar');
+            }
+        });
+    }
+
+    /** La entrada por defecto («Descripción» con «Descripción de …») que nadie ha tocado: en la Web no se envía nunca. */
+    isUnsentPlaceholderEntry(entry: CreateEntryDraft): boolean {
+        return this.savesInPlace && !entry.id && (entry.title.value ?? '') === 'Descripción' && this.isDefaultEntryDescription(entry);
+    }
+
     isCharacterNameChanged(): boolean {
         return this.getListPath() === 'characters'
             && this.isUpdateMode()
@@ -1247,7 +1436,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         this.lastSavedUpdateSnapshot = this.isUpdateMode() ? this.createUpdateSnapshot() : '';
     }
 
-    private createUpdateSnapshot(): string {
+    private createUpdateSnapshot(ignoreIds = false): string {
         return JSON.stringify({
             listPath: this.getListPath(),
             entityId: this.selectedItem?.Id ?? null,
@@ -1261,13 +1450,13 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             characterId: this.characterId.value,
             eventCharacterIds: [...this.selectedCharacterIds].sort((a, b) => a - b),
             entries: this.createEntryDrafts.map(entry => ({
-                id: entry.id ?? null,
+                id: ignoreIds ? null : entry.id ?? null,
                 title: entry.title.value ?? '',
                 description: entry.description.value ?? ''
             })),
             aliases: [...this.characterAliases].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' })),
             characterRelations: this.createCharacterRelations
-                .map(relation => ({ id: relation.id, relationId: relation.relationId ?? null, value: relation.relation.value ?? '' }))
+                .map(relation => ({ id: relation.id, relationId: ignoreIds ? null : relation.relationId ?? null, value: relation.relation.value ?? '' }))
                 .sort((a, b) => a.id - b.id),
             organizationRelations: this.createOrganizationRelations
                 .map(relation => ({ kind: relation.kind, id: relation.id, value: relation.description.value ?? '' }))
@@ -1757,7 +1946,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         return {
             LibroId: this.book.Id,
             Nombre: name,
-            Entradas: this.createEntryDrafts.map(entry => ({
+            Entradas: this.createEntryDrafts.filter(entry => !this.isUnsentPlaceholderEntry(entry)).map(entry => ({
                 Nombre: entry.title.value ?? name,
                 Descripcion: entry.description.value ?? ''
             }))
@@ -2030,6 +2219,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         this.isCharacterAliasFormOpen = false;
         this.characterAliasDraft.reset('');
         this.characterNameChangeMode.setValue('narrative');
+        if (this.savesInPlace)
+            this.characterSex.setValue(2);
         this.resetCreateEntries();
         this.selectDefaultLocationStatus();
         this.selectDefaultEventLocation();
@@ -2286,7 +2477,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 Descripcion: entry.description.value ?? ''
             }));
         const newEntries = this.createEntryDrafts
-            .filter(entry => !entry.id)
+            .filter(entry => !entry.id && !this.isUnsentPlaceholderEntry(entry))
             .map(entry => ({
                 Nombre: entry.title.value ?? '',
                 Descripcion: entry.description.value ?? ''
@@ -2414,6 +2605,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             return;
 
         this.openItem(item);
+        // En la Web la ficha se guarda sola y recarga el libro: volver a abrirla rehará el formulario mientras se escribe.
+        if (this.savesInPlace)
+            this.pendingSelectedItemId = null;
     }
 
     private getItemLocationStatusId(item: any): number | null {

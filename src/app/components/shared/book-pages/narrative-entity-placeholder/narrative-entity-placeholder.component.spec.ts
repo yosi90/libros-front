@@ -11,7 +11,7 @@ import { NarrativeEntityService } from '../../../../services/entities/narrative-
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { CharacterOrderRefreshService } from '../../../../services/stores/character-order-refresh.service';
-import { rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { PendingWorkService } from '../../../../services/auth/pending-work.service';
 import { PresentationModeService, PresentationState } from '../../../../services/ui/presentation-mode.service';
 import { NarrativeEntityPlaceholderComponent } from './narrative-entity-placeholder.component';
@@ -349,7 +349,8 @@ describe('NarrativeEntityPlaceholderComponent', () => {
     describe('hoja de alta rápida', () => {
         let activeMode: 'web' | 'mobile' | 'wood' = 'web';
         const host = () => fixture.nativeElement as HTMLElement;
-        const sheet = () => host().querySelector<HTMLElement>('[role="dialog"]');
+        // La Web usa un `<dialog>` nativo; Mobile y Wood, su hoja con `role="dialog"`.
+        const sheet = () => host().querySelector<HTMLElement>('dialog, [role="dialog"]');
         const sheetButtons = () => [...(sheet()?.querySelectorAll<HTMLButtonElement>('button') ?? [])]
             .map(button => button.textContent?.replace(/\s+/g, ' ').trim());
 
@@ -382,22 +383,32 @@ describe('NarrativeEntityPlaceholderComponent', () => {
 
                 expect(sheet()).withContext(mode).not.toBeNull();
                 expect(sheet()!.querySelector('[data-quick-create-name]')).withContext(mode).not.toBeNull();
-                expect(sheet()!.querySelectorAll('mat-select').length).withContext(mode).toBe(2);
                 expect(host().querySelector('app-narrative-rtf-editor')).withContext(mode).toBeNull();
                 expect(sheet()!.textContent).withContext(mode).toContain('Nuevo personaje');
-                expect(sheet()!.textContent).withContext(mode)
-                    .toContain('Después podrás añadir su descripción, sus apodos y sus relaciones en su ficha.');
                 expect(sheet()!.textContent).withContext(mode).not.toContain('Apodos');
-                expect(sheetButtons()).withContext(mode).toEqual(jasmine.arrayContaining(['Crear y otro', 'addCrear']));
+                if (mode === 'web') {
+                    // «Cuaderno» (F3): el estado en un selector y el sexo, con sus tres opciones a la vista; sin la línea de después.
+                    expect(sheet()!.tagName).toBe('DIALOG');
+                    expect(sheet()!.querySelectorAll('select').length).toBe(1);
+                    expect([...sheet()!.querySelectorAll('[role="radio"]')].map(radio => radio.textContent?.trim())).toEqual(['Chico', 'Chica', 'No sé']);
+                    expect(sheet()!.querySelector('[role="radio"][aria-checked="true"]')?.textContent?.trim()).toBe('No sé');
+                    expect(sheet()!.textContent).not.toContain('Después podrás añadir');
+                    expect(sheetButtons()).toEqual(jasmine.arrayContaining(['Crear y otro', 'Crear']));
+                } else {
+                    expect(sheet()!.querySelectorAll('mat-select').length).withContext(mode).toBe(2);
+                    expect(sheet()!.textContent).withContext(mode)
+                        .toContain('Después podrás añadir su descripción, sus apodos y sus relaciones en su ficha.');
+                    expect(sheetButtons()).withContext(mode).toEqual(jasmine.arrayContaining(['Crear y otro', 'addCrear']));
+                }
             }
             expect(component.characterStatusId.value).toBe(1);
         });
 
-        it('pide lo mínimo de cada tipo y explica que la descripción se añade después', () => {
+        it('pide lo mínimo de cada tipo (Web: selectores nativos y sin la línea de después)', () => {
             const cases: Array<[string, string, number, number]> = [
                 ['location', 'Nueva localización', 1, 1],
-                ['event', 'Nuevo evento', 0, 2],
-                ['quote', 'Nueva cita', 0, 3],
+                ['event', 'Nuevo evento', 1, 1],
+                ['quote', 'Nueva cita', 1, 2],
                 ['organization', 'Nueva organización', 0, 1],
                 ['concept', 'Nuevo concepto', 0, 1]
             ];
@@ -405,13 +416,13 @@ describe('NarrativeEntityPlaceholderComponent', () => {
                 openSheet(routePath);
 
                 expect(sheet()?.textContent).withContext(routePath).toContain(title);
-                expect(sheet()!.textContent).withContext(routePath).toContain('Después podrás añadir su descripción en su ficha.');
-                expect(sheet()!.querySelectorAll('mat-select').length).withContext(routePath).toBe(selects);
+                expect(sheet()!.textContent).withContext(routePath).not.toContain('Después podrás añadir');
+                expect(sheet()!.querySelectorAll('select').length).withContext(routePath).toBe(selects);
                 expect(sheet()!.querySelectorAll('input').length).withContext(routePath).toBe(inputs);
             }
         });
 
-        it('«Crear» crea el personaje con la descripción por defecto y abre su ficha', () => {
+        it('«Crear» crea el personaje sin entrada de relleno (Web) y abre su ficha', () => {
             openSheet('character');
             characterService.create.and.returnValue(of({ Id: 1203, Nombre: 'Segador Goodall', Estados: [{ EstadoId: 1, Origen: 1 }] } as any));
             component.name.setValue('Segador Goodall');
@@ -422,12 +433,23 @@ describe('NarrativeEntityPlaceholderComponent', () => {
             const payload = characterService.create.calls.mostRecent().args[0] as any;
             expect(payload.Apodo).toBe('Segador Goodall');
             expect(payload.IdCliente).toBeTruthy();
-            expect(payload.Entradas).toHaveSize(1);
-            expect(payload.Entradas[0].Nombre).toBe('Descripción');
-            expect(rtfToPlainText(payload.Entradas[0].Descripcion).trim()).toBe('Descripción del personaje');
+            expect(payload.Entradas).toEqual([]);
             expect(characterService.updateBookState).not.toHaveBeenCalled();
             expect(snackBar.openSnackBar).toHaveBeenCalledWith('Personaje creado', 'successBar');
             expect(router.navigate).toHaveBeenCalledWith(['../characters'], jasmine.objectContaining({ queryParams: { selected: 1203 } }));
+        });
+
+        it('Mobile sigue enviando la entrada «Descripción» por defecto', () => {
+            activeMode = 'mobile';
+            openSheet('concept');
+            component.name.setValue('Investidura');
+
+            component.createFromSheet(false);
+
+            const payload = narrativeService.createConcept.calls.mostRecent().args[0] as any;
+            expect(payload.Entradas).toHaveSize(1);
+            expect(payload.Entradas[0].Nombre).toBe('Descripción');
+            expect(rtfToPlainText(payload.Entradas[0].Descripcion).trim()).toBe('Descripción del concepto');
         });
 
         it('«Crear» abre también la ficha de las demás entradas', () => {
@@ -437,7 +459,7 @@ describe('NarrativeEntityPlaceholderComponent', () => {
             component.createFromSheet(false);
 
             expect(narrativeService.createConcept).toHaveBeenCalledWith(jasmine.objectContaining({
-                LibroId: 1, Nombre: 'Investidura', Entradas: [jasmine.objectContaining({ Nombre: 'Descripción' })]
+                LibroId: 1, Nombre: 'Investidura', Entradas: []
             }));
             expect(snackBar.openSnackBar).toHaveBeenCalledWith('Concepto creado', 'successBar');
             expect(router.navigate).toHaveBeenCalledWith(['../concepts'], jasmine.objectContaining({ queryParams: { selected: 31 } }));
@@ -460,7 +482,7 @@ describe('NarrativeEntityPlaceholderComponent', () => {
             expect(sheet()).not.toBeNull();
             expect(component.name.value).toBeNull();
             expect(component.name.touched).toBeFalse();
-            expect(component.characterSex.value).toBeNull();
+            expect(component.characterSex.value).withContext('Web: «No sé»').toBe(2);
             expect(component.characterStatusId.value).toBe(1);
             expect(document.activeElement).toBe(sheet()!.querySelector('[data-quick-create-name]'));
         }));
@@ -502,7 +524,7 @@ describe('NarrativeEntityPlaceholderComponent', () => {
             expect(router.navigate).toHaveBeenCalledWith(['../characters'], { relativeTo: jasmine.anything() as any });
         });
 
-        it('la ficha tiene un solo botón de guardar en cada presentación', () => {
+        it('la ficha se guarda sola en la Web y tiene un botón de guardar en Mobile y Wood', () => {
             // El beforeEach general abre la ficha del concepto 30.
             for (const mode of ['web', 'mobile', 'wood'] as const) {
                 activeMode = mode;
@@ -510,8 +532,32 @@ describe('NarrativeEntityPlaceholderComponent', () => {
 
                 expect(component.isUpdateMode()).withContext(mode).toBeTrue();
                 expect(sheet()).withContext(mode).toBeNull();
-                expect(host().querySelectorAll('button[type="submit"]').length).withContext(mode).toBe(1);
+                expect(host().querySelectorAll('button[type="submit"]').length).withContext(mode).toBe(mode === 'web' ? 0 : 1);
             }
+        });
+
+        it('Web: la ficha se guarda sola, sin enviar la entrada de relleno ni repetir lo creado', () => {
+            const bookService = TestBed.inject(BookService) as any;
+            // La ficha se abrió antes de pasar a la Web: en la Web, la apertura pendiente ya se habría consumido.
+            (component as any).pendingSelectedItemId = null;
+            const item = component.selectedItem;
+            entryService.create.and.returnValue(of([] as any));
+
+            narrativeService.updateConcept.and.returnValue(of({ Id: item.Id } as any));
+            const saved = { ...item, Entradas: [...(item.Entradas ?? []), { Id: 77, Nombre: 'El origen', Descripcion: 'x' }] };
+            bookService.getBook.and.returnValue(of({ ...component.book, Conceptos: [saved] }));
+
+            component.addCreateEntry();
+            const draft = component.createEntryDrafts[component.createEntryDrafts.length - 1];
+            draft.title.setValue('El origen');
+            draft.description.setValue(plainTextToRtf('Lo que dicen los antiguos del concepto.'));
+            (component as any).runFichaAutosave();
+
+            expect(entryService.create).toHaveBeenCalledTimes(1);
+            expect(draft.id).withContext('la nueva recibe su id').toBe(77);
+            expect(component.fichaStatus).toBe('saved');
+            (component as any).runFichaAutosave();
+            expect(entryService.create).withContext('no se crea dos veces').toHaveBeenCalledTimes(1);
         });
     });
 

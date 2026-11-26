@@ -70,8 +70,8 @@ function sheet(page: Page) {
 async function fillCharacterForm(page: Page, name: string): Promise<void> {
     await sheet(page).getByRole('textbox', { name: 'Nombre' }).fill(name);
     // En la hoja, el centro del select cae sobre su etiqueta, que pasa el clic al campo (como al tocarla).
-    await sheet(page).getByRole('combobox', { name: 'Sexo / género' }).click({ force: true });
-    await page.getByRole('option', { name: 'Chica' }).click();
+    // «Cuaderno» (F3): el sexo, con sus tres opciones a la vista (empieza en «No sé»).
+    await sheet(page).getByRole('radio', { name: 'Chica' }).click();
 }
 
 test.describe('Alta de personajes en la web', () => {
@@ -104,8 +104,7 @@ test.describe('Alta de personajes en la web', () => {
         // «Crear» abre la ficha del personaje para completarlo.
         await expect(page).toHaveURL(/\/book\/73\/characters\?selected=1203$/);
         expect(question).toContain('Ya hay un personaje llamado «Segador Goodall»');
-        await expect(page.getByRole('heading', { name: 'Modificar personaje' })).toBeVisible();
-        await expect(page.getByRole('textbox', { name: 'Nombre' })).toHaveValue('Segador Goodall');
+        await expect(page.getByRole('textbox', { name: /^Nombre de/ })).toHaveValue('Segador Goodall');
         expect(server.created).toHaveLength(1);
         expect(server.createRequests).toHaveLength(2);
         expect(server.createRequests[1]['IdCliente']).toBe(server.createRequests[0]['IdCliente']);
@@ -124,7 +123,7 @@ test.describe('Alta de personajes en la web', () => {
         const list = page.locator('app-web-narrative-entity-view');
         await expect(list.getByText('Segador Goodall', { exact: true })).toHaveCount(1);
 
-        await page.getByRole('button', { name: 'Crear personaje' }).click();
+        await page.getByRole('button', { name: 'Nuevo personaje' }).click();
         await fillCharacterForm(page, 'Segador Goodall');
         let question = '';
         page.once('dialog', dialog => {
@@ -138,12 +137,13 @@ test.describe('Alta de personajes en la web', () => {
         expect(server.created).toHaveLength(1);
     });
 
-    test('«Crear y otro» deja la hoja vacía y «Crear» abre la ficha del nuevo, con un solo botón de guardar', async ({ page }) => {
+    test('«Crear y otro» deja la hoja vacía y «Crear» abre la ficha del nuevo, que se guarda sola', async ({ page }) => {
         const server = await installCharacterApi(page, { loseFirstCreateResponse: false });
         await page.goto('/book/73/characters');
-        await page.getByRole('button', { name: 'Crear personaje' }).click();
+        await page.getByRole('button', { name: 'Nuevo personaje' }).click();
         await expect(sheet(page)).toBeVisible();
-        await expect(sheet(page).getByText('Después podrás añadir su descripción, sus apodos y sus relaciones en su ficha.')).toBeVisible();
+        await expect(sheet(page).getByText('Después podrás añadir')).toHaveCount(0);
+        await expect(sheet(page).getByRole('radio', { name: 'No sé' })).toHaveAttribute('aria-checked', 'true');
         await expect(sheet(page).getByText('Entradas narrativas')).toHaveCount(0);
         await expect(sheet(page).getByRole('textbox', { name: 'Nombre' })).toBeFocused();
 
@@ -157,10 +157,10 @@ test.describe('Alta de personajes en la web', () => {
         await fillCharacterForm(page, 'Segador Goodall');
         await sheet(page).getByRole('button', { name: 'Crear', exact: true }).click();
         await expect(page).toHaveURL(/\/book\/73\/characters\?selected=1204$/);
-        await expect(page.getByRole('heading', { name: 'Modificar personaje' })).toBeVisible();
-        await expect(page.getByRole('textbox', { name: 'Nombre' })).toHaveValue('Segador Goodall');
-        await expect(page.getByRole('button', { name: /Guardar/ })).toHaveCount(1);
+        await expect(page.getByRole('textbox', { name: /^Nombre de/ })).toHaveValue('Segador Goodall');
+        await expect(page.getByRole('button', { name: /Guardar/ })).toHaveCount(0);
         expect(server.created.map(item => item.Nombre)).toEqual(['Segador Mandela', 'Segador Goodall']);
-        expect(server.createRequests.every(body => Array.isArray(body['Entradas']) && (body['Entradas'] as unknown[]).length === 1)).toBe(true);
+        // Sin la entrada de relleno: la API admite el alta con solo el nombre (`768b06a`).
+        expect(server.createRequests.every(body => Array.isArray(body['Entradas']) && (body['Entradas'] as unknown[]).length === 0)).toBe(true);
     });
 });
