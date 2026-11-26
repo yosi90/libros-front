@@ -52,12 +52,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
@@ -90,6 +87,8 @@ import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
+import es.yosiftware.libros.ui.componentes.rayaAbajo
+import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.editor.EditorRtf
 import es.yosiftware.libros.ui.libro.BotonDeIconoPequeno
 import es.yosiftware.libros.ui.libro.BotonDeTexto
@@ -301,7 +300,7 @@ private fun Ficha(libroVm: LibroViewModel, vm: ElementosViewModel, libro: Libro,
     Column(Modifier.fillMaxSize().background(colores.superficie)) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 44.dp)
-                .then(if (hoja.compacta) Modifier.drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) } else Modifier)
+                .rayaAbajo(colores.contorno, con = hoja.compacta)
                 .padding(start = Espacios.e1, end = Espacios.e4),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -343,7 +342,7 @@ private fun Ficha(libroVm: LibroViewModel, vm: ElementosViewModel, libro: Libro,
                 principal(Modifier.widthIn(max = 920.dp).fillMaxWidth())
                 if (bloques.isNotEmpty()) {
                     val conRaya = Modifier.widthIn(max = 920.dp).fillMaxWidth().padding(top = 28.dp)
-                        .drawBehind { drawRect(colores.contorno, Offset.Zero, Size(size.width, 1.dp.toPx())) }.padding(top = 20.dp)
+                        .rayaArriba(colores.contorno).padding(top = 20.dp)
                     // En el plegable abierto, en dos columnas (uno solo, a todo el ancho); en el móvil, en una.
                     if (!hoja.compacta && bloques.size > 1) {
                         Row(conRaya, horizontalArrangement = Arrangement.spacedBy(32.dp)) { bloques.forEach { b -> Column(Modifier.weight(1f)) { b() } } }

@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
@@ -194,7 +195,7 @@ fun MarcoDeBarraDePantallaCompleta(contenido: @Composable RowScope.() -> Unit) {
     val direccion = LocalLayoutDirection.current
     Row(
         Modifier.fillMaxWidth().background(colores.superficie)
-            .drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
+            .rayaAbajo(colores.contorno)
             .heightIn(min = Alturas.barraSuperior + zona.calculateTopPadding())
             .padding(
                 start = maxOf(Espacios.e3, zona.calculateLeftPadding(direccion)),
@@ -207,6 +208,14 @@ fun MarcoDeBarraDePantallaCompleta(contenido: @Composable RowScope.() -> Unit) {
         content = contenido,
     )
 }
+
+/** La raya de 1 dp encima del elemento (`border-top`), en [color]; solo si [con]. */
+fun Modifier.rayaArriba(color: Color, con: Boolean = true): Modifier =
+    if (!con) this else drawBehind { drawRect(color, Offset.Zero, Size(size.width, 1.dp.toPx())) }
+
+/** La raya de 1 dp debajo del elemento (`border-bottom`), en [color]; solo si [con]. */
+fun Modifier.rayaAbajo(color: Color, con: Boolean = true): Modifier =
+    if (!con) this else drawBehind { drawRect(color, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
 
 /** .m-divider: una línea de 1 dp del color del contorno. */
 @Composable

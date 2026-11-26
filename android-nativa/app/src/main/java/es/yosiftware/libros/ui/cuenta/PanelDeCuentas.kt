@@ -28,9 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -54,6 +51,7 @@ import es.yosiftware.libros.ui.componentes.HojaInferior
 import es.yosiftware.libros.ui.componentes.TextoEyebrow
 import es.yosiftware.libros.ui.componentes.TextoTitulo
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
+import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.tema.Alturas
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
@@ -349,7 +347,7 @@ fun LectorDeNormas(normas: Normas, alAceptar: (() -> Unit)?, ocupado: Boolean, a
                 Modifier
                     .fillMaxWidth()
                     .background(colores.superficie)
-                    .drawBehind { drawRect(mezclar(colores.contorno, 0.66f), Offset.Zero, Size(size.width, 1.dp.toPx())) }
+                    .rayaArriba(mezclar(colores.contorno, 0.66f))
                     .padding(
                         start = max(Espacios.e4, zona.calculateLeftPadding(direccion)),
                         end = max(Espacios.e4, zona.calculateRightPadding(direccion)),

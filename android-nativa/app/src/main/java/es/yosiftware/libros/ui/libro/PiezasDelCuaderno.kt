@@ -28,10 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.layout
@@ -60,6 +57,7 @@ import es.yosiftware.libros.ui.tema.Iconos
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
 import es.yosiftware.libros.ui.tema.Textos
+import es.yosiftware.libros.ui.componentes.rayaAbajo
 
 // Las piezas del «Cuaderno» que comparten el capítulo ([PantallaCapitulo]) y la ficha de los elementos
 // (`ui/elementos/PantallaElementos.kt`): las clases de la vista de libro de la web, no las primitivas de Mobile de
@@ -203,7 +201,7 @@ internal fun CampoDeTitulo(
         decorationBox = { interior ->
             Box(
                 Modifier.fillMaxWidth().heightIn(min = 44.dp)
-                    .drawBehind { drawRect(if (enfocado) colores.primario else colores.contornoFuerte, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
+                    .rayaAbajo(if (enfocado) colores.primario else colores.contornoFuerte)
                     .padding(bottom = 4.dp),
                 contentAlignment = Alignment.CenterStart,
             ) {

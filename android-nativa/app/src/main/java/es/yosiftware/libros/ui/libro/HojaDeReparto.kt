@@ -34,8 +34,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -56,6 +54,7 @@ import es.yosiftware.libros.datos.modelos.Personaje
 import es.yosiftware.libros.datos.modelos.PersonajeEnEscena
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
+import es.yosiftware.libros.ui.componentes.rayaAbajo
 import es.yosiftware.libros.ui.elementos.ElementosViewModel
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Iconos
@@ -186,7 +185,7 @@ private fun FilaDePersonaje(personaje: Personaje, actual: PersonajeEnEscena?, al
     val colores = LocalColores.current
     Row(
         Modifier.fillMaxWidth().heightIn(min = 44.dp)
-            .drawBehind { drawRect(colores.superficieAlta, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) },
+            .rayaAbajo(colores.superficieAlta),
         horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -31,9 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -50,6 +47,8 @@ import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.componentes.ColumnaEstirada
+import es.yosiftware.libros.ui.componentes.rayaAbajo
+import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
@@ -96,7 +95,7 @@ fun EditorDeEstado(
         // La cabecera: volver | «Mi biblioteca» y el título, centrados | hueco del mismo ancho.
         Row(
             Modifier.fillMaxWidth().background(colores.superficie)
-                .drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
+                .rayaAbajo(colores.contorno)
                 .padding(
                     start = Espacios.e3 + zona.calculateLeftPadding(direccion),
                     end = Espacios.e3 + zona.calculateRightPadding(direccion),
@@ -232,7 +231,7 @@ fun EditorDeEstado(
         // El pie: Volver y Guardar, a la derecha.
         Row(
             Modifier.fillMaxWidth().background(colores.superficie)
-                .drawBehind { drawRect(colores.contorno, Offset.Zero, Size(size.width, 1.dp.toPx())) }
+                .rayaArriba(colores.contorno)
                 .padding(start = Espacios.e4, end = Espacios.e4, top = Espacios.e3, bottom = Espacios.e3 + zona.calculateBottomPadding()),
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End),
         ) {

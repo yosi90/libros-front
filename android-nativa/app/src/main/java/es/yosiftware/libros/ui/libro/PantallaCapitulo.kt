@@ -73,9 +73,9 @@ import es.yosiftware.libros.ui.adaptable.ClaseDeVentana
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
+import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.editor.EditorRtf
 import es.yosiftware.libros.ui.elementos.ElementosViewModel
-import es.yosiftware.libros.ui.tema.Colores
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
@@ -170,7 +170,7 @@ fun PantallaCapitulo(libroVm: LibroViewModel, vista: VistaDelLibro, vm: Capitulo
                 }
                 Carril(
                     cuaderno,
-                    Modifier.raya(colores, capitulo.escenas.lastOrNull()?.clave != vm.escenaAbierta).padding(top = 10.dp),
+                    Modifier.rayaArriba(colores.contorno, con = capitulo.escenas.lastOrNull()?.clave != vm.escenaAbierta).padding(top = 10.dp),
                     numero = { Text((capitulo.escenas.size + 1).toString(), style = estiloDeNumeroDeEscena(colores.tintaSuave).copy(lineHeight = 36.sp)) },
                 ) {
                     BotonDeTexto("Escena", Iconos.add) { vm.anadirEscena() }
@@ -207,10 +207,6 @@ private fun Carril(
         if (cuaderno.alLado) Box(Modifier.width(cuaderno.apostillas).padding(top = 2.dp)) { apostillas?.invoke() }
     }
 }
-
-/** La raya de 1 dp encima (`border-top`), si [con]. */
-private fun Modifier.raya(colores: Colores, con: Boolean = true): Modifier =
-    if (!con) this else drawBehind { drawRect(colores.contorno, Offset.Zero, Size(size.width, 1.dp.toPx())) }
 
 private fun estiloDeNumeroDeEscena(color: Color) =
     Textos.cuerpo.copy(fontFamily = Fuentes.lectura, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, lineHeight = 27.sp, color = color, fontFeatureSettings = "tnum")
@@ -306,7 +302,7 @@ private fun Escena(
 ) {
     val colores = LocalColores.current
     val alAbrirEnlace = libroVm::abrirEnlace
-    val fondo = if (abierta) Modifier.bloqueAbierto(colores.lienzo, cuaderno.compacto) else Modifier.raya(colores, raya).padding(vertical = 18.dp)
+    val fondo = if (abierta) Modifier.bloqueAbierto(colores.lienzo, cuaderno.compacto) else Modifier.rayaArriba(colores.contorno, con = raya).padding(vertical = 18.dp)
     Carril(
         cuaderno,
         Modifier.then(fondo).semantics { contentDescription = "Escena $numero" },

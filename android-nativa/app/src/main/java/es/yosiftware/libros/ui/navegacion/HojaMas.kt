@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
+import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.cuenta.EnlacesDeLaCuenta
 import es.yosiftware.libros.ui.tema.Alturas
 import es.yosiftware.libros.ui.tema.Espacios
@@ -175,7 +176,7 @@ private fun FilaDelTema(tema: TemaMobile, alAlternar: () -> Unit) {
             .fillMaxWidth()
             .padding(bottom = Espacios.e3)
             .heightIn(min = 58.dp)
-            .drawBehind { drawRect(borde, Offset.Zero, Size(size.width, 1.dp.toPx())) }
+            .rayaArriba(borde)
             .padding(top = Espacios.e2 + 1.dp, bottom = Espacios.e3),
         horizontalArrangement = Arrangement.spacedBy(Espacios.e4),
         verticalAlignment = Alignment.CenterVertically,

@@ -88,6 +88,8 @@ import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
 import es.yosiftware.libros.ui.componentes.Portada
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
+import es.yosiftware.libros.ui.componentes.rayaAbajo
+import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.tema.Alturas
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
@@ -167,7 +169,7 @@ private fun Barra(vm: LibroViewModel, nombre: String, portada: String?) {
     val direccion = LocalLayoutDirection.current
     Row(
         Modifier.fillMaxWidth().background(colores.superficie)
-            .drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
+            .rayaAbajo(colores.contorno)
             .heightIn(min = Alturas.barraSuperior + zona.calculateTopPadding())
             .padding(
                 start = max(Espacios.e2, zona.calculateLeftPadding(direccion)),
@@ -216,7 +218,7 @@ private fun BarraDelDestino(vm: LibroViewModel) {
     if (destino != Destino.CAPITULOS && destino != Destino.ELEMENTOS) return
     Row(
         Modifier.fillMaxWidth().background(colores.superficie)
-            .drawBehind { drawRect(colores.contorno, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
+            .rayaAbajo(colores.contorno)
             .heightIn(min = 48.dp).padding(horizontal = Espacios.e2),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -490,7 +492,7 @@ private fun Navegacion(vm: LibroViewModel, ancha: Boolean) {
     val direccion = LocalLayoutDirection.current
     BoxWithConstraints(
         Modifier.fillMaxWidth()
-            .drawBehind { drawRect(colores.contorno, Offset.Zero, Size(size.width, 1.dp.toPx())) }
+            .rayaArriba(colores.contorno)
             .background(mezclar(colores.superficie, 0.96f))
             .heightIn(min = 64.dp + zona.calculateBottomPadding()),
     ) {
