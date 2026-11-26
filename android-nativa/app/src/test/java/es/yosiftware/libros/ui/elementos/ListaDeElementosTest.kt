@@ -48,25 +48,36 @@ class ListaDeElementosTest {
     }
 
     @Test
-    fun losIconosUsanElEstadoDeEsteLibro() {
+    fun losGruposYLoQueSeLeeJuntoAlNombre() {
+        assertEquals(listOf("Principales", "Recurrentes", "Secundarios"), ListaDeElementos.grupos(libro, Elemento.PERSONAJES, "").map { it.etiqueta })
+        assertEquals(listOf("Vin"), ListaDeElementos.grupos(libro, Elemento.PERSONAJES, "vin").flatMap { g -> g.elementos.map { it.nombre } })
+        assertTrue(ListaDeElementos.grupos(libro, Elemento.PERSONAJES, "nadie").isEmpty())
+        // Sin herencia de un libro previo, todos juntos y sin etiqueta.
+        assertEquals(listOf(""), ListaDeElementos.grupos(libro, Elemento.CITAS, "").map { it.etiqueta })
         val porNombre = personajes.associateBy { it.nombre }
-        assertEquals(IconoDeFila.DePersonaje("star"), ListaDeElementos.icono(porNombre.getValue("Citra"), Elemento.PERSONAJES))
-        assertEquals(IconoDeFila.Ninguno, ListaDeElementos.icono(porNombre.getValue("Ben"), Elemento.PERSONAJES))
-        // En este libro está asesinado (en el anterior, vivo): la web nunca lo veía, porque leía el estado como objeto.
-        assertEquals(IconoDeFila.Simbolo("✕"), ListaDeElementos.icono(porNombre.getValue("Goddard"), Elemento.PERSONAJES))
-        assertEquals(IconoDeFila.DelTipo, ListaDeElementos.icono(ListaDeElementos.elementos(libro, Elemento.CITAS)[0], Elemento.CITAS))
+        // En este libro está asesinado (en el anterior, vivo); «Vivo» no se dice.
+        assertEquals("Asesinado · 2 cap.", ListaDeElementos.detalle(porNombre.getValue("Goddard"), Elemento.PERSONAJES, 2))
+        assertEquals("", ListaDeElementos.detalle(porNombre.getValue("Citra"), Elemento.PERSONAJES, 0))
+        assertEquals("pág. 12", ListaDeElementos.detalle(ListaDeElementos.elementos(libro, Elemento.CITAS)[0], Elemento.CITAS, 0))
+        assertEquals("Buen estado", ListaDeElementos.detalle(ListaDeElementos.elementos(libro, Elemento.LOCALIZACIONES)[1], Elemento.LOCALIZACIONES, 0))
+        assertEquals("Organización creada", Elemento.ORGANIZACIONES.singularConMayuscula + " " + Elemento.ORGANIZACIONES.participio("cread"))
     }
 
     @Test
-    fun loQueSeLeeBajoElNombreYElTotal() {
-        val lugares = ListaDeElementos.elementos(libro, Elemento.LOCALIZACIONES)
-        assertEquals(listOf("Desconocido", "Buen estado"), lugares.map { ListaDeElementos.meta(libro, it) })
-        assertEquals("Página 12", ListaDeElementos.meta(libro, ListaDeElementos.elementos(libro, Elemento.CITAS)[0]))
-        assertEquals("2º - El pozo de la ascensión", ListaDeElementos.meta(libro, personajes.last()))
-        assertEquals("Libro actual", ListaDeElementos.meta(libro, personajes.first()))
-        assertEquals("1 cita", ListaDeElementos.total(1, Elemento.CITAS))
-        assertEquals("4 personajes", ListaDeElementos.total(4, Elemento.PERSONAJES))
-        assertEquals("Organización creada", Elemento.ORGANIZACIONES.singularConMayuscula + " " + Elemento.ORGANIZACIONES.participio("cread"))
+    fun apareceEnLosCapitulosEnOrdenYSoloNombradoSiNuncaEstaPresente() {
+        val conCapitulos = Libro.de(JSONObject("""
+            {"Tipo": "libro", "Id": 9, "Nombre": "Siega", "Autores": [], "Estados": [], "Partes": [], "Interludios": [],
+             "Capitulos": [
+               {"Id": 31, "Nombre": "Dos", "Orden": 2, "Escenas": [
+                 {"Id": 3, "PersonajesDetalle": [{"Id": 1, "Nombrado": true}]},
+                 {"Id": 4, "PersonajesDetalle": [{"Id": 1, "Nombrado": false}, {"Id": 2, "Nombrado": true}]}]},
+               {"Id": 30, "Nombre": "Uno", "Orden": 1, "Escenas": [{"Id": 1, "PersonajesDetalle": [{"Id": 1, "Nombrado": true}]}]}
+             ],
+             "Personajes": [{"Id": 1, "Nombre": "Citra"}, {"Id": 2, "Nombre": "Ben"}]}
+        """.trimIndent()))
+        val apariciones = ListaDeElementos.apariciones(conCapitulos)
+        assertEquals(listOf(1 to true, 2 to false), apariciones.getValue(1).map { it.capitulo.orden to it.nombrado })
+        assertEquals(listOf(2 to true), apariciones.getValue(2).map { it.capitulo.orden to it.nombrado })
     }
 
     @Test

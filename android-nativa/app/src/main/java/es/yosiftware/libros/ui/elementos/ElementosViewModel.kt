@@ -16,6 +16,7 @@ import es.yosiftware.libros.datos.repositorios.ServidorDeElementos
 import es.yosiftware.libros.datos.repositorios.TipoDeEntidad
 import es.yosiftware.libros.ui.componentes.Avisador
 import es.yosiftware.libros.ui.libro.Elemento
+import es.yosiftware.libros.ui.libro.EstadoDelGuardado
 import es.yosiftware.libros.ui.libro.VistaDelLibro
 import java.io.File
 import java.util.UUID
@@ -37,8 +38,10 @@ sealed interface ModoDeElementos {
 /**
  * Los elementos de un tipo en el libro abierto (narrative-entity-placeholder): la lista, el alta y la ficha. Uno por tipo,
  * libro y cuenta. Lo escrito va a un borrador en el móvil a los 0,4 s (también en el alta, que en la web no se
- * protegía) y se recupera al volver; al pasar a segundo plano se escribe en el acto ([guardarAhora]) y, si la ficha está
- * completa, se envía. Corrige a propósito lo que en la web fallaba (ver la especificación,
+ * protegía) y se recupera al volver. La ficha se guarda sola («Cuaderno», F5, el clon de la F3 de la web), sin «Guardar
+ * cambios»: 1,2 s después del último cambio, si todo vale; el nombre, al salir de su campo ([confirmarNombre]). Volver a
+ * la lista o pasar a otro elemento guarda antes; si algo no vale, lo escrito se queda en el borrador del móvil. Al pasar
+ * a segundo plano se escribe el borrador en el acto ([guardarAhora]) y se envía lo que valga. Corrige a propósito lo que en la web fallaba (ver la especificación,
  * docs/roadmaps/ecosistema/ESPECIFICACION_elementos-narrativos.md, §8): solo se envía lo que cambia, una organización
  * cuyo vínculo falla no se duplica al reintentar, `?selected=` abre la ficha una sola vez, y los avisos concuerdan.
  */
@@ -51,6 +54,7 @@ class ElementosViewModel(
     private val cargarLibro: suspend (Int) -> Libro,
     private val esperaDelBorrador: Long = 400,
     private val esperaDelAlta: Long = 30_000,
+    private val esperaDelAutoguardado: Long = 1_200,
 ) : ViewModelDeCuenta(ambito) {
     var tipo by mutableStateOf(Elemento.PERSONAJES)
         private set
@@ -60,8 +64,17 @@ class ElementosViewModel(
         private set
     var ficha by mutableStateOf<FichaEditable?>(null)
         private set
-    /** «Por libro» (por defecto) o «Mezclados». */
-    var porLibro by mutableStateOf(true)
+    /** Cómo va el guardado de la ficha, que se guarda sola. */
+    var estado by mutableStateOf(EstadoDelGuardado.NADA)
+        private set
+    /** La entrada en la que se escribe (su clave); las demás se leen. */
+    var entradaAbierta by mutableStateOf<Long?>(null)
+        private set
+    /** Dónde poner el cursor al abrir la entrada: donde se tocó el texto (`-1`, al final; `null`, sin foco). */
+    var cursorAlAbrir by mutableStateOf<Int?>(null)
+        private set
+    /** Mientras se escribe el nombre, no se envía: se guarda al salir del campo ([confirmarNombre]). */
+    var editandoNombre = false
     var estadosDePersonaje by mutableStateOf<List<Pair<Int, String>>>(emptyList())
         private set
     var estadosDeLugar by mutableStateOf<List<Pair<Int, String>>>(emptyList())
@@ -80,12 +93,25 @@ class ElementosViewModel(
     /** Para el libro abierto: el libro tras guardar. */
     var alGuardar: (Libro) -> Unit = {}
 
+    /** «Sin guardar: …» con lo que falta, o el texto del estado. */
+    val textoDelEstado: String
+        get() = if (estado != EstadoDelGuardado.INCOMPLETO) estado.texto
+        else if (ficha?.let(ReglasDeLaFicha::faltaTextoEnUnaEntrada) == true) "Sin guardar: falta texto en una entrada"
+        else "Sin guardar: revisa los datos"
+
     /** Lo que había al abrir la ficha (para enviar solo lo que cambia). */
     private var original: FichaEditable? = null
     private var carpeta: File? = null
     private var vistaAtendida: VistaDelLibro? = null
     private var idCliente: String? = null
     private var borrador: Job? = null
+    private var autoguardado: Job? = null
+    /** Algo cambió mientras se guardaba: al terminar, otra vez. */
+    private var otraVez = false
+    /** Lo que espera a que termine el guardado en curso (volver a la lista, abrir otro elemento). */
+    private var despuesDeGuardar: (() -> Unit)? = null
+    /** Ya se avisó del error del autoguardado: no se repite en cada intento hasta que vuelva a guardar. */
+    private var avisadoDelError = false
     private var borradorPendiente = false
     private var abandonado = false
     /** «Crear y otro» en la hoja de alta: tras crear, otra hoja vacía en vez de la ficha del nuevo. */
@@ -145,9 +171,15 @@ class ElementosViewModel(
     fun abrirFicha(id: Int) {
         val libro = libro ?: return
         val abierta = ReglasDeLaFicha.deElemento(tipo, libro, id, estadosDeLugar, ::clave) ?: return
+        autoguardado?.cancel()
         original = abierta
         errorDeNombre = null
         revisarCampos = false
+        estado = EstadoDelGuardado.NADA
+        entradaAbierta = null
+        cursorAlAbrir = null
+        editandoNombre = false
+        otraVez = false
         modo = ModoDeElementos.Ficha(id)
         ficha = abierta
         recuperar()
@@ -185,23 +217,61 @@ class ElementosViewModel(
             delay(esperaDelBorrador)
             escribirBorrador()
         }
+        if (!nueva.esAlta) {
+            autoguardado?.cancel()
+            autoguardado = viewModelScope.launch {
+                delay(esperaDelAutoguardado)
+                autoguardar()
+            }
+        }
     }
 
-    /** «Nueva entrada»: solo si las que hay son válidas (`addCreateEntry`). */
+    /**
+     * «+ Entrada»: solo si las que hay son válidas (`addCreateEntry`). Es la de por defecto, abierta y con su texto listo
+     * para escribir encima; mientras no se toca, no se envía.
+     */
     fun anadirEntrada(): Boolean {
         val actual = ficha ?: return false
         if (!actual.entradas.all(ReglasDeLaFicha::entradaValida)) {
             avisos.informar("Para añadir una nueva entrada, primero las entradas existentes deben ser válidas.", "Completa las entradas", "narrative:add-entry:invalid")
             return false
         }
-        cambiar { it.copy(entradas = it.entradas + ReglasDeLaFicha.entradaPorDefecto(tipo, clave())) }
+        val nueva = ReglasDeLaFicha.entradaPorDefecto(tipo, clave())
+        cambiar { it.copy(entradas = it.entradas + nueva) }
+        abrirEntrada(nueva.clave)
         return true
     }
 
-    /** Quitar una entrada; si es la única, vuelve a la de por defecto (`removeCreateEntry`). */
-    fun quitarEntrada(clave: Long) = cambiar { f ->
-        if (f.entradas.size <= 1) f.copy(entradas = listOf(ReglasDeLaFicha.entradaPorDefecto(tipo, clave())))
-        else f.copy(entradas = f.entradas.filter { it.clave != clave })
+    /** Quitar una entrada (puede quedarse sin ninguna: la API ya no las exige). */
+    fun quitarEntrada(clave: Long) {
+        if (entradaAbierta == clave) entradaAbierta = null
+        cambiar { f -> f.copy(entradas = f.entradas.filter { it.clave != clave }) }
+    }
+
+    /** Abrir una entrada para escribir (una a la vez), con el cursor en [cursor] (donde se tocó) o al final. */
+    fun abrirEntrada(clave: Long, cursor: Int? = null) {
+        cursorAlAbrir = cursor ?: -1
+        entradaAbierta = clave
+    }
+
+    /** El editor ya puso el cursor: que no lo vuelva a poner al recomponerse. */
+    fun cursorPuesto() {
+        cursorAlAbrir = null
+    }
+
+    /** Añadir el apodo escrito; `false` si no vale o ya estaba. */
+    fun anadirApodo(apodo: String): Boolean {
+        val actual = ficha ?: return false
+        val nueva = ReglasDeLaFicha.anadirApodo(actual, apodo)
+        if (nueva == actual) return false
+        cambiar { ReglasDeLaFicha.anadirApodo(it, apodo) }
+        return true
+    }
+
+    /** El nombre ya no se está escribiendo: si ha cambiado, se guarda ahora (con lo elegido sobre qué ha cambiado). */
+    fun confirmarNombre() {
+        editandoNombre = false
+        if (ficha?.esAlta == false) autoguardar()
     }
 
     fun cambiarEntrada(clave: Long, cambio: (EntradaEditable) -> EntradaEditable) = cambiar { f ->
@@ -211,8 +281,8 @@ class ElementosViewModel(
     // --- Volver, guardar y salir. ---
 
     /**
-     * La flecha de la cabecera (`requestCloseUpdateForm`). En la ficha, si hay cambios, se guardan antes; si no son
-     * válidos, no se sale. En el alta se descarta lo escrito, como en la web.
+     * La flecha de la ficha en el móvil y Atrás (`requestCloseUpdateForm`): guarda antes lo que falte ([guardarYLuego]).
+     * En el alta se descarta lo escrito, como en la web.
      */
     fun volver(alSalir: () -> Unit = {}) {
         val actual = ficha
@@ -221,12 +291,60 @@ class ElementosViewModel(
             carpeta?.let { c -> runCatching { BorradoresLocales.borrar(c, actual.claveDelBorrador) } }
             return irALaLista(alSalir)
         }
-        if (!hayCambios()) return irALaLista(alSalir)
-        if (ReglasDeLaFicha.pista(actual) != null) {
-            avisos.error("No se puede salir: revisa los cambios pendientes de la entidad y sus entradas")
+        guardarYLuego { irALaLista(alSalir) }
+    }
+
+    /** Tocar otro elemento de la lista (`switchToItem`): la ficha abierta se guarda antes. */
+    fun cambiarA(id: Int) {
+        if (modo == ModoDeElementos.Ficha(id)) return
+        if (modo !is ModoDeElementos.Ficha || ficha == null) return abrirFicha(id)
+        guardarYLuego { abrirFicha(id) }
+    }
+
+    /**
+     * Guarda lo que falte de la ficha y después [despues]: si hay un guardado en curso, al terminarlo. Si algo no vale o
+     * el servidor falla, lo escrito se queda en el borrador del móvil (vuelve al abrir la ficha) y se sigue igualmente:
+     * así nunca se queda uno atrapado en una ficha ni se pierde nada.
+     */
+    private fun guardarYLuego(despues: () -> Unit) {
+        autoguardado?.cancel()
+        borrador?.cancel()
+        editandoNombre = false
+        escribirBorrador()
+        val actual = ficha ?: return despues()
+        if (guardando) {
+            despuesDeGuardar = despues
+            otraVez = true
             return
         }
-        actualizar(silencioso = true) { irALaLista(alSalir) }
+        if (abandonado || actual.esAlta || !hayCambios()) return despues()
+        if (ReglasDeLaFicha.pista(actual) != null) {
+            avisos.informar("Los cambios de «${original?.nombre ?: actual.nombre}» se quedan en este dispositivo hasta que vuelvas a su ficha")
+            return despues()
+        }
+        actualizar(despues)
+    }
+
+    /** 1,2 s después del último cambio o al salir del nombre: envía la ficha si hay algo que enviar y todo vale. */
+    private fun autoguardar() {
+        autoguardado?.cancel()
+        val actual = ficha ?: return
+        if (abandonado || actual.esAlta || modo !is ModoDeElementos.Ficha) return
+        if (guardando) {
+            otraVez = true
+            return
+        }
+        if (!hayCambios()) {
+            if (estado == EstadoDelGuardado.INCOMPLETO) estado = EstadoDelGuardado.NADA
+            return
+        }
+        // Un cambio de nombre a medias crearía apodos de más: espera a que se salga del campo.
+        if (editandoNombre && actual.nombre.trim() != original?.nombre?.trim()) return
+        if (ReglasDeLaFicha.pista(actual) != null) {
+            estado = EstadoDelGuardado.INCOMPLETO
+            return
+        }
+        actualizar(null)
     }
 
     private fun irALaLista(alSalir: () -> Unit) {
@@ -237,9 +355,10 @@ class ElementosViewModel(
         alSalir()
     }
 
-    /** El botón de guardar de la cabecera y el del pie. */
+    /** «Crear» del alta; en la ficha, que se guarda sola, envía ya lo que haya. */
     fun guardar() {
         val actual = ficha ?: return
+        if (!actual.esAlta) return autoguardar()
         if (guardando || abandonado) return
         ReglasDeLaFicha.pista(actual)?.let { pista ->
             revisarCampos = true
@@ -247,7 +366,7 @@ class ElementosViewModel(
             avisos.informar(pista)
             return
         }
-        if (actual.esAlta) crear() else actualizar(silencioso = false) { irALaLista {} }
+        crear()
     }
 
     /**
@@ -260,13 +379,18 @@ class ElementosViewModel(
         guardar()
     }
 
-    /** Al pasar a segundo plano o salir del libro: el borrador en el acto y, si la ficha está bien, al servidor. */
+    /**
+     * Al pasar a segundo plano o salir de la vista: el borrador en el acto y, si la ficha está bien, al servidor (también
+     * el nombre que se estaba escribiendo).
+     */
     fun guardarAhora() {
         if (abandonado || ficha == null) return
         borrador?.cancel()
         escribirBorrador()
-        val actual = ficha ?: return
-        if (!actual.esAlta && hayCambios() && ReglasDeLaFicha.pista(actual) == null && !guardando) actualizar(silencioso = true) {}
+        if (ficha?.esAlta == false) {
+            editandoNombre = false
+            autoguardar()
+        }
     }
 
     fun hayCambios(): Boolean {
@@ -291,7 +415,7 @@ class ElementosViewModel(
             return
         }
         guardando = true
-        val entradas = actual.entradas.map { EntradaAGuardar(it.titulo.trim(), it.descripcion) }
+        val entradas = ReglasDeLaFicha.aEnviar(actual).map { EntradaAGuardar(it.titulo.trim(), it.descripcion) }
         if (tipo == Elemento.PERSONAJES) return crearPersonaje(actual, libro, nombre, entradas)
         // Una organización ya creada no se vuelve a crear: si un vínculo falló, se reintenta solo lo que falta.
         cargar({
@@ -417,16 +541,15 @@ class ElementosViewModel(
     }
 
     /**
-     * El alta rápida desde una escena: solo el nombre, con «Vivo» y «No sé» de sexo y la entrada «Descripción» por
-     * defecto, por el mismo camino que la hoja de alta ([altaDePersonaje]). Lo de comprobar el nombre repetido lo hace
+     * El alta rápida desde una escena: solo el nombre, con «Vivo» y «No sé» de sexo y sin entradas, por el mismo camino que la hoja de alta ([altaDePersonaje]). Lo de comprobar el nombre repetido lo hace
      * quien llama, antes. Con el personaje creado (y el libro recargado), [alCrear] con su id.
      */
     fun crearDesdeLaEscena(nombre: String, alCrear: (Int) -> Unit) {
         val libro = libro ?: return
         val limpio = nombre.trim()
         if (creandoDesdeLaEscena != null || abandonado || !ReglasDeLaFicha.nombreValido(limpio)) return
-        val ficha = ReglasDeLaFicha.alta(Elemento.PERSONAJES, libro, estadosDePersonaje, estadosDeLugar, clave()).copy(nombre = limpio, sexo = 2)
-        val entradas = ficha.entradas.map { EntradaAGuardar(it.titulo.trim(), it.descripcion) }
+        val ficha = ReglasDeLaFicha.alta(Elemento.PERSONAJES, libro, estadosDePersonaje, estadosDeLugar, clave()).copy(nombre = limpio)
+        val entradas = ReglasDeLaFicha.aEnviar(ficha).map { EntradaAGuardar(it.titulo.trim(), it.descripcion) }
         val claveDelNombre = plegar(limpio)
         val cliente = clientesDesdeLaEscena.getOrPut(claveDelNombre) { UUID.randomUUID().toString() }
         creandoDesdeLaEscena = limpio
@@ -465,31 +588,57 @@ class ElementosViewModel(
 
     /**
      * Guarda la ficha (`persistCurrentEntityUpdate`), en orden: lo de la raíz, las entradas, las relaciones, los apodos y
-     * los vínculos; y vuelve a pedir el libro. Solo se envía lo que ha cambiado (la web lo mandaba todo cada vez).
+     * los vínculos; y vuelve a pedir el libro. Solo se envía lo que ha cambiado (la web lo mandaba todo cada vez). Lo
+     * enviado toma su id del servidor sin rehacer la ficha ([ReglasDeLaFicha.tomarIds]), así que lo que se escribe
+     * mientras tanto no se pierde ni se crea dos veces; si algo cambió durante el envío, se vuelve a guardar.
      */
-    private fun actualizar(silencioso: Boolean, despues: () -> Unit) {
+    private fun actualizar(despues: (() -> Unit)?) {
         val actual = ficha ?: return
         val antes = original ?: return
         val libro = libro ?: return
         val id = actual.id ?: return
         guardando = true
+        estado = EstadoDelGuardado.GUARDANDO
+        if (despues != null) despuesDeGuardar = despues
         cargar({
             enviarCambios(libro.id, id, antes, actual)
             runCatching { cargarLibro(libro.id) }.getOrNull()
         }, alFallar = { error ->
             guardando = false
+            otraVez = false
             marcar(error)
             escribirBorrador()
-            avisos.deError(error, if (silencioso) "No se pudieron autoguardar los cambios antes de salir" else "Error al actualizar ${tipo.singular}")
+            estado = EstadoDelGuardado.ERROR
+            val luego = despuesDeGuardar
+            despuesDeGuardar = null
+            if (luego != null) {
+                avisos.deError(error, "No se pudo guardar la ficha: los cambios se quedan en este dispositivo")
+                luego()
+            } else if (!avisadoDelError) {
+                avisadoDelError = true
+                avisos.deError(error, "No se pudo guardar la ficha")
+            }
         }) { nuevo ->
             guardando = false
+            avisadoDelError = false
             nuevo?.let { recibirLibro(it) }
-            val guardada = nuevo?.let { ReglasDeLaFicha.deElemento(tipo, it, id, estadosDeLugar, ::clave) } ?: actual.copy(tocada = false)
-            original = guardada.copy(vinculos = actual.vinculos)
-            if (ficha?.contenido() == actual.contenido()) ficha = guardada.copy(vinculos = actual.vinculos)
-            escribirBorrador()
-            if (!silencioso) avisos.exito("${tipo.singularConMayuscula} ${tipo.participio("actualizad")}")
-            despues()
+            val luego = despuesDeGuardar
+            despuesDeGuardar = null
+            // Si entretanto se abrió otro elemento (un enlace), lo suyo ya no es de esta ficha.
+            if ((modo as? ModoDeElementos.Ficha)?.id == id) {
+                val guardada = nuevo?.let { ReglasDeLaFicha.deElemento(tipo, it, id, estadosDeLugar, ::clave) }
+                original = (if (guardada != null) ReglasDeLaFicha.tomarIds(actual, guardada, actual) else actual).copy(tocada = false)
+                ficha?.let { f -> if (guardada != null) ficha = ReglasDeLaFicha.tomarIds(f, guardada, actual) }
+                escribirBorrador()
+                if (otraVez || hayCambios()) {
+                    otraVez = false
+                    if (luego != null) return@cargar guardarYLuego(luego)
+                    return@cargar autoguardar()
+                }
+                estado = EstadoDelGuardado.GUARDADO
+            }
+            otraVez = false
+            luego?.invoke()
         }
     }
 
@@ -521,7 +670,7 @@ class ElementosViewModel(
         }
         // Nuevas: las que no tienen id ni estaban ya en lo guardado (una recién creada sin libro recargado sí estaba).
         val guardadasSinId = antes.entradas.filter { it.id == null }.map { it.clave }.toSet()
-        val nuevas = ahora.entradas.filter { it.id == null && it.clave !in guardadasSinId }.map { EntradaAGuardar(it.titulo.trim(), it.descripcion) }
+        val nuevas = ReglasDeLaFicha.aEnviar(ahora).filter { it.id == null && it.clave !in guardadasSinId }.map { EntradaAGuardar(it.titulo.trim(), it.descripcion) }
         if (nuevas.isNotEmpty()) servidor.crearEntradas(tipoDeEntidad(), id, libroId, nuevas)
         val quedan = ahora.entradas.mapNotNull { it.id }.toSet()
         antes.entradas.mapNotNull { it.id }.filterNot { it in quedan }.forEach { servidor.borrarEntrada(it) }
@@ -611,6 +760,7 @@ class ElementosViewModel(
     override fun alCambiarDeCuenta(identidad: Identidad?) {
         if (borradorPendiente) escribirBorrador()
         borrador?.cancel()
+        autoguardado?.cancel()
         abandonado = true
         guardando = false
     }

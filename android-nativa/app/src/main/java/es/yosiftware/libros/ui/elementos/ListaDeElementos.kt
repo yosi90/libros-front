@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.elementos
 
+import es.yosiftware.libros.datos.modelos.Capitulo
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.modelos.OrigenDeContexto
 import es.yosiftware.libros.datos.modelos.Personaje
@@ -8,16 +9,6 @@ import es.yosiftware.libros.ui.libro.Elemento
 import java.text.Collator
 import java.util.Locale
 import kotlin.math.abs
-
-/** El icono de una fila: el del tipo, uno de personaje (por estado o grupo), un símbolo de texto o ninguno. */
-sealed interface IconoDeFila {
-    data object DelTipo : IconoDeFila
-    /** `star`, `sync_alt`, `wrong_location`, `history` o `person_outline`. */
-    data class DePersonaje(val nombre: String) : IconoDeFila
-    /** `✕` (asesinado) o `☠` (muerto), en texto. */
-    data class Simbolo(val texto: String) : IconoDeFila
-    data object Ninguno : IconoDeFila
-}
 
 /** Un elemento cualquiera en la lista: lo común de los seis tipos. */
 data class ElementoDeLista(
@@ -36,6 +27,9 @@ data class ElementoDeLista(
 )
 
 data class GrupoDeLista(val etiqueta: String, val elementos: List<ElementoDeLista>)
+
+/** Un capítulo en el que sale un personaje, y si en todo él solo se le nombra. */
+data class Aparicion(val capitulo: Capitulo, val nombrado: Boolean)
 
 /** La lista de un tipo de elemento (narrative-entity-placeholder, modo lista). */
 object ListaDeElementos {
@@ -64,9 +58,6 @@ object ListaDeElementos {
         val estado = (personaje.estados.lastOrNull { it.origen == libro.id } ?: personaje.estados.lastOrNull())?.estado?.nombre
         return ElementoDeLista(personaje.id, personaje.nombre, personaje.contexto, personaje.grupo, personaje.ordenGrupo, estado?.takeIf { it.isNotBlank() })
     }
-
-    /** `{n} personajes` / `1 personaje`. */
-    fun total(n: Int, tipo: Elemento): String = "$n ${if (n == 1) tipo.singular else tipo.etiqueta.lowercase()}"
 
     /** «Mezclados» y «Por libro» solo si hay algo heredado de un libro previo (`shouldShowViewMode`). */
     fun hayLibrosPrevios(elementos: List<ElementoDeLista>): Boolean = elementos.any { it.contexto.origenContexto == "libro_previo" }
@@ -130,36 +121,49 @@ object ListaDeElementos {
         if (tipo == Elemento.PERSONAJES) elementos.sortedWith(compareBy<ElementoDeLista> { it.ordenGrupo ?: rangoDeGrupo(it.grupo) }.thenComparator { a, b -> porNombre.compare(a.nombre, b.nombre) })
         else elementos.sortedWith { a, b -> porNombre.compare(a.nombre, b.nombre) }
 
-    /** Lo que se lee bajo el nombre (`getItemMeta`). */
-    fun meta(libro: Libro, elemento: ElementoDeLista): String {
-        val c = elemento.contexto
-        return when {
-            elemento.pagina != null -> "Página ${elemento.pagina}"
-            !elemento.estadoDeLugar.isNullOrBlank() -> elemento.estadoDeLugar
-            c.origenContexto == "libro_previo" -> etiquetaDeOrigen(libro, elemento)
-            c.esSagaPrevia == true -> "Saga previa"
-            c.esLibroActual == false -> "Heredado"
-            else -> "Libro actual"
+    /**
+     * Los capítulos (sin los de los interludios) en los que sale cada personaje, en orden, y si en todo el capítulo solo
+     * se le nombra («Aparece en», `appearances`).
+     */
+    fun apariciones(libro: Libro): Map<Int, List<Aparicion>> {
+        val porPersonaje = mutableMapOf<Int, MutableList<Aparicion>>()
+        libro.capitulos.sortedBy { it.orden }.forEach { capitulo ->
+            val vistos = LinkedHashMap<Int, Boolean>()
+            capitulo.escenas.forEach { escena -> escena.personajes.forEach { p -> vistos[p.id] = (vistos[p.id] ?: true) && p.nombrado } }
+            vistos.forEach { (id, nombrado) -> porPersonaje.getOrPut(id) { mutableListOf() }.add(Aparicion(capitulo, nombrado)) }
+        }
+        return porPersonaje
+    }
+
+    /**
+     * Lo que se lee junto al nombre en la lista («Cuaderno», F3): en personajes, su estado si no es «Vivo» y en cuántos
+     * capítulos sale («5 cap.»); en el resto, la página o el estado. El origen ya lo dice el grupo.
+     */
+    fun detalle(elemento: ElementoDeLista, tipo: Elemento, capitulos: Int): String = when (tipo) {
+        Elemento.PERSONAJES -> listOfNotNull(
+            elemento.estado?.takeIf { plegar(it).trim() != "vivo" },
+            "$capitulos cap.".takeIf { capitulos > 0 },
+        ).joinToString(" · ")
+        else -> when {
+            elemento.pagina != null -> "pág. ${elemento.pagina}"
+            else -> elemento.estadoDeLugar.orEmpty()
         }
     }
 
-    /** El icono de la fila (`getItemIcon` y `getCharacterIcon`). */
-    fun icono(elemento: ElementoDeLista, tipo: Elemento): IconoDeFila {
-        if (tipo != Elemento.PERSONAJES) return IconoDeFila.DelTipo
-        val estado = plegar(elemento.estado.orEmpty())
-        return when {
-            "asesinad" in estado -> IconoDeFila.Simbolo("✕")
-            "muert" in estado || elemento.grupo == "Muertos" -> IconoDeFila.Simbolo("☠")
-            "desaparecid" in estado -> IconoDeFila.DePersonaje("wrong_location")
-            else -> when (elemento.grupo) {
-                "Principales" -> IconoDeFila.DePersonaje("star")
-                "Recurrentes" -> IconoDeFila.DePersonaje("sync_alt")
-                "Secundarios" -> IconoDeFila.Ninguno
-                "Desaparecidos" -> IconoDeFila.DePersonaje("wrong_location")
-                "Antiguos" -> IconoDeFila.DePersonaje("history")
-                else -> IconoDeFila.DePersonaje("person_outline")
-            }
+    /**
+     * Los grupos de la lista, con lo que se busca: los personajes por su grupo; el resto, «Libro actual» y cada libro
+     * previo si hay herencia, o todos juntos sin etiqueta. Sin grupos vacíos.
+     */
+    fun grupos(libro: Libro, tipo: Elemento, buscado: String): List<GrupoDeLista> {
+        val consulta = plegar(buscado).trim()
+        val todos = elementos(libro, tipo)
+        val coincide = { e: ElementoDeLista -> consulta.isEmpty() || plegar(e.nombre).contains(consulta) }
+        val grupos = when {
+            tipo == Elemento.PERSONAJES -> agruparPorGrupo(porOrigen(todos, tipo), { it.grupo }, { it.ordenGrupo }, { it.nombre }).map { GrupoDeLista(it.first, it.second) }
+            hayLibrosPrevios(todos) -> gruposPorLibro(libro, todos, tipo)
+            else -> listOf(GrupoDeLista("", mezclados(todos, tipo)))
         }
+        return grupos.map { it.copy(elementos = it.elementos.filter(coincide)) }.filter { it.elementos.isNotEmpty() }
     }
 
     /** Los personajes por grupo («Sin grupo» si no tienen), los grupos por su menor `OrdenGrupo` (`groupCharactersByGroup`). */

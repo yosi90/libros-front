@@ -240,7 +240,7 @@ private fun Modifier.raya(colores: Colores, con: Boolean = true): Modifier =
     if (!con) this else drawBehind { drawRect(colores.contorno, Offset.Zero, Size(size.width, 1.dp.toPx())) }
 
 /** Ensancha el elemento [lado] por cada lado sin mover lo de alrededor (el `margin-inline` negativo de la web). */
-private fun Modifier.sobresalir(lado: Dp): Modifier = layout { medible, limites ->
+internal fun Modifier.sobresalir(lado: Dp): Modifier = layout { medible, limites ->
     val extra = lado.roundToPx()
     val ancho = (limites.maxWidth + 2 * extra).coerceAtLeast(0)
     val colocable = medible.measure(limites.copy(minWidth = ancho, maxWidth = ancho))
@@ -333,7 +333,7 @@ private fun CamposDelCapitulo(vm: CapituloViewModel, capitulo: CapituloEditable)
 
 /** `app-web-save-status`: el icono y el texto del estado del guardado, con su color. */
 @Composable
-internal fun IndicadorDeGuardado(estado: EstadoDelGuardado) {
+internal fun IndicadorDeGuardado(estado: EstadoDelGuardado, texto: String = estado.texto) {
     val colores = LocalColores.current
     val (icono, color) = when (estado) {
         EstadoDelGuardado.NADA -> return
@@ -348,7 +348,7 @@ internal fun IndicadorDeGuardado(estado: EstadoDelGuardado) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(painterResource(icono), contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
-        Text(estado.texto, style = Textos.cuerpo.copy(fontSize = 13.sp, color = color))
+        Text(texto, style = Textos.cuerpo.copy(fontSize = 13.sp, color = color))
     }
 }
 
@@ -653,7 +653,7 @@ private fun HojaDeLugar(vm: CapituloViewModel, escena: EscenaEditable?) {
 
 /** `.text-button` de la web: el texto en el primario, con su icono delante si lo lleva; 44 dp de objetivo. */
 @Composable
-private fun BotonDeTexto(texto: String, @DrawableRes icono: Int? = null, alPulsar: () -> Unit) {
+internal fun BotonDeTexto(texto: String, @DrawableRes icono: Int? = null, alPulsar: () -> Unit) {
     val colores = LocalColores.current
     Row(
         Modifier.heightIn(min = 44.dp).clip(RoundedCornerShape(Radios.sm)).clickable(role = Role.Button, onClick = alPulsar).padding(horizontal = Espacios.e2),
@@ -667,7 +667,7 @@ private fun BotonDeTexto(texto: String, @DrawableRes icono: Int? = null, alPulsa
 
 /** Un botón de icono (de 18 dp, o 22 si [grande]) con 44 de objetivo, en la tinta suave. */
 @Composable
-private fun BotonDeIconoPequeno(@DrawableRes icono: Int, descripcion: String, grande: Boolean = false, alPulsar: () -> Unit) {
+internal fun BotonDeIconoPequeno(@DrawableRes icono: Int, descripcion: String, grande: Boolean = false, alPulsar: () -> Unit) {
     val colores = LocalColores.current
     Box(
         Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClick = alPulsar).semantics { contentDescription = descripcion },

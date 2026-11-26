@@ -46,7 +46,6 @@ data class FichaEditable(
     val participantes: List<Int> = emptyList(),
     val entradas: List<EntradaEditable> = emptyList(),
     val apodos: List<String> = emptyList(),
-    val apodoPendiente: String = "",
     val relaciones: List<RelacionEditable> = emptyList(),
     val vinculos: List<VinculoDeOrganizacion> = emptyList(),
     val tocada: Boolean = false,
@@ -59,8 +58,14 @@ data class FichaEditable(
     /** Si el nombre de un personaje ya existente ha cambiado (`isCharacterNameChanged`), sin contar espacios en los bordes. */
     val nombreCambiado: Boolean get() = tipo == Elemento.PERSONAJES && !esAlta && nombre.trim() != nombreOriginal?.trim()
 
-    /** Lo que importa para saber si hay cambios: todo menos [tocada] y lo que se está escribiendo en los buscadores. */
-    fun contenido(): FichaEditable = copy(tocada = false, textoDeLocalizacion = null, textoDePersonaje = null)
+    /**
+     * Lo que importa para saber si hay cambios: todo menos [tocada], lo que se está escribiendo en los buscadores y la
+     * entrada de relleno, que no se envía nunca ([ReglasDeLaFicha.esDeRelleno]).
+     */
+    fun contenido(): FichaEditable = copy(
+        tocada = false, textoDeLocalizacion = null, textoDePersonaje = null,
+        entradas = entradas.filterNot { ReglasDeLaFicha.esDeRelleno(tipo, it) },
+    )
 }
 
 /** Las reglas del formulario (narrative-entity-placeholder), con sus mensajes. */
@@ -96,6 +101,16 @@ object ReglasDeLaFicha {
     fun esDescripcionPorDefecto(tipo: Elemento, descripcion: String): Boolean = rtfATexto(descripcion).trim() == descripcionPorDefecto(tipo)
 
     /**
+     * La entrada por defecto («Descripción», con «Descripción de …») sin enviar y sin tocar: la que trae «+ Entrada» en un
+     * elemento sin entradas, lista para escribir encima. No se envía nunca (`isUnsentPlaceholderEntry`, «Cuaderno», F3).
+     */
+    fun esDeRelleno(tipo: Elemento, entrada: EntradaEditable): Boolean =
+        entrada.id == null && entrada.titulo == "Descripción" && esDescripcionPorDefecto(tipo, entrada.descripcion)
+
+    /** Las entradas que se envían al crear o guardar: todas menos la de relleno. */
+    fun aEnviar(ficha: FichaEditable): List<EntradaEditable> = ficha.entradas.filterNot { esDeRelleno(ficha.tipo, it) }
+
+    /**
      * Por qué no se puede enviar todavía (`getCreateSubmitHint`), o `null` si se puede (`canSubmit`). La web solo lo
      * enseñaba en el escritorio; aquí se dice al pulsar.
      */
@@ -106,7 +121,6 @@ object ReglasDeLaFicha {
                 if (ficha.estadoDePersonaje == null) return "Selecciona un estado para el personaje."
                 if (ficha.sexo == null) return "Selecciona sexo o género del personaje."
                 if (ficha.relaciones.any { !parentescoValido(it.parentesco) }) return "Completa el parentesco de las relaciones seleccionadas."
-                if (ficha.apodoPendiente.isNotBlank() && !apodoValido(ficha.apodoPendiente)) return "El apodo pendiente debe tener al menos 3 caracteres."
             }
             Elemento.LOCALIZACIONES -> if (ficha.estadoDeLugar == null) return "Selecciona un estado para la localización."
             Elemento.EVENTOS -> if (ficha.idLocalizacion == null || ficha.textoDeLocalizacion != null) return "Selecciona una localización para el evento."
@@ -121,11 +135,45 @@ object ReglasDeLaFicha {
         return null
     }
 
-    /** Añadir el apodo escrito: de una vez (en la web el primer toque solo «abría» el campo), sin repetir. */
-    fun anadirApodo(ficha: FichaEditable): FichaEditable {
-        val apodo = ficha.apodoPendiente.trim()
-        if (!apodoValido(apodo) || ficha.apodos.any { plegar(it).trim() == plegar(apodo) }) return ficha
-        return ficha.copy(apodos = ficha.apodos + apodo, apodoPendiente = "")
+    /** Si lo que falta es texto en alguna entrada (para «Sin guardar: falta texto en una entrada»). */
+    fun faltaTextoEnUnaEntrada(ficha: FichaEditable): Boolean = ficha.entradas.any { !entradaValida(it) }
+
+    /** Añadir un apodo: de una vez (en la web el primer toque solo «abría» el campo), sin repetir. */
+    fun anadirApodo(ficha: FichaEditable, apodo: String): FichaEditable {
+        val limpio = apodo.trim()
+        if (!apodoValido(limpio) || ficha.apodos.any { plegar(it).trim() == plegar(limpio) }) return ficha
+        return ficha.copy(apodos = ficha.apodos + limpio)
+    }
+
+    /**
+     * Tras guardar: lo que se envió ([enviadas], las claves de las entradas que iban sin id) toma su id de lo que tiene
+     * ahora el servidor ([guardada]), sin tocar las claves ni lo que se escribe mientras tanto (`reconcileSavedIds`), para
+     * que la próxima vez se actualicen en vez de crearse otra vez. Igual las relaciones nuevas, por el otro personaje. Con
+     * el nombre cambiado, los apodos y el nombre de partida pasan a ser los del servidor (el anterior queda como apodo),
+     * conservando los apodos añadidos o quitados durante el envío ([enviada], lo que se mandó).
+     */
+    fun tomarIds(ficha: FichaEditable, guardada: FichaEditable, enviada: FichaEditable): FichaEditable {
+        val enviadas = enviada.entradas.filter { it.id == null }.map { it.clave }.toSet()
+        val usadas = ficha.entradas.mapNotNull { it.id }.toMutableSet()
+        val entradas = ficha.entradas.map { e ->
+            if (e.id != null || e.clave !in enviadas) return@map e
+            val libres = guardada.entradas.filter { it.id != null && it.id !in usadas }
+            val suya = libres.firstOrNull { it.titulo.trim() == e.titulo.trim() } ?: libres.firstOrNull() ?: return@map e
+            usadas += suya.id!!
+            e.copy(id = suya.id)
+        }
+        val relaciones = ficha.relaciones.map { r ->
+            if (r.relacionId != null) r else guardada.relaciones.firstOrNull { it.idPersonaje == r.idPersonaje }?.relacionId?.let { r.copy(relacionId = it) } ?: r
+        }
+        val renombrada = enviada.nombreCambiado && guardada.nombreOriginal != null
+        if (!renombrada) return ficha.copy(entradas = entradas, relaciones = relaciones)
+        val anadidos = ficha.apodos.filter { a -> enviada.apodos.none { plegar(it).trim() == plegar(a).trim() } }
+        val quitados = enviada.apodos.filter { a -> ficha.apodos.none { plegar(it).trim() == plegar(a).trim() } }.map { plegar(it).trim() }.toSet()
+        val apodos = (guardada.apodos.filterNot { plegar(it).trim() in quitados } + anadidos).distinctBy { plegar(it).trim() }
+        return ficha.copy(
+            entradas = entradas, relaciones = relaciones, apodos = apodos, nombreOriginal = guardada.nombreOriginal,
+            cambioDeNombre = if (ficha.nombre.trim() == guardada.nombreOriginal.trim()) CambioDeNombre.NARRATIVO else ficha.cambioDeNombre,
+        )
     }
 
     /** Si [apodo] es el nombre actual del personaje: ese no se puede quitar (la API lo rechaza). */
@@ -133,14 +181,17 @@ object ReglasDeLaFicha {
 
     // --- Abrir. ---
 
-    /** Un alta vacía con sus valores por defecto (`resetCreateForm`): «Vivo», «Buen estado», «Sin localización». */
+    /**
+     * Un alta vacía con sus valores por defecto (`resetCreateForm`): «Vivo», «No sé», «Buen estado», «Sin localización».
+     * Sin entradas: la API ya no las exige (26/11/2026) y la de relleno no se envía («Cuaderno», F3).
+     */
     fun alta(tipo: Elemento, libro: Libro, estadosDePersonaje: List<Pair<Int, String>>, estadosDeLugar: List<Pair<Int, String>>, clave: Long): FichaEditable =
         FichaEditable(
             tipo = tipo, libroId = libro.id,
             estadoDePersonaje = estadosDePersonaje.firstOrNull { plegar(it.second).trim() == "vivo" }?.first,
+            sexo = if (tipo == Elemento.PERSONAJES) 2 else null,
             estadoDeLugar = estadosDeLugar.firstOrNull { plegar(it.second).trim() == "buen estado" }?.first,
             idLocalizacion = if (tipo == Elemento.EVENTOS) localizacionNeutra(libro) else null,
-            entradas = listOf(entradaPorDefecto(tipo, clave)),
         )
 
     fun localizacionNeutra(libro: Libro): Int? = libro.localizaciones.firstOrNull { plegar(it.nombre).trim() == "sin localizacion" }?.id
@@ -148,7 +199,6 @@ object ReglasDeLaFicha {
     /** La ficha de un elemento del libro (`populateMainFormForUpdate`), con sus entradas, apodos, relaciones y participantes. */
     fun deElemento(tipo: Elemento, libro: Libro, id: Int, estadosDeLugar: List<Pair<Int, String>>, claves: () -> Long): FichaEditable? {
         fun entradas(lista: List<Entrada>) = lista.map { EntradaEditable(claves(), it.id, it.nombre.ifEmpty { "Descripción" }, it.descripcion) }
-            .ifEmpty { listOf(entradaPorDefecto(tipo, claves())) }
         val base = FichaEditable(tipo = tipo, libroId = libro.id, id = id)
         return when (tipo) {
             Elemento.PERSONAJES -> libro.personajes.firstOrNull { it.id == id }?.let { p ->
@@ -188,7 +238,7 @@ object ReglasDeLaFicha {
         .put("pagina", ficha.pagina).put("idPersonaje", ficha.idPersonaje ?: JSONObject.NULL)
         .put("participantes", JSONArray(ficha.participantes))
         .put("entradas", JSONArray(ficha.entradas.map { JSONObject().put("clave", it.clave).put("id", it.id ?: JSONObject.NULL).put("titulo", it.titulo).put("descripcion", it.descripcion) }))
-        .put("apodos", JSONArray(ficha.apodos)).put("apodoPendiente", ficha.apodoPendiente)
+        .put("apodos", JSONArray(ficha.apodos))
         .put("relaciones", JSONArray(ficha.relaciones.map { JSONObject().put("idPersonaje", it.idPersonaje).put("relacionId", it.relacionId ?: JSONObject.NULL).put("parentesco", it.parentesco) }))
         .put("vinculos", JSONArray(ficha.vinculos.map { JSONObject().put("personaje", it.personaje).put("id", it.id).put("descripcion", it.descripcion) }))
         .toString()
@@ -206,7 +256,6 @@ object ReglasDeLaFicha {
             participantes = j.getJSONArray("participantes").let { a -> (0 until a.length()).map { a.getInt(it) } },
             entradas = lista("entradas").map { EntradaEditable(it.getLong("clave"), if (it.isNull("id")) null else it.getInt("id"), it.getString("titulo"), it.getString("descripcion")) },
             apodos = j.getJSONArray("apodos").let { a -> (0 until a.length()).map { a.getString(it) } },
-            apodoPendiente = j.getString("apodoPendiente"),
             relaciones = lista("relaciones").map { RelacionEditable(it.getInt("idPersonaje"), if (it.isNull("relacionId")) null else it.getInt("relacionId"), it.getString("parentesco")) },
             vinculos = lista("vinculos").map { VinculoDeOrganizacion(it.getBoolean("personaje"), it.getInt("id"), it.getString("descripcion")) },
         )

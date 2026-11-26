@@ -26,6 +26,7 @@ import es.yosiftware.libros.ui.cuenta.SesionFalsa
 import es.yosiftware.libros.ui.cuenta.conSesion
 import es.yosiftware.libros.ui.cuenta.guardada
 import es.yosiftware.libros.ui.libro.Elemento
+import es.yosiftware.libros.ui.libro.EstadoDelGuardado
 import es.yosiftware.libros.ui.libro.VistaDelLibro
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +58,7 @@ class ElementosViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private val libro = Libro.de(JSONObject("""
+    private val libroJson = """
         {"Tipo": "libro", "Id": 9, "Nombre": "Siega", "Autores": [], "Estados": [], "Capitulos": [], "Partes": [], "Interludios": [],
          "Personajes": [{"Id": 12, "Nombre": "Kaladin", "Sexo": 0,
             "Apodos": [{"Id": 1, "ApodoId": 40, "Apodo": "Kaladin", "Origen": 9, "Borrado": false}, {"Id": 2, "ApodoId": 41, "Apodo": "Kal", "Origen": 9, "Borrado": false}],
@@ -67,7 +68,8 @@ class ElementosViewModelTest {
             "Entradas": [{"Id": 30, "Nombre": "Descripción", "Descripcion": "Un soldado de Alethkar."}, {"Id": 31, "Nombre": "Puente", "Descripcion": "Corredor del puente cuatro."}]},
                         {"Id": 5, "Nombre": "Tien"}, {"Id": 6, "Nombre": "Lirin"}],
          "Localizaciones": [{"Id": 1, "Nombre": "Sin localización"}]}
-    """.trimIndent()))
+    """.trimIndent()
+    private val libro = Libro.de(JSONObject(libroJson))
 
     /** Un servidor falso que anota cada llamada; [fallar] hace fallar las que contengan ese texto. */
     private class Falso : ServidorDeElementos {
@@ -89,7 +91,7 @@ class ElementosViewModelTest {
         override suspend fun catalogoDeEstadosDeLocalizacion() = listOf(Referencia(5, "Buen estado"))
         override suspend fun crearPersonaje(libroId: Int, apodo: String, sexo: Int, entradas: List<EntradaAGuardar>, idCliente: String?) =
             // Como la API: el personaje nuevo ya está «Vivo» en el libro.
-            anotar("crearPersonaje $apodo $idCliente") { Personaje.de(ficha(600).put("Estados", org.json.JSONArray().put(JSONObject().put("Id", 1).put("EstadoId", 1).put("Estado", "Vivo").put("Origen", libroId)))) }
+            anotar("crearPersonaje $apodo $sexo ${entradas.size} $idCliente") { Personaje.de(ficha(600).put("Estados", org.json.JSONArray().put(JSONObject().put("Id", 1).put("EstadoId", 1).put("Estado", "Vivo").put("Origen", libroId)))) }
         override suspend fun personaje(id: Int, libroId: Int?) = Personaje.de(ficha(id))
         override suspend fun cambiarSexoDePersonaje(id: Int, sexo: Int) = anotar("sexo $id $sexo") { null }
         override suspend fun cambiarEstadoDePersonaje(personajeId: Int, libroId: Int, estadoId: Int) =
@@ -167,13 +169,78 @@ class ElementosViewModelTest {
                 apodos = listOf("Capitán"),
             )
         }
-        vm.guardar()
+        // Sin «Guardar cambios»: se guarda sola al poco, y la ficha sigue abierta.
         advanceUntilIdle()
         assertEquals(
             listOf("cambiarEntrada 31", "borrarRelacion 12 78", "cambiarRelacion 12 77 Hermano menor", "borrarApodo 12 41", "crearApodo 12 Capitán"),
             m.servidor.llamadas,
         )
-        assertEquals(ModoDeElementos.Lista, vm.modo)
+        assertEquals(ModoDeElementos.Ficha(12), vm.modo)
+        assertEquals(EstadoDelGuardado.GUARDADO, vm.estado)
+        assertFalse(vm.hayCambios())
+    }
+
+    @Test
+    fun elNombreSeGuardaAlSalirDelCampoYNoMientrasSeEscribe() = runTest {
+        val m = montar()
+        val vm = m.vm()
+        vm.abrir(libro, VistaDelLibro.DeElemento(Elemento.PERSONAJES, seleccionado = 12))
+        advanceUntilIdle()
+        vm.editandoNombre = true
+        vm.cambiar { it.copy(nombre = "Bendito") }
+        advanceTimeBy(5000)
+        runCurrent()
+        assertTrue(m.servidor.llamadas.isEmpty())
+        vm.confirmarNombre()
+        advanceUntilIdle()
+        assertEquals(listOf("apodoNarrativo Bendito"), m.servidor.llamadas)
+        assertEquals(EstadoDelGuardado.GUARDADO, vm.estado)
+    }
+
+    @Test
+    fun unaEntradaNuevaNoSeCreaDosVecesSiSeSigueEscribiendo() = runTest {
+        val m = montar()
+        var recargado = libro
+        val vm = m.vm(recargado = { recargado })
+        vm.abrir(libro, VistaDelLibro.DeElemento(Elemento.PERSONAJES, seleccionado = 12))
+        advanceUntilIdle()
+        // «+ Entrada» trae la de relleno, abierta; sin tocarla no se envía.
+        assertTrue(vm.anadirEntrada())
+        val clave = vm.entradaAbierta!!
+        advanceUntilIdle()
+        assertTrue(m.servidor.llamadas.isEmpty())
+        vm.cambiarEntrada(clave) { it.copy(titulo = "Infancia", descripcion = "Nació en Piedralar, junto a su hermano.") }
+        recargado = Libro.de(JSONObject(libroJson.replace(
+            """{"Id": 31, "Nombre": "Puente", "Descripcion": "Corredor del puente cuatro."}""",
+            """{"Id": 31, "Nombre": "Puente", "Descripcion": "Corredor del puente cuatro."}, {"Id": 90, "Nombre": "Infancia", "Descripcion": "Nació en Piedralar, junto a su hermano."}""",
+        )))
+        advanceUntilIdle()
+        assertEquals(listOf("crearEntradas 12 1"), m.servidor.llamadas)
+        // La entrada toma su id sin rehacerse: sigue abierta y con su clave.
+        assertEquals(clave, vm.entradaAbierta)
+        assertEquals(90, vm.ficha!!.entradas.last().id)
+        vm.cambiarEntrada(clave) { it.copy(descripcion = "Nació en Piedralar, junto a su hermano Tien.") }
+        advanceUntilIdle()
+        assertEquals(listOf("crearEntradas 12 1", "cambiarEntrada 90"), m.servidor.llamadas)
+    }
+
+    @Test
+    fun cambiarDeElementoConAlgoQueNoValeLoDejaEnElDispositivo() = runTest {
+        val m = montar()
+        val vm = m.vm()
+        vm.abrir(libro, VistaDelLibro.DeElemento(Elemento.PERSONAJES, seleccionado = 12))
+        advanceUntilIdle()
+        vm.cambiar { f -> f.copy(relaciones = f.relaciones.map { it.copy(parentesco = "") }) }
+        advanceUntilIdle()
+        assertEquals(EstadoDelGuardado.INCOMPLETO, vm.estado)
+        assertEquals("Sin guardar: revisa los datos", vm.textoDelEstado)
+        vm.cambiarA(5)
+        advanceUntilIdle()
+        assertEquals(ModoDeElementos.Ficha(5), vm.modo)
+        assertTrue(m.servidor.llamadas.isEmpty())
+        // Al volver a su ficha, lo escrito sigue ahí.
+        vm.cambiarA(12)
+        assertEquals(listOf("", ""), vm.ficha!!.relaciones.map { it.parentesco })
     }
 
     @Test
@@ -206,18 +273,24 @@ class ElementosViewModelTest {
     }
 
     @Test
-    fun laHojaSinSexoNoCreaYMarcaLosCamposHastaLaSiguienteAlta() = runTest {
+    fun elAltaSoloPideElNombreYMarcaLosCamposHastaLaSiguiente() = runTest {
         val m = montar()
         val vm = m.vm()
         vm.abrir(libro, VistaDelLibro.DeElemento(Elemento.PERSONAJES, crear = true))
         advanceUntilIdle()
-        vm.cambiar { it.copy(nombre = "Syl") }
+        // El sexo empieza en «No sé»; sin un nombre de 3 caracteres no se crea, y el campo enseña su error.
+        assertEquals(2, vm.ficha?.sexo)
+        vm.cambiar { it.copy(nombre = "Sy") }
         assertFalse(vm.revisarCampos)
-        // Sin sexo o género no se crea, y los campos vacíos enseñan su error (antes solo salía un aviso genérico).
         vm.crearDesdeLaHoja(otro = false)
         advanceUntilIdle()
         assertTrue(vm.revisarCampos)
         assertFalse(m.servidor.intentos.any { it.startsWith("crearPersonaje") })
+        vm.cambiar { it.copy(nombre = "Syl") }
+        vm.crearDesdeLaHoja(otro = false)
+        advanceUntilIdle()
+        // Sin entrada de relleno: la API ya no la exige.
+        assertTrue(m.servidor.intentos.single { it.startsWith("crearPersonaje") }.startsWith("crearPersonaje Syl 2 0 "))
         vm.volver()
         vm.abrirAlta()
         assertFalse(vm.revisarCampos)

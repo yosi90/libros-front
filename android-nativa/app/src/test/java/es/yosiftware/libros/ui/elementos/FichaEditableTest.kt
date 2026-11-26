@@ -43,9 +43,11 @@ class FichaEditableTest {
         val personaje = ReglasDeLaFicha.alta(Elemento.PERSONAJES, libro, estadosDePersonaje, estadosDeLugar, claves())
         assertEquals(1, personaje.estadoDePersonaje)
         assertEquals("El nombre debe tener al menos 3 caracteres.", ReglasDeLaFicha.pista(personaje.copy(nombre = "  Ab  ")))
-        assertEquals("Selecciona sexo o género del personaje.", ReglasDeLaFicha.pista(personaje.copy(nombre = "Syl")))
-        assertNull(ReglasDeLaFicha.pista(personaje.copy(nombre = "Syl", sexo = 1)))
-        assertEquals("El apodo pendiente debe tener al menos 3 caracteres.", ReglasDeLaFicha.pista(personaje.copy(nombre = "Syl", sexo = 1, apodoPendiente = "Sy")))
+        // Solo el nombre obliga: el sexo empieza en «No sé» y no hay entrada de relleno.
+        assertEquals(2, personaje.sexo)
+        assertTrue(personaje.entradas.isEmpty())
+        assertNull(ReglasDeLaFicha.pista(personaje.copy(nombre = "Syl")))
+        assertEquals("Selecciona sexo o género del personaje.", ReglasDeLaFicha.pista(personaje.copy(nombre = "Syl", sexo = null)))
 
         val evento = ReglasDeLaFicha.alta(Elemento.EVENTOS, libro, estadosDePersonaje, estadosDeLugar, claves())
         assertEquals(1, evento.idLocalizacion)
@@ -79,16 +81,62 @@ class FichaEditableTest {
     @Test
     fun unApodoSeAnadeDeUnaVezYSinRepetir() {
         val ficha = ReglasDeLaFicha.deElemento(Elemento.PERSONAJES, libro, 12, estadosDeLugar, claves)!!
-        assertEquals(listOf("Kaladin", "Kal", "Capitán"), ReglasDeLaFicha.anadirApodo(ficha.copy(apodoPendiente = " Capitán ")).apodos)
-        assertEquals(ficha.copy(apodoPendiente = "KAL"), ReglasDeLaFicha.anadirApodo(ficha.copy(apodoPendiente = "KAL")))
+        assertEquals(listOf("Kaladin", "Kal", "Capitán"), ReglasDeLaFicha.anadirApodo(ficha, " Capitán ").apodos)
+        assertEquals(ficha, ReglasDeLaFicha.anadirApodo(ficha, "KAL"))
+        assertEquals(ficha, ReglasDeLaFicha.anadirApodo(ficha, "Ka"))
+    }
+
+    @Test
+    fun laEntradaDeRellenoNoCuentaNiSeEnvia() {
+        val ficha = ReglasDeLaFicha.deElemento(Elemento.PERSONAJES, libro, 12, estadosDeLugar, claves)!!
+        val relleno = ReglasDeLaFicha.entradaPorDefecto(Elemento.PERSONAJES, claves())
+        val conRelleno = ficha.copy(entradas = ficha.entradas + relleno)
+        assertTrue(ReglasDeLaFicha.esDeRelleno(Elemento.PERSONAJES, relleno))
+        assertEquals(ficha.contenido(), conRelleno.contenido())
+        assertEquals(ficha.entradas, ReglasDeLaFicha.aEnviar(conRelleno))
+        // En cuanto se escribe en ella, cuenta.
+        val escrita = relleno.copy(titulo = "Infancia")
+        assertFalse(ReglasDeLaFicha.esDeRelleno(Elemento.PERSONAJES, escrita))
+    }
+
+    @Test
+    fun loEnviadoTomaSusIdsSinRehacerLaFicha() {
+        val ficha = ReglasDeLaFicha.deElemento(Elemento.PERSONAJES, libro, 12, estadosDeLugar, claves)!!
+        val nueva = EntradaEditable(claves(), titulo = "Infancia", descripcion = "Nació en Piedralar, junto a su hermano.")
+        val enviada = ficha.copy(entradas = ficha.entradas + nueva, relaciones = ficha.relaciones + RelacionEditable(6, parentesco = "Padre"))
+        // Mientras se enviaba, se escribió otra entrada más (que aún no está en el servidor).
+        val otra = EntradaEditable(claves(), titulo = "Puente", descripcion = "Corredor del puente cuatro, y luego capitán.")
+        val ahora = enviada.copy(entradas = enviada.entradas + otra)
+        val guardada = enviada.copy(
+            entradas = ficha.entradas + EntradaEditable(claves(), 90, "Infancia", nueva.descripcion),
+            relaciones = ficha.relaciones + RelacionEditable(6, 79, "Padre"),
+        )
+        val resultado = ReglasDeLaFicha.tomarIds(ahora, guardada, enviada)
+        assertEquals(listOf(30, 90, null), resultado.entradas.map { it.id })
+        assertEquals(ahora.entradas.map { it.clave }, resultado.entradas.map { it.clave })
+        assertEquals(listOf(77, 79), resultado.relaciones.map { it.relacionId })
+    }
+
+    @Test
+    fun trasRenombrarLosApodosSonLosDelServidor() {
+        val ficha = ReglasDeLaFicha.deElemento(Elemento.PERSONAJES, libro, 12, estadosDeLugar, claves)!!
+        val enviada = ficha.copy(nombre = "Bendito")
+        // Durante el envío se añadió «Capitán»; el servidor ya tiene «Bendito» y deja «Kaladin» como apodo.
+        val ahora = enviada.copy(apodos = enviada.apodos + "Capitán")
+        val guardada = enviada.copy(nombreOriginal = "Bendito", apodos = listOf("Kaladin", "Kal", "Bendito"))
+        val resultado = ReglasDeLaFicha.tomarIds(ahora, guardada, enviada)
+        assertEquals(listOf("Kaladin", "Kal", "Bendito", "Capitán"), resultado.apodos)
+        assertEquals("Bendito", resultado.nombreOriginal)
+        assertFalse(resultado.nombreCambiado)
     }
 
     @Test
     fun laCitaYElBorrador() {
         val cita = ReglasDeLaFicha.deElemento(Elemento.CITAS, libro, 6, estadosDeLugar, claves)!!
         assertEquals(listOf("12", "12"), listOf(cita.pagina, cita.idPersonaje.toString()))
-        assertEquals(1, cita.entradas.size)
-        val ficha = ReglasDeLaFicha.deElemento(Elemento.PERSONAJES, libro, 12, estadosDeLugar, claves)!!.copy(apodoPendiente = "Ka", vinculos = listOf(VinculoDeOrganizacion(false, 2, "x")))
+        // Sin entradas, ninguna: ya no se rellena con la de por defecto.
+        assertTrue(cita.entradas.isEmpty())
+        val ficha = ReglasDeLaFicha.deElemento(Elemento.PERSONAJES, libro, 12, estadosDeLugar, claves)!!.copy(vinculos = listOf(VinculoDeOrganizacion(false, 2, "x")))
         assertEquals(ficha, ReglasDeLaFicha.deJson(ReglasDeLaFicha.aJson(ficha)))
         assertNull(ReglasDeLaFicha.deJson("{"))
     }
