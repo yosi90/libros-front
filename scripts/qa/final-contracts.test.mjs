@@ -5,6 +5,8 @@ import test from 'node:test';
 import { inlineScriptsIn } from './verify-pwa-artifact.mjs';
 
 const root = process.cwd();
+// Los orígenes de fuera de los que la web ya no carga tipografías ni hojas: Google Fonts y los CDN de antes.
+const EXTERNAL_FONT_ORIGINS = /fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com|unpkg\.com|cdn\.jsdelivr\.net/;
 
 test('las rutas internas publicadas son canonicas', async () => {
     const files = await sourceFiles(path.join(root, 'src', 'app'));
@@ -160,9 +162,7 @@ test('Hosting publica la CSP del kit de Yosiftware y cabeceras defensivas sin bl
     // con `srcdoc`, que hereda esta CSP): ni Google Fonts ni CDN.
     assert.match(csp, /style-src 'self' 'unsafe-inline';/);
     assert.match(csp, /font-src 'self' data:;/);
-    for (const origin of [String.raw`fonts\.googleapis\.com`, String.raw`fonts\.gstatic\.com`, String.raw`cdnjs\.cloudflare\.com`,
-        String.raw`unpkg\.com`, String.raw`cdn\.jsdelivr\.net`])
-        assert.doesNotMatch(csp, new RegExp(origin));
+    assert.doesNotMatch(csp, EXTERNAL_FONT_ORIGINS);
     // El marco aislado de la cabecera tiene un origen opaco: sus tipografías se piden con CORS.
     const fontHeaders = firebase.hosting.headers.find(rule => rule.source === '/assets/fonts/**')?.headers ?? [];
     assert.equal(fontHeaders.find(header => header.key === 'Access-Control-Allow-Origin')?.value, '*');
@@ -209,10 +209,9 @@ test('las tipografías se sirven desde la propia web, sin Google Fonts ni CDN', 
         readFile(path.join(root, 'src', 'index.html'), 'utf8'),
         readFile(path.join(root, 'src', 'assets', 'fonts', 'fuentes.css'), 'utf8')
     ]);
-    const external = /fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com|unpkg\.com|cdn\.jsdelivr\.net/;
     assert.match(index, /<link rel="stylesheet" href="assets\/fonts\/fuentes\.css">/);
-    assert.doesNotMatch(index, external);
-    assert.doesNotMatch(angular, external);
+    assert.doesNotMatch(index, EXTERNAL_FONT_ORIGINS);
+    assert.doesNotMatch(angular, EXTERNAL_FONT_ORIGINS);
     assert.doesNotMatch(fonts, /url\((?!(?:[a-z-]+)\/[a-z0-9-]+\.woff2\))/);
     const files = [...fonts.matchAll(/url\(([^)]+)\)/g)].map(match => match[1]);
     assert.ok(files.length > 0);

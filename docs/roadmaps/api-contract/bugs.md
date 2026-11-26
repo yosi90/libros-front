@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-Nada abierto.
+- [ ] Cabecera del título divertido: los estilos «solo con recursos propios», en un solo sitio (propuesta del revisor de duplicados, 26/11/2026, alcance `724416668c5d..2532a0a2`). Hoy se hace tres veces: la API (`utils/titulo_html.py`, `sanear_estilos`, al guardar y al leer) quita los `@import` y los `url()` que no sean `data:`; la web (`book-title-banner-document.ts`, `ownBannerStyles`) y la APK (`TituloDelLibro.kt`, `estilosPropios`) lo repiten, quitan además los comentarios y añaden la familia propia de respaldo según la genérica (`serif` → Playfair Display, `sans-serif` → Montserrat, `fantasy` → Cinzel Decorative, `cursive` → MedievalSharp), con un aviso de «un cambio aquí va también allí». Propuesta: que `sanear_estilos` añada también el respaldo (la API ya nombra esas tipografías en las instrucciones de la IA) y que la web y la APK se queden solo con el documento (CSP, `fuentes.css` y el escape de `</style`). Se puede desplegar por partes: con el respaldo ya puesto, los clientes de ahora no lo repiten, porque la lista ya lo lleva. Coste: la función y sus pruebas en la API, y borrar unas 60 líneas por cliente con sus pruebas (Karma, `CabeceraDelTituloTest`), además de ajustar `e2e/own-fonts.spec.ts`, que simula una respuesta sin sanear. No se ha hecho porque mueve lógica entre repositorios.
 
 ## Finalizado
 

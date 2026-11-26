@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { QA_SECRET_NAMES } from './campaign-control.mjs';
 import { findEvidenceSecretLeaks, secretNeedles } from './scan-evidence-secrets.mjs';
 
 const require = createRequire(import.meta.url);
@@ -11,11 +12,7 @@ const { yazl } = require('playwright-core/lib/utilsBundle');
 
 const environment = {
     QA_RESET_TOKEN: 'reset-test-value',
-    QA_ADMIN_PASSWORD: 'admin-test-value',
-    QA_MODERATOR_PASSWORD: 'moderator-test-value',
-    QA_USER_A_PASSWORD: 'member-a-test-value',
-    QA_USER_B_PASSWORD: 'member-b-test-value',
-    QA_LEASE_ID: 'lease-test-value'
+    QA_LEASE_ID: 'lease/test value'
 };
 
 test('detecta valores sensibles crudos y codificados sin imprimirlos', async () => {
@@ -23,10 +20,10 @@ test('detecta valores sensibles crudos y codificados sin imprimirlos', async () 
     try {
         const evidence = path.join(root, 'test-results');
         await mkdir(evidence, { recursive: true });
-        await writeFile(path.join(evidence, 'call-log.txt'), `header=${environment.QA_RESET_TOKEN}\npassword=${encodeURIComponent(environment.QA_USER_A_PASSWORD)}`);
+        await writeFile(path.join(evidence, 'call-log.txt'), `header=${environment.QA_RESET_TOKEN}\nlease=${encodeURIComponent(environment.QA_LEASE_ID)}`);
 
         const leaks = await findEvidenceSecretLeaks(['test-results'], environment, root);
-        assert.deepEqual(leaks.map(leak => leak.secret).sort(), ['QA_RESET_TOKEN', 'QA_USER_A_PASSWORD']);
+        assert.deepEqual(leaks.map(leak => leak.secret).sort(), ['QA_LEASE_ID', 'QA_RESET_TOKEN']);
     } finally { await rm(root, { recursive: true, force: true }); }
 });
 
@@ -35,12 +32,12 @@ test('revisa solo la evidencia publicable y excluye estados autenticados', async
     try {
         await mkdir(path.join(root, 'test-results', 'auth'), { recursive: true });
         await mkdir(path.join(root, 'test-results', 'credentialed-failure'), { recursive: true });
-        await writeFile(path.join(root, 'test-results', 'auth', 'chromium.json'), environment.QA_ADMIN_PASSWORD);
-        await writeFile(path.join(root, 'test-results', 'credentialed-failure', 'error-context.md'), environment.QA_USER_A_PASSWORD);
+        await writeFile(path.join(root, 'test-results', 'auth', 'chromium.json'), environment.QA_RESET_TOKEN);
+        await writeFile(path.join(root, 'test-results', 'credentialed-failure', 'error-context.md'), environment.QA_LEASE_ID);
         await writeFile(path.join(root, 'test-results', 'report.json'), '{"status":"passed"}');
 
         assert.deepEqual(await findEvidenceSecretLeaks(['test-results'], environment, root), []);
-        assert.equal(secretNeedles(environment).length, 6);
+        assert.deepEqual(secretNeedles(environment).map(needle => needle.name), [...QA_SECRET_NAMES]);
     } finally { await rm(root, { recursive: true, force: true }); }
 });
 

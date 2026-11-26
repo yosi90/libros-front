@@ -2,18 +2,10 @@ import { readdir, readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { QA_SECRET_NAMES } from './campaign-control.mjs';
 
 const require = createRequire(import.meta.url);
 const { yauzl } = require('playwright-core/lib/utilsBundle');
-
-const SECRET_NAMES = Object.freeze([
-    'QA_RESET_TOKEN',
-    'QA_ADMIN_PASSWORD',
-    'QA_MODERATOR_PASSWORD',
-    'QA_USER_A_PASSWORD',
-    'QA_USER_B_PASSWORD',
-    'QA_LEASE_ID'
-]);
 
 const EXCLUDED_EVIDENCE = Object.freeze([
     /^test-results\/auth(?:\/|$)/,
@@ -45,7 +37,7 @@ export async function findEvidenceSecretLeaks(roots, environment = process.env, 
 }
 
 export function secretNeedles(environment = process.env) {
-    return SECRET_NAMES.flatMap(name => {
+    return QA_SECRET_NAMES.flatMap(name => {
         const raw = environment[name]?.trim();
         if (!raw || raw.length < 4) return [];
         const encoded = new Set([
