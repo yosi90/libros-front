@@ -2502,6 +2502,7 @@ components:
           type:
           - number
           - 'null'
+          description: null con menos de tres puntuaciones (umbral de privacidad); entonces DistribucionPuntuaciones va vacía.
         TotalPuntuaciones:
           type: integer
         DistribucionPuntuaciones:
@@ -2524,6 +2525,7 @@ components:
           type: integer
         DistribucionEstados:
           type: array
+          description: Vacía, y los Total… por estado a 0, con menos de tres personas con estado (umbral de privacidad).
           items:
             $ref: '#/components/schemas/ReadingStateDistributionRow'
         ActividadAgregada:

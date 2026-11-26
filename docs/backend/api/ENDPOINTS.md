@@ -289,7 +289,7 @@ Respuesta de detalle publico:
 }
 ```
 
-`Estadisticas` solo agrega usuarios activos/verificados con `mostrar_estadisticas = 1`. `MiColeccion` es personal del usuario autenticado y no depende de esa preferencia.
+`Estadisticas` solo agrega usuarios activos/verificados con `mostrar_estadisticas = 1`. Con el umbral de privacidad (tres personas): con menos de tres puntuaciones, `PuntuacionMedia` es `null` y `DistribucionPuntuaciones` va vacía; con menos de tres personas con estado, `DistribucionEstados` va vacía y los `Total…` por estado, a 0; con menos de tres personas, cada fecha de `ActividadAgregada` es `null`; y `Popularidad.Puntuacion` solo cuenta obras con tres puntuaciones o más (si no, `null`). `MiColeccion` es personal del usuario autenticado y no depende de esa preferencia.
 
 `MiColeccion.EnBiblioteca` indica la presencia de la obra en `usuario_libros` o `usuario_antologias`, independientemente de `EdicionesIds`. Tras retirar todas las ediciones mediante `PUT`, permanece `true` y conserva puntuación, reseña, su marca de ocultación, fechas y estados de la obra. Esos campos coinciden con `/coleccion/items` para la misma cuenta; los valores nulos siguen siendo válidos si nunca se guardaron. La posesión de una edición compartida cambia desde todas sus obras vinculadas, sin eliminar ninguna relación de colección. Corrección y estado de publicación: [guía de ediciones e ISBN](EDICIONES_ISBN_FRONT.md#selección-de-ejemplares).
 
