@@ -9,7 +9,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 ## F0. Base
 
 - [x] **Literata como serif de lectura, empaquetada** (26/11/2026, web `d8b4410f`, APK `7a803e9f`).
-  - *Descripción:* Literata estática de @fontsource 5.3.0 (redonda 400, 500 y 600; cursiva 400 y 500; latin y latin-ext) en `src/assets/fonts/literata/`, con su `@font-face`, como serif de lectura Web. El RTF sin fuente propia se pinta con ella. Microsoft Sans Serif cuenta como sin fuente en Web: es la única fuente del corpus heredado (las 1317 escenas y entradas de la copia de QA, a 12 pt y a 10,5 pt; el corpus de `npm run qa:rtf:corpus` lee una base que no está en este servidor). En la APK, una fuente fija por grosor en `res/font` (`Fuentes.lectura`, sin usar hasta F5).
+  - *Descripción:* Literata estática de @fontsource 5.3.0 (redonda 400, 500 y 600; cursiva 400 y 500; latin y latin-ext) en `src/assets/fonts/literata/`, con su `@font-face`, como serif de lectura Web. El RTF sin fuente propia se pinta con ella. Microsoft Sans Serif cuenta como sin fuente en Web: es la única fuente del corpus heredado (las 1317 escenas y entradas de la copia de QA, a 12 pt y a 10,5 pt; el corpus de `npm run qa:rtf:corpus` lee una base que no está en este servidor). En la APK, una fuente fija por grosor en `res/font` (`Fuentes.lectura`).
   - *Por qué:* decisión 8 del propietario. Las fuentes se sirven desde la propia web, por la privacidad.
   - *Qué se espera:* la misma serif en la web y en la APK (`res/font`).
   - *Peligro si no:* la maqueta pierde su carácter.
@@ -35,7 +35,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
   - *Qué se espera:* menos pestañas y el mismo marco en el móvil y en la APK.
   - *Peligro si no:* seis pestañas desplazables.
   - *Peligro del cambio:* un toque más para llegar a un tipo de elemento; Elementos recuerda el último usado. En 360 px el título se queda en unos 130 px.
-  - *Cómo quedó:* hasta que llegue F3, el tipo de elemento se elige en una columna (escritorio) o en la barra «Personajes 6 ▾» (por debajo), con el número de cada tipo; la lista ya no repite su título. Entre 600 y 759 px los destinos bajan a una segunda fila de la cabecera, porque no caben con el título. Capítulos vuelve al último capítulo abierto en el libro (si no, al último del índice) y, si ya se está en él, abre el índice. La búsqueda queda en la cabecera, sin destino propio.
+  - *Cómo quedó:* el tipo de elemento se elige en una columna (escritorio) o en la barra «Personajes 6 ▾» (por debajo), con el número de cada tipo; la lista no repite su título. Entre 600 y 759 px los destinos bajan a una segunda fila de la cabecera, porque no caben con el título. Capítulos vuelve al último capítulo abierto en el libro (si no, al último del índice) y, si ya se está en él, abre el índice. La búsqueda queda en la cabecera, sin destino propio.
 - [x] **El índice, solo en Capítulos** (26/11/2026).
   - *Descripción:* columna fija en pantalla ancha y panel superpuesto en el móvil y el plegable, con la barra «1 de 5», anterior y siguiente. Sin título, con «+ Capítulo», «⋯» para parte e interludio, y la página a la derecha. El editor de parte, como desplegable («desde el capítulo… hasta…», que se traduce a `OrdenInicio` y `OrdenFinal`, y el `409 part_order_conflict` bajo el campo).
   - *Por qué:* decisión 5.
@@ -131,16 +131,16 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
   - *Peligro si no:* la web y la APK, distintas.
   - *Peligro del cambio:* las muestras de depuración, que hay que poner al día. Se prueba en el Honor, nunca en un emulador.
   - *Cómo quedó (26/11/2026, en cuatro tandas, F5a a F5d; en producción el 27/11/2026: APK 2.1.0, 20100, SHA-256 `224b8b1e…3707`, novedad de Yosiftware id 132):*
-    - **El marco:** los cuatro destinos abajo, cada uno vuelve a lo último abierto. Debajo de la barra del libro, la del destino: «Capítulo 3 de 12» con anterior y siguiente, o «Personajes 21 ▾». El índice lleva «+ Capítulo» y «⋯» (parte e interludio); la wiki, en el Resumen.
-    - **El capítulo:** se lee entero en Literata (el RTF sin fuente propia, o con Microsoft Sans Serif, se pinta con ella). Tocar el texto abre la escena con el cursor ahí; los enlaces siguen abriendo su elemento. Las apostillas van debajo salvo en el ancho expandido, y el lugar se crea desde su hoja. Un capítulo nuevo se crea en cuanto vale. Lo recuperado se dice en la página con «Volver a lo guardado» y, a diferencia de antes, no se envía hasta seguir escribiendo o cerrar el aviso.
+    - **El marco:** como la Web (`docs/GUIA_ESTILOS.md`, «Espacio de libro»), con los cuatro destinos abajo; cada uno vuelve a lo último abierto.
+    - **El capítulo:** se lee entero en Literata (el RTF sin fuente propia, o con Microsoft Sans Serif, se pinta con ella). Tocar el texto abre la escena con el cursor ahí; los enlaces siguen abriendo su elemento. Las apostillas van debajo salvo en el ancho expandido, y el lugar se crea desde su hoja. Un capítulo nuevo se crea en cuanto vale. Lo recuperado se dice en la página con «Volver a lo guardado» y no se envía hasta seguir escribiendo o cerrar el aviso.
     - **Elementos:**
       - lista y ficha a la vez desde 600 dp con un `Row` propio, no con `ListDetailPaneScaffold`: la regla es la de la web (la ficha al lado o, en el móvil, en lugar de la lista) y no hacía falta la dependencia de `material3-adaptive`;
       - la ficha se guarda sola; lo enviado toma su id sin rehacer la ficha;
       - pasar a otro elemento o volver guarda antes y, si algo no vale, lo deja en el borrador del móvil.
-    - **Las notas:** antes no tenían borrador y se perdían al cerrar la app o cambiar de cuenta. Ahora el compositor guarda solo y lo que aún no vale se queda en la carpeta de la cuenta.
+    - **Las notas:** el compositor guarda solo y lo que aún no vale se queda en el borrador de la cuenta, así que sobrevive a cerrar la app y a cambiar de cuenta.
     - **Sin conexión,** el capítulo, la ficha y las notas dicen «Sin conexión · guardado en el dispositivo» y reenvían al volver la red (`EstadoDeRed`, que también cuenta como sin red el bloqueo solo de la app: ahorro de datos o permiso de red).
     - **El reparto y el lugar** siguen en la `HojaInferior` propia, no en `ModalBottomSheet`.
-    - **Probado en el Honor:** plegado, todo con las muestras de depuración; abierto, todo con la cuenta de QA, también lo recuperado y sin conexión.
+    - **Probado en el Honor**, plegado y abierto: ver la lista de pruebas.
 
 ## F6. El resto de la web
 

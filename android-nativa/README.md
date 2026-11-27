@@ -58,8 +58,8 @@ Clonadas de `mobile-statistics-view`, `statistics.component.ts` y `app-stat-rows
 - Estadísticas: `ResumenDelLibro` (las cuentas), `GraficosDelLibro` (los gráficos en Compose) y `PantallaResumenDelLibro`.
 - Notas: `NotasDelLibro` (con `NotasViewModel`) y `PantallaNotasDelLibro`. Las notas antiguas en RTF pasan por `datos/Rtf.kt`.
 - Búsqueda: `BusquedaEnElLibro` (con `BusquedaViewModel`), que busca en el libro ya cargado, y `PantallaBusquedaDelLibro`.
-- Los rediseños del 6/11/2026: el capítulo con «Escenas plegadas» (`PantallaCapitulo`), la hoja de reparto y la @ del texto (`HojaDeReparto`, `RepartoDeEscena` y `ui/editor/Menciones.kt`) y «Tu lectura» como panel denso (`PanelDeLectura` y `PantallaResumenDelLibro`).
-- Muestras de depuración: `MuestrasDeLibro` (la lista de vistas está en su documentación; `capitulo`, `capitulo-reparto`, `capitulo-datos` y `resumen-con-datos` enseñan los rediseños).
+- La vista «Cuaderno» (F5, clon de la Web; `docs/GUIA_ESTILOS.md`, «Espacio de libro»): el capítulo (`PantallaCapitulo`, con `CapituloViewModel` y `CapituloEditable`), las piezas que comparte con la ficha (`PiezasDelCuaderno`), el reparto, el lugar y la @ del texto (`HojaDeReparto`, `RepartoDeEscena` y `ui/editor/Menciones.kt`) y «Tu lectura» (`PanelDeLectura` y `PantallaResumenDelLibro`). Elementos, con la lista y la ficha, en `ui/elementos/` (`ElementosViewModel`, `ListaDeElementos` y `FichaEditable`).
+- Muestras de depuración: `MuestrasDeLibro` (la lista de vistas está en su documentación; por ejemplo, `capitulo`, `capitulo-escena`, `elementos-ficha`, `nota-nueva` y `resumen-con-datos`).
 
 ## Los sonidos (`sonido/`)
 
