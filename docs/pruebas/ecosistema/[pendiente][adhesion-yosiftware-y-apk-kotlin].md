@@ -1,6 +1,6 @@
 # Checklist - Adhesión a Yosiftware (web) y APK nativa en Kotlin
 
-> Estado: pendiente. Matriz de `docs/roadmaps/ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (cerrado el 29/10/2026; corte en producción el 25/10/2026). Sale de `ecosistema-kit/LISTA_DE_COMPROBACION.md` (kit 1.57 para la web; la «App Android», del 1.62, en `docs/roadmaps/ecosistema/EVIDENCIA_app-android.md`). Cada punto lleva su evidencia o **No aplica** con su motivo. Web y APK se acreditan por separado. Lo que dice «API» lo acredita `docs/backend/api/ADHESION_YOSIFTWARE.md`. Lo que queda de la adhesión en el backend: `../Libros API/docs/roadmaps/ACTIVO_tras-la-adhesion/`.
+> Estado: pendiente. Matriz de `docs/roadmaps/ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (cerrado el 29/10/2026; corte en producción el 25/10/2026). Sale de `ecosistema-kit/LISTA_DE_COMPROBACION.md` (kit 1.57 para la web; la «App Android», del 1.62, en `docs/roadmaps/ecosistema/EVIDENCIA_app-android.md`). Cada punto lleva su evidencia o **No aplica** con su motivo. Web y APK se acreditan por separado. Lo que dice «API» lo acredita `docs/backend/api/ADHESION_YOSIFTWARE.md`. Lo que queda de la adhesión en el backend: `../Libros API/docs/roadmaps/FINALIZADO_tras-la-adhesion/`.
 
 ## Requisitos de adscripción
 
@@ -48,7 +48,7 @@
 
 ## Tus datos
 
-- [x] Con `cuenta.estado` `cerrada` esconde la cuenta; con `borrada` borra o anonimiza lo de Libros (API, hecho el 2026-11-05: `../Libros API/docs/roadmaps/ACTIVO_tras-la-adhesion/`). La web vuelve a la vista sin sesión con `403 account_deleted`.
+- [x] Con `cuenta.estado` `cerrada` esconde la cuenta; con `borrada` borra o anonimiza lo de Libros (API, hecho el 2026-11-05: `../Libros API/docs/roadmaps/FINALIZADO_tras-la-adhesion/`). La web vuelve a la vista sin sesión con `403 account_deleted`.
 - [x] «Tus datos» explica que Libros no tiene descarga propia, deja pedirla con «Errores y propuestas» y enlaza a la web social.
 - [x] No enlaza al perfil de una persona con `borrada: true` (`platform-chat.spec.ts`).
 
