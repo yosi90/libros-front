@@ -1,0 +1,54 @@
+/* La mesa de lienzos: la página que enseña las maquetas. No forma parte del diseño de Libros. */
+:root {
+  --pg: #e9e6de; --pg-ink: #1b211f; --pg-mut: #515c56; --pg-line: #cbc6b9; --pg-ac: #0b6b5e; --pg-card: #f4f1ea; --pg-rec: #d9efe9;
+  --pg-ui: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pg-lec: Literata, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; --pg: #0b0e0d; --pg-ink: #e7ece9; --pg-mut: #a9b5af; --pg-line: #2a3430; --pg-ac: #7fd6c4; --pg-card: #131816; --pg-rec: #1d3a34; }
+}
+:root[data-theme="dark"] { color-scheme: dark; --pg: #0b0e0d; --pg-ink: #e7ece9; --pg-mut: #a9b5af; --pg-line: #2a3430; --pg-ac: #7fd6c4; --pg-card: #131816; --pg-rec: #1d3a34; }
+
+body { background: var(--pg); color: var(--pg-ink); font: 15px/1.5 var(--pg-ui); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--pg); }
+.pg { padding-block: 32px 72px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.pg h1 { margin: 0; font: 600 34px/1.1 var(--pg-lec); text-wrap: balance; }
+.pg__intro { max-width: 72ch; margin: 12px 0 0; color: var(--pg-mut); }
+.pg a { color: var(--pg-ac); text-underline-offset: 3px; }
+.idx { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 13.5px; }
+
+.elige { max-width: 980px; margin: 28px 0 0; padding: 20px 24px; background: var(--pg-card); border: 1px solid var(--pg-line); border-radius: 12px; }
+.elige h2 { margin: 0 0 4px; font: 600 20px/1.25 var(--pg-lec); }
+.elige p { margin: 0 0 12px; color: var(--pg-mut); font-size: 13.5px; }
+.elige ol { display: grid; gap: 10px; margin: 0; padding: 0 0 0 22px; }
+.elige li b { font-weight: 600; }
+.elige li span { color: var(--pg-mut); }
+
+.ctl { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 20px; padding: 10px 0; background: var(--pg); border-bottom: 1px solid var(--pg-line); }
+.ctl__g { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--pg-mut); }
+.ctl button { min-height: 32px; padding: 4px 14px; border: 1px solid var(--pg-line); border-radius: 999px; background: none; color: var(--pg-ink); font: 500 13px var(--pg-ui); cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: var(--pg-ink); border-color: var(--pg-ink); color: var(--pg); }
+.ctl button:focus-visible { outline: 2px solid var(--pg-ac); outline-offset: 2px; }
+
+.bloque { margin: 64px 0 0; padding-top: 20px; border-top: 2px solid var(--pg-ink); font: 600 26px/1.2 var(--pg-lec); scroll-margin-top: 72px; }
+.bloque + p { max-width: 80ch; margin: 8px 0 0; color: var(--pg-mut); }
+.pant { margin-top: 44px; scroll-margin-top: 72px; }
+.pant h2 { margin: 0 0 4px; font: 600 20px/1.25 var(--pg-lec); }
+.pant h2 small { font: 600 12px var(--pg-ui); letter-spacing: .04em; color: var(--pg-ac); margin-right: 8px; vertical-align: 2px; }
+.pant__idea { max-width: 84ch; margin: 0 0 4px; }
+.pant__nota { max-width: 84ch; margin: 0 0 12px; font-size: 13.5px; color: var(--pg-mut); }
+.pant.duda { padding: 20px 24px 24px; background: var(--pg-card); border: 1px solid var(--pg-line); border-radius: 12px; }
+.fila { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 28px; margin-top: 16px; }
+.lzw { max-width: 100%; margin: 0; overflow-x: auto; padding-bottom: 4px; }
+.lzw figcaption { position: sticky; left: 0; margin-bottom: 8px; font-size: 12.5px; color: var(--pg-mut); max-width: 360px; }
+.lzw figcaption b { color: var(--pg-ink); font-weight: 600; }
+.lzw figcaption .rec { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; background: var(--pg-rec); color: var(--pg-ink); font-size: 11.5px; font-weight: 600; }
+.lzw .lz { border-radius: 10px; outline: 1px solid var(--pg-line); outline-offset: -1px; }
+.pg[data-ver="c"] .lzw--m, .pg[data-ver="m"] .lzw--c { display: none; }
+
+.leyenda { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px 20px; max-width: 1100px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 13px; }
+.leyenda li { display: flex; align-items: center; gap: 10px; min-height: 32px; }
+.leyenda .ic { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.leyenda span { color: var(--pg-mut); }
+
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }

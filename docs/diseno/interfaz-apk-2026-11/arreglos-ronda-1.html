@@ -1,0 +1,440 @@
+<title>APK de Libros, ronda 1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400..500&family=Noto+Serif:wght@500;700&display=swap">
+<link rel="stylesheet" href="lienzo.css">
+<link rel="stylesheet" href="apk.css">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-volver" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-flecha" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-der" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-izq" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-abajo" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-arriba" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></symbol>
+  <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-puntos" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-ajustar" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+  <symbol id="i-campana" viewBox="0 0 24 24"><path d="M6 17v-6a6 6 0 0 1 12 0v6l1.5 1.5h-15zM10 20.5a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-biblio" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.3"/><path d="M4 10.5c3 0 6 1 8 3 2-2 5-3 8-3v8c-3 0-6 1-8 3-2-2-5-3-8-3z"/></symbol>
+  <symbol id="i-catalogo" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5"/><path d="M3.5 10h13M10 3.5c-2.4 2-2.4 11 0 13"/><circle cx="17" cy="17" r="2.8"/><path d="M19 19l2.5 2.5"/></symbol>
+  <symbol id="i-foro" viewBox="0 0 24 24"><path d="M4 5h11v7.5H8l-4 3zM18 9h2.5v9.5l-3-2.5H10v-1.5"/></symbol>
+  <symbol id="i-barras" viewBox="0 0 24 24"><path d="M6 20v-9M12 20V4M18 20v-6" stroke-width="3" stroke-linecap="butt"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.5 2.6a7.6 7.6 0 0 0-2.6 1.5l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-1a7.6 7.6 0 0 0 2.6 1.5l.5 2.6h4l.5-2.6a7.6 7.6 0 0 0 2.6-1.5l2.3 1 2-3.4z"/></symbol>
+  <symbol id="i-persona" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></symbol>
+  <symbol id="i-carnet" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="2"/><path d="M5.5 16c.5-1.6 1.6-2.3 3-2.3s2.500.7 3 2.300M14.500 10h4M14.500 13.500h3"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4zM8 9h8M8 12.5h5"/></symbol>
+  <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-libro" viewBox="0 0 24 24"><path d="M12 6.5c-2-1.500-5-2-8-1.500v12c3-.5 6 0 8 1.500 2-1.500 5-2 8-1.500V5c-3-.5-6 0-8 1.500zM12 6.500v12"/></symbol>
+  <symbol id="i-leido" viewBox="0 0 24 24"><path d="M2.5 12.5l4 4 8-9M10.500 15.500l1 1 9.500-10"/></symbol>
+  <symbol id="i-carro" viewBox="0 0 24 24"><path d="M3 4h2.5l2.300 10h9.400l2-7H6.600"/><circle cx="9.5" cy="18.5" r="1.3"/><circle cx="16.5" cy="18.5" r="1.3"/></symbol>
+  <symbol id="i-marcador" viewBox="0 0 24 24"><path d="M7 4h10v16l-5-3.500L7 20zM12 7.500v5M9.500 10h5"/></symbol>
+  <symbol id="i-vetado" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M6.4 6.4l11.200 11.200"/></symbol>
+  <symbol id="i-estrella" viewBox="0 0 24 24"><path d="M12 3.5l2.600 5.400 5.900.8-4.300 4.100 1 5.900L12 16.900l-5.200 2.800 1-5.900L3.500 9.700l5.900-.8z"/></symbol>
+  <symbol id="i-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.8"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.600 5.600l1.400 1.400M17 17l1.400 1.400M5.600 18.400L7 17M17 7l1.400-1.400"/></symbol>
+  <symbol id="i-luna" viewBox="0 0 24 24"><path d="M19 14.5A7.500 7.500 0 0 1 9.500 5a7.500 7.500 0 1 0 9.500 9.500z"/></symbol>
+  <symbol id="i-fuera" viewBox="0 0 24 24"><path d="M13 5h6v6M19 5l-8 8M10 6H6a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-yosi" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="18" cy="5" r="2"/><circle cx="12" cy="20" r="2"/><path d="M7.300 6.500L12 12l4.700-5.500M12 12v6"/></symbol>
+  <symbol id="i-recargar" viewBox="0 0 24 24"><path d="M20 5v5h-5"/><path d="M19.300 14.500A8 8 0 1 1 17.700 6.300L20 10"/></symbol>
+  <symbol id="i-lapiz" viewBox="0 0 24 24"><path d="M4 20l1-4L16.500 4.500a2.100 2.100 0 0 1 3 3L8 19z"/></symbol>
+  <symbol id="i-sagas" viewBox="0 0 24 24"><path d="M8 4h12v13H8zM4 8v12h13M12.500 4v5.500l2-1.500 2 1.500V4"/></symbol>
+  <symbol id="i-mundo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c-3 2.500-3 13.500 0 16M12 4c3 2.500 3 13.500 0 16"/></symbol>
+  <symbol id="i-corregir" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M9.500 12.500l.4-1.900 4.300-4.300 1.500 1.500-4.300 4.300z"/></symbol>
+  <symbol id="i-indice" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-lugar" viewBox="0 0 24 24"><path d="M12 21c-3-3.200-6.500-6.600-6.500-10.500a6.500 6.500 0 0 1 13 0C18.500 14.400 15 17.800 12 21z"/><circle cx="12" cy="10.500" r="2.200"/></symbol>
+  <symbol id="i-nube-ok" viewBox="0 0 24 24"><path d="M7 18.500a4.500 4.500 0 0 1-.5-9 6 6 0 0 1 11.600-1 4.500 4.500 0 0 1-.6 10z"/><path d="M9.500 13l2 2 3.500-3.500"/></symbol>
+  <symbol id="i-nube-no" viewBox="0 0 24 24"><path d="M7 18.500a4.500 4.500 0 0 1-.5-9 6 6 0 0 1 11.600-1 4.500 4.500 0 0 1-.6 10z"/><path d="M4 3.500l16 17.500"/></symbol>
+  <symbol id="i-chispa" viewBox="0 0 24 24"><path d="M10 4l1.800 4.700 4.700 1.800-4.700 1.800L10 17l-1.800-4.700-4.700-1.800 4.700-1.800zM18 14l.9 2.100 2.100.9-2.100.9-.9 2.100-.9-2.100-2.100-.9 2.100-.9z"/></symbol>
+  <symbol id="i-ampliar" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></symbol>
+  <symbol id="i-tablero" viewBox="0 0 24 24"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></symbol>
+  <symbol id="i-feed" viewBox="0 0 24 24"><path d="M4 5h16v5H4zM4 13h16v5H4zM7 7.500h4M7 15.500h6"/></symbol>
+  <symbol id="i-grupo" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6.500 19c0-3 2.400-5 5.500-5s5.500 2 5.500 5"/><circle cx="5" cy="10" r="2"/><circle cx="19" cy="10" r="2"/><path d="M2 17.500c0-1.800 1.200-3 3-3M22 17.500c0-1.800-1.200-3-3-3"/></symbol>
+  <symbol id="i-personas" viewBox="0 0 24 24"><circle cx="9" cy="8.500" r="3"/><path d="M3 19c0-3 2.700-5 6-5s6 2 6 5"/><circle cx="17" cy="9.500" r="2.300"/><path d="M17 14c2.500 0 4.500 1.700 4.500 4.500"/></symbol>
+  <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 3l7 2.800V11c0 4.600-3 8.300-7 10-4-1.700-7-5.400-7-10V5.800z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-persona-mas" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.200"/><path d="M3.500 19.500c0-3.200 2.800-5.500 6.500-5.500 1.300 0 2.500.3 3.500.8M18 13v6M15 16h6"/></symbol>
+  <symbol id="i-persona-menos" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.200"/><path d="M3.500 19.500c0-3.200 2.800-5.500 6.500-5.500 1.300 0 2.500.3 3.500.8M15 16h6"/></symbol>
+  <symbol id="i-caja" viewBox="0 0 24 24"><path d="M4 5h16v4H4zM5.500 9v10h13V9M10 13h4"/></symbol>
+  <symbol id="i-candado" viewBox="0 0 24 24"><rect x="6" y="11" width="12" height="9" rx="1.5"/><path d="M8.500 11V8a3.500 3.500 0 0 1 7 0v3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 11v5.500M12 7.600v.2"/></symbol>
+  <symbol id="i-calendario" viewBox="0 0 24 24"><path d="M5 6h14v14H5zM5 10h14M9 3.500v4M15 3.500v4"/></symbol>
+</svg>
+
+<div class="pg" id="pg">
+  <h1>APK de Libros: arreglos tras la primera revisión de interfaz</h1>
+  <p class="pg__intro">Cada pantalla con hallazgos, como debe quedar: en el móvil (360 × 800) y en el Honor abierto (720 × 780). La navegación principal habla con iconos, las pestañas de dentro de una pantalla van con palabras y cada control lleva una sola cosa. Pasa el ratón por un icono para ver su nombre accesible; la lista entera está al final.</p>
+  <ul class="idx">
+    <li><a href="#dudas">Lo que hay que elegir</a></li><li><a href="#piezas">Piezas compartidas</a></li><li><a href="#biblioteca">Biblioteca</a></li><li><a href="#catalogo">Catálogo</a></li><li><a href="#libro">Libro</a></li><li><a href="#comunidad">Comunidad</a></li><li><a href="#mensajes">Mensajes</a></li><li><a href="#perfil">Perfil</a></li><li><a href="#estadisticas">Estadísticas</a></li><li><a href="#preferencias">Preferencias</a></li><li><a href="#cuenta">Cuenta</a></li><li><a href="#avisos">Avisos</a></li><li><a href="#iconos">Iconos y nombres</a></li>
+  </ul>
+
+  <div class="ctl">
+    <div class="ctl__g">Lienzos en <button data-pon="data-maqueta" value="claro">Claro</button><button data-pon="data-maqueta" value="oscuro">Oscuro</button></div>
+    <div class="ctl__g">Ver <button data-pon="data-ver" value="todos">Los dos</button><button data-pon="data-ver" value="c">Móvil</button><button data-pon="data-ver" value="m">Plegable</button></div>
+  </div>
+
+  <!-- ================= DUDAS ================= -->
+  <h2 class="bloque" id="dudas">Lo que hay que elegir</h2>
+  <p>Siete decisiones, cada una con sus opciones pintadas y la recomendada primero. El resto de la maqueta está dibujado con las recomendadas.</p>
+
+  <section class="pant duda" id="d5">
+    <h2><small>DUDA 5</small>Iconos de universo y de saga, delante del nombre</h2>
+    <p class="pant__idea">El universo ya se reconoce por su tarjeta y su título; la saga, por colgar de la línea, con sus portadas, su número y su flecha. Sin iconos tampoco hacen falta los rótulos «SAGAS» e «HISTORIAS INDEPENDIENTES»: las sagas son filas y los libros sueltos, tarjetas.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption><b>A · Sin iconos</b><span class="rec">recomendada</span><br>El nombre solo, en los dos niveles.</figcaption><div class="lz t-c lz--rec" data-de="d5-a"></div></figure>
+      <figure class="lzw"><figcaption><b>B · El color del universo</b><br>Un punto con el color de cada universo; la saga, sin icono.</figcaption><div class="lz t-c lz--rec" data-de="d5-b"></div></figure>
+      <figure class="lzw"><figcaption><b>C · Como está</b><br>El mundo de color y el icono de saga se quedan, como excepción aceptada.</figcaption><div class="lz t-c lz--rec" data-de="d5-c"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant duda" id="dmas">
+    <h2><small>EL «+»</small>«+ Capítulo», «+ Escena», «+ Nota nueva» y «+ Nuevo»</h2>
+    <p class="pant__idea">En cada lienzo, de arriba abajo: el índice del libro, el final del capítulo, el compositor de notas y la lista de Elementos.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption><b>A · Solo el +</b><span class="rec">recomendada</span><br>El sitio ya dice qué se crea; el nombre («Nuevo capítulo»…) va en el icono.</figcaption><div class="lz t-c lz--rec" data-de="dmas-a"></div></figure>
+      <figure class="lzw"><figcaption><b>B · Solo la palabra</b><br>«Nuevo capítulo», «Nueva escena», «Nota nueva» y «Nuevo».</figcaption><div class="lz t-c lz--rec" data-de="dmas-b"></div></figure>
+      <figure class="lzw"><figcaption><b>C · Como está</b><br>El + y la palabra. Solo si el propietario acepta el hallazgo como excepción.</figcaption><div class="lz t-c lz--rec" data-de="dmas-c"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant duda" id="dbus">
+    <h2><small>BUSCADORES</small>La lupa y el texto «Buscar»</h2>
+    <p class="pant__idea">De arriba abajo: notas del libro, Elementos, clubes y mensajes de una conversación. Los dos últimos se envían: su lupa es el botón. Biblioteca y Catálogo no cambian: su texto dice por qué se puede buscar («Título, autor, universo…»).</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption><b>A · La lupa sola</b><span class="rec">recomendada</span><br>El campo vacío con su lupa; el nombre accesible dice dónde busca.</figcaption><div class="lz t-c lz--rec" data-de="dbus-a"></div></figure>
+      <figure class="lzw"><figcaption><b>B · El texto solo</b><br>«Buscar en tus notas», «Buscar», «Busca un club», sin lupa.</figcaption><div class="lz t-c lz--rec" data-de="dbus-b"></div></figure>
+      <figure class="lzw"><figcaption><b>C · La lupa y qué se busca</b><br>Como en Biblioteca: la lupa y los campos por los que busca.</figcaption><div class="lz t-c lz--rec" data-de="dbus-c"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant duda" id="d4">
+    <h2><small>DUDA 4</small>«Participantes» y «Añadir amistades» en el panel de un grupo</h2>
+    <p class="pant__idea">El panel junta dos listas de personas. O se nombran las dos, o la segunda sale del panel.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption><b>A · Dos rótulos cortos</b><span class="rec">recomendada</span><br>«Participantes» con su «4 / 50» en la misma línea, y «Añadir amistades» sobre las candidatas. Sin subtítulos en las filas.</figcaption><div class="lz t-c" data-de="d4-a"></div></figure>
+      <figure class="lzw"><figcaption><b>B · Una lista y un botón</b><br>Sin rótulos: el panel es solo el grupo, y «Añadir amistades» abre las candidatas en una hoja.</figcaption><div class="lz t-c" data-de="d4-b"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant duda" id="dhoja">
+    <h2><small>HOJA «MÁS»</small>Los cinco accesos: iconos o palabras</h2>
+    <p class="pant__idea">El informe pide solo el icono. «Cuenta» cambia el escudo por un carné, que se entiende mejor, y «Mensajes» deja de compartir icono con Comunidad.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption><b>A · Iconos en una fila</b><span class="rec">recomendada</span><br>Como la navegación. El destino actual, marcado.</figcaption><div class="lz t-c" data-de="mas-a"></div></figure>
+      <figure class="lzw"><figcaption><b>B · Palabras, sin icono</b><br>La rejilla de hoy, sin los iconos.</figcaption><div class="lz t-c" data-de="mas-b"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant duda" id="dcom">
+    <h2><small>COMUNIDAD</small>Las siete secciones: palabras o iconos</h2>
+    <p class="pant__idea">El informe pide solo el icono, pero Clubes, Personas y Amistades son tres iconos de gente que no se distinguen. Con palabras, además, el plegable se ahorra el segundo rail.</p>
+    <div class="fila">
+      <figure class="lzw lzw--c"><figcaption><b>A · Palabras, arriba</b><span class="rec">recomendada</span><br>Como en Estadísticas y Preferencias. Las de la web social, con el símbolo.</figcaption><div class="lz t-c" data-de="dcom-a"></div></figure>
+      <figure class="lzw lzw--m"><figcaption><b>A</b> en el plegable: las siete caben en una fila, sin segundo rail.</figcaption><div class="lz t-m" data-de="dcom-a"></div></figure>
+    </div>
+    <div class="fila">
+      <figure class="lzw lzw--c"><figcaption><b>B · Iconos</b><br>Lo que pide el informe: una fila de iconos en el móvil.</figcaption><div class="lz t-c" data-de="dcom-b"></div></figure>
+      <figure class="lzw lzw--m"><figcaption><b>B</b> en el plegable: el segundo rail, más estrecho.</figcaption><div class="lz t-m" data-de="dcom-b"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant duda" id="dest">
+    <h2><small>ESTADO</small>El selector del editor de estado</h2>
+    <p class="pant__idea">Los estados van solo con el icono (ya decidido). En el editor, donde se elige, propongo que el elegido se lea una vez.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption><b>A · Iconos y el nombre del elegido</b><span class="rec">recomendada</span></figcaption><div class="lz t-c lz--rec rec--pad" data-de="dest-a"></div></figure>
+      <figure class="lzw"><figcaption><b>B · Solo los iconos</b></figcaption><div class="lz t-c lz--rec rec--pad" data-de="dest-b"></div></figure>
+    </div>
+  </section>
+
+  <!-- ================= PIEZAS ================= -->
+  <h2 class="bloque" id="piezas">Piezas compartidas</h2>
+  <p>Se dibujan una vez. La barra superior, la navegación inferior y el rail están en la primera pantalla de Biblioteca y se repiten igual en las demás.</p>
+
+  <section class="pant" id="p1" data-de="biblioteca">
+    <h2><small>P1</small>Barra superior, navegación inferior y rail</h2>
+    <p class="pant__idea">Fuera «MEMORIA BIBLIOGRÁFICA» sobre el título. La navegación se queda con los iconos: la barra inferior baja de 72 a 64 dp y el rail, de 88 a 72 dp. El destino actual lo marca la píldora; la campana, su punto.</p>
+    <p class="pant__nota">Compose: quitar el <code>Text</code> de cada entrada y cambiar dos medidas. Si se quiere, el nombre al mantener pulsado (<code>TooltipBox</code>).</p>
+  </section>
+
+  <section class="pant" id="p2" data-de="mas-a">
+    <h2><small>P2</small>Hoja «Más»</h2>
+    <p class="pant__idea">Fuera «Tu espacio» y la fila «Tema / Claro»: queda el interruptor. Los accesos, con el icono (opción A). «Errores y propuestas» abre la web social: lleva el símbolo, como los demás enlaces, en vez del bicho.</p>
+  </section>
+
+  <section class="pant" id="p3">
+    <h2><small>P3</small>Estados vacíos, de carga y de error; chips, botones y campos</h2>
+    <p class="pant__idea">Una pantalla vacía con salida: un icono y el botón. Una búsqueda sin resultados: una frase y el botón. Una lista vacía dentro de una sección: dos o tres palabras en gris («Sin eventos»), sin icono grande. Cargando: la rueda sola. Los errores con «Reintentar» no cambian. Los botones, solo con su verbo; los chips de estado, con el icono y su número.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Estados: biblioteca vacía, sin coincidencias, lista vacía, cargando y error.</figcaption><div class="lz t-c lz--rec" data-de="estados"></div></figure>
+      <figure class="lzw"><figcaption>Botones, botones de icono, insignias, chips, pestañas, selector, buscador e interruptor.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="controles"></div></figure>
+    </div>
+  </section>
+
+  <!-- ================= BIBLIOTECA ================= -->
+  <h2 class="bloque" id="biblioteca">Biblioteca</h2>
+
+  <section class="pant" id="b1" data-de="biblioteca">
+    <h2><small>B1</small>Biblioteca por universos</h2>
+    <p class="pant__idea">Fuera «CONTINÚA LEYENDO», «SAGAS» e «HISTORIAS INDEPENDIENTES» y los iconos de universo y saga (duda 5, opción A). En cada tarjeta, el estado es su icono. «Continúa en…» se queda como texto, sin el eslabón.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>El libro minimizado: fuera «Libro abierto».</figcaption><div class="lz t-c lz--rec" data-de="isla"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="b2" data-de="biblioteca-estados">
+    <h2><small>B2</small>Biblioteca por estados, con los filtros abiertos</h2>
+    <p class="pant__idea">Fuera «Organizar por» y «Disponibilidad»: las opciones ya se nombran. Las pestañas de estado, el icono y cuántas obras tiene.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Los filtros por universos: el selector y la disponibilidad, sin etiquetas.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="filtros-universos"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="b3" data-de="editor">
+    <h2><small>B3</small>Editor de estado y puntuación</h2>
+    <p class="pant__idea">Fuera «MI BIBLIOTECA», «ESTADO» y «RESEÑA». Los seis estados caben en una fila de iconos, con el nombre del elegido debajo. La reseña aparece al puntuar: no hay caja apagada que explicar.</p>
+    <p class="pant__nota">Compose: la caja de la reseña con <code>AnimatedVisibility</code>; nada más.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Sin puntuar: no hay reseña que escribir.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="editor-sin-nota"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="b4" data-de="antologia">
+    <h2><small>B4</small>Antología</h2>
+    <p class="pant__idea">Fuera «ANTOLOGÍA» y «SECCIÓN n». «Ficha», «Mi lectura» y «Similares», con la palabra: el destello de «Similares» no se entiende solo.</p>
+  </section>
+
+  <!-- ================= CATÁLOGO ================= -->
+  <h2 class="bloque" id="catalogo">Catálogo</h2>
+
+  <section class="pant" id="c1" data-de="catalogo">
+    <h2><small>C1</small>Catálogo, con una búsqueda que encuentra sagas</h2>
+    <p class="pant__idea">Fuera «SAGAS» y «Fuera de tu biblioteca». Los chips de saga llevan el icono de saga, que aquí sí dice algo: son de otro tipo que las obras de debajo. Las tarjetas que tienes, con el icono de su estado.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Sin resultados: el título y el botón.</figcaption><div class="lz t-c lz--rec" data-de="catalogo-vacio"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="c2" data-de="ficha" data-alto="auto">
+    <h2><small>C2</small>Ficha pública (duda 3: los rótulos)</h2>
+    <p class="pant__idea">Se quedan dos rótulos: «Ediciones» (una fila con un ISBN, justo tras los datos, no se entiende sola) y «Evolución de la nota» (sin él, «4,60 · nov 2026» se confunde con las cifras de arriba). Fuera «Ficha pública», «LIBRO», «Mi biblioteca», «Comunidad lectora» y «Reseñas», y la sección de reseñas si no hay ninguna. La frase de retirar una edición se dice una vez, en el aviso de después.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Fuera de tu biblioteca: «Añadir» y los seis estados. Con los chips sin texto, el verbo hace falta. Cargando: la rueda.</figcaption><div class="lz t-c lz--rec" data-de="ficha-fuera"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="c3" data-de="saga">
+    <h2><small>C3</small>Hoja de saga</h2>
+    <p class="pant__idea">Fuera «SAGA» y «Libro» bajo cada título; «En tu biblioteca», solo cuando toca.</p>
+  </section>
+
+  <section class="pant" id="c4" data-de="peticion">
+    <h2><small>C4</small>Petición al catálogo</h2>
+    <p class="pant__idea">Fuera «Entidad», «Solicitud» y «Ficha». El cupo, en una línea. Una ayuda corta por campo.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Con el límite alcanzado: el aviso se queda, hace falta para decidir.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="peticion-limite"></div></figure>
+    </div>
+  </section>
+
+  <!-- ================= LIBRO ================= -->
+  <h2 class="bloque" id="libro">Libro («Cuaderno») y Elementos</h2>
+  <p>Los cuatro destinos del libro van con palabras, sin icono: es la misma regla que la navegación, aunque el informe no los apuntó.</p>
+
+  <section class="pant" id="l1" data-de="indice">
+    <h2><small>L1</small>Índice del libro</h2>
+    <p class="pant__idea">«+ Capítulo» pasa a ser el + (opción A), junto a «⋯».</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Índice vacío: dos palabras.</figcaption><div class="lz t-c lz--rec" data-de="indice-vacio"></div></figure>
+      <figure class="lzw"><figcaption>Libro sin empezar: «Poner en marcha», sin icono.</figcaption><div class="lz t-c lz--rec" data-de="sin-empezar"></div></figure>
+      <figure class="lzw"><figcaption>Parte o interludio: fuera «ESTRUCTURA».</figcaption><div class="lz t-c lz--rec" data-de="estructura"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="l2" data-de="capitulo">
+    <h2><small>L2</small>Capítulo</h2>
+    <p class="pant__idea">Al final, el número de la escena que viene y el + (opción A).</p>
+  </section>
+
+  <section class="pant" id="l3" data-de="notas">
+    <h2><small>L3</small>Notas del libro</h2>
+    <p class="pant__idea">El buscador, con la lupa sola. En el compositor, el + deja la nota y empieza otra.</p>
+  </section>
+
+  <section class="pant" id="l4" data-de="busqueda">
+    <h2><small>L4</small>Búsqueda en el libro</h2>
+    <p class="pant__idea">Antes de escribir, la pantalla es el campo y sus categorías, sin «Busca en toda la narración». Sin resultados, «Sin coincidencias». Las categorías, con la palabra.</p>
+  </section>
+
+  <section class="pant" id="l5" data-de="titulo">
+    <h2><small>L5</small>Tu título</h2>
+    <p class="pant__idea">Fuera «Tu título». Generar, editar y ver en grande son tres iconos. Del coste queda el dato: «Te quedan 3 hoy».</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Sin título: el destello, junto a tu estado.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="titulo-vacio"></div></figure>
+      <figure class="lzw"><figcaption>Editar la frase: la consecuencia, en una línea.</figcaption><div class="lz t-c lz--rec" data-de="titulo-editar"></div></figure>
+      <figure class="lzw"><figcaption>Sin clave: una frase y el botón.</figcaption><div class="lz t-c lz--rec" data-de="titulo-sin-clave"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="e1" data-de="elementos">
+    <h2><small>E1</small>Elementos</h2>
+    <p class="pant__idea">La lupa sola y el + (opciones A). En el plegable, la ficha del primero abierta: así no hay columna vacía ni «Elige uno de la lista.».</p>
+    <p class="pant__nota">Compose: abrir el primer elemento al entrar con la ventana ancha pide una línea en el <code>ViewModel</code>. Si no se quiere, la columna se queda en blanco.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Un tipo sin elementos: dos palabras; el + ya está arriba.</figcaption><div class="lz t-c lz--rec" data-de="elementos-vacio"></div></figure>
+    </div>
+  </section>
+
+  <!-- ================= COMUNIDAD ================= -->
+  <h2 class="bloque" id="comunidad">Comunidad</h2>
+
+  <section class="pant" id="m1" data-de="comunidad">
+    <h2><small>M1</small>Resumen</h2>
+    <p class="pant__idea">Las tarjetas, el número y su nombre, sin icono. Las que abren la web social llevan el símbolo y la flecha de «se abre en el navegador».</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Resumen a medias: una frase.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="resumen-parcial"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="m2" data-de="actividad">
+    <h2><small>M2</small>Actividad</h2>
+    <p class="pant__idea">Fuera el título «Actividad» y su explicación. «Qué compartes» se queda, con el símbolo.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Sin actividad.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="actividad-vacia"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="m3" data-de="clubes">
+    <h2><small>M3</small>Clubes · Descubrir</h2>
+    <p class="pant__idea">Las cuatro pestañas, con la palabra. El buscador, vacío y con la lupa como botón. «Descubrir» repetía la pestaña: las dos listas se llaman «Populares» y «Todos». Las filas, sin el icono en círculo.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Mis clubes.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="clubes-mios"></div></figure>
+      <figure class="lzw"><figcaption>Eventos, y la lista vacía.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="clubes-eventos"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="m4" data-de="acceso">
+    <h2><small>M4</small>Clubes · Acceso</h2>
+    <p class="pant__idea">«Invitaciones» y «Solicitudes», «Aceptar», «Rechazar» y «Retirar», con la palabra.</p>
+  </section>
+
+  <section class="pant" id="m5" data-de="club" data-alto="auto">
+    <h2><small>M5</small>Un club</h2>
+    <p class="pant__idea">«Abierto» es un chip. Cada sección plegable, su título y la flecha. «Miembros», «Publicaciones» y «Autores más leídos», sin icono. Sin descripción no se pinta nada.</p>
+    <p class="pant__nota">Compose: en el plegable las secciones van en dos columnas y la abierta ocupa las dos. Es lo más laborioso de la ronda; en una columna también vale.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>«Solicitar acceso»: el título y el campo.</figcaption><div class="lz t-c lz--rec" data-de="club-solicitar"></div></figure>
+      <figure class="lzw"><figcaption>Solicitud enviada.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="club-solicitada"></div></figure>
+      <figure class="lzw"><figcaption>Club eliminado: una frase.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="club-eliminado"></div></figure>
+    </div>
+  </section>
+
+  <!-- ================= MENSAJES ================= -->
+  <h2 class="bloque" id="mensajes">Mensajes</h2>
+
+  <section class="pant" id="n1" data-de="mensajes">
+    <h2><small>N1</small>Bandeja</h2>
+    <p class="pant__idea">«Nuevo chat» y «Nuevo grupo», con la palabra.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>«Nuevo chat» abierto: las amistades, sin título ni «Abrir conversación directa».</figcaption><div class="lz t-c lz--rec rec--pad" data-de="mensajes-creador"></div></figure>
+      <figure class="lzw"><figcaption>Un filtro sin conversaciones.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="mensajes-vacio"></div></figure>
+      <figure class="lzw"><figcaption>Buscar en una conversación: el campo vacío y su lupa. «Solo lectura» se queda.</figcaption><div class="lz t-c lz--rec" data-de="conv-busqueda"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="n2" data-de="grupo">
+    <h2><small>N2</small>Panel de un grupo (duda 4, opción A)</h2>
+    <p class="pant__idea">«Participantes 4 / 50» en una línea y «Añadir amistades» sobre las candidatas, que pierden el «Añadir al grupo» de cada fila: lo dice su botón.</p>
+  </section>
+
+  <!-- ================= PERFIL ================= -->
+  <h2 class="bloque" id="perfil">Perfil</h2>
+
+  <section class="pant" id="f1" data-de="perfil" data-alto="auto">
+    <h2><small>F1</small>Perfil</h2>
+    <p class="pant__idea">Un solo título, «Actividad reciente», porque la lista no se explica sola; los tres destinos van sin título, sin icono y sin subtítulo, con su número. Sin actividad, el bloque no se pinta.</p>
+  </section>
+
+  <section class="pant" id="f2" data-de="peticiones">
+    <h2><small>F2</small>Mis peticiones</h2>
+    <p class="pant__idea">Fuera «Tu perfil lector» y «Seguimiento de tus solicitudes».</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Mis reportes, vacío.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="reportes-vacio"></div></figure>
+      <figure class="lzw"><figcaption>«Perfil»: la foto en vez del icono; el enlace con el símbolo se queda.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="perfil-tu"></div></figure>
+    </div>
+  </section>
+
+  <!-- ================= ESTADÍSTICAS ================= -->
+  <h2 class="bloque" id="estadisticas">Estadísticas</h2>
+
+  <section class="pant" id="s1" data-de="estadisticas" data-alto="auto">
+    <h2><small>S1</small>Estadísticas</h2>
+    <p class="pant__idea">«Personal» y «General», con la palabra. Las cifras y los gráficos, sin icono. Un gráfico sin datos dice siempre lo mismo: «Sin datos suficientes.».</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>General: los «Nuevos», sin icono; el candado del umbral de privacidad se queda.</figcaption><div class="lz t-c lz--rec rec--pad" data-de="estadisticas-general"></div></figure>
+    </div>
+  </section>
+
+  <!-- ================= PREFERENCIAS ================= -->
+  <h2 class="bloque" id="preferencias">Preferencias</h2>
+
+  <section class="pant" id="r1" data-de="preferencias">
+    <h2><small>R1</small>Lectura y escritura</h2>
+    <p class="pant__idea">Las pestañas, con la palabra. Cada interruptor, su título. Del dictado, el dato para decidir: «Gratis» o «Gasta de tu clave».</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Privacidad: los dos botones.</figcaption><div class="lz t-c lz--rec" data-de="pref-privacidad"></div></figure>
+      <figure class="lzw"><figcaption>Permisos: el estado y «Activar».</figcaption><div class="lz t-c lz--rec" data-de="pref-permisos"></div></figure>
+    </div>
+  </section>
+
+  <!-- ================= CUENTA ================= -->
+  <h2 class="bloque" id="cuenta">Cuenta</h2>
+
+  <section class="pant" id="u1" data-de="entrar" data-alto="auto">
+    <h2><small>U1</small>Entrar</h2>
+    <p class="pant__idea">Solo el título. «Con tu cuenta de Yosiftware» se dice una vez, arriba. Las cuentas, sin «Tus cuentas en esta app» ni «Toca para entrar sin contraseña.». Los campos, con su etiqueta y sin el mismo texto dentro.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Cuenta nueva.</figcaption><div class="lz t-c lz--rec" data-de="cuenta-alta"></div></figure>
+      <figure class="lzw"><figcaption>Doble paso.</figcaption><div class="lz t-c lz--rec" data-de="cuenta-codigo"></div></figure>
+      <figure class="lzw"><figcaption>Un paso más: sale de la app.</figcaption><div class="lz t-c lz--rec" data-de="cuenta-paso"></div></figure>
+      <figure class="lzw"><figcaption>Cuenta que se va a borrar: el plazo se queda.</figcaption><div class="lz t-c lz--rec" data-de="cuenta-borrado"></div></figure>
+      <figure class="lzw"><figcaption>Normas: la versión, en un chip; «Salir», sin icono.</figcaption><div class="lz t-c lz--rec" data-de="cuenta-normas"></div></figure>
+    </div>
+  </section>
+
+  <section class="pant" id="u2" data-de="cuentas">
+    <h2><small>U2</small>Panel de cuentas</h2>
+    <p class="pant__idea">«Añadir otra cuenta», «Cerrar sesión» y «Volver a entrar», con la palabra. Los enlaces a la web social, con el símbolo.</p>
+  </section>
+
+  <!-- ================= AVISOS ================= -->
+  <h2 class="bloque" id="avisos">Panel de avisos</h2>
+
+  <section class="pant" id="a1" data-de="avisos">
+    <h2><small>A1</small>La campana</h2>
+    <p class="pant__idea">Fuera «Notificaciones»: la X sube a la fila de los filtros.</p>
+    <div class="fila">
+      <figure class="lzw"><figcaption>Nada sin leer.</figcaption><div class="lz t-c lz--rec" data-de="avisos-vacio"></div></figure>
+      <figure class="lzw"><figcaption>Cargando: la rueda.</figcaption><div class="lz t-c lz--rec" data-de="avisos-cargando"></div></figure>
+    </div>
+  </section>
+
+  <!-- ================= ICONOS ================= -->
+  <h2 class="bloque" id="iconos">Los iconos que van solos y su nombre accesible</h2>
+  <p>Lo que debe decir el <code>contentDescription</code> de cada uno.</p>
+  <ul class="leyenda">
+    <li><i data-i="biblio"></i>Biblioteca</li><li><i data-i="catalogo"></i>Catálogo</li><li><i data-i="foro"></i>Comunidad</li><li><i data-i="puntos"></i>Más</li>
+    <li><i data-i="campana"></i>Notificaciones, <span>N sin ver</span></li><li><i data-i="barras"></i>Estadísticas</li><li><i data-i="ajustes"></i>Preferencias</li><li><i data-i="persona"></i>Perfil</li>
+    <li><i data-i="carnet"></i>Cuenta</li><li><i data-i="chat"></i>Mensajes, <span>N sin leer</span></li><li><i data-i="sol"></i>Usar tema claro</li><li><i data-i="luna"></i>Usar tema oscuro</li>
+    <li><i data-i="reloj"></i>En espera</li><li><i data-i="libro"></i>En marcha</li><li><i data-i="leido"></i>Leído</li><li><i data-i="carro"></i>Por comprar</li>
+    <li><i data-i="marcador"></i>Quiero leer</li><li><i data-i="vetado"></i>Descartado</li><li><i data-i="mas"></i>Nuevo capítulo, <span>nueva escena…</span></li><li><i data-i="buscar"></i>Buscar <span>en tus notas…</span></li>
+    <li><i data-i="ajustar"></i>Filtros</li><li><i data-i="chispa"></i>Generar con IA</li><li><i data-i="lapiz"></i>Editar la frase</li><li><i data-i="ampliar"></i>Ver en grande</li>
+    <li><i data-i="recargar"></i>Actualizar <span>el resumen…</span></li><li><i data-i="corregir"></i>Proponer corrección</li><li><i data-i="persona-mas"></i>Añadir a <span>Pablo</span> al grupo</li><li><i data-i="escudo"></i>Hacer administrador</li>
+    <li><i data-i="persona-menos"></i>Retirar participante</li><li><i data-i="fuera"></i>Se abre en el navegador</li><li><i data-i="indice"></i>Abrir el índice</li><li><i data-i="cerrar"></i>Cerrar</li>
+  </ul>
+</div>
+
+<script src="p0-piezas.js"></script>
+<script src="p1-biblioteca.js"></script>
+<script src="p2-libro.js"></script>
+<script src="p3-comunidad.js"></script>
+<script src="p4-resto.js"></script>
+<script src="lienzo.js"></script>
