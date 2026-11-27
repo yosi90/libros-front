@@ -12,7 +12,7 @@
 
 ## Referencias útiles
 
-- `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (maestro y backend en `../Libros API/docs/roadmaps/FINALIZADO_adhesion-yosiftware/`); lo que quedó, en `../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`.
+- `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (maestro y backend en `../Libros API/docs/roadmaps/FINALIZADO_adhesion-yosiftware/`); lo que quedó, en `../Libros API/docs/roadmaps/ACTIVO_tras-la-adhesion/`.
 - Peticiones de la plataforma a Libros: `../Libros API/docs/peticiones/` (el frontend las recibe a través del propietario). Peticiones de Libros a la plataforma: `C:\Users\Yosi\Desktop\administracion yosiftware\docs\peticiones\`.
 - Guías del kit: `ecosistema-kit/MIGRACION.md`, `ACCESO.md`, `APK.md`, `CAMBIO_DE_CUENTA.md`, `LISTA_DE_COMPROBACION.md`.
 - Precedentes de APK nativa del ecosistema: `C:\Users\Yosi\Desktop\mazos lorcana\android` (Yosircana) y `C:\Users\Yosi\Desktop\Fichas 3.5\companion` (3.5 Companion).

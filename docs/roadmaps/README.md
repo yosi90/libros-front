@@ -24,4 +24,4 @@
 
 ## Roadmaps finalizados
 
-En su vertical, con el prefijo `ROADMAP_FINALIZADO_`. El último, `common/ROADMAP_FINALIZADO_duplicados-frontend.md` (cerrado el 26/11/2026, con sus 11 propuestas). La adhesión, `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (cerrado el 29/10/2026); lo que dejó abierto está en `../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`.
+En su vertical, con el prefijo `ROADMAP_FINALIZADO_`. El último, `common/ROADMAP_FINALIZADO_duplicados-frontend.md` (cerrado el 26/11/2026, con sus 11 propuestas). La adhesión, `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (cerrado el 29/10/2026); lo que dejó abierto está en `../Libros API/docs/roadmaps/ACTIVO_tras-la-adhesion/`.

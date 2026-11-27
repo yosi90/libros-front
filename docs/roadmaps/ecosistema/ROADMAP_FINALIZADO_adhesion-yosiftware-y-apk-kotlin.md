@@ -1,6 +1,6 @@
 # Adhesión a Yosiftware (web) y APK nativa en Kotlin
 
-Estado: FINALIZADO (2026-10-29, con el visto bueno del propietario al corte). Lo que quedó abierto sigue en `../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`.
+Estado: FINALIZADO (2026-10-29, con el visto bueno del propietario al corte). Lo que quedó abierto sigue en `../Libros API/docs/roadmaps/ACTIVO_tras-la-adhesion/`.
 Abierto: 2026-10-24, a petición del propietario.
 Roadmap maestro (orden global y backend): `../Libros API/docs/roadmaps/FINALIZADO_adhesion-yosiftware/ROADMAP_FINALIZADO_adhesion_yosiftware.md`. Las fases citadas como «fase N» son las de ese documento.
 Checklist de pruebas: `docs/pruebas/ecosistema/[pendiente][adhesion-yosiftware-y-apk-kotlin].md`.
@@ -412,7 +412,7 @@ Todo lo marcado está en la rama `adhesion/web` (commits `5312ba8`, `98b7d1e`, `
   - Los mensajes van como en WhatsApp, a petición del propietario: tocar reacciona, mantener pulsado da las opciones y deslizar responde.
   - El chat limitado por la moderación dice hasta cuándo.
   - El canal en tiempo real de los clubes: un hito creado o borrado por otra cuenta aparece y desaparece solo.
-- [x] App Links y aviso de versión nueva (`0cfd677`). Desde el kit 1.57, la versión disponible la da la plataforma (`GET /v1/webs`, `app.version`, con su enlace de instalación), no GitHub Releases como `AndroidReleaseUpdateService` de la APK actual. **Hecho lo que se podía ver (2026-10-29):** los App Links, y la plataforma ya da `version` e `instalacion` para Libros. El aviso de versión nueva se verá con la próxima versión de la APK (`../Libros API/docs/roadmaps/PAUSADO_tras-la-adhesion/`).
+- [x] App Links y aviso de versión nueva (`0cfd677`). Desde el kit 1.57, la versión disponible la da la plataforma (`GET /v1/webs`, `app.version`, con su enlace de instalación), no GitHub Releases como `AndroidReleaseUpdateService` de la APK actual. **Hecho lo que se podía ver (2026-10-29):** los App Links, y la plataforma ya da `version` e `instalacion` para Libros. El aviso de versión nueva se verá con la próxima versión de la APK (`../Libros API/docs/roadmaps/ACTIVO_tras-la-adhesion/`).
   - App Links verificados en el Honor para QA. Abren en la app:
     - la invitación por código;
     - el chat;
