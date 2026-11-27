@@ -30,7 +30,7 @@ Roadmap: `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`. Cada
 - [x] Con las muestras de depuración en el Honor:
   - plegado: el capítulo, el índice, la ficha, las notas, el compositor a medias y el Resumen;
   - abierto: la lista con la ficha al lado y el alta.
-- [ ] En el Honor abierto: el capítulo, las notas y el Resumen.
-- [ ] Con una cuenta de QA, a mano en el Honor:
-  - escribir una escena, cerrar la app del todo y volver («Volver a lo guardado»);
-  - la ficha y las notas sin conexión (modo avión) y al volver la red.
+- [x] En el Honor abierto: el capítulo, las notas y el Resumen (27/11/2026, con la cuenta de QA).
+- [x] Con la cuenta de QA en el Honor abierto (27/11/2026):
+  - escribir en una escena y matar la app antes del envío: al volver sale el aviso con la hora, y «Volver a lo guardado» borra el borrador y deja lo del servidor;
+  - la ficha y las notas sin conexión y al volver la red. No con el modo avión, que corta el ADB por wifi, sino quitándole la red solo a la app (`cmd connectivity set-package-networking-enabled false`). Así salió un fallo: la app no se enteraba de un bloqueo solo suyo y no reenviaba al volver. Arreglado en `EstadoDeRed` (`onBlockedStatusChanged`) y vuelto a probar.

@@ -119,7 +119,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 
 ## F5. La APK Kotlin
 
-- [ ] **El clon de F1 a F4 en `android-nativa/`.**
+- [x] **El clon de F1 a F4 en `android-nativa/`.**
   - *Descripción:*
     - `ListDetailPaneScaffold` para la lista y la ficha;
     - `ModalBottomSheet` y `Popup` para el reparto y el lugar;
@@ -130,7 +130,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
   - *Qué se espera:* la misma vista en el Honor.
   - *Peligro si no:* la web y la APK, distintas.
   - *Peligro del cambio:* las muestras de depuración, que hay que poner al día. Se prueba en el Honor, nunca en un emulador.
-  - *Cómo quedó (26/11/2026, en cuatro tandas, F5a a F5d; falta publicar la APK):*
+  - *Cómo quedó (26/11/2026, en cuatro tandas, F5a a F5d; en producción el 27/11/2026: APK 2.1.0, 20100, SHA-256 `224b8b1e…3707`, novedad de Yosiftware id 132):*
     - **El marco:** los cuatro destinos abajo, cada uno vuelve a lo último abierto. Debajo de la barra del libro, la del destino: «Capítulo 3 de 12» con anterior y siguiente, o «Personajes 21 ▾». El índice lleva «+ Capítulo» y «⋯» (parte e interludio); la wiki, en el Resumen.
     - **El capítulo:** se lee entero en Literata (el RTF sin fuente propia, o con Microsoft Sans Serif, se pinta con ella). Tocar el texto abre la escena con el cursor ahí; los enlaces siguen abriendo su elemento. Las apostillas van debajo salvo en el ancho expandido, y el lugar se crea desde su hoja. Un capítulo nuevo se crea en cuanto vale. Lo recuperado se dice en la página con «Volver a lo guardado» y, a diferencia de antes, no se envía hasta seguir escribiendo o cerrar el aviso.
     - **Elementos:**
@@ -138,9 +138,9 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
       - la ficha se guarda sola; lo enviado toma su id sin rehacer la ficha;
       - pasar a otro elemento o volver guarda antes y, si algo no vale, lo deja en el borrador del móvil.
     - **Las notas:** antes no tenían borrador y se perdían al cerrar la app o cambiar de cuenta. Ahora el compositor guarda solo y lo que aún no vale se queda en la carpeta de la cuenta.
-    - **Sin conexión,** el capítulo, la ficha y las notas dicen «Sin conexión · guardado en el dispositivo» y reenvían al volver la red (`EstadoDeRed`).
+    - **Sin conexión,** el capítulo, la ficha y las notas dicen «Sin conexión · guardado en el dispositivo» y reenvían al volver la red (`EstadoDeRed`, que también cuenta como sin red el bloqueo solo de la app: ahorro de datos o permiso de red).
     - **El reparto y el lugar** siguen en la `HojaInferior` propia, no en `ModalBottomSheet`.
-    - **Probado en el Honor:** plegado, todo con las muestras de depuración; abierto, Elementos.
+    - **Probado en el Honor:** plegado, todo con las muestras de depuración; abierto, todo con la cuenta de QA, también lo recuperado y sin conexión.
 
 ## F6. El resto de la web
 
