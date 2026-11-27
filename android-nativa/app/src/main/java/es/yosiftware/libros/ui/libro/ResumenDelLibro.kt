@@ -1,6 +1,7 @@
 package es.yosiftware.libros.ui.libro
 
 import es.yosiftware.libros.datos.conUnDecimal
+import es.yosiftware.libros.datos.diaYMes
 import es.yosiftware.libros.datos.fechaCorta
 import es.yosiftware.libros.datos.instanteDe
 import es.yosiftware.libros.datos.modelos.EstadisticaDeCapitulo
@@ -12,8 +13,6 @@ import es.yosiftware.libros.datos.modelos.RitmoDelLibro
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.datos.plegar
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.log10
@@ -115,12 +114,10 @@ object ResumenDelLibro {
     }
 
     /** «25 oct» (`paceDayLabel`): un día «2026-10-25» de la curva del ritmo. */
-    fun diaCorto(fecha: String): String = runCatching { LocalDate.parse(fecha.take(10)).format(diaYMes).trimEnd('.') }.getOrDefault(fecha)
+    fun diaCorto(fecha: String): String = runCatching { diaYMes(LocalDate.parse(fecha.take(10))) }.getOrDefault(fecha)
 
     /** «18» o «18,5»: hasta una cifra decimal, como `number:'1.0-1'` en español. */
     fun hastaUnDecimal(valor: Double): String = decimal(valor).removeSuffix(",0")
-
-    private val diaYMes = DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es-ES"))
 
     /** La fecha que se manda al poner la de compra («2026-10-25T00:00:00»; `toApiDate`). */
     fun fechaParaLaApi(dia: LocalDate): String = "${dia}T00:00:00"

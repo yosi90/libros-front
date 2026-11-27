@@ -8,6 +8,8 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAccessor
+import java.util.Locale
 
 /**
  * Una fecha de la API de Libros o de la plataforma (ISO 8601), en [zona], como la lee la web: con zona (`Z` o
@@ -31,3 +33,8 @@ private val diaMesAnio = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
 /** «dd/MM/yyyy» de una fecha de la API (con hora o sin ella), en la zona del móvil, como el `date` de Angular. */
 fun fechaCorta(iso: String?): String? = instanteDe(iso)?.atZone(ZoneId.systemDefault())?.toLocalDate()?.format(diaMesAnio)
+
+private val diaYMesCorto = DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es-ES"))
+
+/** «25 oct» («5 sept»), como el `date:'d MMM'` de Angular en español: sin el punto que Java pone a los meses. */
+fun diaYMes(fecha: TemporalAccessor): String = diaYMesCorto.format(fecha).replace(".", "")

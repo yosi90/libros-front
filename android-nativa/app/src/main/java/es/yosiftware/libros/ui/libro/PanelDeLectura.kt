@@ -1,5 +1,6 @@
 package es.yosiftware.libros.ui.libro
 
+import es.yosiftware.libros.datos.diaYMes
 import es.yosiftware.libros.datos.leerFecha
 import es.yosiftware.libros.datos.modelos.EstadisticaDePersonaje
 import es.yosiftware.libros.datos.modelos.EstadisticasDelLibro
@@ -26,7 +27,6 @@ data class HitoConFecha(val nombre: String, val fecha: LocalDate, val detalle: S
  */
 object PanelDeLectura {
     private val es = Locale.forLanguageTag("es-ES")
-    private val diaYMes = DateTimeFormatter.ofPattern("d MMM", es)
     private val diaMesYAnio = DateTimeFormatter.ofPattern("d MMM yyyy", es)
     private val diaDeLaSemana = DateTimeFormatter.ofPattern("EEE", es)
     /** Una estimación más allá de esto no dice nada: no se enseña. */
@@ -98,7 +98,7 @@ object PanelDeLectura {
 
     /** «27 oct», o «27 oct 2025» si no es del año de [hoy]. */
     fun fecha(dia: LocalDate, hoy: LocalDate = LocalDate.now()): String =
-        (if (dia.year == hoy.year) dia.format(diaYMes) else dia.format(diaMesYAnio)).replace(".", "")
+        if (dia.year == hoy.year) diaYMes(dia) else dia.format(diaMesYAnio).replace(".", "")
 
     /** «mié 5». */
     fun diaCorto(dia: LocalDate): String = "${dia.format(diaDeLaSemana).replace(".", "")} ${dia.dayOfMonth}"

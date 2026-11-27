@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import es.yosiftware.libros.datos.diaYMes
 import es.yosiftware.libros.datos.modelos.Libro
 import es.yosiftware.libros.datos.modelos.PersonajeEnEscena
 import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
@@ -226,7 +227,7 @@ private fun estiloDeNumeroDeEscena(color: Color) =
 private fun AvisoDeRecuperado(vm: CapituloViewModel, cuando: Long) {
     val colores = LocalColores.current
     val momento = remember(cuando) { java.time.Instant.ofEpochMilli(cuando).atZone(java.time.ZoneId.systemDefault()) }
-    val dia = remember(momento) { java.time.format.DateTimeFormatter.ofPattern("d MMM", java.util.Locale.forLanguageTag("es")).format(momento).trimEnd('.') }
+    val dia = remember(momento) { diaYMes(momento) }
     val hora = remember(momento) { java.time.format.DateTimeFormatter.ofPattern("HH:mm").format(momento) }
     val forma = RoundedCornerShape(8.dp)
     Row(
