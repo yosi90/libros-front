@@ -58,9 +58,27 @@ private class RedDelSistema(contexto: Context) : FuenteDeRed {
     override fun escuchar(alCambiar: (Boolean) -> Unit) {
         conectividad?.registerDefaultNetworkCallback(
             object : ConnectivityManager.NetworkCallback() {
+                private var tieneInternet = false
+                // La red puede estar y el sistema cerrársela solo a la app (ahorro de datos, el permiso de red por app).
+                private var bloqueada = false
+
+                private fun avisar() = alCambiar(tieneInternet && !bloqueada)
+
                 // Al perder la red por defecto no hay red hasta que llegue otra (`onAvailable` y sus capacidades).
-                override fun onLost(network: Network) = alCambiar(false)
-                override fun onCapabilitiesChanged(network: Network, capacidades: NetworkCapabilities) = alCambiar(conInternet(capacidades))
+                override fun onLost(network: Network) {
+                    tieneInternet = false
+                    avisar()
+                }
+
+                override fun onCapabilitiesChanged(network: Network, capacidades: NetworkCapabilities) {
+                    tieneInternet = conInternet(capacidades)
+                    avisar()
+                }
+
+                override fun onBlockedStatusChanged(network: Network, blocked: Boolean) {
+                    bloqueada = blocked
+                    avisar()
+                }
             },
         )
     }
