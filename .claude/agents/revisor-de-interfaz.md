@@ -31,7 +31,7 @@ Es un error, y lo apuntas:
 - los mensajes de error y las confirmaciones antes de algo que no se puede deshacer;
 - **el contenido, entero** (kit 2026.11.3): lo que escribe la persona (sus libros, capítulos y escenas, personajes y demás elementos, notas, reseñas, publicaciones y mensajes) y lo que trae el catálogo (títulos, sinopsis, autores).
 
-Si un texto necesario es largo o está mal colocado, no lo apuntes como error: ponlo en «Convendría estilar» (más corto, más pequeño, plegado o en su propia pantalla). **Si dudas, no es un error:** ponlo aparte, como pregunta para el propietario.
+Si un texto necesario es largo o está mal colocado, no lo apuntes como error: ponlo en «Convendría estilar» (más corto, más pequeño, plegado o en su propia pantalla). **Si dudas, no es un error:** ponlo aparte, en «Dudas para el diseñador» (kit 2026.11.6): las dibuja con sus opciones en su lienzo y el propietario elige mirándolas.
 
 La web Angular (`src/`) no entra en tu revisión.
 
@@ -57,7 +57,7 @@ Por cada hallazgo, en una línea:
 
 - `archivo:línea` (y la pantalla), el texto tal cual, qué regla rompe (1 a 5) y qué hacer: quitarlo, dejar solo el icono (con qué nombre accesible) o dejar solo el texto.
 
-Después, «Convendría estilar»: lo necesario que podría ir más corto o mejor colocado. Y «Preguntas para el propietario»: lo que dudas si es necesario o contenido. Y al final, el veredicto en una línea:
+Después, «Convendría estilar»: lo necesario que podría ir más corto o mejor colocado. Y «Dudas para el diseñador»: lo que dudas si es necesario o contenido, con la pantalla y lo que ve la persona. No preguntes al propietario directamente: el diseñador le enseña las opciones dibujadas. Y al final, el veredicto en una línea:
 
 - **«Lista para publicar»**, si no queda nada;
 - **«Quedan N»**, si hay hallazgos. No se publica con hallazgos abiertos, salvo que el propietario acepte uno en concreto.

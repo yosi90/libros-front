@@ -1,32 +1,32 @@
-# Los kits de finales de noviembre: la interfaz con iconos, el versionado y la librería 1.12.0
+# Los kits de finales de noviembre: la interfaz sin repeticiones, el versionado y la librería 1.12.0
 
 Estado: ACTIVO (abierto el 2026-11-27)
-Origen: las peticiones `docs/peticiones/adoptar-los-kits-1-111-y-2026-11-1.md` y `docs/peticiones/respondidas/ACEPTADA_adoptar-el-kit-1-112.md`. El kit vigente es el 2026.11.2 (`ecosistema-kit/README.md`), copiado el 2026-11-27 de la revisión `14d8acb` de la plataforma.
+Origen: las peticiones `docs/peticiones/adoptar-los-kits-1-111-y-2026-11-1.md` y `docs/peticiones/respondidas/ACEPTADA_adoptar-el-kit-1-112.md`. Las de 2026.11.3, 2026.11.4 y 2026.11.6 (el contenido y el texto necesario se quedan; las dudas del revisor, al diseñador) ya están en `respondidas/`. El kit vigente es el 2026.11.6, copiado el 2026-11-27.
 
 ## Hecho
 
 - [x] **Modern Web Guidance, fijado** (kit 1.112): el `ref` y `"autoUpdate": false` en `.claude/settings.json` (y en el de la carpeta común), y `@1.0.1` en `AGENTS.md` y el diseñador.
 
-## La interfaz de la APK habla con iconos (kit 1.111 y 2026.11.2, obligatorio)
+## La interfaz de la APK, sin repeticiones ni explicaciones de más (kits 1.111 a 2026.11.4, obligatorio)
 
-- [ ] El revisor de interfaz en `.claude/agents/revisor-de-interfaz.md`, adaptado a `android-nativa/` y versionado, con su puente en la carpeta común.
+- [x] El revisor de interfaz en `.claude/agents/revisor-de-interfaz.md`, adaptado a `android-nativa/` y versionado, con su puente en la carpeta común, y ya con las correcciones de 2026.11.3 y 2026.11.4: solo los problemas reales (icono y texto que dicen lo mismo, título, subtítulo y explicación en cada sección, párrafos que explican la interfaz, avisos que narran), sin quitar el texto necesario ni el contenido.
 - [ ] Una pasada en modo `completo` por todas las pantallas de la APK. Su informe va entero al diseñador, que maqueta las pantallas corregidas en un solo encargo. Se programa a partir de su maqueta, con capturas del Honor, y el revisor vuelve a pasar.
 - [ ] Desde entonces, el revisor pasa antes de cada APK de QA o de producción, sobre lo nuevo desde la última publicada. No se publica con hallazgos abiertos.
 
 ## El diseñador (kit 1.111, obligatorio)
 
-- [ ] Llevar a `.claude/agents/disenador.md` lo nuevo de la plantilla: la ronda de arreglos tras cada ronda del revisor y, en la APK, la interfaz con iconos.
+- [x] Llevar a `.claude/agents/disenador.md` lo nuevo de la plantilla: la ronda de arreglos tras cada ronda del revisor y, en la APK, la interfaz sin repeticiones (2026.11.4). De paso, la vista «Cuaderno» como decisión vigente.
 
 ## El versionado común (kit 2026.11.1, obligatorio desde la próxima publicación)
 
-- [ ] La web: `package.json` sigue en `0.0.0`; como ya está en producción, su próxima versión es la `1.0.0`, y se ve en «Acerca de» o en el pie.
-- [ ] La APK ya cumple (`versionName` 2.1.0, `versionCode` 20100, `-qa` en QA); comprobar que la versión se ve en Preferencias › Acerca de.
-- [ ] La API: la versión entera en su `/verify` o su salud (`"version"`), con el MAYOR del contrato en la ruta (`/v1`).
-- [ ] Una nota por versión publicada y, recomendado, una etiqueta de Git por versión de producción (`web-v1.0.0`, `app-v2.1.0`, `api-v1.0.0`).
+- [x] La web: `package.json` en la `1.0.0`, al pie de Preferencias en las tres presentaciones (solo el campo `version` entra en el paquete). Su nota y la etiqueta `web-v1.0.0`, al publicarla.
+- [x] La APK: `versionName` 2.1.0, `versionCode` 20100 y `-qa` en QA; la versión, al pie de Preferencias (visto en el Honor: «Libros 2.1.0-qa»). Etiqueta `app-v2.1.0` en `7d8977fa`.
+- [x] La API 1.0.0 en `/health` (`version`) y `/verify` (`Version`), con su `CHANGELOG.md` y la etiqueta `api-v1.0.0`, en producción. El contrato público no lleva prefijo: es el MAYOR 1, y uno que lo rompa iría en rutas nuevas que convivan (`../Libros API/docs/backend/api/OPERACION.md`).
+- [x] Una nota por versión publicada (`CHANGELOG.md` en cada repositorio) y una etiqueta por versión de producción (`web-v…`, `app-v…`, `api-v…`).
 
 ## El bloque y la lista
 
-- [ ] El bloque de `AGENTS.md` de los dos repositorios, al día con el de 2026.11.2 (`ecosistema-kit/BLOQUE_AGENTS.md`), y el kit anotado con su número por fecha en `docs/codex/PROJECT_WORKING_NOTES.md` y en el contexto de la API.
+- [x] El bloque de `AGENTS.md` de los dos repositorios, al día con el de 2026.11.2 (`ecosistema-kit/BLOQUE_AGENTS.md`), y el kit anotado con su número por fecha en `docs/codex/PROJECT_WORKING_NOTES.md` y en el contexto de la API.
 - [ ] Las casillas nuevas de `ecosistema-kit/LISTA_DE_COMPROBACION.md` (versionado, diseñador y revisor de interfaz).
 - [ ] Resolver la petición de los kits 1.111 y 2026.11.1 y pasarla a `respondidas/`.
 
