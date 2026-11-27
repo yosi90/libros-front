@@ -7,6 +7,8 @@ import { ProfileChatPreferencesComponent } from '../user-profile/preferences/pro
 import { ProfilePlatformPrivacyComponent } from '../user-profile/preferences/profile-platform-privacy.component';
 import { AppearancePreferencesComponent } from './appearance-preferences.component';
 import { ReadingPreferencesComponent } from './reading-preferences.component';
+// Solo el campo `version`: el empaquetador no mete el resto de `package.json` (kit 2026.11.1, `VERSIONADO.md`).
+import { version } from '../../../../../../package.json';
 
 type PreferenceSection = 'appearance' | 'reading' | 'privacy' | 'chat';
 
@@ -20,6 +22,7 @@ type PreferenceSection = 'appearance' | 'reading' | 'privacy' | 'chat';
 })
 export class AppPreferencesComponent {
     activeSection: PreferenceSection = 'privacy';
+    readonly version = version;
     readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; description: string; webOnly?: boolean }> = [
         { id: 'appearance', label: 'Apariencia', icon: 'palette', description: 'Tema de la interfaz en este navegador.', webOnly: true },
         { id: 'reading', label: 'Lectura y escritura', icon: 'auto_stories', description: 'Cómo se abren tus libros y cómo dictas, en este dispositivo.' },

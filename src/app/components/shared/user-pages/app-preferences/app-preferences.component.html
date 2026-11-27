@@ -8,6 +8,7 @@
             @if (activeSection === 'reading') {<app-reading-preferences></app-reading-preferences>}
             @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
             @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
+            <p class="preferences__version">Libros {{version}}</p>
         </section>
     </main>
 } @else if (isWebView) {
@@ -23,6 +24,7 @@
                 @if (activeSection === 'reading') {<app-reading-preferences></app-reading-preferences>}
                 @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
                 @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
+                <p class="preferences__version">Libros {{version}}</p>
             </section>
         </div>
     </main>
@@ -37,5 +39,6 @@
         @if (activeSection === 'reading') {<app-reading-preferences></app-reading-preferences>}
         @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
         @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
+        <p class="preferences__version">Libros {{version}}</p>
     </section>
 }
