@@ -4,7 +4,7 @@ Fecha: 2026-11-27
 Solicitante: Plataforma Yosiftware, a petición de Día a día (sus revisiones de seguridad SR1-2 y SR1-4)
 Destinatarios: el frontend de Libros, Fichas 3.5 (Rol y 3.5 Companion), Nodaria, Lorcana, Poke-Voice, Re-Notas, Hotrods, Rasgora, 1d1n, Día a día, Yosiftadísticas, p.i.c., la plantilla de proyectos, MCC y Enroque
 Afecta a: vuestro `.claude/settings.json`, vuestro `AGENTS.md` y vuestro diseñador si tenéis código web; y la librería de la sesión o el addon de Godot si tenéis APK
-Estado: entregada el 2026-11-27, la misma copia en la carpeta de peticiones de cada proyecto
+Estado: aceptada el 2026-11-27 (lo de Modern Web Guidance, hecho; la librería 1.12.0, con la próxima APK)
 
 ## Contexto
 
@@ -54,4 +54,7 @@ El protocolo entre las apps no cambia: las apps con la 1.11.0 siguen funcionando
 
 ## Resolución
 
-<!-- La rellena cada destinatario en su copia. -->
+**Aceptada** (2026-11-27).
+
+- **Modern Web Guidance, fijado:** `.claude/settings.json` (versionado) lleva el `ref` `64a6d708…` y `"autoUpdate": false`, y lo mismo el de la carpeta común `Memoria bibliográfica`, desde donde se abren las sesiones. `AGENTS.md` y el diseñador (`.claude/agents/disenador.md`) piden `modern-web-guidance@1.0.1`. El backend no carga el plugin.
+- **La librería de la sesión 1.12.0:** con la próxima APK, probando «Continuar como…» en el Honor con otra app con sesión (`docs/roadmaps/ecosistema/ROADMAP_ACTIVO_kits-2026-11.md`).

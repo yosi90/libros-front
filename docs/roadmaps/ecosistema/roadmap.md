@@ -6,6 +6,10 @@
 - El kit vigente vive en `ecosistema-kit/` (ignorado por Git) y se actualiza siempre al más reciente. El bloque de la plataforma está en `AGENTS.md`.
 - La APK es la nativa en Kotlin (`android-nativa/`): primero fue un clon exacto de la de Capacitor; ahora, las mejoras.
 
+## Línea activa
+
+- `ROADMAP_ACTIVO_kits-2026-11.md`: los kits 1.111, 1.112, 2026.11.1 y 2026.11.2.
+
 ## Líneas pausadas
 
 - `ROADMAP_PAUSADO_duplicados-apk-kotlin.md`: lo que la auditoría de duplicados de la APK dejó como propuesta.
