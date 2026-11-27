@@ -5,12 +5,14 @@ import es.yosiftware.libros.ui.libro.EscenaAlAbrir
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Switch
+import es.yosiftware.libros.BuildConfig
 import es.yosiftware.libros.LibrosApp
 import es.yosiftware.libros.push.EstadoDelPush
 import es.yosiftware.sesion.EstadoSesion
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import es.yosiftware.libros.ui.componentes.BotonDeTexto
 import android.Manifest
+import androidx.compose.ui.text.style.TextAlign
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -114,6 +116,14 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Un
                     PestanaDePreferencias.LECTURA -> Lectura()
                     PestanaDePreferencias.PERMISOS -> Permisos(alElegirAvisos)
                 }
+                // La versión de la app (kit 2026.11.1, `VERSIONADO.md`), discreta al pie de cada pestaña.
+                Text(
+                    "Libros ${BuildConfig.VERSION_NAME}",
+                    Modifier.fillMaxWidth().padding(top = Espacios.e4),
+                    color = colores.tintaSuave,
+                    style = Textos.cuerpo.copy(fontSize = rem(0.72)),
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }
