@@ -5,6 +5,7 @@ import es.yosiftware.libros.sonido.Sonido
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import es.yosiftware.libros.datos.BorradoresLocales
 import es.yosiftware.libros.datos.ErrorDeLibros
@@ -35,6 +36,21 @@ enum class EstadoDelGuardado(val texto: String) {
     INCOMPLETO("Cambios incompletos"),
     /** El envío no llegó por falta de red: lo escrito sigue en el borrador y se envía al volver la conexión. */
     SIN_CONEXION("Sin conexión · guardado en el dispositivo"),
+    ;
+
+    companion object {
+        /** Tras un envío que falló: sin red, [SIN_CONEXION] (se reenvía al volver, [reenviarAlVolverLaRed]); si no, [ERROR]. */
+        fun trasFallar(error: ErrorDeLibros): EstadoDelGuardado = if (error.sinConexion) SIN_CONEXION else ERROR
+    }
+}
+
+/**
+ * El autoguardado del capítulo, la ficha y las notas: con [enLinea] ([es.yosiftware.libros.datos.red.EstadoDeRed.enLinea]),
+ * cada vez que vuelve la red y [estado] sigue en [EstadoDelGuardado.SIN_CONEXION], [reenviar] lo que se quedó sin enviar.
+ */
+internal fun ViewModel.reenviarAlVolverLaRed(enLinea: StateFlow<Boolean>?, estado: () -> EstadoDelGuardado, reenviar: () -> Unit) {
+    if (enLinea == null) return
+    viewModelScope.launch { enLinea.collect { conRed -> if (conRed && estado() == EstadoDelGuardado.SIN_CONEXION) reenviar() } }
 }
 
 /**
@@ -118,7 +134,7 @@ class CapituloViewModel(
     private fun nuevaClave(): Long = ++siguienteClave
 
     init {
-        enLinea?.let { red -> viewModelScope.launch { red.collect { conRed -> if (conRed && estado == EstadoDelGuardado.SIN_CONEXION) enviar() } } }
+        reenviarAlVolverLaRed(enLinea, { estado }) { enviar() }
     }
 
     /** Abre el capítulo de [vista] (o uno nuevo) y recupera lo que hubiera quedado sin enviar. */
@@ -440,7 +456,7 @@ class CapituloViewModel(
         capitulo = actual
         if (resultado.capitulo != null || resultado.escenas.isNotEmpty() || resultado.borradas.isNotEmpty()) alGuardar(paraElLibro(actual, resultado.capitulo))
         if (resultado.error != null) {
-            estado = if (resultado.error.sinConexion) EstadoDelGuardado.SIN_CONEXION else EstadoDelGuardado.ERROR
+            estado = EstadoDelGuardado.trasFallar(resultado.error)
             escribirBorrador()
             return
         }

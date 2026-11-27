@@ -18,6 +18,7 @@ import es.yosiftware.libros.datos.repositorios.TipoDeEntidad
 import es.yosiftware.libros.ui.componentes.Avisador
 import es.yosiftware.libros.ui.libro.Elemento
 import es.yosiftware.libros.ui.libro.EstadoDelGuardado
+import es.yosiftware.libros.ui.libro.reenviarAlVolverLaRed
 import es.yosiftware.libros.ui.libro.VistaDelLibro
 import java.io.File
 import java.util.UUID
@@ -124,7 +125,7 @@ class ElementosViewModel(
     private fun clave() = ++siguienteClave
 
     init {
-        enLinea?.let { red -> viewModelScope.launch { red.collect { conRed -> if (conRed && estado == EstadoDelGuardado.SIN_CONEXION) autoguardar() } } }
+        reenviarAlVolverLaRed(enLinea, { estado }) { autoguardar() }
     }
 
     // --- Abrir. ---
@@ -614,7 +615,7 @@ class ElementosViewModel(
             otraVez = false
             marcar(error)
             escribirBorrador()
-            estado = if (error.sinConexion) EstadoDelGuardado.SIN_CONEXION else EstadoDelGuardado.ERROR
+            estado = EstadoDelGuardado.trasFallar(error)
             val luego = despuesDeGuardar
             despuesDeGuardar = null
             if (luego != null) {

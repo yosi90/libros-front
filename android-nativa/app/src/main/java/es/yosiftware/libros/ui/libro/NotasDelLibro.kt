@@ -147,7 +147,7 @@ class NotasViewModel(
     private var deMuestra = false
 
     init {
-        enLinea?.let { red -> viewModelScope.launch { red.collect { conRed -> if (conRed && estado == EstadoDelGuardado.SIN_CONEXION) autoguardar() } } }
+        reenviarAlVolverLaRed(enLinea, { estado }) { autoguardar() }
     }
 
     /** Hay algo escrito en el compositor que el servidor aún no tiene (`composerPending`). */
@@ -277,11 +277,8 @@ class NotasViewModel(
             otraVez = false
             if (id != libroId) return@cargar
             escribirBorrador()
-            if (error.sinConexion) {
-                estado = EstadoDelGuardado.SIN_CONEXION
-                return@cargar
-            }
-            estado = EstadoDelGuardado.ERROR
+            estado = EstadoDelGuardado.trasFallar(error)
+            if (error.sinConexion) return@cargar
             if (compositor.id == editando) {
                 val texto = error.textoDelServidor ?: "Revisa este campo."
                 compositor = when (error.campo?.lowercase()) {
