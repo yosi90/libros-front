@@ -9,6 +9,9 @@
 - [x] **Yosiftadísticas**: `src/index.html` carga `https://estadisticas.yosiftware.es/s.js` sin copiarlo; la CSP lo permite en `script-src` y `connect-src` (`final-contracts.test.mjs`); sin lista propia (la marca la pone el SDK); el service worker no intercepta el colector. La política de cookies es la de la plataforma, enlazada en la portada sin entrar y en «Cuenta y seguridad › Privacidad y normas». `libros.yosiftware.es` registrado en Yosiftadísticas.
 - [x] Lo que espera una decisión del administrador (peticiones de catálogo, reseñas reportadas, denuncias de clubes) va al plugin de Notificapp `libros-api` 1.1.0 (API: `books_request`, `books_review_report`, `books_community_report`). Lo instaló el propietario en el corte (25/10/2026).
 
+- [x] **Versiona con la norma común** (kit 2026.11.1): la API 1.0.0 en `/health` y `/verify` (`api-v1.0.0`), la web 1.0.0 en `package.json` y al pie de Preferencias (se publica con la próxima web), la APK 2.1.0 (`versionCode` 20100, `-qa` en QA, `app-v2.1.0`) al pie de Preferencias; una nota por versión en el `CHANGELOG.md` de cada repositorio, y el kit anotado con su número por fecha (2026.11.6) en `docs/codex/PROJECT_WORKING_NOTES.md` y en el contexto de la API.
+- [x] **Tiene su diseñador** (kit 1.111): `.claude/agents/disenador.md`, con Fable 5.2, al día con la plantilla 2026.11.6.
+
 ## Acceso (web)
 
 - [x] La web está en el registro de la plataforma con sus orígenes y la audiencia de su API (`aud: libros-api`): QA con `libros.dev.yosiftware.es`; producción, en el corte.
@@ -134,6 +137,8 @@ El propietario validó el corte directamente en producción (humo del 25/10/2026
 - [x] La lista «App Android» del kit 1.62, punto por punto, en `docs/roadmaps/ecosistema/EVIDENCIA_app-android.md`: no queda nada pendiente (26/10/2026). Los plegables se prueban sin emuladores, por decisión del propietario (24/10/2026), en el Honor Magic V3 y el Xiaomi.
 - [x] Capturas de referencia de la APK de Capacitor (441, fuera de Git en `referencias-apk-capacitor/`, hito 5), con contenido real; cada pantalla del clon comparada con ellas en su hito.
 - [x] Varias cuentas (panel de cuentas y limpieza A → B → A, hito 6), push central registrado por cuenta (hito 12, visto en el Honor) y espacios con `sesion.espacios` (visto en el Honor con QA).
+
+- [ ] **La interfaz, sin repeticiones ni explicaciones de más** (kits 1.111 a 2026.11.6): el revisor de interfaz está en `.claude/agents/revisor-de-interfaz.md`. Su primera pasada (27/11/2026, `docs/diseno/interfaz-apk-2026-11/INFORME_REVISOR_1.md`) dejó 112 hallazgos; queda la ronda de arreglos del diseñador, programarla y que el revisor vuelva a pasar (`docs/roadmaps/ecosistema/ROADMAP_ACTIVO_kits-2026-11.md`).
 
 ## Revisor de duplicados
 

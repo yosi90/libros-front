@@ -10,7 +10,9 @@ Origen: las peticiones `docs/peticiones/adoptar-los-kits-1-111-y-2026-11-1.md` y
 ## La interfaz de la APK, sin repeticiones ni explicaciones de más (kits 1.111 a 2026.11.4, obligatorio)
 
 - [x] El revisor de interfaz en `.claude/agents/revisor-de-interfaz.md`, adaptado a `android-nativa/` y versionado, con su puente en la carpeta común, y ya con las correcciones de 2026.11.3 y 2026.11.4: solo los problemas reales (icono y texto que dicen lo mismo, título, subtítulo y explicación en cada sección, párrafos que explican la interfaz, avisos que narran), sin quitar el texto necesario ni el contenido.
-- [ ] Una pasada en modo `completo` por todas las pantallas de la APK. Su informe va entero al diseñador, que maqueta las pantallas corregidas en un solo encargo. Se programa a partir de su maqueta, con capturas del Honor, y el revisor vuelve a pasar.
+- [x] Una pasada en modo `completo` por todas las pantallas de la APK (27/11/2026): 112 hallazgos y 8 dudas, en `docs/diseno/interfaz-apk-2026-11/INFORME_REVISOR_1.md`, con las decisiones del propietario sobre cuatro dudas.
+- [ ] La ronda de arreglos del diseñador, con las opciones dibujadas de lo que admite más de una salida; el propietario elige en el lienzo.
+- [ ] Programarla a partir de su maqueta, con capturas del Honor, y que el revisor vuelva a pasar sobre lo cambiado.
 - [ ] Desde entonces, el revisor pasa antes de cada APK de QA o de producción, sobre lo nuevo desde la última publicada. No se publica con hallazgos abiertos.
 
 ## El diseñador (kit 1.111, obligatorio)
@@ -27,7 +29,7 @@ Origen: las peticiones `docs/peticiones/adoptar-los-kits-1-111-y-2026-11-1.md` y
 ## El bloque y la lista
 
 - [x] El bloque de `AGENTS.md` de los dos repositorios, al día con el de 2026.11.2 (`ecosistema-kit/BLOQUE_AGENTS.md`), y el kit anotado con su número por fecha en `docs/codex/PROJECT_WORKING_NOTES.md` y en el contexto de la API.
-- [ ] Las casillas nuevas de `ecosistema-kit/LISTA_DE_COMPROBACION.md` (versionado, diseñador y revisor de interfaz).
+- [x] Las casillas nuevas de `ecosistema-kit/LISTA_DE_COMPROBACION.md` en la matriz `docs/pruebas/ecosistema/[pendiente][adhesion-yosiftware-y-apk-kotlin].md`: versionado y diseñador, hechas; la interfaz de la APK, pendiente de la ronda de arreglos.
 - [ ] Resolver la petición de los kits 1.111 y 2026.11.1 y pasarla a `respondidas/`.
 
 ## La librería de la sesión 1.12.0 (kit 1.112, recomendado)
