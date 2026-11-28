@@ -164,10 +164,15 @@ class PerfilViewModel(
             reenviando = reenviando - peticion.id
             avisos.deError(error, "No se pudo completar la acción")
         }) { actualizada ->
-            peticiones = peticiones.map { if (it.id == actualizada.id) actualizada else it }
-            respuestas = respuestas - peticion.id
+            recibirPeticion(actualizada)
             reenviando = reenviando - peticion.id
         }
+    }
+
+    /** La petición ya reenviada (con un comentario o desde «Corregir y reenviar»): sustituye a la devuelta. */
+    fun recibirPeticion(actualizada: PeticionDeCatalogo) {
+        peticiones = peticiones.map { if (it.id == actualizada.id) actualizada else it }
+        respuestas = respuestas - actualizada.id
     }
 
     /** Solo para las muestras de depuración. */

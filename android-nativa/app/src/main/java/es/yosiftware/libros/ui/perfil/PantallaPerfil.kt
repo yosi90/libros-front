@@ -68,6 +68,7 @@ import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.biblioteca.iconoDeEstado
 import es.yosiftware.libros.ui.biblioteca.nombreDeEstado
+import es.yosiftware.libros.ui.catalogo.FormularioDePeticion
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.ListaVacia
@@ -100,6 +101,8 @@ fun PantallaPerfil(
     /** «Libros» y «Universos», de la colección ([Perfil.recuentos]). */
     recuentos: Pair<Int, Int>,
     alAbrirActividad: (ActividadReciente) -> Unit,
+    /** «Corregir y reenviar» una petición devuelta: el formulario de petición del Catálogo, relleno con lo enviado. */
+    alCorregirPeticion: (PeticionDeCatalogo) -> Unit,
     /** El avatar y el lápiz: el perfil de Yosiftware, que se edita en la web social. */
     alEditarPerfil: () -> Unit,
     alVerPerfilEnLaWeb: () -> Unit,
@@ -140,7 +143,7 @@ fun PantallaPerfil(
                     CabeceraDeDetalle(vm.seccion.titulo, vm::volver)
                     when (vm.seccion) {
                         SeccionDelPerfil.PERFIL -> TuPerfil(identidad, editar, alVerPerfilEnLaWeb)
-                        SeccionDelPerfil.PETICIONES -> Peticiones(vm)
+                        SeccionDelPerfil.PETICIONES -> Peticiones(vm, alCorregirPeticion)
                         SeccionDelPerfil.REPORTES -> Reportes(vm)
                         SeccionDelPerfil.RESUMEN -> Unit
                     }
@@ -385,12 +388,12 @@ private fun CabeceraDePanel(texto: String, descripcion: String, alActualizar: ()
 }
 
 @Composable
-private fun Peticiones(vm: PerfilViewModel) {
+private fun Peticiones(vm: PerfilViewModel, alCorregir: (PeticionDeCatalogo) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
         val total = vm.peticiones.size
         CabeceraDePanel(if (total > 0) "$total registradas" else "", "Actualizar peticiones", vm::cargarPeticiones)
         when {
-            total > 0 -> vm.peticiones.forEach { TarjetaDePeticion(vm, it) }
+            total > 0 -> vm.peticiones.forEach { TarjetaDePeticion(vm, it, alCorregir) }
             vm.cargandoPeticiones -> Cargando("Cargando tus peticiones")
             vm.falloPeticiones -> Vacio("No se han podido cargar tus peticiones.")
             else -> ListaVacia("Sin peticiones")
@@ -399,7 +402,7 @@ private fun Peticiones(vm: PerfilViewModel) {
 }
 
 @Composable
-private fun TarjetaDePeticion(vm: PerfilViewModel, peticion: PeticionDeCatalogo) {
+private fun TarjetaDePeticion(vm: PerfilViewModel, peticion: PeticionDeCatalogo, alCorregir: (PeticionDeCatalogo) -> Unit) {
     val colores = LocalColores.current
     Documento("${Perfil.etiquetaDeEntidad(peticion.tipoEntidad)} · ${Perfil.etiquetaDeAccion(peticion)}", Perfil.etiquetaDeEstado(peticion.estado)) {
         val campos = Perfil.campos(peticion.payload)
@@ -418,6 +421,10 @@ private fun TarjetaDePeticion(vm: PerfilViewModel, peticion: PeticionDeCatalogo)
             val enviando = peticion.id in vm.reenviando
             AreaDeTexto(vm.respuestas[peticion.id].orEmpty(), { vm.escribirRespuesta(peticion.id, it) }, "Tu respuesta")
             Boton("Reenviar", { vm.reenviar(peticion) }, Modifier.fillMaxWidth().alpha(if (enviando) 0.45f else 1f), habilitado = !enviando)
+            // Corregir los datos (el ISBN, por ejemplo) antes de reenviar; las de tipo `otro`, solo con el comentario.
+            if (FormularioDePeticion.reenvio(peticion) != null) {
+                Boton("Corregir y reenviar", { alCorregir(peticion) }, Modifier.fillMaxWidth(), variante = VarianteDeBoton.Contorno, habilitado = !enviando)
+            }
         }
     }
 }

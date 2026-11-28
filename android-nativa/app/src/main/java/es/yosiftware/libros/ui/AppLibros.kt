@@ -509,6 +509,9 @@ fun AppLibros(app: LibrosApp) {
                                                     abrirLibro(obra)
                                                 }
                                             },
+                                            // El modal de petición del Catálogo, encima del Perfil (CapasDeCatalogo); al reenviarla,
+                                            // Mis peticiones la cambia por la reenviada.
+                                            alCorregirPeticion = { devuelta -> catalogo.corregirYReenviar(devuelta, perfil::recibirPeticion) },
                                             // El perfil de Yosiftware se edita en la web social: la librería no tiene `editarPerfil()`.
                                             alEditarPerfil = { acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial("perfil")) } },
                                             alVerPerfilEnLaWeb = {
