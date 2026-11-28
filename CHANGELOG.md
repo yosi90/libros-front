@@ -4,6 +4,10 @@ Versionado semántico (`ecosistema-kit/VERSIONADO.md`): una nota por versión pu
 
 ## Web
 
+### 1.5.0 (2026-11-28)
+
+Una petición de catálogo devuelta ya se puede corregir antes de reenviarla: «Corregir y reenviar» abre su formulario con lo que enviaste.
+
 ### 1.4.1 (2026-11-28)
 
 La descripción de un club vuelve a verse con su letra y sus saltos de línea.
@@ -29,6 +33,10 @@ En el móvil, la navegación va abajo: Biblioteca, Catálogo, Comunidad (con los
 La primera con número: la versión se ve al pie de Preferencias.
 
 ## APK
+
+### 2.3.0 (2026-11-28)
+
+Una petición de catálogo devuelta ya se puede corregir antes de reenviarla, desde Mis peticiones. Además, «Continuar como…» comprueba la cuenta que ofrece otra app antes de enseñarla.
 
 ### 2.2.0 (2026-11-28)
 
