@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>D3 · La denuncia de un club</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="piezas.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400..600&family=Roboto:wght@400;500;700;800&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="tb" style="width: 1240px; height: 820px">
+<h2 class="tb__q">D3 · El diálogo para denunciar un club: ¿basta con el contador?</h2>
+
+<div class="ops">
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">D3a · Solo el campo y su contador <span class="rec">recomendada</span></h3>
+<p class="op__d">La frase pasa a ser la etiqueta, «Motivo de la denuncia»; el máximo lo dice el contador.</p>
+<div class="velo m"><div class="dlg">
+<div class="campo"><p class="rot">Motivo de la denuncia</p><textarea class="area" style="min-height: 112px" aria-label="Motivo de la denuncia"></textarea><p class="cont">0 / 1000</p></div>
+<div class="bts bts--ext"><button type="button" class="bt bt--ol">Cancelar</button><button type="button" class="bt bt--pr off" aria-disabled="true">Enviar</button></div>
+</div></div>
+</section>
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">D3b · Con título</h3>
+<p class="op__d">Como la solicitud de acceso: «Denunciar el club» arriba y el campo «Motivo» con su contador.</p>
+<div class="velo m"><div class="dlg">
+<h4 class="tit">Denunciar el club</h4>
+<div class="campo"><p class="rot">Motivo</p><textarea class="area" style="min-height: 112px" aria-label="Motivo"></textarea><p class="cont">0 / 1000</p></div>
+<div class="bts bts--ext"><button type="button" class="bt bt--ol">Cancelar</button><button type="button" class="bt bt--pr off" aria-disabled="true">Enviar</button></div>
+</div></div>
+</section>
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">D3c · Como hoy</h3>
+<p class="op__d">La frase con el máximo, el campo «Motivo» y el contador.</p>
+<div class="velo m"><div class="dlg">
+<p class="p">Describe brevemente el motivo de la denuncia (máximo 1.000 caracteres).</p>
+<div class="campo"><p class="rot">Motivo</p><textarea class="area" style="min-height: 112px" aria-label="Motivo"></textarea><p class="cont">0 / 1000</p></div>
+<div class="bts bts--ext"><button type="button" class="bt bt--ol">Cancelar</button><button type="button" class="bt bt--pr off" aria-disabled="true">Enviar</button></div>
+</div></div>
+</section>
+
+</div>
+
+<p class="nota"><strong>Recomiendo D3a: sí, basta el contador.</strong> La frase dice dos cosas y las dos caben en el campo: qué escribir (la etiqueta) y cuánto (el «0 / 1000»). Con la etiqueta «Motivo de la denuncia» el diálogo no necesita título, que repetiría el «Denunciar» que lo abre.</p>
+<p class="nota nota--cod">Al código: trivial. Quitar el texto y cambiar la etiqueta del campo.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

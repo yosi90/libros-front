@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>D4 · El club eliminado</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="piezas.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400..600&family=Roboto:wght@400;500;700;800&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="tb" style="width: 1240px; height: 720px">
+<h2 class="tb__q">D4 · El club eliminado, visto por quien puede restaurarlo</h2>
+
+<div class="ops">
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">D4a · Más corta <span class="rec">recomendada</span></h3>
+<p class="op__d">Queda lo que hace falta para decidir si se restaura: qué se conserva.</p>
+<div class="pant m"><div class="tarj">
+<h4 class="tit">Lectores de fantasía está eliminado</h4>
+<p class="p p--mut">Se conservan el histórico y los miembros.</p>
+<button type="button" class="bt bt--pr bt--ini">Restaurar club</button>
+</div></div>
+</section>
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">D4b · Plegada</h3>
+<p class="op__d">La frase entera, detrás de «Qué se conserva».</p>
+<div class="pant m"><div class="tarj">
+<h4 class="tit">Lectores de fantasía está eliminado</h4>
+<button type="button" class="bt bt--pr bt--ini">Restaurar club</button>
+<button type="button" class="plg" aria-expanded="false">Qué se conserva<svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div></div>
+</section>
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">D4c · Como hoy</h3>
+<p class="op__d">El título, la frase completa y «Restaurar club».</p>
+<div class="pant m"><div class="tarj">
+<h4 class="tit">Lectores de fantasía está eliminado</h4>
+<p class="p p--mut">Se conservan el histórico y los miembros; el acceso y el chat siguen revocados.</p>
+<button type="button" class="bt bt--pr bt--ini">Restaurar club</button>
+</div></div>
+</section>
+
+</div>
+
+<p class="nota"><strong>Recomiendo D4a.</strong> «El acceso y el chat siguen revocados» cuenta lo que ya dice «está eliminado»; lo que ayuda a decidir es saber que los miembros y el histórico siguen ahí. Plegarla (D4b) añade un control para esconder una sola línea.</p>
+<p class="nota nota--cod">Al código: trivial, es cambiar el texto. Si la web enseña la misma frase, se recorta igual.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":720}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

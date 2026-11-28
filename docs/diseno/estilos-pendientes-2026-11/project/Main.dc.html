@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>W1 · La barra inferior</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="piezas.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400..600&family=Roboto:wght@400;500;700;800&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="tb" style="width: 1240px; height: 700px">
+<h2 class="tb__q">W1 · Dos barras inferiores que deberían ser la misma (web, menos de 600 px)</h2>
+
+<div class="ops">
+
+<section class="op w" style="width: 360px">
+<h3 class="op__n">W1a · Píldora en las dos <span class="rec">recomendada</span></h3>
+<p class="op__d">La de la navegación. Una píldora del primario suave bajo el icono; el icono y el texto, en el primario y a 12 px.</p>
+<div class="grupo">
+<p class="cap">Navegación</p>
+<div class="hoja"><div class="aire"></div>
+<nav class="tbar tbar--pil" aria-label="Navegación principal">
+<button type="button" class="on" aria-current="page"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c-2-1.5-5-2-8-1.5v12c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-12c-3-.5-6 0-8 1.5zv12"></path></svg></span>Biblioteca</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg></span>Catálogo</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11v8H8l-4 3zM18 9h2v10l-3-3h-7v-1"></path></svg></span>Comunidad</button>
+<button type="button"><span class="ico"><svg class="ic ic--p" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></span>Más</button>
+</nav></div>
+</div>
+<div class="grupo">
+<p class="cap">Libro</p>
+<div class="hoja"><div class="aire"></div>
+<nav class="tbar tbar--pil" aria-label="Secciones del libro">
+<button type="button" class="on" aria-current="page"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"></path></svg></span>Capítulos</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"></path></svg></span>Elementos</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l4 4v12H6zM9 12h6M9 16h6"></path></svg></span>Notas</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"></path></svg></span>Resumen</button>
+</nav></div>
+</div>
+</section>
+
+<section class="op w" style="width: 360px">
+<h3 class="op__n">W1b · Raya en las dos</h3>
+<p class="op__d">La del libro. Una raya de 2 px arriba, en el primario; el icono y el texto, en tinta y a 11 px.</p>
+<div class="grupo">
+<p class="cap">Navegación</p>
+<div class="hoja"><div class="aire"></div>
+<nav class="tbar tbar--raya" aria-label="Navegación principal">
+<button type="button" class="on" aria-current="page"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c-2-1.5-5-2-8-1.5v12c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-12c-3-.5-6 0-8 1.5zv12"></path></svg></span>Biblioteca</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg></span>Catálogo</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11v8H8l-4 3zM18 9h2v10l-3-3h-7v-1"></path></svg></span>Comunidad</button>
+<button type="button"><span class="ico"><svg class="ic ic--p" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></span>Más</button>
+</nav></div>
+</div>
+<div class="grupo">
+<p class="cap">Libro</p>
+<div class="hoja"><div class="aire"></div>
+<nav class="tbar tbar--raya" aria-label="Secciones del libro">
+<button type="button" class="on" aria-current="page"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"></path></svg></span>Capítulos</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"></path></svg></span>Elementos</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l4 4v12H6zM9 12h6M9 16h6"></path></svg></span>Notas</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"></path></svg></span>Resumen</button>
+</nav></div>
+</div>
+</section>
+
+<section class="op w" style="width: 360px">
+<h3 class="op__n">W1c · Como hoy</h3>
+<p class="op__d">Cada barra con su marca: píldora y 12 px en la navegación; raya, tinta y 11 px en el libro.</p>
+<div class="grupo">
+<p class="cap">Navegación</p>
+<div class="hoja"><div class="aire"></div>
+<nav class="tbar tbar--pil" aria-label="Navegación principal">
+<button type="button" class="on" aria-current="page"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c-2-1.5-5-2-8-1.5v12c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-12c-3-.5-6 0-8 1.5zv12"></path></svg></span>Biblioteca</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg></span>Catálogo</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11v8H8l-4 3zM18 9h2v10l-3-3h-7v-1"></path></svg></span>Comunidad</button>
+<button type="button"><span class="ico"><svg class="ic ic--p" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"></path></svg></span>Más</button>
+</nav></div>
+</div>
+<div class="grupo">
+<p class="cap">Libro</p>
+<div class="hoja"><div class="aire"></div>
+<nav class="tbar tbar--raya" aria-label="Secciones del libro">
+<button type="button" class="on" aria-current="page"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"></path></svg></span>Capítulos</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"></path></svg></span>Elementos</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l4 4v12H6zM9 12h6M9 16h6"></path></svg></span>Notas</button>
+<button type="button"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"></path></svg></span>Resumen</button>
+</nav></div>
+</div>
+</section>
+
+</div>
+
+<p class="nota"><strong>Recomiendo W1a.</strong> La píldora es una forma de 56 × 28 px que se ve de un vistazo; la raya se confunde con el borde de la propia barra y deja el texto en 11 px. Es además como marca su destino la navegación de la APK, así que el móvil y la web estrecha hablan igual. Al entrar en un libro la barra cambia de destinos, no de aspecto: que estás dentro lo dice la cabecera, con su flecha y el título.</p>
+<p class="nota nota--cod">Al código: fácil. Un mixin <code>web.tabbar</code> con la píldora; la barra del libro gana un envoltorio para el icono y pasa de 11 a 12 px.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":700}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-28T12:00:00Z" },
+  "title": "Estilos pendientes de Libros",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1240, "h": 700, "title": "W1 · La barra inferior" },
+    "W2-insignia.dc.html": { "x": 1320, "y": 0, "w": 1240, "h": 780, "title": "W2 · La insignia de no leídos" },
+    "W3-pestanas.dc.html": { "x": 2640, "y": 0, "w": 1900, "h": 660, "title": "W3 · Las pestañas subrayadas" },
+    "W4-fichas.dc.html": { "x": 4620, "y": 0, "w": 1420, "h": 800, "title": "W4 · Las fichas" },
+    "W5-peligro.dc.html": { "x": 6120, "y": 0, "w": 1240, "h": 860, "title": "W5 · El botón de peligro" },
+    "A1-segmentado.dc.html": { "x": 0, "y": 1240, "w": 1500, "h": 860, "title": "A1 · El segmentado" },
+    "A2-pildoras.dc.html": { "x": 1580, "y": 1240, "w": 1240, "h": 700, "title": "A2 · Las píldoras de filtro" },
+    "A3-insignia.dc.html": { "x": 2900, "y": 1240, "w": 1240, "h": 720, "title": "A3 · La insignia de no leídos" },
+    "D1-titulo-reenvio.dc.html": { "x": 0, "y": 2480, "w": 2100, "h": 820, "title": "D1 · El título del formulario al reenviar" },
+    "D2-reenviar.dc.html": { "x": 2180, "y": 2480, "w": 1240, "h": 1080, "title": "D2 · «Reenviar» y «Corregir y reenviar»" },
+    "D3-denuncia.dc.html": { "x": 3500, "y": 2480, "w": 1240, "h": 820, "title": "D3 · La denuncia de un club" },
+    "D4-club-eliminado.dc.html": { "x": 4820, "y": 2480, "w": 1240, "h": 720, "title": "D4 · El club eliminado" },
+    "Oscuro.dc.html": { "x": 0, "y": 3940, "w": 1500, "h": 1040, "title": "Muestra en oscuro · las recomendadas" }
+  },
+  "order": [
+    "Main.dc.html",
+    "W2-insignia.dc.html",
+    "W3-pestanas.dc.html",
+    "W4-fichas.dc.html",
+    "W5-peligro.dc.html",
+    "A1-segmentado.dc.html",
+    "A2-pildoras.dc.html",
+    "A3-insignia.dc.html",
+    "D1-titulo-reenvio.dc.html",
+    "D2-reenviar.dc.html",
+    "D3-denuncia.dc.html",
+    "D4-club-eliminado.dc.html",
+    "Oscuro.dc.html"
+  ],
+  "notes": {
+    "s1": { "x": 0, "y": -300, "text": "1 · Web", "kind": "title1", "maxW": 7360 },
+    "s2": { "x": 0, "y": 940, "text": "2 · APK", "kind": "title1", "maxW": 4140 },
+    "s3": { "x": 0, "y": 2180, "text": "3 · Dudas del revisor de interfaz (APK)", "kind": "title1", "maxW": 6060 },
+    "s4": { "x": 0, "y": 3640, "text": "4 · Muestra en oscuro", "kind": "title1", "maxW": 1500 },
+    "leeme": { "x": -600, "y": 0, "w": 480, "text": "Cada tablero es una decisión. La primera opción es la que recomiendo; la última, «como hoy». Debajo de las opciones, por qué y lo que cuesta llevarla al código. Para elegir basta citar el nombre: W1a, A2b, D3a…" }
+  },
+  "designSystems": []
+}

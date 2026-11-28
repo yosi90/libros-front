@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>D2 · «Reenviar» y «Corregir y reenviar»</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="piezas.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400..600&family=Roboto:wght@400;500;700;800&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="tb" style="width: 1240px; height: 1080px">
+<h2 class="tb__q">D2 · Una petición devuelta: «Reenviar» y «Corregir y reenviar», seguidos</h2>
+
+<div class="ops">
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">D2a · «Corregir datos» y «Reenviar» apagado <span class="rec">recomendada</span></h3>
+<p class="op__d">Los dos en una fila. «Reenviar» se enciende al escribir la respuesta.</p>
+<div class="pant m">
+<div class="tarj">
+<div class="cab"><strong>Libro · Alta en catálogo</strong><span class="est">Devuelta</span></div>
+<div class="dato"><span>Nombre</span><span>El ritmo de la guerra</span></div>
+<div class="dato"><span>ISBN</span><span>9788418037191</span></div>
+<p class="p p--s"><strong>Respuesta:</strong> El ISBN no corresponde a esta edición.</p>
+<textarea class="area" placeholder="Tu respuesta" aria-label="Tu respuesta"></textarea>
+<div class="bts"><button type="button" class="bt bt--ol bt--f">Corregir datos</button><button type="button" class="bt bt--pr bt--f off" aria-disabled="true">Reenviar</button></div>
+</div>
+<p class="cap">Con la respuesta escrita</p>
+<div class="tarj">
+<div class="area area--txt">Es la edición en tapa dura de 2021; el ISBN está bien.</div>
+<div class="bts"><button type="button" class="bt bt--ol bt--f">Corregir datos</button><button type="button" class="bt bt--pr bt--f">Reenviar</button></div>
+</div>
+</div>
+</section>
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">D2b · Solo cambia el nombre</h3>
+<p class="op__d">«Corregir datos» en lugar de «Corregir y reenviar»; lo demás, como hoy.</p>
+<div class="pant m">
+<div class="tarj">
+<div class="cab"><strong>Libro · Alta en catálogo</strong><span class="est">Devuelta</span></div>
+<div class="dato"><span>Nombre</span><span>El ritmo de la guerra</span></div>
+<div class="dato"><span>ISBN</span><span>9788418037191</span></div>
+<p class="p p--s"><strong>Respuesta:</strong> El ISBN no corresponde a esta edición.</p>
+<textarea class="area" placeholder="Tu respuesta" aria-label="Tu respuesta"></textarea>
+<div class="bts bts--col"><button type="button" class="bt bt--pr">Reenviar</button><button type="button" class="bt bt--ol">Corregir datos</button></div>
+</div>
+</div>
+</section>
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">D2c · Como hoy</h3>
+<p class="op__d">«Reenviar» y «Corregir y reenviar», uno debajo del otro.</p>
+<div class="pant m">
+<div class="tarj">
+<div class="cab"><strong>Libro · Alta en catálogo</strong><span class="est">Devuelta</span></div>
+<div class="dato"><span>Nombre</span><span>El ritmo de la guerra</span></div>
+<div class="dato"><span>ISBN</span><span>9788418037191</span></div>
+<p class="p p--s"><strong>Respuesta:</strong> El ISBN no corresponde a esta edición.</p>
+<textarea class="area" placeholder="Tu respuesta" aria-label="Tu respuesta"></textarea>
+<div class="bts bts--col"><button type="button" class="bt bt--pr">Reenviar</button><button type="button" class="bt bt--ol">Corregir y reenviar</button></div>
+</div>
+</div>
+</section>
+
+</div>
+
+<p class="nota"><strong>Recomiendo D2a.</strong> Con «Corregir datos», cada botón dice una cosa: uno contesta y el otro abre el formulario. Y «Reenviar» sin respuesta hoy solo sirve para recibir el error «Añade un comentario para reenviar la petición»: apagado, ese error no llega a salir y se entiende que el botón va con el campo de encima. Apagado y no escondido, para que nada se mueva al escribir. En una fila, la tarjeta gasta una línea menos; en el Honor abierto, igual.</p>
+<p class="nota nota--cod">Al código: fácil. El nombre, una fila y «habilitado si hay texto»; el aviso de error se queda en el ViewModel por si acaso. En Mis peticiones de la web, lo mismo.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

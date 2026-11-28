@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>A3 · La insignia de no leídos</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="piezas.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400..600&family=Roboto:wght@400;500;700;800&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="tb" style="width: 1240px; height: 720px">
+<h2 class="tb__q">A3 · La insignia de no leídos de la APK: dos tamaños para lo mismo</h2>
+
+<div class="ops">
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">A3a · La de Mensajes <span class="rec">recomendada</span></h3>
+<p class="op__d">En los dos sitios: 24 dp de ancho mínimo y .65 rem (10,4 sp); queda en unos 20 dp de alto.</p>
+<div class="pant m">
+<div class="grupo"><p class="cap">Comunidad · secciones</p>
+<div class="pils" role="tablist" aria-label="Comunidad"><button type="button" class="ptab on" role="tab" aria-selected="true">Resumen</button><button type="button" class="ptab" role="tab" aria-selected="false" aria-label="Clubes, 2 sin leer">Clubes<span class="ins" aria-hidden="true">2</span></button><button type="button" class="ptab" role="tab" aria-selected="false" aria-label="Mensajes, 12 sin leer">Mensajes<span class="ins" aria-hidden="true">12</span></button></div></div>
+<div class="grupo"><p class="cap">Mensajes · bandeja</p>
+<div class="conv"><span class="av" aria-hidden="true">M</span><div class="conv__c"><strong>Marta Ruiz</strong><span>¿Has llegado ya al capítulo 12?</span></div><div class="conv__f">10:42<span class="ins" aria-label="3 sin leer">3</span></div></div>
+<div class="conv"><span class="av" aria-hidden="true">C</span><div class="conv__c"><strong>Club de los lunes</strong><span>Pablo: el viernes votamos el siguiente</span></div><div class="conv__f">ayer<span class="ins" aria-label="140 sin leer">99+</span></div></div>
+</div>
+</div>
+</section>
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">A3b · La de Comunidad</h3>
+<p class="op__d">En los dos sitios: 20 dp de ancho mínimo y .6 rem (9,6 sp); queda en unos 16 dp de alto.</p>
+<div class="pant m">
+<div class="grupo"><p class="cap">Comunidad · secciones</p>
+<div class="pils" role="tablist" aria-label="Comunidad"><button type="button" class="ptab on" role="tab" aria-selected="true">Resumen</button><button type="button" class="ptab" role="tab" aria-selected="false" aria-label="Clubes, 2 sin leer">Clubes<span class="ins ins--com" aria-hidden="true">2</span></button><button type="button" class="ptab" role="tab" aria-selected="false" aria-label="Mensajes, 12 sin leer">Mensajes<span class="ins ins--com" aria-hidden="true">12</span></button></div></div>
+<div class="grupo"><p class="cap">Mensajes · bandeja</p>
+<div class="conv"><span class="av" aria-hidden="true">M</span><div class="conv__c"><strong>Marta Ruiz</strong><span>¿Has llegado ya al capítulo 12?</span></div><div class="conv__f">10:42<span class="ins ins--com" aria-label="3 sin leer">3</span></div></div>
+<div class="conv"><span class="av" aria-hidden="true">C</span><div class="conv__c"><strong>Club de los lunes</strong><span>Pablo: el viernes votamos el siguiente</span></div><div class="conv__f">ayer<span class="ins ins--com" aria-label="140 sin leer">99+</span></div></div>
+</div>
+</div>
+</section>
+
+<section class="op" style="width: 360px">
+<h3 class="op__n">A3c · Como hoy</h3>
+<p class="op__d">La pequeña en las secciones de Comunidad y la grande en la bandeja de Mensajes.</p>
+<div class="pant m">
+<div class="grupo"><p class="cap">Comunidad · secciones</p>
+<div class="pils" role="tablist" aria-label="Comunidad"><button type="button" class="ptab on" role="tab" aria-selected="true">Resumen</button><button type="button" class="ptab" role="tab" aria-selected="false" aria-label="Clubes, 2 sin leer">Clubes<span class="ins ins--com" aria-hidden="true">2</span></button><button type="button" class="ptab" role="tab" aria-selected="false" aria-label="Mensajes, 12 sin leer">Mensajes<span class="ins ins--com" aria-hidden="true">12</span></button></div></div>
+<div class="grupo"><p class="cap">Mensajes · bandeja</p>
+<div class="conv"><span class="av" aria-hidden="true">M</span><div class="conv__c"><strong>Marta Ruiz</strong><span>¿Has llegado ya al capítulo 12?</span></div><div class="conv__f">10:42<span class="ins" aria-label="3 sin leer">3</span></div></div>
+<div class="conv"><span class="av" aria-hidden="true">C</span><div class="conv__c"><strong>Club de los lunes</strong><span>Pablo: el viernes votamos el siguiente</span></div><div class="conv__f">ayer<span class="ins" aria-label="140 sin leer">99+</span></div></div>
+</div>
+</div>
+</section>
+
+</div>
+
+<p class="nota"><strong>Recomiendo A3a.</strong> 9,6 sp no se lee bien, y menos con «99+». La de Mensajes queda en 20 dp de alto: la misma medida que la insignia del carril de la web (W2) y que la del lienzo de la ronda 1. Dentro de una pestaña de 40 dp cabe sin cambiarle el alto. Si se quiere, el texto se redondea a 11 sp.</p>
+<p class="nota nota--cod">Al código: trivial. <code>Insignia</code> con una sola medida, usada por las dos; la de la bandeja conserva su nombre accesible («3 sin leer»).</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":720}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

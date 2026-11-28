@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>W5 · El botón de peligro</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="piezas.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400..600&family=Roboto:wght@400;500;700;800&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="tb" style="width: 1240px; height: 860px">
+<h2 class="tb__q">W5 · El botón de peligro: una clase, dos aspectos</h2>
+
+<div class="ops">
+
+<section class="op w" style="width: 360px">
+<h3 class="op__n">W5a · Dos variantes, cada una con su uso <span class="rec">recomendada</span></h3>
+<p class="op__d">De contorno: la acción en la página, que todavía se confirma. Relleno: el botón que confirma, y solo ese.</p>
+<div class="grupo">
+<p class="cap">De contorno · club</p>
+<div class="hoja hoja--p"><div class="phead"><h3>Miembros</h3><button type="button" class="btn btn--s btn--dg">Eliminar club</button></div></div>
+</div>
+<div class="grupo">
+<p class="cap">De contorno · panel del grupo</p>
+<div class="hoja hoja--p"><button type="button" class="btn btn--s btn--dg"><svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg>Salir del grupo</button></div>
+</div>
+<div class="grupo">
+<p class="cap">De contorno · cuenta</p>
+<div class="hoja hoja--p"><button type="button" class="btn btn--dg"><svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg>Cerrar sesión</button></div>
+</div>
+<div class="grupo">
+<p class="cap">Relleno · la confirmación de una nota</p>
+<div class="hoja hoja--p"><div class="conf"><span>¿Eliminar esta nota?</span><button type="button" class="btn btn--s">Cancelar</button><button type="button" class="btn btn--s btn--dgs">Eliminar</button></div></div>
+</div>
+</section>
+
+<section class="op w" style="width: 360px">
+<h3 class="op__n">W5b · Una sola, de contorno</h3>
+<p class="op__d">El relleno desaparece: el «Eliminar» de la nota también va de contorno.</p>
+<div class="grupo">
+<p class="cap">Club</p>
+<div class="hoja hoja--p"><div class="phead"><h3>Miembros</h3><button type="button" class="btn btn--s btn--dg">Eliminar club</button></div></div>
+</div>
+<div class="grupo">
+<p class="cap">Panel del grupo</p>
+<div class="hoja hoja--p"><button type="button" class="btn btn--s btn--dg"><svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg>Salir del grupo</button></div>
+</div>
+<div class="grupo">
+<p class="cap">Cuenta</p>
+<div class="hoja hoja--p"><button type="button" class="btn btn--dg"><svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg>Cerrar sesión</button></div>
+</div>
+<div class="grupo">
+<p class="cap">La confirmación de una nota</p>
+<div class="hoja hoja--p"><div class="conf"><span>¿Eliminar esta nota?</span><button type="button" class="btn btn--s">Cancelar</button><button type="button" class="btn btn--s btn--dg">Eliminar</button></div></div>
+</div>
+</section>
+
+<section class="op w" style="width: 360px">
+<h3 class="op__n">W5c · Como hoy</h3>
+<p class="op__d">Una clase que cada vista pinta a su manera: de contorno en el club, la conversación y la cuenta; rellena en las notas.</p>
+<div class="grupo">
+<p class="cap">Club</p>
+<div class="hoja hoja--p"><div class="phead"><h3>Miembros</h3><button type="button" class="btn btn--s btn--dg">Eliminar club</button></div></div>
+</div>
+<div class="grupo">
+<p class="cap">Panel del grupo</p>
+<div class="hoja hoja--p"><button type="button" class="btn btn--s btn--dg"><svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg>Salir del grupo</button></div>
+</div>
+<div class="grupo">
+<p class="cap">Cuenta</p>
+<div class="hoja hoja--p"><button type="button" class="btn btn--dg"><svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg>Cerrar sesión</button></div>
+</div>
+<div class="grupo">
+<p class="cap">La confirmación de una nota</p>
+<div class="hoja hoja--p"><div class="conf"><span>¿Eliminar esta nota?</span><button type="button" class="btn btn--s">Cancelar</button><button type="button" class="btn btn--s btn--dgs">Eliminar</button></div></div>
+</div>
+</section>
+
+</div>
+
+<p class="nota"><strong>Recomiendo W5a.</strong> En claro se ve igual que hoy: los dos aspectos ya dicen cosas distintas, y lo que falta es darles nombre y regla. De contorno (<code>web-button--danger</code>) para lo que aún pide confirmación o se puede deshacer: «Eliminar club», «Abandonar club», «Salir del grupo» y «Cerrar sesión». Relleno (<code>web-button--danger-solid</code>) solo para el último clic de una confirmación. Con uno solo de contorno (W5b), «Cancelar» y «Eliminar» pesan casi lo mismo justo donde hay que distinguirlos.</p>
+<p class="nota nota--cod">Al código: fácil, dos variantes en <code>web/_classes.sass</code> y fuera las cuatro copias. Pide un token nuevo, <code>--web-color-on-danger</code> (blanco en claro, #5c0a06 en oscuro): hoy el relleno pone texto blanco sobre el rojo claro del tema oscuro y no se lee. Está dibujado en la muestra en oscuro.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":860}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

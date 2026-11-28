@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>W4 · Las fichas</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="piezas.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400..600&family=Roboto:wght@400;500;700;800&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="tb" style="width: 1420px; height: 800px">
+<h2 class="tb__q">W4 · Las fichas: de 8 px, redondas o cada una a su manera</h2>
+
+<div class="ops">
+
+<section class="op w" style="width: 420px">
+<h3 class="op__n">W4a · Todas de 8 px <span class="rec">recomendada</span></h3>
+<p class="op__d">La ficha de la Biblioteca en los cuatro sitios: contorno suave, la marca solo en la elegida y la × en las que se quitan.</p>
+<div class="grupo">
+<p class="cap">Biblioteca · disponibilidad</p>
+<div class="fichas">
+<button type="button" class="chip" aria-pressed="false">Todos</button>
+<button type="button" class="chip on" aria-pressed="true"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Comprados</button>
+<button type="button" class="chip" aria-pressed="false">Por comprar</button>
+</div>
+</div>
+<div class="grupo">
+<p class="cap">Catálogo · filtros puestos</p>
+<div class="fichas">
+<span class="chip chip--x on">Quiero leer<button type="button" class="x" aria-label="Quitar el filtro Quiero leer"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<span class="chip chip--x on">Fantasía<button type="button" class="x" aria-label="Quitar el filtro Fantasía"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+</div>
+</div>
+<div class="grupo">
+<p class="cap">Búsqueda del libro · categorías</p>
+<div class="fichas">
+<button type="button" class="chip on" aria-pressed="true"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Capítulos</button>
+<button type="button" class="chip" aria-pressed="false">Escenas</button>
+<button type="button" class="chip on" aria-pressed="true"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Personajes</button>
+<button type="button" class="chip" aria-pressed="false">Localizaciones</button>
+<button type="button" class="chip" aria-pressed="false">Citas</button>
+</div>
+</div>
+<div class="grupo">
+<p class="cap">Buscador · ámbito</p>
+<label class="busca"><svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+<span class="chip chip--28 on">Autor: Sanderson<button type="button" class="x" aria-label="Quitar filtro Sanderson"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<input type="search" placeholder="Título, autor, saga…" aria-label="Buscar en el catálogo"></label>
+</div>
+</section>
+
+<section class="op w" style="width: 420px">
+<h3 class="op__n">W4b · Todas redondas</h3>
+<p class="op__d">La píldora de la búsqueda del libro en los cuatro sitios, con su contorno fuerte.</p>
+<div class="grupo">
+<p class="cap">Biblioteca · disponibilidad</p>
+<div class="fichas">
+<button type="button" class="chip chip--r" style="border-color: var(--ols)" aria-pressed="false">Todos</button>
+<button type="button" class="chip chip--r on" aria-pressed="true"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Comprados</button>
+<button type="button" class="chip chip--r" style="border-color: var(--ols)" aria-pressed="false">Por comprar</button>
+</div>
+</div>
+<div class="grupo">
+<p class="cap">Catálogo · filtros puestos</p>
+<div class="fichas">
+<span class="chip chip--r chip--x on">Quiero leer<button type="button" class="x" aria-label="Quitar el filtro Quiero leer"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<span class="chip chip--r chip--x on">Fantasía<button type="button" class="x" aria-label="Quitar el filtro Fantasía"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+</div>
+</div>
+<div class="grupo">
+<p class="cap">Búsqueda del libro · categorías</p>
+<div class="fichas">
+<button type="button" class="chip chip--r chip--f on" aria-pressed="true"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Capítulos</button>
+<button type="button" class="chip chip--r chip--f" aria-pressed="false"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 10h16"></path></svg>Escenas</button>
+<button type="button" class="chip chip--r chip--f on" aria-pressed="true"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Personajes</button>
+<button type="button" class="chip chip--r chip--f" aria-pressed="false"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21c-3-3.2-6.5-6.6-6.5-10.5a6.5 6.5 0 0 1 13 0c0 3.9-3.5 7.3-6.5 10.5z"></path></svg>Localizaciones</button>
+<button type="button" class="chip chip--r chip--f" aria-pressed="false"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h5v6l-2 4H6l1-4H5zM14 7h5v6l-2 4h-2l1-4h-2z"></path></svg>Citas</button>
+</div>
+</div>
+<div class="grupo">
+<p class="cap">Buscador · ámbito</p>
+<label class="busca"><svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+<span class="amb">Autor: Sanderson<button type="button" class="x" aria-label="Quitar filtro Sanderson"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<input type="search" placeholder="Título, autor, saga…" aria-label="Buscar en el catálogo"></label>
+</div>
+</section>
+
+<section class="op w" style="width: 420px">
+<h3 class="op__n">W4c · Como hoy</h3>
+<p class="op__d">De 8 px en la Biblioteca y el Catálogo; redondas, con contorno fuerte y el icono siempre puesto, en la búsqueda del libro y en el ámbito.</p>
+<div class="grupo">
+<p class="cap">Biblioteca · disponibilidad</p>
+<div class="fichas">
+<button type="button" class="chip" aria-pressed="false">Todos</button>
+<button type="button" class="chip on" aria-pressed="true"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Comprados</button>
+<button type="button" class="chip" aria-pressed="false">Por comprar</button>
+</div>
+</div>
+<div class="grupo">
+<p class="cap">Catálogo · filtros puestos</p>
+<div class="fichas">
+<span class="chip chip--x on">Quiero leer<button type="button" class="x" aria-label="Quitar el filtro Quiero leer"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<span class="chip chip--x on">Fantasía<button type="button" class="x" aria-label="Quitar el filtro Fantasía"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+</div>
+</div>
+<div class="grupo">
+<p class="cap">Búsqueda del libro · categorías</p>
+<div class="fichas">
+<button type="button" class="chip chip--r chip--f on" aria-pressed="true"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Capítulos</button>
+<button type="button" class="chip chip--r chip--f" aria-pressed="false"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 10h16"></path></svg>Escenas</button>
+<button type="button" class="chip chip--r chip--f on" aria-pressed="true"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Personajes</button>
+<button type="button" class="chip chip--r chip--f" aria-pressed="false"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21c-3-3.2-6.5-6.6-6.5-10.5a6.5 6.5 0 0 1 13 0c0 3.9-3.5 7.3-6.5 10.5z"></path></svg>Localizaciones</button>
+<button type="button" class="chip chip--r chip--f" aria-pressed="false"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h5v6l-2 4H6l1-4H5zM14 7h5v6l-2 4h-2l1-4h-2z"></path></svg>Citas</button>
+</div>
+</div>
+<div class="grupo">
+<p class="cap">Buscador · ámbito</p>
+<label class="busca"><svg class="ic ic--20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+<span class="amb">Autor: Sanderson<button type="button" class="x" aria-label="Quitar filtro Sanderson"><svg class="ic ic--16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<input type="search" placeholder="Título, autor, saga…" aria-label="Buscar en el catálogo"></label>
+</div>
+</section>
+
+</div>
+
+<p class="nota"><strong>Recomiendo W4a.</strong> Deja una regla que se ve: lo redondo informa (el estado de lectura, la insignia) y lo de 8 px se pulsa (los filtros). Con todas redondas, un filtro y un estado de lectura se parecen demasiado. En la búsqueda del libro se va el icono de cada categoría, que repetía la palabra, y queda la marca de las elegidas, como en la Biblioteca. La ficha del ámbito baja a 28 px de alto para caber dentro del buscador.</p>
+<p class="nota nota--cod">Al código: fácil. <code>.filter</code> y <code>.web-search__chip</code> pasan a <code>web.chip</code>; el mixin necesita el alto como parámetro (32 px por defecto, 28 dentro del campo).</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1420,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

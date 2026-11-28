@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>D1 · El título del formulario al reenviar</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="piezas.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400..600&family=Roboto:wght@400;500;700;800&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="tb" style="width: 2100px; height: 820px">
+<h2 class="tb__q">D1 · El formulario al corregir una petición devuelta: qué va arriba</h2>
+
+<div class="ops">
+
+<section class="op" style="width: 480px">
+<h3 class="op__n">D1a · La respuesta, en lugar del título <span class="rec">recomendada</span></h3>
+<p class="op__d">Arriba, por qué te la devolvieron: es lo que hay que tener delante mientras se corrige.</p>
+<div class="velo m"><div class="dlg">
+<div class="dlg__cab"><div class="campo"><p class="rot">Respuesta</p><p class="p p--s">El ISBN no corresponde a esta edición.</p></div><button type="button" class="im" aria-label="Cerrar"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+<div class="campos">
+<div class="campo"><p class="rot">Nombre</p><div class="caja">El ritmo de la guerra</div></div>
+<div class="campo"><p class="rot">ISBN *</p><div class="caja">9788418037191</div><p class="ayuda">10 o 13 cifras</p></div>
+<div class="campo"><p class="rot">Fecha de publicación</p><div class="caja">2021</div></div>
+</div>
+<div class="campo"><p class="rot">Sinopsis (opcional)</p><div class="area area--corta"></div></div>
+</div></div>
+</section>
+
+<section class="op" style="width: 480px">
+<h3 class="op__n">D1b · Sin título</h3>
+<p class="op__d">Solo la X: el botón que abrió el formulario ya dijo qué es.</p>
+<div class="velo m"><div class="dlg">
+<div class="dlg__cab"><span></span><button type="button" class="im" aria-label="Cerrar"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+<div class="campos">
+<div class="campo"><p class="rot">Nombre</p><div class="caja">El ritmo de la guerra</div></div>
+<div class="campo"><p class="rot">ISBN *</p><div class="caja">9788418037191</div><p class="ayuda">10 o 13 cifras</p></div>
+<div class="campo"><p class="rot">Fecha de publicación</p><div class="caja">2021</div></div>
+</div>
+<div class="campo"><p class="rot">Sinopsis (opcional)</p><div class="area area--corta"></div></div>
+</div></div>
+</section>
+
+<section class="op" style="width: 480px">
+<h3 class="op__n">D1c · Otro título</h3>
+<p class="op__d">El nombre de la petición, igual que en su tarjeta: «Libro · Alta en catálogo».</p>
+<div class="velo m"><div class="dlg">
+<div class="dlg__cab"><p class="p" style="padding-top: 8px; font-weight: 700">Libro · Alta en catálogo</p><button type="button" class="im" aria-label="Cerrar"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+<div class="campos">
+<div class="campo"><p class="rot">Nombre</p><div class="caja">El ritmo de la guerra</div></div>
+<div class="campo"><p class="rot">ISBN *</p><div class="caja">9788418037191</div><p class="ayuda">10 o 13 cifras</p></div>
+<div class="campo"><p class="rot">Fecha de publicación</p><div class="caja">2021</div></div>
+</div>
+<div class="campo"><p class="rot">Sinopsis (opcional)</p><div class="area area--corta"></div></div>
+</div></div>
+</section>
+
+<section class="op" style="width: 480px">
+<h3 class="op__n">D1d · Como hoy</h3>
+<p class="op__d">«Corregir y reenviar», lo mismo que dice el botón que lo abre.</p>
+<div class="velo m"><div class="dlg">
+<div class="dlg__cab"><h4 class="tit tit--g">Corregir y reenviar</h4><button type="button" class="im" aria-label="Cerrar"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+<div class="campos">
+<div class="campo"><p class="rot">Nombre</p><div class="caja">El ritmo de la guerra</div></div>
+<div class="campo"><p class="rot">ISBN *</p><div class="caja">9788418037191</div><p class="ayuda">10 o 13 cifras</p></div>
+<div class="campo"><p class="rot">Fecha de publicación</p><div class="caja">2021</div></div>
+</div>
+<div class="campo"><p class="rot">Sinopsis (opcional)</p><div class="area area--corta"></div></div>
+</div></div>
+</section>
+
+</div>
+
+<p class="nota"><strong>Recomiendo D1a.</strong> El título de hoy repite el botón, y sin nada (D1b) la X se queda sola en una fila vacía. Pero el formulario tapa la tarjeta de la petición, y con ella la respuesta del catálogo, que es justo lo que hace falta para saber qué campo arreglar. Va como texto normal con su rótulo, no como titular. Vale igual para el mismo formulario de la web.</p>
+<p class="nota nota--cod">Al código: fácil. El formulario ya nace de la petición devuelta; hay que pasarle también su comentario de resolución, que ya viene en el contrato (es la «Respuesta» de la tarjeta). Si llegara vacío, queda como D1b.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2100,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
