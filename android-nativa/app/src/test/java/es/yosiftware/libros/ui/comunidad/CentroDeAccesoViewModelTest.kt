@@ -95,7 +95,7 @@ class CentroDeAccesoViewModelTest {
 
         m.vm.elegirTipo(TipoDeAcceso.SOLICITUDES)
         assertTrue(m.vm.filas.isEmpty())
-        assertTrue(m.vm.mensajeVacio.startsWith("No has pedido entrar"))
+        assertEquals("Sin solicitudes enviadas", m.vm.mensajeVacio)
         m.vm.elegirDireccion(DireccionDeAcceso.RECIBIDAS)
         assertEquals("Luis", m.vm.filas.single().persona)
         assertEquals("@luis", m.vm.filas.single().detalle)

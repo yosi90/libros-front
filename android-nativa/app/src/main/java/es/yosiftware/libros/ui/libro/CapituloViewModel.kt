@@ -300,7 +300,6 @@ class CapituloViewModel(
             alCrearLugar(lugar)
             if (capitulo?.escenas?.any { it.clave == clave } == true) elegirLocalizacion(clave, lugar.id)
             lugarDe = null
-            avisos.exito("Localización creada")
         }
     }
 

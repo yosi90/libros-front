@@ -22,7 +22,6 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,12 +31,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,9 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.liveRegion
@@ -66,8 +61,8 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.EncimaDeTodo
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
+import es.yosiftware.libros.ui.comunidad.PestanaDePalabra
 import es.yosiftware.libros.ui.tema.Espacios
-import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
@@ -90,19 +85,7 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Un
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             PestanaDePreferencias.entries.forEach { cada ->
-                val activa = cada == pestana
-                Row(
-                    Modifier.heightIn(min = 46.dp).clip(Radios.pildora)
-                        .background(if (activa) colores.contenedorPrimario else Color.Transparent)
-                        .clickable(role = Role.Tab) { pestana = cada }
-                        .padding(horizontal = Espacios.e3),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    val tinta = if (activa) colores.sobreContenedorPrimario else colores.tintaSuave
-                    Icon(painterResource(cada.icono), contentDescription = null, tint = tinta, modifier = Modifier.size(20.dp))
-                    Text(cada.etiqueta, color = tinta, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, lineHeight = rem(0.72)))
-                }
+                PestanaDePalabra(cada.etiqueta, cada == pestana, { pestana = cada })
             }
         }
         HorizontalDivider(thickness = 1.dp, color = mezclar(colores.contorno, 0.65f))
@@ -121,7 +104,7 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Un
                     "Libros ${BuildConfig.VERSION_NAME}",
                     Modifier.fillMaxWidth().padding(top = Espacios.e4),
                     color = colores.tintaSuave,
-                    style = Textos.cuerpo.copy(fontSize = rem(0.72)),
+                    style = Textos.nota,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -136,11 +119,10 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Un
  */
 @Composable
 private fun Privacidad(alAbrir: () -> Unit) {
-    Pista("Tu privacidad en Libros es la de tu cuenta de Yosiftware: si ocultas que usas Libros y qué te llega al móvil. Tu perfil y quién puede escribirte se deciden en ella.")
     Boton("Privacidad de todas tus webs", alAbrir, Modifier.fillMaxWidth(), variante = VarianteDeBoton.Contorno, icono = Iconos.simboloYosiftware)
     // «Gratis, por ahora» siempre a mano (kit 1.77): el mismo aviso que sale solo al instalar o actualizar.
     var gratuidad by rememberSaveable { mutableStateOf(false) }
-    Boton(AvisoDeGratuidad.TITULO, { gratuidad = true }, Modifier.fillMaxWidth(), variante = VarianteDeBoton.Contorno, icono = Iconos.info)
+    Boton(AvisoDeGratuidad.TITULO, { gratuidad = true }, Modifier.fillMaxWidth(), variante = VarianteDeBoton.Contorno)
     if (gratuidad) EncimaDeTodo(alCerrar = { gratuidad = false }) { HojaDeGratuidad(abierta = true, alCerrar = { gratuidad = false }) }
 }
 
@@ -152,25 +134,21 @@ private fun Privacidad(alAbrir: () -> Unit) {
 private fun Lectura() {
     val contexto = LocalContext.current
     var escena by remember { mutableStateOf(EscenaAlAbrir.encendida(contexto)) }
-    Interruptor(
-        "Escena al abrir un libro",
-        "Si el libro tiene tu título con cabecera animada, se ve a pantalla completa unos segundos al abrirlo. Toca para entrar antes.",
-        escena,
-    ) {
+    Interruptor("Escena al abrir un libro", escena) {
         escena = it
         EscenaAlAbrir.cambiar(contexto, it)
     }
     var sonidos by remember { mutableStateOf(PreferenciaDeSonidos.encendidos(contexto)) }
-    Interruptor("Sonidos", null, sonidos) {
+    Interruptor("Sonidos", sonidos) {
         sonidos = it
         PreferenciaDeSonidos.cambiar(contexto, it)
     }
     DictadoPorVoz()
 }
 
-/** Una preferencia que se enciende y se apaga: toda la fila es el interruptor; [explicacion], solo si hace falta. */
+/** Una preferencia que se enciende y se apaga: toda la fila es el interruptor, con su título y sin explicación. */
 @Composable
-private fun Interruptor(titulo: String, explicacion: String?, encendida: Boolean, alCambiar: (Boolean) -> Unit) {
+private fun Interruptor(titulo: String, encendida: Boolean, alCambiar: (Boolean) -> Unit) {
     val colores = LocalColores.current
     Row(
         Modifier.fillMaxWidth().heightIn(min = 68.dp).clip(RoundedCornerShape(Radios.sm))
@@ -179,17 +157,15 @@ private fun Interruptor(titulo: String, explicacion: String?, encendida: Boolean
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
     ) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(titulo, color = colores.tinta, style = Textos.cuerpo.copy(fontSize = rem(0.84), fontWeight = FontWeight.Bold))
-            if (explicacion != null) {
-                Text(explicacion, color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.76), lineHeight = rem(0.76 * 1.45)))
-            }
-        }
+        Text(titulo, Modifier.weight(1f), color = colores.tinta, style = Textos.cuerpo.copy(fontSize = rem(0.84), fontWeight = FontWeight.Bold))
         Switch(checked = encendida, onCheckedChange = null)
     }
 }
 
-/** «Permisos del móvil» (`mobile-app-permissions`), solo con las notificaciones, que se vuelven a mirar al volver a la app. */
+/**
+ * «Permisos» (`mobile-app-permissions`), solo con las notificaciones, que se vuelven a mirar al volver a la app: el
+ * título, el estado y su botón, sin encabezado ni explicación (ronda 1 de interfaz, R1).
+ */
 @Composable
 private fun Permisos(alElegirAvisos: () -> Unit) {
     val colores = LocalColores.current
@@ -216,39 +192,35 @@ private fun Permisos(alElegirAvisos: () -> Unit) {
         if (estado == EstadoDePermiso.CONCEDIDO) LibrosApp.datos(contexto).push.alConcederPermiso()
     }
 
-    Column {
-        Text("Permisos del móvil", color = colores.tinta, style = Textos.cuerpo.copy(fontFamily = Fuentes.display))
-        Pista("Android conserva la decisión final. Puedes conceder un permiso aquí o cambiarlo después en los ajustes de la aplicación.", Modifier.padding(top = Espacios.e2))
-    }
     Column(Modifier.fillMaxWidth()) {
         Column(
             Modifier.fillMaxWidth().heightIn(min = 68.dp).padding(vertical = Espacios.e3),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                Icon(painterResource(Iconos.notifications), contentDescription = null, tint = colores.primario)
-                Text("Notificaciones", color = colores.tinta, style = Textos.cuerpo.copy(fontSize = rem(0.84), fontWeight = FontWeight.Bold))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e3)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Notificaciones", color = colores.tinta, style = Textos.cuerpo.copy(fontSize = rem(0.84), fontWeight = FontWeight.Bold))
+                    Text(
+                        estado.etiqueta,
+                        Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                        color = colores.tintaSuave,
+                        style = Textos.cuerpo.copy(fontSize = rem(0.76)),
+                    )
+                }
+                Boton(
+                    PermisoDeNotificaciones.textoDelBoton(estado, solicitando),
+                    {
+                        if (PermisoDeNotificaciones.sePuedePedir(api, estado)) {
+                            solicitando = true
+                            pedir.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            // Android ya no pregunta (o no hay permiso que pedir): sus ajustes de notificaciones.
+                            abrir(contexto, Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, contexto.packageName))
+                        }
+                    },
+                    habilitado = !solicitando && estado != EstadoDePermiso.CONCEDIDO,
+                )
             }
-            Text("Avisos de mensajes y actividad aunque la app esté en segundo plano.", color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.76), lineHeight = rem(0.76 * 1.45)))
-            Text(
-                estado.etiqueta,
-                Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                color = colores.tintaSuave,
-                style = Textos.cuerpo.copy(fontSize = rem(0.76)),
-            )
-            Boton(
-                PermisoDeNotificaciones.textoDelBoton(estado, solicitando),
-                {
-                    if (PermisoDeNotificaciones.sePuedePedir(api, estado)) {
-                        solicitando = true
-                        pedir.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    } else {
-                        // Android ya no pregunta (o no hay permiso que pedir): sus ajustes de notificaciones.
-                        abrir(contexto, Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, contexto.packageName))
-                    }
-                },
-                habilitado = !solicitando && estado != EstadoDePermiso.CONCEDIDO,
-            )
             AvisosEnEsteMovil(alElegirAvisos)
         }
         HorizontalDivider(thickness = 1.dp, color = mezclar(colores.contorno, 0.55f))
@@ -269,12 +241,6 @@ private fun abrir(contexto: Context, intento: Intent) {
     } catch (_: android.content.ActivityNotFoundException) {
         // Algunas capas de Android no tienen esa pantalla: no hay nada más que abrir.
     }
-}
-
-/** `.preference-hint`: el texto de apoyo de la tarjeta. */
-@Composable
-private fun Pista(texto: String, modifier: Modifier = Modifier) {
-    Text(texto, modifier, color = LocalColores.current.tintaSuave, style = Textos.cuerpo)
 }
 
 /**

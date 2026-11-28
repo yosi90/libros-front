@@ -10,11 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -32,16 +30,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
@@ -57,13 +60,13 @@ import es.yosiftware.libros.ui.tema.rem
 // `_primitives.sass` y las de `mobile-community-view`, `mobile-social-summary-view` y `mobile-club-access-center-view`.
 
 /**
- * `.m-list-item` con el borde de las listas de clubes y del resumen: el icono en su círculo, el título, la línea de
- * apoyo y el icono final. Con [resaltado], el de `.has-pending`; con [valorGrande], el título en display (las cifras del
- * resumen); con [simbolo], el del ecosistema delante de la línea de apoyo (lo que se abre en la web social).
+ * `.m-list-item` con el borde de las listas de clubes y del resumen: el título, la línea de apoyo y el icono final, sin
+ * el icono en círculo delante (ronda 1 de interfaz). Con [resaltado], el de `.has-pending`; con [valorGrande], el título
+ * en display (las cifras del resumen); con [simbolo], el del ecosistema delante de la línea de apoyo (lo que se abre en
+ * la web social).
  */
 @Composable
 fun ElementoDeLista(
-    @DrawableRes icono: Int,
     titulo: String,
     apoyo: String?,
     alPulsar: (() -> Unit)?,
@@ -80,16 +83,10 @@ fun ElementoDeLista(
             .background(if (resaltado) colores.contenedorPrimario else colores.superficie)
             .border(1.dp, if (resaltado) colores.primario else colores.contorno, forma)
             .then(if (alPulsar != null) Modifier.clickable(role = Role.Button, onClick = alPulsar) else Modifier)
-            .padding(Espacios.e3),
+            .padding(horizontal = Espacios.e4, vertical = Espacios.e3),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
     ) {
-        Box(
-            Modifier.size(42.dp).clip(CircleShape).background(if (resaltado) colores.primario else colores.contenedorPrimario),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(painterResource(icono), contentDescription = null, tint = if (resaltado) colores.sobrePrimario else colores.primario)
-        }
         Column(Modifier.weight(1f)) {
             Text(
                 titulo,
@@ -129,45 +126,61 @@ fun Insignia(numero: Int, modifier: Modifier = Modifier) {
 }
 
 /**
- * Una pestaña en caja (`.m-community-clubs__tabs button`): el icono sobre la etiqueta, con el borde; la activa, en el
- * contenedor primario; la desactivada, a .45. La insignia, arriba a la derecha.
+ * Una pestaña con la palabra, sin icono (ronda 1 de interfaz): la píldora de 40 dp de `.tab` o, con [enCaja], el chip
+ * con borde de las pestañas de Clubes. La activa, en el contenedor primario; la desactivada, a .45. Con [simbolo], el
+ * del ecosistema delante (lo que se abre en la web social); con [insignia], el número detrás. [descripcion] es su
+ * nombre accesible si la palabra sola no lo dice todo («Personas, en la web social»).
  */
 @Composable
-fun PestanaEnCaja(
-    @DrawableRes icono: Int,
+fun PestanaDePalabra(
     etiqueta: String,
     activa: Boolean,
     alPulsar: () -> Unit,
     modifier: Modifier = Modifier,
     habilitada: Boolean = true,
     insignia: Int = 0,
+    simbolo: Boolean = false,
+    enCaja: Boolean = false,
+    descripcion: String? = null,
 ) {
     val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
-    val tinta = if (activa) colores.primario else colores.tintaSuave
-    Box(modifier.alpha(if (habilitada) 1f else 0.45f)) {
-        Column(
-            Modifier.fillMaxWidth().widthIn(min = 72.dp).heightIn(min = 60.dp).clip(forma)
-                .background(if (activa) colores.contenedorPrimario else colores.superficie)
-                .border(1.dp, if (activa) colores.primario else colores.contorno, forma)
-                .clickable(enabled = habilitada, role = Role.Tab, onClick = alPulsar)
-                .padding(horizontal = Espacios.e2, vertical = Espacios.e1),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
-        ) {
-            Icon(painterResource(icono), contentDescription = null, tint = tinta)
-            Text(etiqueta, color = tinta, style = Textos.cuerpo.copy(fontSize = rem(0.7), lineHeight = rem(0.9)), maxLines = 1)
-        }
-        if (insignia > 0) Insignia(insignia, Modifier.align(Alignment.TopEnd).offset((-2).dp, 2.dp))
+    val forma = RoundedCornerShape(50)
+    val tinta = when {
+        activa -> colores.sobreContenedorPrimario
+        enCaja -> colores.secundario
+        else -> colores.tintaSuave
+    }
+    Row(
+        modifier.alpha(if (habilitada) 1f else 0.45f).heightIn(min = if (enCaja) 36.dp else 40.dp).clip(forma)
+            .background(if (activa) colores.contenedorPrimario else if (enCaja) colores.superficie else Color.Transparent)
+            .then(if (enCaja && !activa) Modifier.border(1.dp, colores.contorno, forma) else Modifier)
+            .clickable(enabled = habilitada, role = Role.Tab, onClick = alPulsar)
+            .semantics {
+                selected = activa
+                if (descripcion != null) contentDescription = descripcion
+            }
+            .padding(horizontal = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        if (simbolo) Icon(painterResource(Iconos.simboloYosiftware), contentDescription = null, tint = tinta, modifier = Modifier.size(15.dp))
+        Text(
+            etiqueta,
+            if (descripcion != null) Modifier.clearAndSetSemantics {} else Modifier,
+            color = tinta,
+            style = if (enCaja) Textos.chip else Textos.cuerpo.copy(fontSize = rem(0.84), fontWeight = FontWeight.SemiBold),
+            maxLines = 1,
+        )
+        if (insignia > 0) Insignia(insignia, if (descripcion != null) Modifier.clearAndSetSemantics {} else Modifier)
     }
 }
 
 /**
- * Un botón de filtro en caja (`.m-club-access__kinds button`): icono y etiqueta en fila, con su insignia detrás; el
- * activo, en el contenedor primario.
+ * Un botón de filtro en caja (`.m-club-access__kinds button`): la etiqueta y su insignia detrás, sin icono; el activo,
+ * en el contenedor primario.
  */
 @Composable
-fun FiltroEnCaja(etiqueta: String, activo: Boolean, alPulsar: () -> Unit, modifier: Modifier = Modifier, @DrawableRes icono: Int? = null, insignia: Int = 0) {
+fun FiltroEnCaja(etiqueta: String, activo: Boolean, alPulsar: () -> Unit, modifier: Modifier = Modifier, insignia: Int = 0) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.sm)
     val tinta = if (activo) colores.primario else colores.tintaSuave
@@ -176,11 +189,11 @@ fun FiltroEnCaja(etiqueta: String, activo: Boolean, alPulsar: () -> Unit, modifi
             .background(if (activo) colores.contenedorPrimario else colores.superficie)
             .border(1.dp, if (activo) colores.primario else colores.contorno, forma)
             .clickable(role = Role.Tab, onClick = alPulsar)
+            .semantics { selected = activo }
             .padding(Espacios.e2),
         horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (icono != null) Icon(painterResource(icono), contentDescription = null, tint = tinta)
         Text(etiqueta, color = tinta, style = Textos.cuerpo.copy(fontSize = rem(0.78), fontWeight = FontWeight.Bold))
         if (insignia > 0) Insignia(insignia)
     }
@@ -212,15 +225,10 @@ fun EstadoDePantalla(
     }
 }
 
-/** El título de una lista de clubes (`.m-club-list h3`): mayúsculas pequeñas en el color de apoyo. */
+/** El rótulo de una lista («Populares», «Todos»): el rótulo pequeño en el color de apoyo. */
 @Composable
 fun TituloDeLista(texto: String) {
-    Text(
-        texto.uppercase(),
-        Modifier.padding(top = Espacios.e3),
-        color = LocalColores.current.tintaSuave,
-        style = Textos.cuerpo.copy(fontSize = rem(0.75), letterSpacing = 0.07.em, fontWeight = FontWeight.Bold),
-    )
+    Text(texto, Modifier.padding(top = Espacios.e2).semantics { heading() }, color = LocalColores.current.tintaSuave, style = Textos.rotulo)
 }
 
 /** Un texto de apoyo pequeño (`__hint`) o de error (`__error`). */
@@ -302,32 +310,28 @@ fun <T> SelectorDeFormulario(opciones: List<Pair<T, String>>, elegida: T, alEleg
     }
 }
 
-/** `.m-search-bar`: la píldora con la lupa, el campo y el botón de buscar. */
+/**
+ * `.m-search-bar`: la píldora con el campo vacío y la lupa al final, que hace de botón de buscar (ronda 1 de interfaz,
+ * opción A). [descripcion] es el nombre accesible del campo («Buscar un club»).
+ */
 @Composable
-fun BarraDeBusqueda(valor: String, alCambiar: (String) -> Unit, ejemplo: String, alBuscar: () -> Unit, buscando: Boolean, modifier: Modifier = Modifier) {
+fun BarraDeBusqueda(valor: String, alCambiar: (String) -> Unit, descripcion: String, alBuscar: () -> Unit, buscando: Boolean, modifier: Modifier = Modifier) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(50)
     Row(
-        modifier.fillMaxWidth().heightIn(min = 52.dp).clip(forma).background(colores.superficie)
-            .border(1.dp, colores.contornoFuerte, forma).padding(start = Espacios.e3),
+        modifier.fillMaxWidth().heightIn(min = 48.dp).clip(forma).background(colores.superficie)
+            .border(1.dp, colores.contornoFuerte, forma).padding(start = Espacios.e4),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Espacios.e1),
     ) {
-        Icon(painterResource(Iconos.search), contentDescription = null, tint = colores.primario)
         BasicTextField(
-            valor, alCambiar, Modifier.weight(1f),
+            valor, alCambiar, Modifier.weight(1f).semantics { contentDescription = descripcion },
             singleLine = true,
             textStyle = Textos.cuerpo.copy(color = colores.tinta),
             cursorBrush = SolidColor(colores.primario),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { alBuscar() }),
-            decorationBox = { interior ->
-                Box(contentAlignment = Alignment.CenterStart) {
-                    if (valor.isEmpty()) Text(ejemplo, color = colores.tintaSuave, style = Textos.cuerpo, maxLines = 1)
-                    interior()
-                }
-            },
         )
-        BotonDeIcono(Iconos.arrowForward, "Buscar", alBuscar, habilitado = !buscando)
+        BotonDeIcono(Iconos.search, "Buscar", alBuscar, color = colores.primario, habilitado = !buscando)
     }
 }

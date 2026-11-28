@@ -1,18 +1,15 @@
 package es.yosiftware.libros.ui.preferencias
 
-import androidx.annotation.DrawableRes
-import es.yosiftware.libros.ui.tema.Iconos
-
 /**
  * Las pestañas de Preferencias en la APK. La web móvil tiene Privacidad y Chat (`app-preferences.component.ts`), y la
  * APK de Capacitor tenía además «Permisos del móvil» (`mobile-app-permissions`, retirada con Capacitor en `8cc841f`).
  * Chat no está: gobierna las ventanas flotantes del escritorio, que no existen en el móvil. El tema, como en la web
- * móvil, se cambia en la hoja «Más».
+ * móvil, se cambia en la hoja «Más». Van con la palabra, sin icono (ronda 1 de interfaz, R1).
  */
-enum class PestanaDePreferencias(val etiqueta: String, @param:DrawableRes val icono: Int) {
-    PRIVACIDAD("Privacidad", Iconos.visibility),
-    LECTURA("Lectura y escritura", Iconos.autoStories),
-    PERMISOS("Permisos del móvil", Iconos.appSettingsAlt),
+enum class PestanaDePreferencias(val etiqueta: String) {
+    PRIVACIDAD("Privacidad"),
+    LECTURA("Lectura y escritura"),
+    PERMISOS("Permisos"),
 }
 
 /** El estado de un permiso, con los textos de `mobile-app-permissions.component.ts`. */

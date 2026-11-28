@@ -29,6 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +43,10 @@ import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.biblioteca.etiquetaDeEnlace
+import es.yosiftware.libros.ui.biblioteca.etiquetaDeTitulos
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.Portada
 import es.yosiftware.libros.ui.tema.Iconos
 import es.yosiftware.libros.ui.tema.LocalColores
@@ -68,22 +73,21 @@ fun HojaDeSagaDelCatalogo(vm: CatalogoViewModel, hoja: HojaDeSaga) {
             .padding(top = zona.calculateTopPadding(), bottom = zona.calculateBottomPadding()),
     ) {
         Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(Modifier.weight(1f)) {
-                Text("SAGA", style = Textos.cuerpo.copy(fontSize = px(12), fontWeight = FontWeight.Bold, letterSpacing = 0.06.em, color = colores.primario), modifier = Modifier.padding(bottom = 4.dp))
-                Text(
-                    buildAnnotatedString {
-                        append(saga?.nombre ?: "Saga")
-                        if (!saga?.subtitulo.isNullOrEmpty()) withStyle(SpanStyle(fontSize = px(16), color = mezclar(colores.tinta, 0.75f))) { append(" · ${saga?.subtitulo}") }
-                    },
-                    style = Textos.cuerpo.copy(fontSize = px(22), lineHeight = 1.2.em, color = colores.tinta),
-                )
-            }
+            // Sin el antetítulo «Saga» (ronda 1 de interfaz, C3).
+            Text(
+                buildAnnotatedString {
+                    append(saga?.nombre ?: "Saga")
+                    if (!saga?.subtitulo.isNullOrEmpty()) withStyle(SpanStyle(fontSize = px(16), color = mezclar(colores.tinta, 0.75f))) { append(" · ${saga?.subtitulo}") }
+                },
+                style = Textos.cuerpo.copy(fontSize = px(22), lineHeight = 1.2.em, color = colores.tinta),
+                modifier = Modifier.weight(1f).semantics { heading() },
+            )
             BotonDeIcono(Iconos.close, "Cerrar la ficha de la saga", vm::cerrarSaga)
         }
 
         val estado = Textos.cuerpo.copy(color = colores.tinta)
         when {
-            hoja.cargando -> Text("Cargando la saga…", style = estado, modifier = Modifier.padding(20.dp).alpha(0.8f))
+            hoja.cargando -> Cargando("Cargando la saga")
             hoja.fallo -> Text("No se pudo cargar la saga. Inténtalo de nuevo más tarde.", style = estado, modifier = Modifier.padding(20.dp).alpha(0.8f))
             saga != null -> Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 24.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -91,15 +95,14 @@ fun HojaDeSagaDelCatalogo(vm: CatalogoViewModel, hoja: HojaDeSaga) {
                     saga.autores.joinToString(", ") { it.nombre }.takeIf { it.isNotEmpty() }?.let { DatoDeSaga("Autoría", it) }
                 }
                 if (saga.cadena.previas.isNotEmpty() || saga.cadena.siguientes.isNotEmpty()) Cadena(saga, vm::abrirSaga)
-                val total = hoja.obras.size
-                Text(
-                    "$total ${if (total == 1) "título" else "títulos"}".uppercase(),
-                    style = Textos.cuerpo.copy(fontSize = px(13), fontWeight = FontWeight.Bold, letterSpacing = 0.04.em, color = colores.tinta),
-                    modifier = Modifier.padding(top = 20.dp, bottom = 8.dp).alpha(0.8f),
-                )
                 if (hoja.obras.isEmpty()) {
-                    Text("Esta saga aún no tiene títulos en el catálogo.", style = estado, modifier = Modifier.padding(20.dp).alpha(0.8f))
+                    ListaVacia("Sin títulos", Modifier.padding(top = 20.dp))
                 } else {
+                    Text(
+                        etiquetaDeTitulos(hoja.obras.size).uppercase(),
+                        style = Textos.cuerpo.copy(fontSize = px(13), fontWeight = FontWeight.Bold, letterSpacing = 0.04.em, color = colores.tinta),
+                        modifier = Modifier.padding(top = 20.dp, bottom = 8.dp).alpha(0.8f),
+                    )
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         hoja.obras.forEach { obra -> FilaDeObra(obra) { vm.abrirObraDeSaga(obra) } }
                     }
@@ -152,7 +155,7 @@ private fun Cadena(saga: Saga, alAbrir: (Int) -> Unit) {
     }
 }
 
-/** Una obra de la saga: portada de 36 × 54, nombre, tipo y si es de la persona, y la flecha. */
+/** Una obra de la saga: portada de 36 × 54, nombre, «En tu biblioteca» si es de la persona (sin el tipo), y la flecha. */
 @Composable
 private fun FilaDeObra(obra: Obra, alAbrir: () -> Unit) {
     val colores = LocalColores.current
@@ -164,11 +167,9 @@ private fun FilaDeObra(obra: Obra, alAbrir: () -> Unit) {
         Portada(obra.portada, null, Modifier.width(36.dp).height(54.dp).clip(RoundedCornerShape(3.dp)))
         Column(Modifier.weight(1f)) {
             Text(obra.nombre, style = Textos.cuerpo.copy(fontSize = px(15), fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(
-                (if (obra.esAntologia) "Antología" else "Libro") + if (Catalogo.estaEnColeccion(obra)) " · En tu biblioteca" else "",
-                style = Textos.cuerpo.copy(fontSize = px(12), color = colores.tinta),
-                modifier = Modifier.alpha(0.7f),
-            )
+            if (Catalogo.estaEnColeccion(obra)) {
+                Text("En tu biblioteca", style = Textos.cuerpo.copy(fontSize = px(13), color = colores.tinta), modifier = Modifier.alpha(0.7f))
+            }
         }
         Icon(painterResource(Iconos.chevronRight), contentDescription = null, tint = colores.tinta, modifier = Modifier.size(24.dp).alpha(0.6f))
     }

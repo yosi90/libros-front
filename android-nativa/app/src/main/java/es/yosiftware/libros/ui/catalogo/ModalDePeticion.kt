@@ -5,8 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,6 +31,7 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.DialogoModal
+import es.yosiftware.libros.ui.componentes.Rueda
 import es.yosiftware.libros.ui.componentes.TextoTitulo
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
@@ -44,12 +43,13 @@ import es.yosiftware.libros.ui.tema.rem
 
 /**
  * El modal de petición del catálogo: pedir un libro nuevo (el «+») o proponer una corrección de la ficha abierta, con el
- * cupo de peticiones activas de la persona.
+ * cupo de peticiones activas de la persona en una línea y, al llegar al límite, el aviso que hace falta para decidir.
+ * Sin «Entidad», «Solicitud» ni «Ficha» sobre los campos (el título ya lo dice) y con una sola ayuda corta por campo
+ * (ronda 1 de interfaz, C4).
  *
  * TODO(clon): en la APK capturada este modal salía con la piel Wood (marrón y dorado) y los campos montados unos sobre
  * otros (catalogo__peticion-catalogo). Es un fallo visual evidente: aquí va con el tema Mobile, en una columna.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
     val colores = LocalColores.current
@@ -62,29 +62,24 @@ fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
                 BotonDeIcono(Iconos.close, "Cerrar", vm::cerrarPeticion)
             }
 
-            // El cupo: cuántas peticiones pendientes o devueltas tiene la persona.
+            // El cupo, en una línea: cuántas peticiones pendientes o devueltas tiene la persona («2 de 5 peticiones
+            // activas»); mientras se consulta, la rueda.
             Column(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(Radios.sm)).background(colores.superficieContenedor).padding(Espacios.e3),
-                verticalArrangement = Arrangement.spacedBy(Espacios.e1),
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(Radios.sm)).background(colores.superficieContenedor).padding(Espacios.e3),
+                verticalArrangement = Arrangement.spacedBy(Espacios.e1, Alignment.CenterVertically),
             ) {
-                val apoyo = Textos.cuerpo.copy(fontSize = rem(0.85), color = colores.tintaSuave)
                 when {
-                    peticion.consultandoActivas -> Text("Consultando tus peticiones activas…", style = apoyo)
-                    peticion.activas != null -> {
-                        Text(Peticiones.etiquetaDeActivas(peticion.activas), style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta))
-                        Text("Se cuentan las pendientes y devueltas de todos los tipos.", style = apoyo)
-                        if (peticion.activas >= Peticiones.LIMITE_ACTIVAS) {
-                            Text("Has alcanzado el límite. Si repites un ISBN que ya tienes activo, se recupera tu petición anterior.", style = apoyo.copy(color = colores.tinta))
-                        }
-                    }
+                    peticion.consultandoActivas -> Rueda(20.dp, 2.dp, Modifier.semantics { contentDescription = "Consultando tus peticiones activas" })
+                    peticion.activas != null -> Text(Peticiones.etiquetaDeActivas(peticion.activas), style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta))
                 }
-                if (peticion.errorDeActivas.isNotEmpty()) Text(peticion.errorDeActivas, style = apoyo.copy(color = colores.error))
+                if (peticion.errorDeActivas.isNotEmpty()) Text(peticion.errorDeActivas, style = Textos.cuerpo.copy(fontSize = rem(0.85), color = colores.error))
             }
-
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                Contexto("Entidad", formulario.tipo.etiqueta)
-                Contexto("Solicitud", formulario.etiquetaDeAccion)
-                if (formulario.esCorreccion) Contexto("Ficha", formulario.obraNombre.ifEmpty { "Elemento seleccionado" })
+            if (peticion.activas != null && peticion.activas >= Peticiones.LIMITE_ACTIVAS) {
+                Text(
+                    "Has alcanzado el límite. Si repites un ISBN que ya tienes activo, se recupera tu petición anterior.",
+                    style = Textos.cuerpo.copy(fontSize = rem(0.85), color = colores.atencion),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Radios.sm)).background(colores.contenedorAtencion).padding(Espacios.e3),
+                )
             }
 
             val fecha = formulario.fechaPublicacion
@@ -95,7 +90,7 @@ fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
                     formulario.etiquetaDeIsbn,
                     formulario.isbn,
                     { cambiar(formulario.copy(isbn = it, errorDeIsbn = "")) },
-                    pista = if (formulario.esCorreccion) null else "ISBN-10 o ISBN-13; admite espacios y guiones.",
+                    pista = if (formulario.esCorreccion) null else "10 o 13 cifras",
                     error = formulario.errorDeIsbn.ifEmpty { null },
                     modifier = m,
                 )
@@ -104,7 +99,6 @@ fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
                     fecha,
                     { if (it.length <= 10) cambiar(formulario.copy(fechaPublicacion = it)) },
                     ejemplo = "AAAA o AAAA-MM-DD",
-                    pista = "Admite solo el año",
                     error = if (fecha.isEmpty() || Regex("[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?").matches(fecha)) null else "Usa AAAA, AAAA-MM o AAAA-MM-DD",
                     teclado = KeyboardType.Number,
                     modifier = m,
@@ -135,17 +129,6 @@ fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
     }
 }
 
-/** Una pieza del contexto de la petición: el nombre pequeño y el valor en negrita. */
-@Composable
-private fun Contexto(nombre: String, valor: String) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
-    Column(Modifier.border(1.dp, colores.contorno, forma).padding(horizontal = Espacios.e3, vertical = Espacios.e2)) {
-        Text(nombre, style = Textos.cuerpo.copy(fontSize = rem(0.72), color = colores.tintaSuave))
-        Text(valor, style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta))
-    }
-}
-
 /**
  * Un campo del formulario: la etiqueta encima (como los filtros), la caja del `.m-field` y, debajo, la pista, el error o
  * el contador. Con [lineas], es un área de texto que crece desde ese alto.
@@ -167,7 +150,7 @@ private fun CampoDePeticion(
     val forma = RoundedCornerShape(Radios.sm)
     val estilo = Textos.cuerpo.copy(color = colores.tinta)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(etiqueta, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
+        Text(etiqueta, style = Textos.rotulo.copy(color = colores.tintaSuave))
         BasicTextField(
             value = valor,
             onValueChange = alCambiar,

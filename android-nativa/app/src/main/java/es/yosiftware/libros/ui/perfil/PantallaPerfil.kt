@@ -1,7 +1,6 @@
 package es.yosiftware.libros.ui.perfil
 
 import androidx.activity.compose.BackHandler
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -67,7 +66,11 @@ import es.yosiftware.libros.datos.modelos.PeticionDeCatalogo
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.biblioteca.iconoDeEstado
+import es.yosiftware.libros.ui.biblioteca.nombreDeEstado
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.Portada
 import es.yosiftware.libros.ui.componentes.Superficie
 import es.yosiftware.libros.ui.componentes.Tarjeta
@@ -127,8 +130,11 @@ fun PantallaPerfil(
             when (vm.seccion) {
                 SeccionDelPerfil.RESUMEN -> {
                     Heroe(vm, identidad, recuentos, ancha, editar)
-                    Bloque("Últimos movimientos", "Actividad reciente") { Actividad(vm, alAbrirActividad) }
-                    Bloque("Información y seguimiento", "Gestiona tu perfil") { Destinos(vm) }
+                    // Sin actividad, el bloque no se pinta (ronda 1 de interfaz, F1).
+                    if (vm.actividad.isNotEmpty() || vm.cargandoActividad || vm.falloActividad) {
+                        Bloque("Actividad reciente") { Actividad(vm, alAbrirActividad) }
+                    }
+                    Destinos(vm)
                 }
                 else -> {
                     CabeceraDeDetalle(vm.seccion.titulo, vm::volver)
@@ -250,25 +256,16 @@ private fun AvatarEditable(identidad: IdentidadDelPerfil, tamano: Dp, alPulsar: 
     }
 }
 
-/** `.m-eyebrow` con el margen de 2 dp de las cabeceras del Perfil (`.m-eyebrow { margin-bottom: 2px }`). */
+/** `.m-profile__block` con su título, sin antetítulo (ronda 1 de interfaz, F1). */
 @Composable
-private fun Eyebrow(texto: String) {
-    Text(texto.uppercase(), Modifier.padding(bottom = 2.dp), color = LocalColores.current.primario, style = Textos.eyebrow)
-}
-
-/** `.m-profile__block` con su `.m-profile__section-heading`. */
-@Composable
-private fun Bloque(eyebrow: String, titulo: String, contenido: @Composable () -> Unit) {
+private fun Bloque(titulo: String, contenido: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-        Column {
-            Eyebrow(eyebrow)
-            Text(
-                titulo,
-                Modifier.semantics { heading() },
-                color = LocalColores.current.tinta,
-                style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontWeight = FontWeight.SemiBold, fontSize = rem(1.25), lineHeight = rem(1.25 * 1.15)),
-            )
-        }
+        Text(
+            titulo,
+            Modifier.semantics { heading() },
+            color = LocalColores.current.tinta,
+            style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontWeight = FontWeight.SemiBold, fontSize = rem(1.25), lineHeight = rem(1.25 * 1.15)),
+        )
         contenido()
     }
 }
@@ -289,43 +286,43 @@ private fun Actividad(vm: PerfilViewModel, alAbrir: (ActividadReciente) -> Unit)
                     Portada(actividad.portada, null, Modifier.size(44.dp, 64.dp).clip(RoundedCornerShape(Radios.xs)))
                     Column(Modifier.weight(1f)) {
                         Text(actividad.nombre, color = colores.tinta, style = Textos.filaPrincipal, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        listOf(Perfil.autores(actividad.autores), actividad.estado?.nombre.orEmpty()).forEach {
-                            Text(it, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.72)), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
+                        Text(Perfil.autores(actividad.autores), Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.nota, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    // El estado, solo con su icono y su nombre accesible, como en las tarjetas de la biblioteca.
+                    actividad.estado?.let { estado ->
+                        Icon(painterResource(iconoDeEstado(estado.tipo)), contentDescription = nombreDeEstado(estado), tint = colores.primario, modifier = Modifier.size(20.dp))
                     }
                     Icon(painterResource(Iconos.chevronRight), contentDescription = null, tint = colores.tintaSuave, modifier = Modifier.width(32.dp))
                 }
             }
         }
-        vm.cargandoActividad -> Vacio("Cargando actividad…")
+        vm.cargandoActividad -> Cargando("Cargando tu actividad reciente")
         vm.falloActividad -> Vacio("No se ha podido cargar tu actividad reciente.")
-        else -> Vacio("Tus próximas lecturas aparecerán aquí.")
     }
 }
 
-/** `.m-profile__destinations`: Perfil, Mis peticiones y Mis reportes, con su total. */
+/**
+ * `.m-profile__destinations`: Perfil, Mis peticiones y Mis reportes, con su total; sin título, icono ni subtítulo
+ * (ronda 1 de interfaz, F1).
+ */
 @Composable
 private fun Destinos(vm: PerfilViewModel) {
     val colores = LocalColores.current
     val destinos = listOf(
-        Triple(SeccionDelPerfil.PERFIL, Iconos.accountCircle, "Tu perfil de Yosiftware") to 0,
-        Triple(SeccionDelPerfil.PETICIONES, Iconos.factCheck, "Consulta el estado de tus solicitudes") to vm.peticiones.size,
-        Triple(SeccionDelPerfil.REPORTES, Iconos.flag, "Revisa el contenido que has denunciado") to vm.reportes.size,
+        SeccionDelPerfil.PERFIL to 0,
+        SeccionDelPerfil.PETICIONES to vm.peticiones.size,
+        SeccionDelPerfil.REPORTES to vm.reportes.size,
     )
     Superficie(Modifier.fillMaxWidth()) {
-        destinos.forEachIndexed { i, (destino, total) ->
-            val (seccion, icono, apoyo) = destino
+        destinos.forEachIndexed { i, (seccion, total) ->
             if (i > 0) HorizontalDivider(thickness = 1.dp, color = colores.contorno)
             Row(
-                Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable(role = Role.Button) { vm.abrir(seccion) }.padding(Espacios.e3),
+                Modifier.fillMaxWidth().heightIn(min = 52.dp).clickable(role = Role.Button) { vm.abrir(seccion) }
+                    .padding(start = Espacios.e4, end = Espacios.e3, top = Espacios.e2, bottom = Espacios.e2),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
             ) {
-                IconoEnPildora(icono)
-                Column(Modifier.weight(1f)) {
-                    Text(seccion.titulo, color = colores.tinta, style = Textos.filaPrincipal)
-                    Text(apoyo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.75)), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
+                Text(seccion.titulo, Modifier.weight(1f), color = colores.tinta, style = Textos.filaPrincipal)
                 if (total > 0) {
                     Text(
                         "$total",
@@ -341,30 +338,18 @@ private fun Destinos(vm: PerfilViewModel) {
     }
 }
 
-/** `.m-list-item__icon`: el icono en un círculo de 42 dp del contenedor primario. */
-@Composable
-private fun IconoEnPildora(@DrawableRes icono: Int) {
-    val colores = LocalColores.current
-    Box(Modifier.size(42.dp).clip(CircleShape).background(colores.contenedorPrimario), contentAlignment = Alignment.Center) {
-        Icon(painterResource(icono), contentDescription = null, tint = colores.primario)
-    }
-}
-
 // --- Detalle. ---
 
-/** `.m-profile__detail-heading`: la flecha al resumen, «Tu perfil lector» y el título de la sección. */
+/** `.m-profile__detail-heading`: la flecha al resumen y el título de la sección, sin antetítulo (ronda 1 de interfaz, F2). */
 @Composable
 private fun CabeceraDeDetalle(titulo: String, alVolver: () -> Unit) {
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
         BotonDeIcono(Iconos.arrowBack, "Volver al resumen del perfil", { alVolver() })
-        Column(Modifier.weight(1f)) {
-            Eyebrow("Tu perfil lector")
-            TextoTitulo(titulo)
-        }
+        TextoTitulo(titulo, Modifier.weight(1f))
     }
 }
 
-/** «Perfil»: el nombre y el alias de la cuenta, el lápiz y «Ver tu perfil en la web social». */
+/** «Perfil»: la foto, el nombre y el alias de la cuenta, el lápiz y «Ver tu perfil en la web social». */
 @Composable
 private fun TuPerfil(identidad: IdentidadDelPerfil, alEditar: () -> Unit, alVerEnLaWeb: () -> Unit) {
     val colores = LocalColores.current
@@ -374,7 +359,7 @@ private fun TuPerfil(identidad: IdentidadDelPerfil, alEditar: () -> Unit, alVerE
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
         ) {
-            IconoEnPildora(Iconos.badge)
+            Avatar(42.dp, url = identidad.avatar, nombre = identidad.nombre)
             Column(Modifier.weight(1f)) {
                 Text(identidad.nombre, color = colores.tinta, style = Textos.filaPrincipal)
                 Text(Perfil.arroba(identidad.alias), Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.75)), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -403,12 +388,12 @@ private fun CabeceraDePanel(texto: String, descripcion: String, alActualizar: ()
 private fun Peticiones(vm: PerfilViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
         val total = vm.peticiones.size
-        CabeceraDePanel(if (total > 0) "$total registradas" else "Seguimiento de tus solicitudes", "Actualizar peticiones", vm::cargarPeticiones)
+        CabeceraDePanel(if (total > 0) "$total registradas" else "", "Actualizar peticiones", vm::cargarPeticiones)
         when {
             total > 0 -> vm.peticiones.forEach { TarjetaDePeticion(vm, it) }
-            vm.cargandoPeticiones -> Vacio("Cargando peticiones…")
+            vm.cargandoPeticiones -> Cargando("Cargando tus peticiones")
             vm.falloPeticiones -> Vacio("No se han podido cargar tus peticiones.")
-            else -> Vacio("Aún no has enviado peticiones.")
+            else -> ListaVacia("Sin peticiones")
         }
     }
 }
@@ -422,7 +407,7 @@ private fun TarjetaDePeticion(vm: PerfilViewModel, peticion: PeticionDeCatalogo)
             Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                 campos.forEach { campo ->
                     Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                        Text(campo.etiqueta, Modifier.weight(0.35f).widthIn(min = 90.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.72)))
+                        Text(campo.etiqueta, Modifier.weight(0.35f).widthIn(min = 90.dp), color = colores.tintaSuave, style = Textos.nota)
                         Text(campo.valor, Modifier.weight(1f), color = colores.tinta, style = Textos.cuerpo)
                     }
                 }
@@ -441,12 +426,12 @@ private fun TarjetaDePeticion(vm: PerfilViewModel, peticion: PeticionDeCatalogo)
 private fun Reportes(vm: PerfilViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
         val total = vm.reportes.size
-        CabeceraDePanel(if (total > 0) "$total registrados" else "Seguimiento del contenido denunciado", "Actualizar reportes", vm::cargarReportes)
+        CabeceraDePanel(if (total > 0) "$total registrados" else "", "Actualizar reportes", vm::cargarReportes)
         when {
             total > 0 -> vm.reportes.forEach { TarjetaDeReporte(it) }
-            vm.cargandoReportes -> Vacio("Cargando reportes…")
+            vm.cargandoReportes -> Cargando("Cargando tus reportes")
             vm.falloReportes -> Vacio("No se han podido cargar tus reportes.")
-            else -> Vacio("Aún no has enviado reportes.")
+            else -> ListaVacia("Sin reportes")
         }
     }
 }

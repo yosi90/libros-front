@@ -76,10 +76,6 @@ import kotlinx.coroutines.delay
 // públicas de la APK de Capacitor (PaginaPublica.kt). `ConSesion` es el shell; con las normas de Libros pendientes,
 // [PantallaDeNormasDeLibros] antes de seguir.
 
-/** Un paso a medias de entrar: tiene su propia pantalla hasta que se termina o se cancela. */
-fun EstadoSesion.esUnPaso() = this is EstadoSesion.AltaRequerida || this is EstadoSesion.SegundoFactorRequerido ||
-    this is EstadoSesion.AbrirEnNavegador || this is EstadoSesion.BorradoProgramado || this is EstadoSesion.NormasDeUsoPendientes
-
 /**
  * La pantalla de un estado sin el shell: entrar, los pasos de entrar y el arranque. [cuentas] son las guardadas en la
  * app (para volver a una al salir de otra).
@@ -140,13 +136,10 @@ fun PantallaDeArranque() {
 /** Esta compilación no tiene la configuración de la plataforma: no puede entrar. En depuración, ver la navegación. */
 @Composable
 fun PantallaSinConfiguracion(alVerSinCuenta: (() -> Unit)?) {
-    PaginaDeAcceso(
-        eyebrow = "Memoria Bibliográfica",
-        titulo = "Sin cuenta en esta compilación.",
-        apoyo = "A esta compilación le falta la configuración de la plataforma (su google-services.json), así que no puede entrar.",
-        alVolver = null,
-    ) {
+    PaginaDeAcceso(titulo = "Sin cuenta en esta compilación.", alVolver = null) {
         ConTuCuentaDeYosiftware("Se entra con la cuenta de Yosiftware")
+        // Solo en una compilación sin configuración, nunca en las publicadas: el porqué se queda, en el panel.
+        AvisoDeAcceso("A esta compilación le falta la configuración de la plataforma (su google-services.json), así que no puede entrar.")
         if (alVerSinCuenta != null) Boton("Ver la navegación (depuración)", alVerSinCuenta, Modifier.fillMaxWidth(), VarianteDeBoton.Tonal)
     }
 }
@@ -205,13 +198,7 @@ fun PantallaDeEntrar(
     BackHandler(enabled = vm.anadiendo, onBack = vm::cancelarAnadir)
 
     PaginaDeAcceso(
-        eyebrow = if (vm.anadiendo) "Añadir otra cuenta" else "Tu biblioteca te espera",
         titulo = if (vm.anadiendo) "Entra con otra cuenta." else "Bienvenido de nuevo.",
-        apoyo = if (vm.anadiendo) {
-            "La que tienes abierta se queda guardada: podrás volver a ella cuando quieras."
-        } else {
-            "Retoma tus lecturas, notas y recuerdos exactamente donde los dejaste."
-        },
         alVolver = if (vm.anadiendo) vm::cancelarAnadir else null,
         etiquetaVolver = "Volver a la cuenta de antes",
         cita = citasCortas[indiceCita.coerceIn(citasCortas.indices)],
@@ -228,15 +215,14 @@ fun PantallaDeEntrar(
         motivo?.let { AvisoDelMotivo(it) }
         vm.aviso?.let { AvisoDeAcceso(it) }
 
-        // Las que siguen guardadas (al salir de una): se vuelve a cualquiera con un toque.
+        // Las que siguen guardadas (al salir de una): se vuelve a cualquiera con un toque, sin rótulo ni explicación.
         val guardadas = if (vm.anadiendo) emptyList() else cuentas
         if (guardadas.isNotEmpty()) {
-            Text("Tus cuentas en esta app", color = LocalColores.current.tinta, style = Textos.filaPrincipal)
             guardadas.forEach { cuenta ->
                 FilaDeCuenta(
                     cuenta = cuenta,
                     perfiles = perfiles,
-                    detalle = if (cuenta.caducada) "Su sesión ha caducado: entra otra vez con ella." else "Toca para entrar sin contraseña.",
+                    detalle = if (cuenta.caducada) "Su sesión ha caducado: entra otra vez con ella." else null,
                     alPulsar = if (cuenta.caducada || vm.ocupado) null else ({ vm.elegirCuenta(cuenta.id) }),
                     alOlvidar = { vm.olvidarCuenta(cuenta.id) },
                     habilitada = !vm.ocupado,
@@ -256,9 +242,6 @@ fun PantallaDeEntrar(
             etiqueta = "Correo electrónico",
             valor = correo,
             alCambiar = { correo = it.take(100); vm.olvidarError() },
-            icono = Iconos.mail,
-            ejemplo = "Correo electrónico",
-            conEtiqueta = false,
             teclado = KeyboardOptions(keyboardType = KeyboardType.Email, autoCorrectEnabled = false, imeAction = ImeAction.Next),
             habilitado = !vm.ocupado,
         )
@@ -266,9 +249,6 @@ fun PantallaDeEntrar(
             etiqueta = "Contraseña",
             valor = contrasena,
             alCambiar = { contrasena = it; vm.olvidarError() },
-            icono = Iconos.lock,
-            ejemplo = "Contraseña",
-            conEtiqueta = false,
             teclado = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false, imeAction = ImeAction.Done),
             acciones = KeyboardActions(onDone = { entrar() }),
             secreto = true,
@@ -286,8 +266,9 @@ fun PantallaDeEntrar(
 }
 
 /**
- * «Continuar como @alias» y, debajo, «Con tu cuenta Yosiftware», sin decir de qué app viene (kit 1.106): el `.m-button--tonal` de la APK, con el símbolo del
- * ecosistema delante (es la cuenta de Yosiftware) y la segunda línea en pequeño.
+ * «Continuar como @alias», sin decir de qué app viene (kit 1.106): el `.m-button--tonal` de la APK, con el símbolo del
+ * ecosistema delante (es la cuenta de Yosiftware). Sin segunda línea: la pantalla ya lo dice una vez (ronda 1 de
+ * interfaz, U1).
  */
 @Composable
 private fun BotonDeOtraApp(alias: String, habilitado: Boolean, alPulsar: () -> Unit) {
@@ -304,17 +285,7 @@ private fun BotonDeOtraApp(alias: String, habilitado: Boolean, alPulsar: () -> U
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(painterResource(Iconos.simboloYosiftware), contentDescription = null, tint = colores.sobreContenedorPrimario, modifier = Modifier.size(22.dp))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Continuar como @$alias", color = colores.sobreContenedorPrimario, style = Textos.boton)
-            Text(
-                "Con tu cuenta Yosiftware",
-                Modifier.padding(top = 4.dp),
-                color = colores.sobreContenedorPrimario,
-                style = Textos.filaSecundaria,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text("Continuar como @$alias", color = colores.sobreContenedorPrimario, style = Textos.boton, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -325,20 +296,13 @@ fun PantallaDeAlta(vm: CuentaViewModel, normas: ResumenNormas) {
     var acepto by rememberSaveable { mutableStateOf(false) }
     val colores = LocalColores.current
     BackHandler(onBack = vm::cancelar)
-    PaginaDeAcceso(
-        eyebrow = "Cuenta nueva",
-        titulo = "Elige tu alias.",
-        apoyo = "Es la primera vez que entras con esta cuenta de Yosiftware. Elige el alias con el que te verán en Libros y en las demás webs.",
-        alVolver = vm::cancelar,
-        etiquetaVolver = "Cancelar",
-    ) {
-        ConTuCuentaDeYosiftware("Tu cuenta de Yosiftware")
+    PaginaDeAcceso(titulo = "Elige tu alias.", alVolver = vm::cancelar, etiquetaVolver = "Cancelar") {
+        ConTuCuentaDeYosiftware()
         if (vm.ocupado) Trabajando("Creando tu cuenta…")
         CampoDeAcceso(
             etiqueta = "Alias",
             valor = alias,
             alCambiar = { alias = it; vm.olvidarError() },
-            icono = Iconos.person,
             teclado = KeyboardOptions(keyboardType = KeyboardType.Text, autoCorrectEnabled = false, imeAction = ImeAction.Done),
             habilitado = !vm.ocupado,
         )
@@ -364,13 +328,14 @@ fun PantallaDeAlta(vm: CuentaViewModel, normas: ResumenNormas) {
     }
 }
 
-/** Unas normas en una fila de lista (`.m-list-item`): su título y «Léelas», que las abre a pantalla completa. */
+/**
+ * Unas normas en una fila de lista (`.m-list-item`): su título y el chevrón, que las abre a pantalla completa. Sin icono
+ * ni «Toca para leerlas» (ronda 1 de interfaz, U1).
+ */
 @Composable
 private fun FilaDeNormas(titulo: String, alLeer: () -> Unit) {
     FilaDeLista(
         titulo = titulo,
-        secundario = "Toca para leerlas",
-        icono = Iconos.article,
         alPulsar = alLeer,
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -389,13 +354,7 @@ fun PantallaDeSegundoFactor(vm: CuentaViewModel) {
     LaunchedEffect(vm.error) { if (vm.error != null) codigo = "" }
     BackHandler(onBack = vm::cancelar)
     PaginaDeAcceso(
-        eyebrow = "Verificación en dos pasos",
         titulo = if (recuperacion) "Usa un código de recuperación." else "Escribe tu código.",
-        apoyo = if (recuperacion) {
-            "Escribe uno de los códigos de recuperación que guardaste al activar la verificación en dos pasos."
-        } else {
-            "Abre tu app de autenticación y escribe el código de 6 cifras. Puedes ir a copiarlo y volver: esta pantalla te espera."
-        },
         alVolver = vm::cancelar,
         etiquetaVolver = "Cancelar",
     ) {
@@ -410,7 +369,6 @@ fun PantallaDeSegundoFactor(vm: CuentaViewModel) {
                     vm.olvidarError()
                     if (codigo.length == 6 && !vm.ocupado) vm.enviarCodigo(codigo)
                 },
-                icono = Iconos.password,
                 teclado = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
                 acciones = KeyboardActions(onDone = { if (codigo.length == 6 && !vm.ocupado) vm.enviarCodigo(codigo) }),
                 habilitado = !vm.ocupado,
@@ -421,7 +379,6 @@ fun PantallaDeSegundoFactor(vm: CuentaViewModel) {
                 etiqueta = "Código de recuperación",
                 valor = codigo,
                 alCambiar = { codigo = it.trim(); vm.olvidarError() },
-                icono = Iconos.password,
                 teclado = KeyboardOptions(keyboardType = KeyboardType.Ascii, autoCorrectEnabled = false, imeAction = ImeAction.Done),
                 acciones = KeyboardActions(onDone = { if (codigo.isNotBlank() && !vm.ocupado) vm.enviarCodigo(codigo) }),
                 habilitado = !vm.ocupado,
@@ -450,22 +407,14 @@ fun PantallaDelNavegador(vm: CuentaViewModel, motivo: String, direccion: String)
     // Al volver del navegador, de nuevo el formulario de entrar.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.alVolverDelNavegador() }
     BackHandler(onBack = vm::cancelar)
-    PaginaDeAcceso(
-        eyebrow = "Un paso más",
-        titulo = if (verificar) "Confirma tu correo." else "Vincula esta forma de entrar.",
-        apoyo = if (verificar) {
-            "Antes de entrar tienes que confirmar tu correo en la página de acceso de Yosiftware."
-        } else {
-            "Esta forma de entrar es nueva para tu cuenta de Yosiftware. Vincúlala en la página de acceso."
-        },
-        alVolver = vm::cancelar,
-    ) {
+    PaginaDeAcceso(titulo = if (verificar) "Confirma tu correo." else "Vincula esta forma de entrar.", alVolver = vm::cancelar) {
         ConTuCuentaDeYosiftware()
-        AvisoDeAcceso("Se abre en el navegador. Cuando termines, vuelve aquí y entra otra vez.", Iconos.openInNew)
+        // Sale de la app: la frase se queda, corta, con el icono de «se abre fuera».
+        AvisoDeAcceso("Se abre en el navegador; luego vuelve aquí.", Iconos.openInNew)
         Boton("Abrir en el navegador", {
             vm.alAbrirElNavegador()
             Enlaces.abrir(contexto, direccion)
-        }, Modifier.fillMaxWidth(), icono = Iconos.openInNew)
+        }, Modifier.fillMaxWidth())
         Boton("Volver a entrar", vm::cancelar, Modifier.fillMaxWidth(), VarianteDeBoton.Contorno, habilitado = !vm.ocupado)
         ErrorDeLaAccion(vm)
     }
@@ -476,12 +425,8 @@ fun PantallaDelNavegador(vm: CuentaViewModel, motivo: String, direccion: String)
 fun PantallaDeBorrado(vm: CuentaViewModel, borrarDesde: String?) {
     BackHandler(onBack = vm::cancelar)
     val dia = fechaLarga(borrarDesde)
-    PaginaDeAcceso(
-        eyebrow = "Tu cuenta de Yosiftware",
-        titulo = "Tu cuenta se va a borrar.",
-        apoyo = "Pediste borrar tu cuenta. Si la conservas, sigue como estaba, con todo lo tuyo en Libros y en las demás webs.",
-        alVolver = vm::cancelar,
-    ) {
+    // La consecuencia (el día del borrado) se queda, en el aviso.
+    PaginaDeAcceso(titulo = "Tu cuenta se va a borrar.", alVolver = vm::cancelar) {
         ConTuCuentaDeYosiftware()
         if (vm.ocupado) Trabajando("Conservando tu cuenta…")
         AvisoDeAcceso(dia?.let { "Se borrará a partir del $it." } ?: "Se borrará en unos días.", Iconos.eventBusy)
@@ -496,9 +441,7 @@ fun PantallaDeBorrado(vm: CuentaViewModel, borrarDesde: String?) {
 fun PantallaDeNormasDeUso(vm: CuentaViewModel, normas: ResumenNormas) {
     PantallaDeNormas(
         vm = vm,
-        eyebrow = "Normas de uso",
         titulo = "Hay normas nuevas.",
-        apoyo = "Las normas de uso de Yosiftware han cambiado. Para seguir, léelas y acéptalas.",
         normas = normas,
         alLeer = vm::leerNormasDeUso,
         alAceptar = vm::aceptarNormasDeUso,
@@ -510,9 +453,7 @@ fun PantallaDeNormasDeUso(vm: CuentaViewModel, normas: ResumenNormas) {
 fun PantallaDeNormasDeLibros(vm: CuentaViewModel, normas: ResumenNormas) {
     PantallaDeNormas(
         vm = vm,
-        eyebrow = "Normas de Libros",
         titulo = "Antes de seguir.",
-        apoyo = "Memoria Bibliográfica tiene normas propias. Léelas y acéptalas para usar tu biblioteca.",
         normas = normas,
         alLeer = vm::leerNormasDeLaWeb,
         alAceptar = vm::aceptarNormasDeLaWeb,
@@ -522,19 +463,17 @@ fun PantallaDeNormasDeLibros(vm: CuentaViewModel, normas: ResumenNormas) {
 @Composable
 private fun PantallaDeNormas(
     vm: CuentaViewModel,
-    eyebrow: String,
     titulo: String,
-    apoyo: String,
     normas: ResumenNormas,
     alLeer: () -> Unit,
     alAceptar: () -> Unit,
 ) {
-    PaginaDeAcceso(eyebrow = eyebrow, titulo = titulo, apoyo = apoyo, alVolver = null) {
+    PaginaDeAcceso(titulo = titulo, alVolver = null) {
         ConTuCuentaDeYosiftware()
         if (vm.ocupado) Trabajando("Un momento…")
         FilaDeNormas(normas.titulo, alLeer)
         Boton("Aceptar", alAceptar, Modifier.fillMaxWidth(), habilitado = !vm.ocupado)
-        Boton("Salir", vm::salir, Modifier.fillMaxWidth(), VarianteDeBoton.Contorno, icono = Iconos.logout, habilitado = !vm.ocupado)
+        Boton("Salir", vm::salir, Modifier.fillMaxWidth(), VarianteDeBoton.Contorno, habilitado = !vm.ocupado)
         ErrorDeLaAccion(vm)
     }
 }

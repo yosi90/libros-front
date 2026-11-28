@@ -3,7 +3,6 @@ package es.yosiftware.libros.ui.comunidad
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.activity.compose.BackHandler
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,12 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -37,16 +31,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
@@ -105,100 +99,41 @@ fun PantallaComunidad(
             }
         }
     }
-    if (ancha) {
-        Row(Modifier.fillMaxSize().background(colores.lienzo)) {
-            Column(
-                Modifier.width(88.dp).fillMaxHeight().background(mezclar(colores.superficieContenedor, 0.28f))
-                    .drawBehind { drawLine(mezclar(colores.contorno, 0.58f), Offset(size.width, 0f), Offset(size.width, size.height), 1.dp.toPx()) }
-                    .verticalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = Espacios.e2),
-                verticalArrangement = Arrangement.spacedBy(Espacios.e1),
-            ) { Secciones(comunidad, acciones, sinLeer, ancha = true) }
-            Box(Modifier.weight(1f).fillMaxHeight()) { contenido() }
-        }
-    } else {
-        Column(Modifier.fillMaxSize().background(colores.lienzo)) {
-            Row(
-                Modifier.fillMaxWidth().background(mezclar(colores.superficieContenedor, 0.24f))
-                    .drawBehind { drawLine(mezclar(colores.contorno, 0.58f), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
-                    .horizontalScroll(rememberScrollState()).padding(horizontal = Espacios.e3, vertical = Espacios.e1),
-                horizontalArrangement = Arrangement.spacedBy(Espacios.e1),
-            ) { Secciones(comunidad, acciones, sinLeer, ancha = false) }
-            Box(Modifier.weight(1f)) { contenido() }
-        }
+    // Las secciones van con la palabra, arriba, también en el plegable: sin segundo rail (ronda 1 de interfaz, opción A).
+    Column(Modifier.fillMaxSize().background(colores.lienzo)) {
+        Row(
+            Modifier.fillMaxWidth().background(mezclar(colores.superficieContenedor, 0.24f))
+                .drawBehind { drawLine(mezclar(colores.contorno, 0.58f), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
+                .horizontalScroll(rememberScrollState()).padding(horizontal = if (ancha) Espacios.e2 else Espacios.e3, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) { Secciones(comunidad, acciones, sinLeer) }
+        Box(Modifier.weight(1f)) { contenido() }
     }
 }
 
-/** Las secciones propias y las de la web social (`.m-social-shell__navigation`). */
+/**
+ * Las secciones propias y las de la web social (`.m-social-shell__navigation`), con la palabra y sin icono. Las de la
+ * web social llevan el símbolo delante; Mensajes, la insignia de los no leídos.
+ */
 @Composable
-private fun Secciones(comunidad: ComunidadViewModel, acciones: AccionesDeComunidad, sinLeer: Int, ancha: Boolean) {
+private fun Secciones(comunidad: ComunidadViewModel, acciones: AccionesDeComunidad, sinLeer: Int) {
     SeccionDeComunidad.entries.forEach { seccion ->
         val disponible = seccion != SeccionDeComunidad.CLUBES || comunidad.clubesDisponibles
         val insignia = if (seccion == SeccionDeComunidad.MENSAJES) sinLeer else 0
-        ElementoDeSeccion(seccion.icono, seccion.etiqueta, activo = comunidad.seccion == seccion, disponible = disponible, ancha = ancha, insignia = insignia) {
-            if (seccion == SeccionDeComunidad.MENSAJES) acciones.alElegirMensajes()
-            comunidad.abrir(seccion)
-        }
+        PestanaDePalabra(
+            seccion.etiqueta, activa = comunidad.seccion == seccion, habilitada = disponible, insignia = insignia,
+            descripcion = if (insignia > 0) "${seccion.etiqueta}, $insignia sin leer" else null,
+            alPulsar = {
+                if (seccion == SeccionDeComunidad.MENSAJES) acciones.alElegirMensajes()
+                comunidad.abrir(seccion)
+            },
+        )
     }
     EnlaceSocial.entries.forEach { enlace ->
-        ElementoDeSeccion(enlace.icono, enlace.etiqueta, activo = false, disponible = true, ancha = ancha, simbolo = true) { acciones.abrirWebSocial(enlace.vista) }
-    }
-}
-
-@Composable
-private fun ElementoDeSeccion(
-    @DrawableRes icono: Int,
-    etiqueta: String,
-    activo: Boolean,
-    disponible: Boolean,
-    ancha: Boolean,
-    simbolo: Boolean = false,
-    insignia: Int = 0,
-    alPulsar: () -> Unit,
-) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
-    Column(
-        Modifier.then(if (ancha) Modifier.fillMaxWidth() else Modifier.widthIn(min = 72.dp)).heightIn(min = 64.dp)
-            .clip(forma)
-            .background(if (activo) colores.contenedorPrimario else Color.Transparent)
-            .border(1.dp, if (activo) colores.contorno else Color.Transparent, forma)
-            .clickable(enabled = disponible, role = Role.Tab, onClick = alPulsar)
-            .then(if (disponible) Modifier else Modifier.background(Color.Transparent))
-            .padding(horizontal = if (ancha) 3.dp else Espacios.e2, vertical = if (ancha) 6.dp else Espacios.e1),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
-    ) {
-        val alfa = if (disponible) 1f else 0.45f
-        Box {
-            Box(
-                Modifier.size(if (ancha) 34.dp else 32.dp).clip(CircleShape).background(if (ancha) colores.superficieContenedor else Color.Transparent),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(painterResource(icono), contentDescription = null, tint = colores.primario.copy(alpha = alfa))
-            }
-            // `em`: la insignia de los no leídos, sobre la esquina del icono (en el Sass, `margin: -34px 0 0 34px`, o 30 en
-            // compacto, desde el centro de la entrada).
-            if (insignia > 0) {
-                Text(
-                    if (insignia > 99) "99+" else "$insignia",
-                    Modifier.align(Alignment.TopEnd).offset(x = if (ancha) 14.dp else 12.dp, y = (-6).dp)
-                        .widthIn(min = 20.dp).clip(RoundedCornerShape(50)).background(colores.primario).padding(horizontal = 6.dp, vertical = 4.dp),
-                    color = colores.sobrePrimario,
-                    style = Textos.cuerpo.copy(fontSize = rem(0.65), fontWeight = FontWeight.ExtraBold, lineHeight = rem(0.65)),
-                    textAlign = TextAlign.Center,
-                )
-            }
-            // En el rail de 88 dp, el símbolo delante de la etiqueta la cortaba («Perso…»): va sobre el icono.
-            if (simbolo && ancha) {
-                Box(Modifier.align(Alignment.BottomEnd).size(16.dp).clip(CircleShape).background(colores.lienzo), contentAlignment = Alignment.Center) {
-                    Icon(painterResource(Iconos.simboloYosiftware), contentDescription = null, tint = colores.tinta, modifier = Modifier.size(12.dp))
-                }
-            }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-            if (simbolo && !ancha) Icon(painterResource(Iconos.simboloYosiftware), contentDescription = null, tint = colores.tinta, modifier = Modifier.size(15.dp))
-            Text(etiqueta, color = colores.tinta.copy(alpha = alfa), style = Textos.cuerpo.copy(fontSize = rem(0.82), fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
+        PestanaDePalabra(
+            enlace.etiqueta, activa = false, simbolo = true, descripcion = "${enlace.etiqueta}, en la web social",
+            alPulsar = { acciones.abrirWebSocial(enlace.vista) },
+        )
     }
 }
 
@@ -214,16 +149,16 @@ private fun PantallaResumen(comunidad: ComunidadViewModel, clubes: ClubesViewMod
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             BotonDeIcono(Iconos.refresh, "Actualizar resumen", comunidad::cargarResumen, habilitado = !comunidad.cargandoResumen)
         }
-        if (comunidad.parcial) Aviso("Parte del resumen no está disponible. El resto continúa operativo.")
+        if (comunidad.parcial) Aviso("Parte del resumen no está disponible.")
         when {
-            comunidad.cargandoResumen && comunidad.tarjetas.isEmpty() -> EstadoDePantalla(Iconos.hourglassTop, "Cargando tu actividad…", alturaMinima = 240)
+            comunidad.cargandoResumen && comunidad.tarjetas.isEmpty() -> Cargando("Cargando el resumen", alturaMinima = 240.dp)
             comunidad.errorDelResumen.isNotEmpty() -> EstadoDePantalla(
                 Iconos.cloudOff, comunidad.errorDelResumen, titulo = "No pudimos cargar el resumen", error = true, alturaMinima = 240,
                 boton = "Reintentar" to comunidad::cargarResumen,
             )
             else -> Rejilla(ResumenSocialDeComunidad.conMensajes(comunidad.tarjetas, sinLeer), columnas = if (ancha) 2 else 1) { tarjeta ->
                 ElementoDeLista(
-                    tarjeta.icono, "${tarjeta.valor}", tarjeta.etiqueta,
+                    "${tarjeta.valor}", tarjeta.etiqueta,
                     alPulsar = {
                         when (val destino = tarjeta.destino) {
                             is DestinoDeTarjeta.WebSocial -> acciones.abrirWebSocial(destino.vista)
@@ -289,17 +224,21 @@ private fun PantallaClubes(comunidad: ComunidadViewModel, clubes: ClubesViewMode
         verticalArrangement = Arrangement.spacedBy(Espacios.e4),
     ) {
         when {
-            clubes.cargando -> EstadoDePantalla(Iconos.hourglassTop, "Cargando la comunidad…")
+            clubes.cargando -> Cargando("Cargando la comunidad", alturaMinima = 220.dp)
             clubes.falloDeCarga -> EstadoDePantalla(Iconos.cloudOff, null, titulo = "No pudimos cargar esta sección", error = true, boton = "Reintentar" to clubes::cargarDescubrir)
             else -> Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Espacios.e1)) {
+                // Las cuatro pestañas, con la palabra (ronda 1 de interfaz).
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                     PestanaDeClubes.entries.forEach { pestana ->
-                        PestanaEnCaja(
-                            pestana.icono, pestana.etiqueta,
+                        val insignia = if (pestana == PestanaDeClubes.ACCESO) acceso.pendientes else 0
+                        PestanaDePalabra(
+                            pestana.etiqueta,
                             activa = clubes.pestana == pestana,
                             alPulsar = { clubes.elegir(pestana) },
                             habilitada = !pestana.necesitaClubes || clubes.tieneClubes,
-                            insignia = if (pestana == PestanaDeClubes.ACCESO) acceso.pendientes else 0,
+                            insignia = insignia,
+                            enCaja = true,
+                            descripcion = if (insignia > 0) "${pestana.etiqueta}, $insignia pendientes" else null,
                         )
                     }
                 }
@@ -317,28 +256,31 @@ private fun PantallaClubes(comunidad: ComunidadViewModel, clubes: ClubesViewMode
 @Composable
 private fun ColumnScope.Descubrir(comunidad: ComunidadViewModel, clubes: ClubesViewModel, acciones: AccionesDeComunidad) {
     val tieneObras = acciones.tieneObras()
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+    val columnas = if (LocalVentana.current.anchoDp >= 600) 2 else 1
+    // El buscador, vacío y con la lupa como botón, y «Crear club» en la misma fila (ronda 1 de interfaz).
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+        BarraDeBusqueda(clubes.busqueda, clubes::escribirBusqueda, "Buscar un club", clubes::buscar, clubes.buscando, Modifier.weight(1f))
         Boton(
             if (clubes.creadorAbierto) "Cerrar" else "Crear club", clubes::alternarCreador,
-            icono = if (clubes.creadorAbierto) Iconos.close else Iconos.add, habilitado = tieneObras,
+            variante = VarianteDeBoton.Tonal, habilitado = tieneObras, rellenoHorizontal = Espacios.e4,
         )
     }
     CreacionDeClub.restriccion(tieneObras)?.let { Pista(it) }
-    BarraDeBusqueda(clubes.busqueda, clubes::escribirBusqueda, "Busca un club", clubes::buscar, clubes.buscando)
     if (clubes.creadorAbierto) CreadorDeClub(clubes, tieneObras)
+    // «Descubrir» repetía la pestaña: las dos listas son «Populares» y «Todos».
     if (clubes.busqueda.isEmpty() && clubes.populares.isNotEmpty()) {
-        Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-            TituloDeLista("Clubes populares")
-            clubes.populares.forEach { club ->
-                ElementoDeLista(Iconos.groups, club.nombre, "${club.miembros} miembros · ${club.actividad30Dias?.total ?: 0} actividades", { comunidad.abrirClub(club.id) })
+        Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+            TituloDeLista("Populares")
+            Rejilla(clubes.populares, columnas) { club ->
+                ElementoDeLista(club.nombre, "${club.miembros} miembros · ${club.actividad30Dias?.total ?: 0} actividades", { comunidad.abrirClub(club.id) }, Modifier.fillMaxHeight())
             }
         }
     }
-    Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-        TituloDeLista("Descubrir")
-        if (clubes.descubrir.isEmpty()) Pista("No hay clubes abiertos ahora mismo.")
-        clubes.descubrir.forEach { club ->
-            ElementoDeLista(Iconos.groups3, club.nombre, "${club.miembros} miembros · ${EtiquetasDeClubes.membresia(club.estadoMembresia)}", { comunidad.abrirClub(club.id) })
+    Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+        TituloDeLista("Todos")
+        if (clubes.descubrir.isEmpty()) ListaVacia("Sin clubes")
+        Rejilla(clubes.descubrir, columnas) { club ->
+            ElementoDeLista(club.nombre, "${club.miembros} miembros · ${EtiquetasDeClubes.membresia(club.estadoMembresia)}", { comunidad.abrirClub(club.id) }, Modifier.fillMaxHeight())
         }
     }
     if (clubes.siguiente != null) {
@@ -366,11 +308,11 @@ private fun CreadorDeClub(clubes: ClubesViewModel, tieneObras: Boolean) {
 @Composable
 private fun MisClubes(comunidad: ComunidadViewModel, clubes: ClubesViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-        if (clubes.cargandoMisClubes && clubes.misClubes.isEmpty()) Pista("Cargando tus clubes…")
-        if (!clubes.cargandoMisClubes && clubes.misClubes.isEmpty()) Pista("Aún no perteneces a ningún club.")
-        clubes.misClubes.forEach { club ->
+        if (clubes.cargandoMisClubes && clubes.misClubes.isEmpty()) Cargando("Cargando tus clubes", alturaMinima = 96.dp)
+        if (!clubes.cargandoMisClubes && clubes.misClubes.isEmpty()) ListaVacia("Sin clubes")
+        Rejilla(clubes.misClubes, if (LocalVentana.current.anchoDp >= 600) 2 else 1) { club ->
             val privado = if (club.retiradoDescubrimiento == true) " · privado" else ""
-            ElementoDeLista(Iconos.groups, club.nombre, EtiquetasDeClubes.rol(club.rol) + privado, { comunidad.abrirClub(club.id) })
+            ElementoDeLista(club.nombre, EtiquetasDeClubes.rol(club.rol) + privado, { comunidad.abrirClub(club.id) }, Modifier.fillMaxHeight())
         }
     }
 }
@@ -378,12 +320,14 @@ private fun MisClubes(comunidad: ComunidadViewModel, clubes: ClubesViewModel) {
 @Composable
 private fun ColumnScope.Eventos(comunidad: ComunidadViewModel, clubes: ClubesViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-        if (clubes.cargandoEventos && clubes.eventos.isEmpty()) Pista("Cargando próximos eventos…")
-        if (!clubes.cargandoEventos && clubes.eventos.isEmpty()) Pista("No hay próximos eventos.")
-        clubes.eventos.forEach { evento ->
+        if (clubes.cargandoEventos && clubes.eventos.isEmpty()) Cargando("Cargando los próximos eventos", alturaMinima = 96.dp)
+        if (!clubes.cargandoEventos && clubes.eventos.isEmpty()) ListaVacia("Sin eventos")
+        Rejilla(clubes.eventos, if (LocalVentana.current.anchoDp >= 600) 2 else 1) { evento ->
+            // Sin el icono, «en curso» va en palabras: era lo único que decía el reloj.
+            val enCurso = if (evento.enCurso) " · en curso" else ""
             ElementoDeLista(
-                if (evento.enCurso) Iconos.schedule else Iconos.event, evento.titulo,
-                "${evento.club.nombre} · ${FechasDeClubes.diaYHora(evento.fechaInicio)}", { comunidad.abrirClub(evento.club.id) },
+                evento.titulo, "${evento.club.nombre} · ${FechasDeClubes.diaYHora(evento.fechaInicio)}$enCurso",
+                { comunidad.abrirClub(evento.club.id) }, Modifier.fillMaxHeight(),
             )
         }
     }
@@ -401,9 +345,9 @@ private fun CentroDeAcceso(comunidad: ComunidadViewModel, acceso: CentroDeAcceso
     Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
             FiltroEnCaja("Invitaciones", acceso.tipo == TipoDeAcceso.INVITACIONES, { acceso.elegirTipo(TipoDeAcceso.INVITACIONES) }, Modifier.weight(1f),
-                icono = Iconos.markEmailUnread, insignia = acceso.pendientesDe(TipoDeAcceso.INVITACIONES))
+                insignia = acceso.pendientesDe(TipoDeAcceso.INVITACIONES))
             FiltroEnCaja("Solicitudes", acceso.tipo == TipoDeAcceso.SOLICITUDES, { acceso.elegirTipo(TipoDeAcceso.SOLICITUDES) }, Modifier.weight(1f),
-                icono = Iconos.forwardToInbox, insignia = acceso.pendientesDe(TipoDeAcceso.SOLICITUDES))
+                insignia = acceso.pendientesDe(TipoDeAcceso.SOLICITUDES))
         }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e3)) {
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
@@ -431,8 +375,8 @@ private fun CentroDeAcceso(comunidad: ComunidadViewModel, acceso: CentroDeAcceso
             }
         }
         val filas = acceso.filas
-        if (acceso.cargando && filas.isEmpty()) EstadoDePantalla(Iconos.hourglassTop, "Cargando accesos…", tamanoIcono = 40, alturaMinima = 160)
-        if (filas.isEmpty() && !acceso.cargando && acceso.error.isEmpty()) EstadoDePantalla(Iconos.inbox, acceso.mensajeVacio, tamanoIcono = 40, alturaMinima = 160)
+        if (acceso.cargando && filas.isEmpty()) Cargando("Cargando los accesos", alturaMinima = 160.dp)
+        if (filas.isEmpty() && !acceso.cargando && acceso.error.isEmpty()) ListaVacia(acceso.mensajeVacio)
         Rejilla(filas, columnas = if (ancha) 2 else 1) { fila -> TarjetaDeAcceso(comunidad, acceso, fila, ancha) }
     }
 }
@@ -445,9 +389,6 @@ private fun TarjetaDeAcceso(comunidad: ComunidadViewModel, acceso: CentroDeAcces
     Tarjeta(Modifier.fillMaxSize()) {
         Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                Box(Modifier.size(42.dp).clip(CircleShape).background(colores.contenedorPrimario), contentAlignment = Alignment.Center) {
-                    Icon(painterResource(if (acceso.tipo == TipoDeAcceso.SOLICITUDES) Iconos.personAdd else Iconos.mail), contentDescription = null, tint = colores.primario)
-                }
                 Column(Modifier.weight(1f)) {
                     val id = fila.club.id
                     Text(
@@ -476,10 +417,10 @@ private fun TarjetaDeAcceso(comunidad: ComunidadViewModel, acceso: CentroDeAcces
             ) {
                 val anchoBoton = if (ancha) Modifier else Modifier.weight(1f)
                 if (acceso.direccion == DireccionDeAcceso.RECIBIDAS) {
-                    Boton(acceso.textoDeAceptar, { acceso.aceptar(fila) }, anchoBoton, icono = Iconos.check, habilitado = !ocupada)
-                    Boton("Rechazar", { acceso.rechazar(fila) }, anchoBoton, variante = VarianteDeBoton.Contorno, icono = Iconos.close, habilitado = !ocupada)
+                    Boton(acceso.textoDeAceptar, { acceso.aceptar(fila) }, anchoBoton, habilitado = !ocupada)
+                    Boton("Rechazar", { acceso.rechazar(fila) }, anchoBoton, variante = VarianteDeBoton.Contorno, habilitado = !ocupada)
                 } else {
-                    Boton("Retirar", { acceso.retirar(fila) }, anchoBoton, variante = VarianteDeBoton.Contorno, icono = Iconos.cancelScheduleSend, habilitado = !ocupada)
+                    Boton("Retirar", { acceso.retirar(fila) }, anchoBoton, variante = VarianteDeBoton.Contorno, habilitado = !ocupada)
                 }
             }
         }

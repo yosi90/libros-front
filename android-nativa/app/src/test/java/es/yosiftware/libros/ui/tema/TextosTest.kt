@@ -18,4 +18,11 @@ class TextosTest {
         assertEquals(40f, Textos.display(500f).fontSize.value, 0.01f)
         assertEquals(60f, Textos.display(1000f).fontSize.value, 0.01f)
     }
+
+    @Test
+    fun laNotaYElRotuloSonDe0y72rem() {
+        assertEquals(11.52f, Textos.nota.fontSize.value, 0.01f)
+        assertEquals(Textos.nota.fontSize, Textos.rotulo.fontSize)
+        assertEquals(androidx.compose.ui.text.font.FontWeight.ExtraBold, Textos.rotulo.fontWeight)
+    }
 }

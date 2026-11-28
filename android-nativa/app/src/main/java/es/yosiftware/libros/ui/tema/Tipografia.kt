@@ -47,8 +47,15 @@ object Textos {
     /** El `body` de la presentación Mobile: 1rem, con el interlineado 1.5 de Bootstrap. */
     val cuerpo = TextStyle(fontFamily = Fuentes.cuerpo, fontSize = rem(1.0), lineHeight = 1.5.em, lineHeightStyle = comoCss)
 
-    /** .m-eyebrow: .72rem, 800, .14em, interlineado 1.2 y en mayúsculas (el texto se pasa con `uppercase()`). */
-    val eyebrow = cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.14.em, lineHeight = 1.2.em)
+
+    /**
+     * El texto pequeño de apoyo (fechas, versiones, datos al pie): .72rem. El color va aparte, casi siempre la tinta
+     * suave.
+     */
+    val nota = cuerpo.copy(fontSize = rem(0.72))
+
+    /** El rótulo pequeño: la [nota] en 800 (encabezados de lista, etiquetas de campo). */
+    val rotulo = nota.copy(fontWeight = FontWeight.ExtraBold)
 
     /** .m-supporting: .94rem e interlineado 1.55. */
     val apoyo = cuerpo.copy(fontSize = rem(0.94), lineHeight = 1.55.em)
@@ -67,12 +74,6 @@ object Textos {
 
     /** .m-auth-link: .8rem y 800. */
     val enlace = cuerpo.copy(fontSize = rem(0.8), fontWeight = FontWeight.ExtraBold)
-
-    /** La etiqueta de la navegación inferior y del rail: `700 .68rem/1.2`. */
-    val etiquetaDeNavegacion = cuerpo.copy(fontSize = rem(0.68), fontWeight = FontWeight.Bold, lineHeight = 1.2.em)
-
-    /** .m-appbar__identity span: .64rem, 800, .12em y en mayúsculas. */
-    val eyebrowDeBarra = cuerpo.copy(fontSize = rem(0.64), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.12.em)
 
     /** .m-appbar__identity strong: display, 1.08rem y 600. */
     val tituloDeBarra = cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.08), fontWeight = FontWeight.SemiBold)

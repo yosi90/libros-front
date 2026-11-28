@@ -16,7 +16,6 @@ data class FormularioDePeticion(
     val tipo: TipoDePeticion,
     /** `null` en un alta; el id de la obra en una corrección. */
     val obraId: Int? = null,
-    val obraNombre: String = "",
     val nombre: String = "",
     val isbn: String = "",
     val fechaPublicacion: String = "",
@@ -35,7 +34,6 @@ data class FormularioDePeticion(
             else -> "Pedir nueva antología"
         }
 
-    val etiquetaDeAccion: String get() = if (esCorreccion) "Corrección de ficha" else "Alta en catálogo"
     val etiquetaDeNombre: String get() = if (esCorreccion) "Nombre correcto" else "Nombre"
     val etiquetaDeIsbn: String get() = if (esCorreccion) "ISBN correcto" else "ISBN *"
     val etiquetaDeComentario: String get() = if (esCorreccion) "Coméntanos qué deberíamos cambiar" else "Nota con más detalles"
@@ -45,7 +43,7 @@ data class FormularioDePeticion(
 
         /** Una corrección empieza con el nombre, el ISBN y la fecha que tiene la ficha (`openCorrectionRequest`). */
         fun correccion(tipo: TipoDePeticion, id: Int, nombre: String, isbn: String?, fecha: String?) =
-            FormularioDePeticion(tipo, id, nombre, nombre, isbn.orEmpty(), fecha.orEmpty())
+            FormularioDePeticion(tipo, id, nombre, isbn.orEmpty(), fecha.orEmpty())
     }
 }
 

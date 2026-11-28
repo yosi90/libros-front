@@ -70,8 +70,6 @@ import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.Campo
 import es.yosiftware.libros.ui.componentes.Superficie
-import es.yosiftware.libros.ui.componentes.TextoDeApoyo
-import es.yosiftware.libros.ui.componentes.TextoEyebrow
 import es.yosiftware.libros.ui.tema.Alturas
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
@@ -180,7 +178,7 @@ fun BarraPublica(alVolver: (() -> Unit)?, etiquetaVolver: String = "Volver") {
 
 /**
  * Una pantalla de la cuenta con el aspecto de `app-mobile-auth-page`: la barra pública y, debajo, la presentación
- * ([eyebrow], [titulo] en `.m-display`, [apoyo] y la [cita]) y el panel (`.m-card` con 20 dp de relleno), centrados en
+ * ([titulo] en `.m-display` y la [cita]; sin antetítulo ni frase de apoyo, ronda 1 de interfaz, U1) y el panel (`.m-card` con 20 dp de relleno), centrados en
  * vertical y hasta 980 dp de ancho, con 32 dp entre los dos. En la ventana compacta, uno debajo del otro; la cita solo
  * con [citaEnCompacta]. Con [ajustada] (la de entrar), la compacta solo lleva el titular y huecos más cortos, para que quepa
  * sin desplazar en un móvil corriente (lo pidió el propietario, 2026-10-29). Desde 600 dp, en dos columnas: la presentación (el titular, hasta 10ch y
@@ -194,9 +192,7 @@ fun BarraPublica(alVolver: (() -> Unit)?, etiquetaVolver: String = "Volver") {
  */
 @Composable
 fun PaginaDeAcceso(
-    eyebrow: String,
     titulo: String,
-    apoyo: String?,
     alVolver: (() -> Unit)?,
     etiquetaVolver: String = "Volver",
     cita: Cita? = null,
@@ -237,7 +233,7 @@ fun PaginaDeAcceso(
                         horizontalArrangement = Arrangement.spacedBy(hueco),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Presentacion(eyebrow, titulo, apoyo, cita, Modifier.weight(1f), ancha = true)
+                        Presentacion(titulo, cita, Modifier.weight(1f), ancha = true)
                         // `minmax(min, max)` de la rejilla: el panel ocupa lo que quede, entre los dos.
                         val libre = (anchoDisponible - lados * 2).coerceAtMost(980.dp)
                         val anchoPanel = ((libre - hueco) * 0.42f).coerceIn(panelMinimo, panelMaximo)
@@ -250,9 +246,9 @@ fun PaginaDeAcceso(
                     ) {
                         // Ajustada (la de entrar, en el móvil): solo el titular, para que todo quepa sin desplazar.
                         if (ajustada) {
-                            Presentacion(null, titulo, null, null, Modifier.fillMaxWidth(), ancha = false, ajustada = true)
+                            Presentacion(titulo, null, Modifier.fillMaxWidth(), ancha = false, ajustada = true)
                         } else {
-                            Presentacion(eyebrow, titulo, apoyo, cita?.takeIf { citaEnCompacta }, Modifier.fillMaxWidth(), ancha = false)
+                            Presentacion(titulo, cita?.takeIf { citaEnCompacta }, Modifier.fillMaxWidth(), ancha = false)
                         }
                         Panel(Modifier.fillMaxWidth(), if (ajustada) Espacios.e3 else Espacios.e4, panel)
                     }
@@ -272,9 +268,7 @@ private fun Panel(modifier: Modifier, hueco: Dp, contenido: @Composable ColumnSc
 
 @Composable
 private fun Presentacion(
-    eyebrow: String?,
     titulo: String,
-    apoyo: String?,
     cita: Cita?,
     modifier: Modifier,
     ancha: Boolean,
@@ -283,7 +277,6 @@ private fun Presentacion(
     val colores = LocalColores.current
     val ventana = LocalVentana.current
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Espacios.e4)) {
-        if (eyebrow != null) TextoEyebrow(eyebrow)
         val estilo = if (ancha) {
             Textos.display(ventana.anchoDp).copy(fontSize = (ventana.anchoDp * 0.055f).coerceIn(2.35f * 16, 3f * 16).sp)
         } else if (ajustada) {
@@ -300,7 +293,6 @@ private fun Presentacion(
             color = colores.tinta,
             style = estilo,
         )
-        if (apoyo != null) TextoDeApoyo(apoyo)
         if (cita != null) CitaDeLectura(cita, ancha)
     }
 }
@@ -328,15 +320,16 @@ private fun CitaDeLectura(cita: Cita, ancha: Boolean) {
 }
 
 /**
- * `.m-auth-field` con `.m-field`: la etiqueta (.78rem) a 6 dp del campo, con su icono en el primario. Con [secreto], el
- * ojo de 44 dp para enseñar la contraseña. Con [error], el texto del error debajo en el color de error.
+ * `.m-auth-field` con `.m-field`: la etiqueta (.78rem) a 6 dp del campo, sin icono que la repita (ronda 1 de interfaz,
+ * U1; [icono], si hiciera falta). Con [secreto], el ojo de 44 dp para enseñar la contraseña. Con [error], el texto del
+ * error debajo en el color de error.
  */
 @Composable
 fun CampoDeAcceso(
     etiqueta: String,
     valor: String,
     alCambiar: (String) -> Unit,
-    @DrawableRes icono: Int,
+    @DrawableRes icono: Int? = null,
     modifier: Modifier = Modifier,
     ejemplo: String? = null,
     teclado: KeyboardOptions = KeyboardOptions.Default,
@@ -346,13 +339,10 @@ fun CampoDeAcceso(
     alCambiarVisible: () -> Unit = {},
     habilitado: Boolean = true,
     error: String? = null,
-    conEtiqueta: Boolean = true,
 ) {
     val colores = LocalColores.current
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        // Sin la etiqueta visible (la pantalla de entrar, para caber), el ejemplo dice qué es y la etiqueta sigue para
-        // la accesibilidad.
-        if (conEtiqueta) Text(etiqueta, color = colores.tinta, style = textoEtiqueta)
+        Text(etiqueta, color = colores.tinta, style = textoEtiqueta)
         Campo(
             valor = valor,
             alCambiar = alCambiar,

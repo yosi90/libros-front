@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -43,11 +44,13 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.MarcoDeBarraDePantallaCompleta
 import es.yosiftware.libros.ui.componentes.Portada
+import es.yosiftware.libros.ui.componentes.Rueda
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.TextoDeApoyo
-import es.yosiftware.libros.ui.componentes.TextoEyebrow
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
@@ -111,14 +114,7 @@ fun PantallaAntologia(
             ) {
                 Cabecera(antologia, vm, ancha, alVerFicha, alBuscarSimilares)
                 when {
-                    vm.cargandoAntologia && vm.secciones.isEmpty() -> Column(
-                        Modifier.fillMaxWidth().padding(top = Espacios.e6).heightIn(min = 220.dp).padding(Espacios.e6),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Rueda(36.dp, 3.dp)
-                        Text("Cargando secciones…", style = Textos.cuerpo.copy(color = colores.tintaSuave), modifier = Modifier.padding(top = Espacios.e2))
-                    }
+                    vm.cargandoAntologia && vm.secciones.isEmpty() -> Cargando("Cargando las secciones", Modifier.padding(top = Espacios.e6), alturaMinima = 220.dp)
                     vm.falloAntologia && vm.secciones.isEmpty() -> EstadoDeAntologia(Iconos.cloudOff, "No pudimos cargar las secciones", "Comprueba la conexión e inténtalo de nuevo.") {
                         Boton("Reintentar", vm::reintentarAntologia, variante = VarianteDeBoton.Tonal)
                     }
@@ -144,21 +140,24 @@ fun PantallaAntologia(
                             }
                         }
                     }
-                    else -> EstadoDeAntologia(Iconos.autoStories, "Esta antología no tiene secciones disponibles", null) {}
+                    else -> ListaVacia("Sin secciones", Modifier.padding(top = Espacios.e6))
                 }
             }
         }
     }
 }
 
-/** `.m-anthology__hero`: «Antología», sus autores, cuántas secciones y las tres acciones; en dos columnas desde 600 dp. */
+/**
+ * `.m-anthology__hero`: sus autores, cuántas secciones y las tres acciones; en dos columnas desde 600 dp. Sin el
+ * antetítulo «Antología», y las acciones con la palabra y sin icono: el destello de «Similares» no se entiende solo
+ * (ronda 1 de interfaz, B4).
+ */
 @Composable
 private fun Cabecera(antologia: Obra, vm: BibliotecaViewModel, ancha: Boolean, alVerFicha: (Obra) -> Unit, alBuscarSimilares: (Obra) -> Unit) {
     val colores = LocalColores.current
     val datos: @Composable (Modifier) -> Unit = { m ->
         Column(m) {
-            TextoEyebrow("Antología")
-            if (antologia.autores.isNotEmpty()) TextoDeApoyo(antologia.autores.joinToString(", ") { it.nombre }, Modifier.padding(top = Espacios.e2))
+            if (antologia.autores.isNotEmpty()) TextoDeApoyo(antologia.autores.joinToString(", ") { it.nombre })
             if (vm.secciones.isNotEmpty()) {
                 Text(etiquetaDeTitulos(vm.secciones.size), style = Textos.cuerpo.copy(fontSize = rem(0.78), fontWeight = FontWeight.ExtraBold, color = colores.primario), modifier = Modifier.padding(top = Espacios.e3))
             }
@@ -166,9 +165,9 @@ private fun Cabecera(antologia: Obra, vm: BibliotecaViewModel, ancha: Boolean, a
     }
     val acciones: @Composable (Modifier) -> Unit = { m ->
         Row(m.semantics { contentDescription = "Acciones de la antología" }, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-            AccionDeAntologia(Iconos.visibility, "Ficha", Modifier.weight(1f)) { alVerFicha(antologia) }
-            AccionDeAntologia(Iconos.edit, "Mi lectura", Modifier.weight(1f), vm::editarAntologia)
-            AccionDeAntologia(Iconos.autoAwesome, "Similares", Modifier.weight(1f)) { alBuscarSimilares(antologia) }
+            AccionDeAntologia("Ficha", Modifier.weight(1f)) { alVerFicha(antologia) }
+            AccionDeAntologia("Mi lectura", Modifier.weight(1f), vm::editarAntologia)
+            AccionDeAntologia("Similares", Modifier.weight(1f)) { alBuscarSimilares(antologia) }
         }
     }
     if (ancha) {
@@ -185,22 +184,23 @@ private fun Cabecera(antologia: Obra, vm: BibliotecaViewModel, ancha: Boolean, a
 }
 
 @Composable
-private fun AccionDeAntologia(icono: Int, texto: String, modifier: Modifier, alPulsar: () -> Unit) {
+private fun AccionDeAntologia(texto: String, modifier: Modifier, alPulsar: () -> Unit) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.sm)
-    Row(
+    Box(
         modifier.heightIn(min = 52.dp).clip(forma).background(colores.contenedorPrimario)
             .border(1.dp, mezclar(colores.primario, 0.22f, colores.contorno), forma)
-            .clickable(onClick = alPulsar).padding(Espacios.e2),
-        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
+            .clickable(role = Role.Button, onClick = alPulsar).padding(Espacios.e2),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(20.dp))
-        Text(texto, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, lineHeight = 1.1.em, color = colores.primario), maxLines = 1)
+        Text(texto, style = Textos.rotulo.copy(lineHeight = 1.1.em, color = colores.primario), maxLines = 1)
     }
 }
 
-/** `.m-anthology__section`: portada de 60 dp, «Sección N», su nombre, sus páginas, lo leído y el botón de su estado. */
+/**
+ * `.m-anthology__section`: portada de 60 dp, su nombre (o «Sección N» si no lo tiene), sus páginas, lo leído y el
+ * botón de su estado. Sin el antetítulo «Sección N» sobre el nombre (ronda 1 de interfaz, B4).
+ */
 @Composable
 private fun TarjetaDeSeccion(seccion: Obra, numero: Int, vm: BibliotecaViewModel, modifier: Modifier, alAbrir: () -> Unit) {
     val colores = LocalColores.current
@@ -217,16 +217,15 @@ private fun TarjetaDeSeccion(seccion: Obra, numero: Int, vm: BibliotecaViewModel
         Row(Modifier.fillMaxWidth().heightIn(min = 104.dp), horizontalArrangement = Arrangement.spacedBy(Espacios.e3), verticalAlignment = Alignment.CenterVertically) {
             Portada(seccion.portada, null, Modifier.width(60.dp).fillMaxHeight().heightIn(min = 104.dp))
             Column(Modifier.weight(1f).padding(vertical = Espacios.e2), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text("SECCIÓN $numero", style = Textos.cuerpo.copy(fontSize = rem(0.68), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.08.em, color = colores.primario))
-                Text(seccion.nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.0), fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text(etiquetaDePaginasDeSeccion(seccion), style = Textos.cuerpo.copy(fontSize = rem(0.72), color = colores.tintaSuave))
-                if (progreso > 0) Text("${numero(progreso)}% leído", style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.Bold, color = colores.primario))
+                Text(seccion.nombre.ifBlank { "Sección $numero" }, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.0), fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(etiquetaDePaginasDeSeccion(seccion), style = Textos.nota.copy(color = colores.tintaSuave))
+                if (progreso > 0) Text("${numero(progreso)}% leído", style = Textos.nota.copy(fontWeight = FontWeight.Bold, color = colores.primario))
             }
             Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
                 if (leyendo) {
                     Box(Modifier.semantics { contentDescription = "Cargando estado" }) { Rueda(22.dp, 2.dp) }
                 } else {
-                    BotonDeIcono(Iconos.moreHoriz, "Modificar estado y puntuación de la sección", { vm.gestionarSeccion(seccion) }, habilitado = vm.leyendoSeccionId == null)
+                    BotonDeIcono(Iconos.moreHoriz, "Estado y puntuación de ${seccion.nombre.ifBlank { "la sección $numero" }}", { vm.gestionarSeccion(seccion) }, habilitado = vm.leyendoSeccionId == null)
                 }
             }
         }

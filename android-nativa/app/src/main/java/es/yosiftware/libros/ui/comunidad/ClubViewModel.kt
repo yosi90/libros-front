@@ -308,9 +308,9 @@ class ClubViewModel(
     val chatDisponible: Boolean get() = esMiembro && club?.conversacionId != null && espacio?.yo?.chat != "nada"
     val motivoSinChat: String
         get() = when {
-            !esMiembro -> "El chat es para los miembros del club."
-            espacio?.yo?.chat == "nada" -> "Tu papel en el club no entra en su chat."
-            else -> "La conversación del club se está preparando. Vuelve a intentarlo en unos segundos."
+            !esMiembro -> "Chat solo para miembros"
+            espacio?.yo?.chat == "nada" -> "Tu papel no incluye el chat"
+            else -> "Chat en preparación"
         }
 
     fun etiquetaDeLectura(lectura: LecturaDeClub): String = ReglasDelClub.etiquetaDeLectura(lectura, universos())

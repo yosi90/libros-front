@@ -41,14 +41,14 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
-import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
 import es.yosiftware.libros.ui.tema.Textos
-import es.yosiftware.libros.ui.tema.rem
 import es.yosiftware.libros.ui.tema.sombra1
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -72,10 +72,7 @@ fun PantallaActividad(vm: ActividadViewModel, acciones: AccionesDeComunidad) {
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(if (ancha) Espacios.e4 else Espacios.e3),
         verticalArrangement = Arrangement.spacedBy(Espacios.e3),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(Espacios.e1)) {
-            Text("Actividad", color = colores.tinta, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontWeight = FontWeight.SemiBold, fontSize = rem(1.25)))
-            Text("Lo que comparten en Libros tus amistades y quienes sigues.", color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.82)))
-        }
+        // Sin título ni explicación bajo la pestaña «Actividad» (ronda 1 de interfaz).
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Row(
                 Modifier.weight(1f).heightIn(min = 44.dp).clickable(role = Role.Button) { acciones.abrirWebSocial("novedades") },
@@ -89,13 +86,9 @@ fun PantallaActividad(vm: ActividadViewModel, acciones: AccionesDeComunidad) {
         }
         if (vm.error.isNotEmpty()) Text(vm.error, color = colores.error, style = Textos.cuerpo)
         when {
-            vm.cargando && vm.lista.isEmpty() -> EstadoDePantalla(Iconos.hourglassTop, "Cargando la actividad…")
+            vm.cargando && vm.lista.isEmpty() -> Cargando("Cargando la actividad", alturaMinima = 220.dp)
             vm.lista.isEmpty() && vm.cargada -> {
-                EstadoDePantalla(
-                    Iconos.dynamicFeed,
-                    "Cuando tus amistades o quienes sigues empiecen, terminen o puntúen un libro, aparecerá aquí.",
-                    titulo = "Aún no hay actividad",
-                )
+                ListaVacia("Aún no hay actividad", alturaMinima = 120.dp)
                 if (vm.descubrir.isNotEmpty()) {
                     TituloDeLista("Descubrir")
                     vm.descubrir.forEach { TarjetaDeNovedad(vm, it, acciones) }
@@ -134,7 +127,7 @@ private fun TarjetaDeNovedad(vm: ActividadViewModel, novedad: Novedad, acciones:
                     },
                     color = colores.tinta, style = Textos.cuerpo,
                 )
-                Text(fechaDeNovedad(novedad.creada), Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.72)))
+                Text(fechaDeNovedad(novedad.creada), Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.nota)
                 novedad.enlace?.let { enlace ->
                     Row(
                         Modifier.heightIn(min = 44.dp).clickable(role = Role.Button) { acciones.abrirEnlace(enlace) },
@@ -161,7 +154,7 @@ private fun TarjetaDeNovedad(vm: ActividadViewModel, novedad: Novedad, acciones:
         vm.comentarios[novedad.id]?.let { abiertos ->
             HorizontalDivider(thickness = 1.dp, color = colores.contorno)
             Column(Modifier.fillMaxWidth().padding(Espacios.e3), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                if (abiertos.cargando && abiertos.lista.isEmpty()) Text("Cargando comentarios…", color = colores.tintaSuave, style = Textos.cuerpo)
+                if (abiertos.cargando && abiertos.lista.isEmpty()) Cargando("Cargando los comentarios", alturaMinima = 56.dp, tamano = 24.dp)
                 abiertos.lista.forEach { comentario ->
                     Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                         FotoDePersona(comentario.persona, acciones, 30)

@@ -29,6 +29,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -42,6 +44,8 @@ import es.yosiftware.libros.ui.tema.mezclar
  * .m-field: 56 dp de alto como mínimo, `padding: 0 16px`, 12 dp entre piezas, borde de 1 dp del contorno fuerte, radio
  * de 12 dp y superficie. El icono va en el primario y el texto de ejemplo en la tinta suave. Con el foco, el anillo
  * de `:focus-visible` del Sass: 3 dp del primario al 42 %, a 2 dp del texto (es el `input` el que lo lleva).
+ *
+ * [descripcion] es el nombre accesible del campo: hace falta cuando no hay [ejemplo] (un buscador con la lupa sola).
  *
  * TODO(clon): comprobar en las capturas el anillo de foco dentro del campo (src/assets/css/mobile/_primitives.sass,
  * `:where(button, a, input, textarea):focus-visible`); los formularios con `mat-form-field` usan otro aspecto.
@@ -60,6 +64,7 @@ fun Campo(
     transformacion: VisualTransformation = VisualTransformation.None,
     /** El `font: inherit` del `input`: el del cuerpo, o el de quien lo contiene (`.m-auth-field`, .78rem). */
     estilo: TextStyle = Textos.cuerpo,
+    descripcion: String? = null,
     alFinal: @Composable RowScope.() -> Unit = {},
 ) {
     val colores = LocalColores.current
@@ -82,6 +87,7 @@ fun Campo(
             onValueChange = alCambiar,
             modifier = Modifier
                 .weight(1f)
+                .then(if (descripcion != null) Modifier.semantics { contentDescription = descripcion } else Modifier)
                 .drawBehind {
                     if (!enfocado) return@drawBehind
                     val separacion = 2.dp.toPx() + 1.5.dp.toPx()

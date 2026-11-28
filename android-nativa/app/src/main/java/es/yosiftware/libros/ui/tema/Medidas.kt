@@ -35,8 +35,10 @@ object Espacios {
 /** Las alturas y anchos fijos de `_tokens.sass` y el mínimo táctil de docs/GUIA_ESTILOS.md (Mobile). */
 object Alturas {
     val barraSuperior = 64.dp // --mobile-appbar-height
-    val navegacionInferior = 72.dp // --mobile-bottom-nav-height
-    val anchoRail = 88.dp // --mobile-rail-width
+    // La navegación solo con iconos (ronda 1 de interfaz, kit 1.111): la barra inferior baja de 72 a 64 dp y el rail, de
+    // 88 a 72 (las variables de la web siguen en 72 y 88).
+    val navegacionInferior = 64.dp // --mobile-bottom-nav-height
+    val anchoRail = 72.dp // --mobile-rail-width
     val contenidoMaximo = 1120.dp // --mobile-content-max
     val tactilMinimo = 44.dp
     val botonDeIcono = 48.dp // .m-icon-button

@@ -79,7 +79,7 @@ fun Armazon(
     masAbiertaAlPrincipio: Boolean = false,
     /** La hoja «Más» se abre o se cierra: la isla del libro, que va por encima del armazón, se esconde mientras. */
     alCambiarMas: (Boolean) -> Unit = {},
-    contenido: @Composable (Destino) -> Unit = { PantallaVacia(it) },
+    contenido: @Composable (Destino) -> Unit = {},
 ) {
     val colores = LocalColores.current
     val ventana = LocalVentana.current
@@ -173,6 +173,7 @@ fun Armazon(
             alElegir = elegir,
             avatar = avatar,
             alAbrirCuentas = alAbrirCuentas,
+            mensajesSinLeer = mensajesSinLeer,
         )
     }
 }

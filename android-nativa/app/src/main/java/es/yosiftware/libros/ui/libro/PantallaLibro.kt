@@ -60,20 +60,24 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -87,6 +91,7 @@ import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.Portada
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.componentes.rayaAbajo
@@ -110,16 +115,6 @@ import kotlin.math.sign
 // en Elementos, el tipo), el contenido, el índice que se abre por encima y se cierra arrastrándolo, la navegación de abajo
 // con los cuatro destinos (Capítulos, Elementos, Notas y Resumen) y el editor de partes e interludios. La wiki está en el
 // Resumen.
-
-/** Un icono de cada elemento (`entityToolbarActions`). */
-private fun iconoDe(elemento: Elemento): Int = when (elemento) {
-    Elemento.PERSONAJES -> Iconos.coPresent
-    Elemento.ORGANIZACIONES -> Iconos.groups
-    Elemento.EVENTOS -> Iconos.event
-    Elemento.LOCALIZACIONES -> Iconos.myLocation
-    Elemento.CONCEPTOS -> Iconos.autoAwesome
-    Elemento.CITAS -> Iconos.formatQuote
-}
 
 private fun ocultarTeclado(vista: View) {
     vista.findFocus()?.clearFocus()
@@ -377,10 +372,7 @@ private fun Indice(vm: LibroViewModel, ancha: Boolean) {
                     verticalArrangement = Arrangement.spacedBy(Espacios.e2),
                 ) {
                     if (vm.indice.isEmpty()) {
-                        Column(Modifier.fillMaxWidth().heightIn(min = 180.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                            Icon(painterResource(Iconos.menuBook), contentDescription = null, tint = colores.primario, modifier = Modifier.size(40.dp))
-                            Text("El índice todavía está vacío.", style = Textos.cuerpo.copy(color = colores.tintaSuave, textAlign = TextAlign.Center))
-                        }
+                        ListaVacia("Sin capítulos", alturaMinima = 120.dp)
                     } else {
                         vm.indice.forEach { EntradaDelIndiceVista(vm, it, anidada = false) }
                     }
@@ -390,7 +382,7 @@ private fun Indice(vm: LibroViewModel, ancha: Boolean) {
     }
 }
 
-/** `.m-book-index__status`: «Poner en marcha» o, ya en marcha, crear capítulo, parte o interludio. */
+/** `.m-book-index__status`: «Poner en marcha» o, ya en marcha, el + del capítulo nuevo y, en «⋯», la parte y el interludio. */
 @Composable
 private fun EstadoDelIndice(vm: LibroViewModel) {
     val colores = LocalColores.current
@@ -399,11 +391,11 @@ private fun EstadoDelIndice(vm: LibroViewModel) {
         contentAlignment = Alignment.Center,
     ) {
         if (!vm.enMarcha) {
-            Boton("Poner en marcha", vm::ponerEnMarcha, Modifier.fillMaxWidth(), icono = Iconos.autoStories, habilitado = !vm.poniendoEnMarcha)
+            Boton("Poner en marcha", vm::ponerEnMarcha, Modifier.fillMaxWidth(), habilitado = !vm.poniendoEnMarcha)
         } else {
-            // «Cuaderno»: «+ Capítulo» a mano y la parte y el interludio en «⋯».
+            // Solo el +, con su nombre (ronda 1 de interfaz, opción A): el índice ya dice qué se crea.
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                AccionDelIndice(Iconos.add, "Capítulo", Modifier) { vm.ir(VistaDelLibro.NuevoCapitulo) }
+                BotonDeIcono(Iconos.add, "Nuevo capítulo", { vm.ir(VistaDelLibro.NuevoCapitulo) }, color = colores.sobreContenedorPrimario, fondo = colores.contenedorPrimario)
                 Spacer(Modifier.weight(1f))
                 var mas by remember { mutableStateOf(false) }
                 Box {
@@ -415,21 +407,6 @@ private fun EstadoDelIndice(vm: LibroViewModel) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun AccionDelIndice(@DrawableRes icono: Int, texto: String, modifier: Modifier, alPulsar: () -> Unit) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
-    Row(
-        modifier.heightIn(min = 40.dp).clip(forma).background(colores.superficieContenedor)
-            .clickable(onClick = alPulsar).padding(horizontal = Espacios.e3),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(20.dp))
-        Text(texto, style = Textos.cuerpo.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colores.tinta), maxLines = 1)
     }
 }
 
@@ -498,68 +475,48 @@ private fun GrupoDelIndice(vm: LibroViewModel, grupo: EntradaDelIndice.Grupo, an
 
 // --- La navegación de abajo. ---
 
-/** La navegación de abajo: 64 dp más la zona segura, con los cuatro destinos a cualquier ancho. */
+/**
+ * La navegación de abajo: 56 dp más la zona segura, con los cuatro destinos a cualquier ancho. Con la palabra y sin
+ * icono (ronda 1 de interfaz): el elegido, en el primario y con su raya arriba.
+ */
 @Composable
 private fun Navegacion(vm: LibroViewModel, ancha: Boolean) {
     val colores = LocalColores.current
     val zona = WindowInsets.zonaSegura.asPaddingValues()
     val direccion = LocalLayoutDirection.current
-    BoxWithConstraints(
+    val lados = if (ancha) 0.dp else zona.calculateLeftPadding(direccion)
+    Row(
         Modifier.fillMaxWidth()
             .rayaArriba(colores.contorno)
             .background(mezclar(colores.superficie, 0.96f))
-            .heightIn(min = 64.dp + zona.calculateBottomPadding()),
+            .padding(start = lados, end = lados, bottom = zona.calculateBottomPadding()),
     ) {
-        val lados = if (ancha) Espacios.e2 else max(Espacios.e2, zona.calculateLeftPadding(direccion))
-        Row(
-            Modifier.fillMaxWidth().padding(start = lados, end = lados, top = 4.dp, bottom = max(4.dp, zona.calculateBottomPadding())),
-            horizontalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            Destino.entries.forEach { destino ->
-                val icono = when (destino) {
-                    Destino.CAPITULOS -> Iconos.menuBook
-                    Destino.ELEMENTOS -> Iconos.category
-                    Destino.NOTAS -> Iconos.stickyNote2
-                    Destino.RESUMEN -> Iconos.queryStats
+        Destino.entries.forEach { destino ->
+            BotonDeNavegacion(destino.etiqueta, vm.destino == destino, Modifier.weight(1f)) { vm.irA(destino) }
+        }
+    }
+}
+
+/** Un destino: su palabra en 13 sp; el elegido, en el primario, con una raya de 3 dp arriba en la mitad central. */
+@Composable
+private fun BotonDeNavegacion(texto: String, activo: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
+    val colores = LocalColores.current
+    Box(
+        modifier.height(56.dp)
+            .drawBehind {
+                if (!activo) return@drawBehind
+                // Redondeada solo abajo: la mitad de arriba de una píldora de 6 dp queda fuera del recorte.
+                val alto = 3.dp.toPx()
+                clipRect {
+                    drawRoundRect(colores.primario, Offset(size.width * 0.24f, -alto), Size(size.width * 0.52f, alto * 2), CornerRadius(alto))
                 }
-                BotonDeNavegacion(icono, destino.etiqueta, vm.destino == destino, Modifier.weight(1f)) { vm.irA(destino) }
             }
-        }
-    }
-}
-
-@Composable
-private fun BotonDeNavegacion(@DrawableRes icono: Int, texto: String, activo: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
-    val colores = LocalColores.current
-    val tinta = if (activo) colores.primario else colores.tintaSuave
-    Column(
-        modifier.heightIn(min = 56.dp).clip(RoundedCornerShape(Radios.lg)).clickable(onClick = alPulsar).padding(3.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+            .clickable(role = Role.Tab, onClick = alPulsar)
+            .semantics { selected = activo },
+        contentAlignment = Alignment.Center,
     ) {
-        Box(
-            Modifier.width(if (activo) 48.dp else 24.dp).height(24.dp).clip(Radios.pildora)
-                .background(if (activo) colores.contenedorPrimario else Color.Transparent),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(painterResource(icono), contentDescription = null, tint = tinta, modifier = Modifier.size(24.dp))
-        }
-        Text(texto, style = Textos.cuerpo.copy(fontSize = rem(0.66), fontWeight = FontWeight.Bold, color = tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(texto, style = Textos.cuerpo.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (activo) colores.primario else colores.tintaSuave), maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
-}
-
-/** Un botón de la hoja de Elementos: 52 dp, con borde, sobre la superficie. */
-@Composable
-private fun BotonDeElemento(modifier: Modifier, descripcion: String, alPulsar: () -> Unit, centrado: Boolean = false, contenido: @Composable () -> Unit) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
-    Row(
-        modifier.heightIn(min = 52.dp).clip(forma).background(colores.superficie).border(1.dp, colores.contorno, forma)
-            .clickable(onClick = alPulsar).semantics { contentDescription = descripcion }
-            .padding(if (centrado) 0.dp else Espacios.e3),
-        horizontalArrangement = if (centrado) Arrangement.Center else Arrangement.spacedBy(Espacios.e3),
-        verticalAlignment = Alignment.CenterVertically,
-    ) { contenido() }
 }
 
 // --- El editor de partes e interludios. ---
@@ -589,11 +546,7 @@ private fun EditorDeEstructuraDialogo(vm: LibroViewModel, editor: EditorDeEstruc
             verticalArrangement = Arrangement.spacedBy(Espacios.e2),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("ESTRUCTURA", style = Textos.eyebrow.copy(color = colores.primario))
-                    Spacer(Modifier.height(Espacios.e2))
-                    Text(editor.titulo, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.5), color = colores.tinta))
-                }
+                Text(editor.titulo, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.5), color = colores.tinta), modifier = Modifier.weight(1f).semantics { heading() })
                 BotonDeIcono(Iconos.close, "Cerrar", vm::cerrarEstructura)
             }
             val campos: List<@Composable (Modifier) -> Unit> = buildList {
@@ -629,7 +582,7 @@ private fun CampoDeEstructura(etiqueta: String, valor: String, alCambiar: (Strin
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.sm)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(etiqueta, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
+        Text(etiqueta, style = Textos.rotulo.copy(color = colores.tintaSuave))
         BasicTextField(
             value = valor,
             onValueChange = alCambiar,
@@ -659,7 +612,7 @@ private fun SelectorDeCapitulo(vm: LibroViewModel, etiqueta: String, valor: Int?
     }
     val actual = opciones.firstOrNull { it.first == valor }?.second ?: valor?.toString().orEmpty()
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(etiqueta, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
+        Text(etiqueta, style = Textos.rotulo.copy(color = colores.tintaSuave))
         Box {
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(forma).background(colores.superficie).border(1.dp, colores.contornoFuerte, forma)
@@ -687,7 +640,7 @@ private fun SelectorDeParte(vm: LibroViewModel, editor: EditorDeEstructura, modi
     val partes = vm.libro?.partes.orEmpty()
     val actual = partes.firstOrNull { it.id == editor.idPartePredecesor }?.nombre ?: "Sin parte"
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("Parte predecesora", style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
+        Text("Parte predecesora", style = Textos.rotulo.copy(color = colores.tintaSuave))
         Box {
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(forma).background(colores.superficie).border(1.dp, colores.contornoFuerte, forma)
@@ -709,29 +662,6 @@ private fun SelectorDeParte(vm: LibroViewModel, editor: EditorDeEstructura, modi
     }
 }
 
-/**
- * Lo que enseña el contenido mientras no está clonado: el nombre de la vista y en qué paso llega.
- *
- * TODO(clon): los
- * elementos, en el hito 10.
- */
-@Composable
-fun ContenidoPendiente(vista: VistaDelLibro) {
-    val colores = LocalColores.current
-    val nombre = when (vista) {
-        VistaDelLibro.Estadisticas -> "Las estadísticas del libro"
-        VistaDelLibro.Notas -> "Las notas del libro"
-        VistaDelLibro.Busqueda -> "La búsqueda dentro del libro"
-        is VistaDelLibro.DeCapitulo, VistaDelLibro.NuevoCapitulo, is VistaDelLibro.NuevoCapituloDeInterludio -> "Los capítulos y las escenas"
-        is VistaDelLibro.DeElemento -> vista.elemento.etiqueta
-    }
-    Column(Modifier.fillMaxSize().padding(Espacios.e6), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Icon(painterResource(Iconos.menuBook), contentDescription = null, tint = colores.primario, modifier = Modifier.size(40.dp))
-        Text(nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.2), color = colores.tinta, textAlign = TextAlign.Center), modifier = Modifier.padding(top = Espacios.e3))
-        Text(if (vista is VistaDelLibro.DeElemento) "Llegan en el hito 10 del clon." else "Llegan en el hito 9 del clon.", style = Textos.cuerpo.copy(color = colores.tintaSuave, textAlign = TextAlign.Center))
-    }
-}
-
 /** Lo que enseña el contenido del libro en cada vista (`app-book-router`). */
 @Composable
 fun ContenidoDelLibro(
@@ -748,6 +678,5 @@ fun ContenidoDelLibro(
         VistaDelLibro.Estadisticas -> PantallaResumenDelLibro(vm)
         VistaDelLibro.Notas -> PantallaNotasDelLibro(vm.abierto?.id ?: 0, notas)
         VistaDelLibro.Busqueda -> PantallaBusquedaDelLibro(vm, busqueda)
-        else -> ContenidoPendiente(vista)
     }
 }

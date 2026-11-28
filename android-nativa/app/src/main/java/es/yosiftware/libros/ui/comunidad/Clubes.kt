@@ -1,19 +1,17 @@
 package es.yosiftware.libros.ui.comunidad
 
-import androidx.annotation.DrawableRes
 import es.yosiftware.libros.datos.leerFecha
 import es.yosiftware.libros.datos.modelos.Universo
-import es.yosiftware.libros.ui.tema.Iconos
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /** Las pestañas de Clubes (`clubTab`). Mis clubes y Eventos solo con clubes. */
-enum class PestanaDeClubes(val etiqueta: String, @param:DrawableRes val icono: Int, val necesitaClubes: Boolean = false) {
-    DESCUBRIR("Descubrir", Iconos.travelExplore),
-    MIS_CLUBES("Mis clubes", Iconos.groups, necesitaClubes = true),
-    EVENTOS("Eventos", Iconos.event, necesitaClubes = true),
-    ACCESO("Acceso", Iconos.moveToInbox),
+enum class PestanaDeClubes(val etiqueta: String, val necesitaClubes: Boolean = false) {
+    DESCUBRIR("Descubrir"),
+    MIS_CLUBES("Mis clubes", necesitaClubes = true),
+    EVENTOS("Eventos", necesitaClubes = true),
+    ACCESO("Acceso"),
 }
 
 /**

@@ -76,7 +76,7 @@ class SesionYosiftwareTest {
     private var ahora = 1_000_000L
     private val esperas = mutableListOf<Long>()
     private val almacen = AlmacenEnMemoria()
-    private val red = Simulado()
+    private val red = Simulado().apply { responder("/v1/sesion/nativa/traspaso/comprobacion", 204, "") }
     /** Las otras apps del móvil: lo que responde cada una, en orden (la última se repite). */
     private class VecinasSimuladas : Vecinas {
         val ofertas = linkedMapOf<String, MutableList<Oferta?>>()
@@ -999,12 +999,56 @@ class SesionYosiftwareTest {
         assertEquals("6f1c", otra?.idCuenta)
         assertEquals("yosi", otra?.alias)
         assertEquals(listOf("es.yosiftware.muda", "es.yosiftware.rol.companion"), lentas.canceladas)
-        assertTrue(red.llegadas.isEmpty())
+        // Solo se ha comprobado la oferta, sin gastar el ticket.
+        val comprobada = red.cuerpo("/v1/sesion/nativa/traspaso/comprobacion")
+        assertEquals("t1", comprobada.getString("ticket"))
+        assertEquals("h-com.mazoslorcana.app", comprobada.getJSONObject("de").getJSONArray("huellas").getString(0))
+        assertTrue(red.llegadas.all { it.url.endsWith("/v1/sesion/nativa/traspaso/comprobacion") })
 
         red.responder("/v1/sesion/nativa/traspaso/canje", 200, conSesion(1))
         conLentas.continuarCon(otra!!)
         assertEquals("com.mazoslorcana.app", red.cuerpo("/v1/sesion/nativa/traspaso/canje").getJSONObject("de").getString("paquete"))
         assertNull(conLentas.sesionDeOtraApp())
+    }
+
+    @Test
+    fun `una oferta que la plataforma no da por buena no se ensena y se espera a la siguiente`() = runTest {
+        // Petición de Día a día (SR1-4, 2026-11-27): una app ajena contesta antes con un alias falso.
+        val lentas = VecinasLentas()
+        // La plataforma responde según el ticket, no por orden de llegada: las dos comprobaciones van a la vez
+        // (aviso de Día a día, 2026-11-27).
+        val plataforma = object : Transporte {
+            override suspend fun enviar(peticion: Peticion): Respuesta {
+                assertTrue(peticion.url.endsWith("/v1/sesion/nativa/traspaso/comprobacion"))
+                return if (JSONObject(peticion.cuerpo!!).getString("ticket") == "falso") {
+                    Respuesta(403, """{"code":"app_no_reconocida","field":"de"}""")
+                } else {
+                    Respuesta(204, "")
+                }
+            }
+        }
+        val conLentas = SesionYosiftware(configuracion, almacen, plataforma, { ahora }, { esperas += it }, lentas)
+        conLentas.iniciar()
+        lentas.respuestas["com.ajena.trampa"] = CompletableDeferred()
+        lentas.respuestas["com.mazoslorcana.app"] = CompletableDeferred()
+
+        val busqueda = async { conLentas.sesionDeOtraApp() }
+        lentas.respuestas.getValue("com.ajena.trampa").complete(oferta("falso"))
+        lentas.respuestas.getValue("com.mazoslorcana.app").complete(oferta("t1"))
+        val otra = busqueda.await()
+
+        assertEquals("com.mazoslorcana.app", otra?.paquete)
+        assertEquals("t1", otra?.ticket)
+    }
+
+    @Test
+    fun `sin red para comprobarla, ninguna oferta se ensena`() = runTest {
+        sesion.iniciar()
+        vecinas.ofertas["com.mazoslorcana.app"] = mutableListOf(oferta("t1"))
+        val sinRed = Simulado().apply { sinRed("/v1/sesion/nativa/traspaso/comprobacion") }
+        val sinComprobar = SesionYosiftware(configuracion, AlmacenEnMemoria(), sinRed, { ahora }, { esperas += it }, vecinas)
+        sinComprobar.iniciar()
+        assertNull(sinComprobar.sesionDeOtraApp())
     }
 
     @Test

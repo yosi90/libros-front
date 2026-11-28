@@ -42,14 +42,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Chip
+import es.yosiftware.libros.ui.componentes.SinResultados
 import es.yosiftware.libros.ui.componentes.EstadoDeChip
 import es.yosiftware.libros.ui.tema.Espacios
-import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
@@ -58,21 +57,11 @@ import es.yosiftware.libros.ui.tema.mezclar
 import es.yosiftware.libros.ui.tema.rem
 import java.util.UUID
 
-private fun iconoDe(categoria: CategoriaDeBusqueda): Int = when (categoria) {
-    CategoriaDeBusqueda.CAPITULOS -> Iconos.autoStories
-    CategoriaDeBusqueda.PERSONAJES -> Iconos.coPresent
-    CategoriaDeBusqueda.ORGANIZACIONES -> Iconos.groups
-    CategoriaDeBusqueda.EVENTOS -> Iconos.event
-    CategoriaDeBusqueda.LOCALIZACIONES -> Iconos.myLocation
-    CategoriaDeBusqueda.CONCEPTOS -> Iconos.autoAwesome
-    CategoriaDeBusqueda.CITAS -> Iconos.formatQuote
-}
-
 /**
  * La búsqueda dentro del libro (mobile-book-search-view en 5dc3120, con lo de `native-mobile`): arriba, fija, la cuenta
- * de resultados y la barra de búsqueda (al desplazar, con su raya y su sombra); debajo, las categorías, el estado o el
- * aviso de aproximados y los grupos de resultados (en dos columnas desde 600 dp). Al tocar un resultado se abre su
- * capítulo o su elemento.
+ * de resultados y la barra de búsqueda (al desplazar, con su raya y su sombra); debajo, las categorías con su palabra,
+ * el aviso de aproximados y los grupos de resultados (en dos columnas desde 600 dp). Antes de escribir no hay nada más;
+ * sin resultados, «Sin coincidencias» (ronda 1 de interfaz). Al tocar un resultado se abre su capítulo o su elemento.
  */
 @Composable
 fun PantallaBusquedaDelLibro(libro: LibroViewModel, vm: BusquedaViewModel) {
@@ -94,15 +83,13 @@ fun PantallaBusquedaDelLibro(libro: LibroViewModel, vm: BusquedaViewModel) {
                         Chip(
                             categoria.etiqueta,
                             estado = if (categoria in vm.activas) EstadoDeChip.Seleccionado else EstadoDeChip.Normal,
-                            icono = iconoDe(categoria),
-                            tamanoDelIcono = 16.dp,
                             alPulsar = { vm.alternarCategoria(categoria) },
                         )
                     }
                 }
                 when (resultado.modo) {
-                    ModoDeBusqueda.VACIA -> EstadoDeLaBusqueda(Iconos.travelExplore, "Busca en toda la narración", "Escribe para consultar capítulos, escenas y elementos narrativos.", alto.value)
-                    ModoDeBusqueda.NINGUNA -> EstadoDeLaBusqueda(Iconos.searchOff, "Sin coincidencias", "No hay resultados en las ${vm.activas.size} categorías activas.", alto.value)
+                    ModoDeBusqueda.VACIA -> Unit
+                    ModoDeBusqueda.NINGUNA -> SinResultados("Sin coincidencias", alturaMinima = minOf(alto.value * 0.5f, 340f).dp)
                     ModoDeBusqueda.APROXIMADA, ModoDeBusqueda.EXACTA -> {
                         if (resultado.modo == ModoDeBusqueda.APROXIMADA) Aviso()
                         Resultados(libro, vm, resultado.visibles)
@@ -129,8 +116,9 @@ private fun BarraDeLaBusqueda(vm: BusquedaViewModel, total: Int, desplazada: Boo
             }
             .padding(top = Espacios.e2),
     ) {
+        // Sin resultados, ni «0 resultados»: ya lo dice «Sin coincidencias».
         Box(Modifier.fillMaxWidth().heightIn(min = 24.dp).padding(horizontal = Espacios.e2), contentAlignment = Alignment.CenterEnd) {
-            Text("$total resultados", style = Textos.cuerpo.copy(fontSize = rem(0.7), fontWeight = FontWeight(750), color = colores.tintaSuave))
+            if (total > 0) Text("$total resultados", style = Textos.cuerpo.copy(fontSize = rem(0.7), fontWeight = FontWeight(750), color = colores.tintaSuave))
         }
         Row(
             Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = Espacios.e4, end = Espacios.e2),
@@ -146,12 +134,8 @@ private fun BarraDeLaBusqueda(vm: BusquedaViewModel, total: Int, desplazada: Boo
                 textStyle = Textos.cuerpo.copy(color = colores.tinta),
                 cursorBrush = SolidColor(colores.primario),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                decorationBox = { campo ->
-                    Box {
-                        if (vm.consulta.isEmpty()) Text("Personajes, escenas, entradas o conceptos", style = Textos.cuerpo.copy(color = colores.tintaSuave), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        campo()
-                    }
-                },
+                // La lupa sola (ronda 1 de interfaz, opción A): las categorías de debajo ya dicen dónde busca.
+                decorationBox = { campo -> Box { campo() } },
             )
             if (vm.consulta.isNotEmpty()) {
                 Box(Modifier.size(44.dp).clip(CircleShape).clickable(onClick = vm::limpiar), contentAlignment = Alignment.Center) {
@@ -159,21 +143,6 @@ private fun BarraDeLaBusqueda(vm: BusquedaViewModel, total: Int, desplazada: Boo
                 }
             }
         }
-    }
-}
-
-/** `.m-book-search__state`: centrado en `min(50dvh, 340px)`, con el icono de 48 dp en el primario y el título en la letra display. */
-@Composable
-private fun EstadoDeLaBusqueda(icono: Int, titulo: String, texto: String, altoDp: Float) {
-    val colores = LocalColores.current
-    Column(
-        Modifier.padding(horizontal = Espacios.e3).fillMaxWidth().heightIn(min = minOf(altoDp * 0.5f, 340f).dp).padding(Espacios.e6),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(48.dp))
-        Text(titulo, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.1), color = colores.tinta, textAlign = TextAlign.Center), modifier = Modifier.padding(top = Espacios.e2))
-        Text(texto, style = Textos.cuerpo.copy(color = colores.tintaSuave, textAlign = TextAlign.Center), modifier = Modifier.padding(top = Espacios.e2))
     }
 }
 
@@ -204,7 +173,7 @@ private fun Resultados(libro: LibroViewModel, vm: BusquedaViewModel, grupos: Lis
     }
 }
 
-/** `.m-book-search-group`: la cabecera que pliega y despliega (icono y nombre, la cuenta en su píldora y la flecha) y sus resultados. */
+/** `.m-book-search-group`: la cabecera que pliega y despliega (el nombre, la cuenta en su píldora y la flecha) y sus resultados. */
 @Composable
 private fun GrupoDeLaBusqueda(libro: LibroViewModel, vm: BusquedaViewModel, grupo: GrupoDeResultados, modifier: Modifier) {
     val colores = LocalColores.current
@@ -216,10 +185,7 @@ private fun GrupoDeLaBusqueda(libro: LibroViewModel, vm: BusquedaViewModel, grup
             horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
-                Icon(painterResource(iconoDe(grupo.categoria)), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
-                Text(grupo.categoria.etiqueta, style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
+            Text(grupo.categoria.etiqueta, Modifier.weight(1f), style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
             Box(Modifier.widthIn(min = 28.dp).clip(Radios.pildora).background(colores.superficieContenedor).padding(horizontal = 8.dp, vertical = 4.dp), contentAlignment = Alignment.Center) {
                 Text(grupo.total.toString(), style = Textos.cuerpo.copy(fontSize = rem(0.7), color = colores.primario))
             }

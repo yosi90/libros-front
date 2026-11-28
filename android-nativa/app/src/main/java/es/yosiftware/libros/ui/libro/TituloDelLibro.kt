@@ -70,8 +70,9 @@ import es.yosiftware.libros.datos.modelos.TituloDivertido
 import es.yosiftware.libros.datos.repositorios.RepositorioColeccion
 import es.yosiftware.libros.datos.repositorios.RepositorioIA
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.BotonDeCaja
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.TextoDeApoyo
-import es.yosiftware.libros.ui.componentes.TextoEyebrow
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.elementos.CampoConContorno
 import es.yosiftware.libros.ui.elementos.SelectorConContorno
@@ -224,8 +225,9 @@ fun TituloEnLinea(texto: String, modifier: Modifier = Modifier) {
 
 /**
  * «Tu título»: con cabecera animada, en lo alto del resumen ([SitioDelTitulo.CABECERA], la portada viva) o en una franja
- * que se abre en grande al tocarla ([SitioDelTitulo.FRANJA], la ficha); sin ella, la frase en cursiva. Un solo botón
- * encima, «Opciones de tu título», abre una hoja con todo lo demás: generar con IA, editar la frase y verla en grande.
+ * que se abre en grande al tocarla ([SitioDelTitulo.FRANJA], la ficha); sin ella, la frase en cursiva; sin frase, solo
+ * el destello. Un solo botón, «Opciones de tu título», abre una hoja con todo lo demás: generar con IA, editar la frase y
+ * verla en grande, tres iconos. Sin antetítulo «Tu título» ni «Aún no tiene título divertido» (ronda 1 de interfaz).
  */
 @Composable
 fun TituloDelLibro(idLibro: Int, sitio: SitioDelTitulo, modifier: Modifier = Modifier) {
@@ -245,7 +247,6 @@ fun TituloDelLibro(idLibro: Int, sitio: SitioDelTitulo, modifier: Modifier = Mod
                 BotonDeOpciones(abrirOpciones, Modifier.align(Alignment.TopEnd).padding(Espacios.e2))
             }
             html != null -> {
-                TextoEyebrow("Tu título")
                 Box(Modifier.fillMaxWidth().height(76.dp).clip(RoundedCornerShape(Radios.md))) {
                     CabeceraDelTitulo(html, titulo.estilos, titulo.titulo.orEmpty(), Modifier.fillMaxSize())
                     // Tocar la franja la abre en grande (el WebView no recibe el toque: va encima).
@@ -253,19 +254,18 @@ fun TituloDelLibro(idLibro: Int, sitio: SitioDelTitulo, modifier: Modifier = Mod
                     BotonDeOpciones(abrirOpciones, Modifier.align(Alignment.CenterEnd).padding(end = Espacios.e2))
                 }
             }
-            else -> Column(
+            else -> Row(
                 Modifier.fillMaxWidth().padding(horizontal = if (sitio == SitioDelTitulo.CABECERA) Espacios.e4 else 0.dp),
-                verticalArrangement = Arrangement.spacedBy(Espacios.e1),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End),
             ) {
-                TextoEyebrow("Tu título")
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                    val colores = LocalColores.current
-                    Text(
-                        titulo.titulo ?: "Aún no tiene título divertido.",
-                        Modifier.weight(1f),
-                        style = Textos.cuerpo.copy(fontStyle = FontStyle.Italic, color = if (titulo.titulo != null) colores.tinta else colores.tintaSuave),
-                    )
+                val colores = LocalColores.current
+                val frase = titulo.titulo
+                if (frase != null) {
+                    Text(frase, Modifier.weight(1f), style = Textos.cuerpo.copy(fontStyle = FontStyle.Italic, color = colores.tinta))
                     BotonDeIcono(Iconos.tune, "Opciones de tu título", abrirOpciones)
+                } else {
+                    BotonDeIcono(Iconos.autoAwesome, "Tu título: generar con IA o escribirlo", abrirOpciones, color = colores.sobreContenedorPrimario, fondo = colores.contenedorPrimario)
                 }
             }
         }
@@ -284,9 +284,11 @@ fun TituloDelLibro(idLibro: Int, sitio: SitioDelTitulo, modifier: Modifier = Mod
         }
         Column(Modifier.fillMaxWidth().padding(start = Espacios.e4, end = Espacios.e4, bottom = Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
             if (!vm.editando && !vm.generar) {
-                FilaDeOpcion(Iconos.autoAwesome, if (titulo.html != null || titulo.titulo != null) "Generar otro con IA" else "Generar con IA", vm::abrirGenerar)
-                FilaDeOpcion(Iconos.edit, "Editar la frase", vm::editar)
-                if (html != null) FilaDeOpcion(Iconos.openInFull, "Ver en grande") { opciones = false; enGrande = true }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+                    BotonDeCaja(Iconos.autoAwesome, if (titulo.html != null || titulo.titulo != null) "Generar otro con IA" else "Generar con IA", vm::abrirGenerar, Modifier.weight(1f))
+                    BotonDeCaja(Iconos.edit, "Editar la frase", vm::editar, Modifier.weight(1f))
+                    if (html != null) BotonDeCaja(Iconos.openInFull, "Ver en grande", { opciones = false; enGrande = true }, Modifier.weight(1f))
+                }
             }
             Panel(vm, titulo, Modifier)
         }
@@ -303,20 +305,6 @@ private fun BotonDeOpciones(alPulsar: () -> Unit, modifier: Modifier) {
     Box(modifier) { BotonSobreLaCabecera(Iconos.tune, "Opciones de tu título", alPulsar) }
 }
 
-/** Una acción de la hoja de opciones, como las filas de la hoja «Más»: 48 dp, el icono en el primario. */
-@Composable
-private fun FilaDeOpcion(icono: Int, texto: String, alPulsar: () -> Unit) {
-    val colores = LocalColores.current
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 52.dp).clip(RoundedCornerShape(Radios.sm)).clickable(onClick = alPulsar).padding(horizontal = Espacios.e2),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-    ) {
-        Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(22.dp))
-        Text(texto, color = colores.tinta, style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold))
-    }
-}
-
 /** Editar la frase o generar el título, y los errores con el enlace a las claves de IA. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -331,9 +319,9 @@ private fun Panel(vm: TituloDelLibroViewModel, titulo: TituloDivertido, modifier
                 error = if (vm.borrador.length > MAXIMO_DEL_TITULO) "Como mucho, $MAXIMO_DEL_TITULO caracteres." else null,
                 maximo = MAXIMO_DEL_TITULO,
             )
-            if (titulo.html != null) TextoDeApoyo("Al guardarla a mano, la frase va sin su cabecera animada.")
+            if (titulo.html != null) Text("Se guarda sin la cabecera animada.", style = Textos.nota.copy(color = colores.tintaSuave))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                Boton("Guardar", vm::guardar, icono = Iconos.check, habilitado = !vm.ocupado)
+                Boton("Guardar", vm::guardar, habilitado = !vm.ocupado)
                 Boton("Cancelar", vm::cancelar, variante = VarianteDeBoton.Contorno, habilitado = !vm.ocupado)
             }
         }
@@ -353,7 +341,7 @@ private fun GenerarConIA(vm: TituloDelLibroViewModel, titulo: TituloDivertido, a
     val colores = LocalColores.current
     val estado = vm.estadoDeIA
     when {
-        estado == null -> TextoDeApoyo(if (vm.error.isEmpty()) "Consultando tu IA…" else "")
+        estado == null -> if (vm.error.isEmpty()) Cargando("Consultando tu IA", alturaMinima = 56.dp, tamano = 24.dp)
         !estado.lista || vm.modelos.isEmpty() -> {
             TextoDeApoyo(
                 when {
@@ -363,7 +351,6 @@ private fun GenerarConIA(vm: TituloDelLibroViewModel, titulo: TituloDivertido, a
                     else -> "Para generar el título necesitas una clave de IA (Anthropic u OpenAI) para Libros."
                 },
             )
-            Text("Tus claves de IA y su tope se gestionan en tu cuenta de Yosiftware.", style = Textos.cuerpo.copy(fontSize = rem(0.8), color = colores.tintaSuave))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                 estado.gestion?.let { gestion -> Boton("Tus claves de IA", { alAbrirGestion(gestion) }, variante = VarianteDeBoton.Contorno, icono = Iconos.simboloYosiftware) }
                 Boton("Cerrar", vm::cancelar, variante = VarianteDeBoton.Contorno)
@@ -372,11 +359,11 @@ private fun GenerarConIA(vm: TituloDelLibroViewModel, titulo: TituloDivertido, a
         else -> {
             SelectorConContorno("Modelo", vm.modelos.map { it.id to it.etiqueta }, vm.modelo, { vm.modelo = it }, Modifier.fillMaxWidth())
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                Boton(if (vm.ocupado) "Generando…" else "Generar", vm::generar, icono = Iconos.autoAwesome, habilitado = !vm.ocupado && titulo.quedan > 0)
+                Boton(if (vm.ocupado) "Generando…" else "Generar", vm::generar, habilitado = !vm.ocupado && titulo.quedan > 0)
                 Boton("Cancelar", vm::cancelar, variante = VarianteDeBoton.Contorno, habilitado = !vm.ocupado)
             }
             Text(
-                if (titulo.quedan > 0) "Te quedan ${titulo.quedan} hoy. Se usa tu clave de IA; la cabecera tarda unos segundos." else "Ya has generado ${titulo.limite} títulos hoy. Mañana, más.",
+                if (titulo.quedan > 0) "Te quedan ${titulo.quedan} hoy" else "Ya has generado ${titulo.limite} títulos hoy. Mañana, más.",
                 style = Textos.cuerpo.copy(fontSize = rem(0.78), fontWeight = FontWeight.Normal, color = colores.tintaSuave),
             )
         }
@@ -589,7 +576,7 @@ fun EscenaDelLibro(idLibro: Int, alTerminar: () -> Unit) {
         if (vm.titulo == null) alTerminar()
     }
     val html = titulo?.html ?: return
-    PantallaCompletaDelTitulo(titulo.titulo.orEmpty(), html, titulo.estilos, alCerrar = alTerminar, pie = "Toca para entrar")
+    PantallaCompletaDelTitulo(titulo.titulo.orEmpty(), html, titulo.estilos, alCerrar = alTerminar)
 }
 
 /** El alto de la cabecera en lo alto del resumen (la portada viva). */

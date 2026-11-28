@@ -18,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
@@ -33,6 +35,9 @@ enum class EstadoDeChip { Normal, Seleccionado, Exito }
  * .m-chip: píldora de 32 dp de alto como mínimo, `padding: 6px 12px`, 6 dp entre icono y texto, borde del contorno y
  * texto `.78rem` de 700 en el secundario. Mide 32 dp como en la web; al tocarlo, Compose amplía la zona táctil hasta el
  * mínimo del sistema sin cambiar el diseño.
+ *
+ * Con [descripcion], ese es su nombre accesible y el texto visible no se lee aparte: los chips de estado de lectura van
+ * solo con el icono y su número («Leído, 14»; ronda 1 de interfaz). Sin [texto], solo el icono.
  */
 @Composable
 fun Chip(
@@ -43,6 +48,9 @@ fun Chip(
     /** El de `mat-icon` (24) salvo que el Sass de la vista lo cambie: la Biblioteca lo deja en 16. */
     tamanoDelIcono: Dp = 24.dp,
     alPulsar: (() -> Unit)? = null,
+    descripcion: String? = null,
+    /** Los 13 dp de `.m-chip`; los chips de solo icono que van en fila (los seis estados de la ficha) bajan a 9. */
+    rellenoHorizontal: Dp = 13.dp,
 ) {
     val colores = LocalColores.current
     val (fondo, tinta, borde) = when (estado) {
@@ -58,13 +66,16 @@ fun Chip(
             .background(fondo)
             .border(1.dp, borde, Radios.pildora)
             .then(if (alPulsar != null) Modifier.clickable(role = Role.Button, onClick = alPulsar) else Modifier)
-            .semantics { if (estado == EstadoDeChip.Seleccionado) selected = true }
-            .padding(horizontal = 13.dp, vertical = 7.dp),
+            .semantics {
+                if (estado == EstadoDeChip.Seleccionado) selected = true
+                if (descripcion != null) contentDescription = descripcion
+            }
+            .padding(horizontal = rellenoHorizontal, vertical = 7.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // `.m-chip` no fija el tamaño del icono (el de `mat-icon`, 24); cada vista lo cambia en su Sass si quiere.
         if (icono != null) Icon(painterResource(icono), contentDescription = null, tint = tinta, modifier = Modifier.size(tamanoDelIcono))
-        Text(texto, color = tinta, style = Textos.chip)
+        if (texto.isNotEmpty()) Text(texto, if (descripcion != null) Modifier.clearAndSetSemantics {} else Modifier, color = tinta, style = Textos.chip)
     }
 }

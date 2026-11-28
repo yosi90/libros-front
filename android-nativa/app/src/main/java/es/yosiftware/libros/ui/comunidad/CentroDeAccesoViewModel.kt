@@ -147,10 +147,10 @@ class CentroDeAccesoViewModel(
 
     val mensajeVacio: String
         get() = when {
-            tipo == TipoDeAcceso.INVITACIONES && direccion == DireccionDeAcceso.RECIBIDAS -> "No tienes invitaciones pendientes."
-            tipo == TipoDeAcceso.INVITACIONES -> "No hay invitaciones pendientes en los clubes donde puedes invitar."
-            direccion == DireccionDeAcceso.RECIBIDAS -> "Nadie ha pedido entrar en los clubes que gestionas."
-            else -> "No has pedido entrar en ningún club desde que abriste Libros. La respuesta te llegará a la campana de Yosiftware."
+            tipo == TipoDeAcceso.INVITACIONES && direccion == DireccionDeAcceso.RECIBIDAS -> "Sin invitaciones recibidas"
+            tipo == TipoDeAcceso.INVITACIONES -> "Sin invitaciones enviadas"
+            direccion == DireccionDeAcceso.RECIBIDAS -> "Sin solicitudes recibidas"
+            else -> "Sin solicitudes enviadas"
         }
 
     val textoDeAceptar: String get() = if (tipo == TipoDeAcceso.INVITACIONES) "Aceptar" else "Aprobar"

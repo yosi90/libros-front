@@ -12,23 +12,20 @@ enum class Destino(
     val etiqueta: String,
     val titulo: String,
     @param:DrawableRes val icono: Int,
-    /** El hito del roadmap en el que llega su pantalla. */
-    val hito: Int,
     seccion: Destino? = null,
 ) {
-    Biblioteca("Biblioteca", "Mi biblioteca", Iconos.localLibrary, hito = 8),
-    Catalogo("Catálogo", "Catálogo", Iconos.travelExplore, hito = 8),
-    Comunidad("Comunidad", "Comunidad", Iconos.forum, hito = 11),
-    Perfil("Perfil", "Perfil", Iconos.person, hito = 11),
-    // TODO(clon): en la APK actual, Avisos no es una ruta, sino el panel de la campana (notification-bell y
-    // notification-center, src/app/components/shared/common/). Llega con el push central (hito 12).
-    Avisos("Avisos", "Avisos", Iconos.notifications, hito = 12),
-    Estadisticas("Estadísticas", "Estadísticas", Iconos.barChart, hito = 8),
-    Preferencias("Preferencias", "Preferencias", Iconos.settings, hito = 11),
+    Biblioteca("Biblioteca", "Mi biblioteca", Iconos.localLibrary),
+    Catalogo("Catálogo", "Catálogo", Iconos.travelExplore),
+    Comunidad("Comunidad", "Comunidad", Iconos.forum),
+    Perfil("Perfil", "Perfil", Iconos.person),
+    Estadisticas("Estadísticas", "Estadísticas", Iconos.barChart),
+    Preferencias("Preferencias", "Preferencias", Iconos.settings),
     // «Cuenta y seguridad» se retira con la adhesión: la entrada de la hoja «Más» abre el panel de cuentas (hito 6), no
-    // una pantalla, y lo de la seguridad está en la web social.
-    Cuenta("Cuenta", "Cuenta", Iconos.shield, hito = 6),
-    Mensajes("Mensajes", "Comunidad", Iconos.forum, hito = 12, seccion = Comunidad),
+    // una pantalla, y lo de la seguridad está en la web social. Con el carné, que se entiende mejor que el escudo sin
+    // texto (ronda 1 de interfaz).
+    Cuenta("Cuenta", "Cuenta", Iconos.badge),
+    // Con su propio icono: en la hoja «Más» va sin texto y no puede compartir el de Comunidad.
+    Mensajes("Mensajes", "Comunidad", Iconos.chat, seccion = Comunidad),
     ;
 
     /** El destino de la navegación que queda marcado (`routerLinkActive`). */

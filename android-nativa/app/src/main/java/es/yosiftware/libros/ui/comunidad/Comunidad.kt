@@ -1,26 +1,24 @@
 package es.yosiftware.libros.ui.comunidad
 
-import androidx.annotation.DrawableRes
 import es.yosiftware.libros.datos.modelos.ResumenDeComunidad
 import es.yosiftware.libros.datos.modelos.clubId
-import es.yosiftware.libros.ui.tema.Iconos
 import es.yosiftware.sesion.InvitacionAEspacio
 import es.yosiftware.sesion.ResumenSocial
 
 /** Las secciones propias de la pestaña Comunidad (`SocialShellComponent.items`). Mensajes es el chat de la plataforma. */
-enum class SeccionDeComunidad(val etiqueta: String, @param:DrawableRes val icono: Int) {
-    RESUMEN("Resumen", Iconos.dashboard),
+enum class SeccionDeComunidad(val etiqueta: String) {
+    RESUMEN("Resumen"),
     /** Lo que comparten desde Libros las amistades y los seguidos (el feed de novedades de la plataforma). */
-    ACTIVIDAD("Actividad", Iconos.dynamicFeed),
-    CLUBES("Clubes", Iconos.groups3),
-    MENSAJES("Mensajes", Iconos.forum),
+    ACTIVIDAD("Actividad"),
+    CLUBES("Clubes"),
+    MENSAJES("Mensajes"),
 }
 
 /** Lo social que se fue a la plataforma (`externalItems`): se abre en la web social, con el símbolo delante. */
-enum class EnlaceSocial(val etiqueta: String, @param:DrawableRes val icono: Int, val vista: String) {
-    PERSONAS("Personas", Iconos.diversity3, "personas"),
-    AMISTADES("Amistades", Iconos.group, "amistades"),
-    BLOQUEOS("Bloqueos", Iconos.block, "bloqueos"),
+enum class EnlaceSocial(val etiqueta: String, val vista: String) {
+    PERSONAS("Personas", "personas"),
+    AMISTADES("Amistades", "amistades"),
+    BLOQUEOS("Bloqueos", "bloqueos"),
 }
 
 /** Adónde lleva una tarjeta del resumen. */
@@ -32,7 +30,7 @@ sealed interface DestinoDeTarjeta {
 }
 
 /** Una tarjeta del resumen (`SocialSummaryComponent.cards`); [resaltada] si hay algo pendiente. */
-data class TarjetaDeResumen(val etiqueta: String, val valor: Int, @param:DrawableRes val icono: Int, val destino: DestinoDeTarjeta, val resaltada: Boolean = false) {
+data class TarjetaDeResumen(val etiqueta: String, val valor: Int, val destino: DestinoDeTarjeta, val resaltada: Boolean = false) {
     val externa: Boolean get() = destino is DestinoDeTarjeta.WebSocial
 }
 
@@ -53,20 +51,20 @@ object ResumenSocialDeComunidad {
      */
     fun tarjetas(social: ResumenSocial?, comunidad: ResumenDeComunidad?, invitaciones: Int?): List<TarjetaDeResumen> = buildList {
         if (social != null) {
-            add(TarjetaDeResumen("Amistades", social.amistades, Iconos.group, DestinoDeTarjeta.WebSocial("amistades")))
-            add(TarjetaDeResumen("Solicitudes de amistad", social.solicitudesRecibidas, Iconos.personAdd, DestinoDeTarjeta.WebSocial("solicitudes"), social.solicitudesRecibidas > 0))
-            add(TarjetaDeResumen("Seguidores", social.seguidores, Iconos.diversity3, DestinoDeTarjeta.WebSocial("seguidores")))
-            add(TarjetaDeResumen("Siguiendo", social.seguidos, Iconos.personSearch, DestinoDeTarjeta.WebSocial("seguidos")))
+            add(TarjetaDeResumen("Amistades", social.amistades, DestinoDeTarjeta.WebSocial("amistades")))
+            add(TarjetaDeResumen("Solicitudes de amistad", social.solicitudesRecibidas, DestinoDeTarjeta.WebSocial("solicitudes"), social.solicitudesRecibidas > 0))
+            add(TarjetaDeResumen("Seguidores", social.seguidores, DestinoDeTarjeta.WebSocial("seguidores")))
+            add(TarjetaDeResumen("Siguiendo", social.seguidos, DestinoDeTarjeta.WebSocial("seguidos")))
         }
-        if (comunidad != null) add(TarjetaDeResumen("Clubes activos", comunidad.activos ?: 0, Iconos.groups3, DestinoDeTarjeta.Clubes(PestanaDeClubes.DESCUBRIR)))
+        if (comunidad != null) add(TarjetaDeResumen("Clubes activos", comunidad.activos ?: 0, DestinoDeTarjeta.Clubes(PestanaDeClubes.DESCUBRIR)))
         if (invitaciones != null) {
-            add(TarjetaDeResumen("Invitaciones a clubes", invitaciones, Iconos.markEmailUnread, DestinoDeTarjeta.Clubes(PestanaDeClubes.ACCESO), invitaciones > 0))
+            add(TarjetaDeResumen("Invitaciones a clubes", invitaciones, DestinoDeTarjeta.Clubes(PestanaDeClubes.ACCESO), invitaciones > 0))
         }
     }
 
     /** «Mensajes sin leer», siempre la última, si hay tarjetas (sin ninguna, el resumen es un error). */
     fun conMensajes(tarjetas: List<TarjetaDeResumen>, sinLeer: Int): List<TarjetaDeResumen> =
-        if (tarjetas.isEmpty()) tarjetas else tarjetas + TarjetaDeResumen("Mensajes sin leer", sinLeer, Iconos.forum, DestinoDeTarjeta.Mensajes, sinLeer > 0)
+        if (tarjetas.isEmpty()) tarjetas else tarjetas + TarjetaDeResumen("Mensajes sin leer", sinLeer, DestinoDeTarjeta.Mensajes, sinLeer > 0)
 
     /** Falta alguna parte: un aviso arriba, y el resto se enseña. */
     fun parcial(social: ResumenSocial?, comunidad: ResumenDeComunidad?, invitaciones: Int?): Boolean =

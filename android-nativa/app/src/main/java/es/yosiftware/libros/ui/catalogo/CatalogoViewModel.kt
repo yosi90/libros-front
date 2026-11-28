@@ -363,7 +363,8 @@ class CatalogoViewModel(
             ponerEdiciones(obra, respuesta)
             releerColeccion()
             val anadida = respuesta.ediciones.firstOrNull { it.id == elegida.id }?.enMiBiblioteca == true
-            avisos.exito(if (anadida) "Edición añadida a tu biblioteca" else "Edición retirada; la obra y su historial permanecen en tu biblioteca")
+            // Añadida, ya se ve; retirada, se dice lo que se conserva.
+            if (!anadida) avisos.exito("Edición retirada; la obra y su historial permanecen en tu biblioteca")
             if (anadida) avisos.sonar(Sonido.ESTANTERIA)
         }
     }
@@ -445,7 +446,7 @@ class CatalogoViewModel(
         }) { universos ->
             guardando = false
             alCambiarLaColeccion(universos)
-            if (estaba) avisos.exito("Biblioteca personal actualizada") else avisarDeAlta(obra)
+            if (!estaba) avisarDeAlta(obra)
             CuandoSuena.alGuardarEstado(actual.valores.estado, actual.original.estado, entra = !estaba)?.let(avisos::sonar)
             cerrarEditor()
             cargarCatalogo()
@@ -557,7 +558,6 @@ class CatalogoViewModel(
                 return@cargar
             }
             alCambiarLaColeccion(universos)
-            avisos.exito("Edición añadida a tu biblioteca")
             avisos.sonar(Sonido.ESTANTERIA)
         }
     }

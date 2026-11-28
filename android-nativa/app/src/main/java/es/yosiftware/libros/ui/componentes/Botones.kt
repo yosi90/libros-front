@@ -8,12 +8,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -26,6 +29,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -103,7 +109,8 @@ fun BotonDeTexto(texto: String, alPulsar: () -> Unit, modifier: Modifier = Modif
 
 /**
  * .m-icon-button: un círculo de 48 dp sin fondo, con el icono en el color del texto (o el que se pase, como el primario
- * de las acciones de la app bar). [descripcion] es su `aria-label`.
+ * de las acciones de la app bar). [descripcion] es su `aria-label`. Con [fondo], el círculo va relleno: los «+» del
+ * libro, en el contenedor primario («Nuevo capítulo», «Nueva escena») o en el primario («Nuevo personaje»).
  */
 @Composable
 fun BotonDeIcono(
@@ -113,14 +120,51 @@ fun BotonDeIcono(
     modifier: Modifier = Modifier,
     color: Color = LocalColores.current.tinta,
     habilitado: Boolean = true,
+    fondo: Color = Color.Transparent,
 ) {
     Box(
         modifier
             .size(Alturas.botonDeIcono)
             .clip(CircleShape)
+            .background(fondo)
             .clickable(enabled = habilitado, role = Role.Button, onClick = alPulsar),
         contentAlignment = Alignment.Center,
     ) {
         Icon(painterResource(icono), contentDescription = descripcion, tint = color, modifier = Modifier.size(24.dp))
+    }
+}
+
+/**
+ * Una caja de icono: 56 dp de alto, el borde del contorno y radio de 12, el icono en el primario; la elegida ([activo]),
+ * en el contenedor primario. Van en fila, a partes iguales (los accesos de la hoja «Más», las opciones de «Tu título»).
+ * [descripcion] es su nombre accesible; [activo], si se elige (sin él, no es elegible); [encima], lo que lleve sobre el
+ * icono (una insignia).
+ */
+@Composable
+fun BotonDeCaja(
+    @DrawableRes icono: Int,
+    descripcion: String,
+    alPulsar: () -> Unit,
+    modifier: Modifier = Modifier,
+    activo: Boolean? = null,
+    encima: @Composable BoxScope.() -> Unit = {},
+) {
+    val colores = LocalColores.current
+    val forma = RoundedCornerShape(Radios.sm)
+    Box(
+        modifier
+            .height(56.dp)
+            .clip(forma)
+            .background(if (activo == true) colores.contenedorPrimario else colores.superficie)
+            .border(1.dp, if (activo == true) Color.Transparent else colores.contorno, forma)
+            .clickable(role = Role.Button, onClick = alPulsar)
+            .semantics {
+                if (activo != null) selected = activo
+                contentDescription = descripcion
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(painterResource(icono), contentDescription = null, tint = if (activo == true) colores.sobreContenedorPrimario else colores.primario, modifier = Modifier.size(24.dp))
+        encima()
     }
 }

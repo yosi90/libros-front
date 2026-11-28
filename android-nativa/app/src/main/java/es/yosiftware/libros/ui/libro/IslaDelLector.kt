@@ -9,7 +9,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -55,7 +54,7 @@ import es.yosiftware.libros.ui.tema.sombra2
 
 /**
  * `.native-reader-island`: el libro minimizado, una píldora de 56 dp sobre la navegación de abajo (desde 600 dp, abajo y
- * a la derecha del rail), de hasta 520 dp: restaurar, la portada y el nombre («Libro abierto»), y cerrar. Sube al
+ * a la derecha del rail), de hasta 520 dp: restaurar, la portada y el nombre, y cerrar. Sube al
  * aparecer (200 ms).
  */
 @Composable
@@ -103,10 +102,8 @@ fun IslaDelLector(vm: LibroViewModel, oculta: Boolean = false) {
                 ) {
                     val portada = obra?.portada
                     if (!portada.isNullOrEmpty()) Portada(portada, null, Modifier.size(34.dp).clip(RoundedCornerShape(8.dp)))
-                    Column(Modifier.weight(1f)) {
-                        Text("Libro abierto", style = Textos.cuerpo.copy(fontSize = rem(0.68), color = colores.tintaSuave), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(obra?.nombre.orEmpty(), style = Textos.cuerpo.copy(fontSize = rem(0.86), fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
+                    // Sin «Libro abierto» encima (ronda 1 de interfaz): la píldora ya dice que es el libro minimizado.
+                    Text(obra?.nombre.orEmpty(), Modifier.weight(1f), style = Textos.cuerpo.copy(fontSize = rem(0.86), fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Box(
                     Modifier.width(44.dp).heightIn(min = 56.dp).fillMaxHeight()

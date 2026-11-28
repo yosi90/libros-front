@@ -55,7 +55,9 @@ import es.yosiftware.libros.datos.modelos.Nota
 import es.yosiftware.libros.ui.adaptable.ClaseDeVentana
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.Campo
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.tema.Espacios
@@ -106,15 +108,14 @@ fun PantallaNotasDelLibro(libroId: Int, vm: NotasViewModel) {
                 }
                 vm.notas.isNotEmpty() -> {
                     if (vm.notas.size > 3) {
-                        Campo(vm.consulta, { vm.consulta = it }, Modifier.fillMaxWidth().padding(top = Espacios.e5, bottom = 4.dp), ejemplo = "Buscar en tus notas", icono = Iconos.search)
+                        // La lupa sola (ronda 1 de interfaz, opción A): lo que busca va en su nombre accesible.
+                        Campo(vm.consulta, { vm.consulta = it }, Modifier.fillMaxWidth().padding(top = Espacios.e5, bottom = 4.dp), icono = Iconos.search, descripcion = "Buscar en tus notas")
                     }
                     val listadas = vm.listadas
                     listadas.forEachIndexed { i, nota ->
                         NotaLeida(vm, nota, raya = i > 0 || vm.notas.size <= 3, alEditar = { if (vm.editar(nota)) enfocar = alTexto })
                     }
-                    if (listadas.isEmpty() && vm.consulta.isNotBlank()) {
-                        Text("Ninguna nota coincide con «${vm.consulta.trim()}».", style = Textos.cuerpo.copy(fontSize = 14.sp, color = colores.tintaSuave), modifier = Modifier.padding(top = Espacios.e3))
-                    }
+                    if (listadas.isEmpty() && vm.consulta.isNotBlank()) ListaVacia("Sin coincidencias")
                 }
             }
         }
@@ -123,7 +124,7 @@ fun PantallaNotasDelLibro(libroId: Int, vm: NotasViewModel) {
 
 /**
  * El compositor: el título y el texto en serif, sin cajas, dentro de un marco que se resalta al escribir. Debajo, el
- * estado del guardado y, si se edita una nota, «Nota nueva». Salir de él (no a su otro campo) guarda lo pendiente y,
+ * estado del guardado y, si se edita una nota, el + de la nota nueva. Salir de él (no a su otro campo) guarda lo pendiente y,
  * si ya estaba guardada, lo vacía.
  */
 @Composable
@@ -165,7 +166,8 @@ private fun Compositor(vm: NotasViewModel, alTitulo: FocusRequester, alTexto: Fo
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (vm.estado != EstadoDelGuardado.NADA) IndicadorDeGuardado(vm.estado, vm.textoDelEstado)
-                if (editor.id != null) BotonDeTexto("Nota nueva", Iconos.add, alNotaNueva)
+                // Solo el +, con su nombre (ronda 1 de interfaz, opción A): deja la nota y empieza otra.
+                if (editor.id != null) BotonDeIcono(Iconos.add, "Nueva nota", alNotaNueva, color = colores.primario)
             }
         }
     }

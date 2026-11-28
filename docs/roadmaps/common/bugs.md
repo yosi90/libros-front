@@ -20,7 +20,6 @@
   - **Web: la portada grande con el título si no hay imagen.** `.not-started__cover` (el libro sin empezar del marco) y `.summary__cover` (Resumen), las dos de la F4, repiten la portada 2:3 con borde, radio de 6 px y sombra, y la caja `--empty` sobre `--web-color-accent-soft` con el título en serif. Un mixin con el ancho, el relleno y el tamaño del título como parámetros; revisar las dos vistas con Playwright.
   - **APK: las barras que se separan al desplazar.** La Biblioteca, el Catálogo y la búsqueda del libro pintan en el mismo `drawBehind` la sombra de 6 dp y la raya de abajo; las rayas con `drawLine` (avisos, conversación, club, comunidad, perfil) trazan medio píxel más abajo que `rayaArriba` / `rayaAbajo`. Unirlas al tocar esas pantallas, viéndolas en el móvil. Prioridad baja.
   - **APK: los meses abreviados, en cinco sitios** (revisor, 27/11/2026, `63062aa53d92..eb0cbfd8`). El «25 oct» ya es uno (`diaYMes`, `datos/Fechas.kt`), pero los meses de Angular en español siguen escritos aparte: a mano en `Catalogo.mesesCortos` y `Estadisticas.meses` («oct 2026») y en `NotasDelLibro.meses` («25 oct 2026»), y con `DateTimeFormatter` y el punto quitado en `PanelDeLectura.diaMesYAnio` («25 oct 2026») y `PantallaActividad.formatoDeFecha` («25 oct 2026, 10:30»). Juntarlos en `datos/Fechas.kt` (los meses y esos dos formatos), con una prueba de septiembre («sept»). Prioridad baja.
-  - **APK: el texto pequeño de apoyo, sin estilo propio** (revisor, 28/11/2026, `559f8bf2..caedc370`). La versión al pie de Preferencias es la octava copia de `Textos.cuerpo.copy(fontSize = rem(0.72))` en `tintaSuave` (con las fechas de `PantallaActividad`, el perfil, `ModalDePeticion`, Estadísticas, la Biblioteca y la Antología), y la misma letra en `ExtraBold` hace de rótulo en otros seis sitios (`PantallaLibro`, `PantallaCapitulo`, `ModalDePeticion`, la Biblioteca). Un estilo `Textos.nota` (y quizá `Textos.rotulo`) en `ui/tema/Tipografia.kt`, con su token de Mobile, que usen todos. Es anterior al alcance y toca pantallas que rehace la ronda 1 de arreglos de interfaz: hacerlo al programarla. Prioridad baja.
 
 ## Finalizado
 
@@ -28,6 +27,7 @@ Lo cerrado de la APK de Capacitor, Firebase, la sesión y el login propios, la p
 
 ### APK Kotlin
 
+- [x] El texto pequeño de apoyo, con estilo propio (revisor, 28/11/2026; hecho con la ronda 1 de interfaz, 28/11/2026): `Textos.nota` (.72rem) y `Textos.rotulo` (la nota en 800), en `ui/tema/Tipografia.kt`. Las 24 copias de `Textos.cuerpo.copy(fontSize = rem(0.72)…)` los usan.
 - [x] Pantalla de entrar (29/10/2026): en compacto, solo el titular y el panel; campos sin etiqueta visible (el ejemplo dice qué es) y «con tu sesión de…» en una línea. Cabe sin desplazar.
 - [x] Al minimizar o cerrar el libro se cierra el teclado (`PantallaLibro`); en el Catálogo, los filtros y «pedir un libro» van en la fila del campo y los chips llevan margen (27/10/2026).
 - [x] Píldora del libro minimizado (26/10/2026): altura intrínseca de 56 dp (el cierre con `fillMaxHeight` la estiraba); el contenido le deja sitio; se esconde con la hoja «Más», la campana, las cuentas y las pantallas completas, y reaparece al volver.
