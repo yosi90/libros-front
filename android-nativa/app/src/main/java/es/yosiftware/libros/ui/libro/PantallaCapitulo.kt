@@ -71,6 +71,7 @@ import es.yosiftware.libros.datos.modelos.PersonajeEnEscena
 import es.yosiftware.libros.datos.rtf.EnlaceNarrativo
 import es.yosiftware.libros.datos.rtf.EnlacesNarrativos
 import es.yosiftware.libros.datos.rtf.TipoDeEnlace
+import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.adaptable.ClaseDeVentana
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.HojaInferior
@@ -176,7 +177,8 @@ fun PantallaCapitulo(libroVm: LibroViewModel, vista: VistaDelLibro, vm: Capitulo
                     Modifier.rayaArriba(colores.contorno, con = capitulo.escenas.lastOrNull()?.clave != vm.escenaAbierta).padding(top = 10.dp),
                     numero = { Text((capitulo.escenas.size + 1).toString(), style = estiloDeNumeroDeEscena(colores.tintaSuave).copy(lineHeight = 36.sp)) },
                 ) {
-                    BotonDeTexto("Escena", Iconos.add) { vm.anadirEscena() }
+                    // Solo el +, con su nombre (ronda 1 de interfaz, opción A): el número de al lado ya dice qué viene.
+                    BotonDeIcono(Iconos.add, "Nueva escena", { vm.anadirEscena() }, color = colores.sobreContenedorPrimario, fondo = colores.contenedorPrimario)
                 }
             }
         }
