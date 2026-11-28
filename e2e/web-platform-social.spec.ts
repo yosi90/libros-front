@@ -45,6 +45,17 @@ test.describe('Lo social con la plataforma (hito 3)', () => {
         await expect(topbar.locator('yosi-webs')).toHaveCount(1);
         await expect(topbar.locator('yosi-notificaciones')).toHaveCount(1);
         await expect(page.locator('yosi-notificaciones')).toHaveCount(1);
+
+        // Compact: abajo, Biblioteca, Catálogo, Comunidad y «Más»; sin menú arriba ni Mensajes repetido.
+        const tabbar = page.getByRole('navigation', { name: 'Navegación principal' }).filter({ has: page.locator('.web-tabbar__item') });
+        await expect(tabbar.locator('.web-tabbar__label')).toHaveText(['Biblioteca', 'Catálogo', 'Comunidad', 'Más']);
+        await expect(topbar.getByRole('button', { name: 'Abrir menú' })).toHaveCount(0);
+        // La guía del tema de las cuentas nuevas ocupa la pantalla: se acepta antes.
+        const guia = page.getByRole('button', { name: 'Usar el estilo Claro' });
+        if (await guia.isVisible()) await guia.click();
+        await tabbar.getByRole('button', { name: 'Más' }).click();
+        await expect(page.locator('.web-nav.is-open .web-nav__item', { hasText: 'Mensajes' })).toHaveCount(0);
+        await expect(page.locator('.web-nav.is-open .web-nav__item', { hasText: 'Estadísticas' })).toBeVisible();
         expect(retired).toEqual([]);
     });
 

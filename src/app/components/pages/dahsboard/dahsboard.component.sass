@@ -629,6 +629,10 @@
         box-shadow: none
 
 @media (max-width: 599px)
+    // Compact: barra superior, contenido y la barra inferior de la navegación (`WebNavigationComponent`).
     .library-shell--web
         grid-template-columns: minmax(0, 1fr)
-        grid-template-rows: auto minmax(0, 1fr)
+        grid-template-rows: auto minmax(0, 1fr) auto
+
+        .library-main
+            grid-row: 2

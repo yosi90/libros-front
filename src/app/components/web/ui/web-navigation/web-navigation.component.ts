@@ -19,10 +19,11 @@ export interface WebNavigationItem {
 const COLLAPSED_KEY = 'libros:web-nav-collapsed';
 /** Compact: la cabecera es la barra superior; si no, la cuenta va al pie de la navegación lateral. */
 const COMPACT_QUERY = '(max-width: 599px)';
+const TAB_ROUTES = ['/dashboard/books', '/dashboard/catalog', '/dashboard/community'];
 
 /**
- * Navegación principal de la presentación Web: lateral con texto en escritorio,
- * rail de iconos en medium y cajón con app bar en compact.
+ * Navegación principal de la presentación Web: lateral con texto en escritorio y rail de iconos en medium. En compact,
+ * barra superior con la plataforma, barra inferior con Biblioteca, Catálogo, Comunidad y «Más», y el resto en el cajón.
  */
 @Component({
     selector: 'app-web-navigation',
@@ -83,6 +84,25 @@ export class WebNavigationComponent {
             items.push({ route: '/dashboard/community/messages', icon: 'forum', label: 'Mensajes', badge: this.unreadChatCount || undefined });
         items.push({ route: '/dashboard/statistics', icon: 'insights', label: 'Estadísticas' });
         return items;
+    }
+
+    /** Los destinos de la barra inferior (compact): Comunidad lleva los mensajes sin leer, porque Mensajes está dentro. */
+    get tabItems(): WebNavigationItem[] {
+        return this.items
+            .filter(item => TAB_ROUTES.includes(item.route))
+            .map(item => item.route === '/dashboard/community' ? { ...item, badge: this.unreadChatCount || undefined } : item);
+    }
+
+    /** En compact, el cajón solo lleva lo que no está en la barra inferior (ni Mensajes, que va dentro de Comunidad). */
+    get drawerItems(): WebNavigationItem[] {
+        if (!this.compact()) return this.items;
+        return this.items.filter(item => !TAB_ROUTES.includes(item.route) && item.route !== '/dashboard/community/messages');
+    }
+
+    /** En la barra inferior, Comunidad está activa también en Mensajes. */
+    isTabActive(item: WebNavigationItem): boolean {
+        const path = this.currentUrl().split(/[?#]/)[0];
+        return item.exact ? path === item.route : path.startsWith(item.route);
     }
 
     toggleCollapsed(): void {

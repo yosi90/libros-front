@@ -2,6 +2,16 @@
 
 Versionado semántico (`ecosistema-kit/VERSIONADO.md`): una nota por versión publicada en producción, con lo que cambia para quien usa Libros. La web lleva su versión en `package.json` y la APK, en `android-nativa/app/build.gradle.kts` (`versionCode = MAYOR × 10000 + MENOR × 100 + ARREGLO`); las dos la enseñan al pie de Preferencias. Cada versión de producción lleva su etiqueta: `web-v<versión>` o `app-v<versión>`.
 
+## Web
+
+### 1.1.0 (2026-11-28)
+
+En el móvil, la navegación va abajo: Biblioteca, Catálogo, Comunidad (con los mensajes sin leer) y «Más», que abre el resto desde abajo.
+
+### 1.0.0 (2026-11-27)
+
+La primera con número: la versión se ve al pie de Preferencias.
+
 ## APK
 
 ### 2.2.0 (2026-11-28)
