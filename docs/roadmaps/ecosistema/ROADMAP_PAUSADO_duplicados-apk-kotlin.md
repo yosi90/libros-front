@@ -1,6 +1,6 @@
 # Duplicados pendientes de la APK Kotlin
 
-**Pausado.** Recoge lo que la auditoría completa de duplicados de la APK (hito 14 de `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, base `6826083`, 26/10/2026) no aplicó: cambios delicados (el autoguardado), que hay que ver en el móvil o que dependen de la plataforma o del backend. Quedan los puntos 8 y 11. Se retoma cuando el propietario lo decida.
+**Pausado.** Recoge lo que la auditoría completa de duplicados de la APK (hito 14 de `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md`, base `6826083`, 26/10/2026) no aplicó: cambios delicados (el autoguardado), que hay que ver en el móvil o que dependen de la plataforma o del backend. También lo que dejan las revisiones de lo nuevo que pide decidir un diseño (puntos 15 a 17, de la ronda 1 de interfaz; base `23fba3fa41ec`, 28/11/2026). Quedan los puntos 8, 11 y 15 a 17. Se retoma cuando el propietario lo decida.
 
 Alcance: `android-nativa/app/`, rutas bajo `android-nativa/app/src/main/java/es/yosiftware/libros/`. La librería `android-nativa/yosiftware-sesion/` no se toca nunca; lo que le falta va como petición a la plataforma (`C:\Users\Yosi\Desktop\administracion yosiftware\docs\peticiones\`).
 
@@ -9,7 +9,7 @@ Alcance: `android-nativa/app/`, rutas bajo `android-nativa/app/src/main/java/es/
 - [x] **1.** Una sola `fechaCorta` (`datos/Fechas.kt`), en la zona del móvil como la web Mobile (29/10/2026).
 - [x] **2.** `BotonesDeDialogo` en `ui/componentes/Superficies.kt`, con el margen de cada diálogo en `arriba` (29/10/2026).
 - [x] **3.** `nombreVisible(nombre, alias)` en `datos/modelos/Espacios.kt`; el de `CentroDeAccesoViewModel` es otra regla y se queda (29/10/2026).
-- [x] **4.** `CampoDeBusquedaConAmbitos` (`ui/biblioteca/PantallaBiblioteca.kt`) para la Biblioteca y el Catálogo (29/10/2026).
+- [x] **4.** `CampoDeBusqueda` (`ui/componentes/Campo.kt`) para la Biblioteca y el Catálogo (29/10/2026) y, sin marcador, para la búsqueda del libro (28/11/2026).
 - [x] **5.** `FilaDeLista` con `borde`, `inicio`, `lineasDelTitulo` y `debajo`, usada por las filas del chat, del club y de la bandeja; `FilaDeClub` y las filas del panel de cuenta son otras clases de la web y se quedan (06/11/2026). De paso, a petición del propietario, el club no gasta una línea por botón.
 - [x] **6.** Se queda: los estilos de texto repetidos en línea se revisan caso a caso al tocar cada pantalla, porque unir dos que coinciden por casualidad arrastraría a la otra (06/11/2026).
 - [x] **7.** `conLaPaginaSiguiente` (`datos/Listas.kt`) añade la página siguiente sin repetir; el cursor y el «ya está cargando» se quedan en cada ViewModel por sus matices (06/11/2026).
@@ -20,6 +20,19 @@ Alcance: `android-nativa/app/`, rutas bajo `android-nativa/app/src/main/java/es/
   - **Qué se espera lograr:** un `BorradorConEspera` junto a `datos/BorradoresLocales.kt`, con sus pruebas, que usen los dos.
   - **Peligros si se mantiene como estaba:** arreglar un fallo del autoguardado en uno y no en el otro.
   - **Peligros del cambio:** **alto**. El propietario perdió media escena por un fallo de esto; desde la F5c (26/11/2026) los dos envían además al servidor con el mismo ciclo (`autoguardado`, `otraVez`), así que conviene unir el borrador y el envío a la vez (`docs/roadmaps/common/bugs.md`). No se toca sin las pruebas de cerrar la app del todo en el Honor.
+
+- [ ] **15. El segmentado (`.seg` del lienzo de la ronda 1)**
+  - **Descripción:** cuatro a mano, en `Row` con la píldora de la superficie contenedora: «Organizar por» (`PanelDeFiltros` de `ui/biblioteca/PantallaBiblioteca.kt`), el tipo del catálogo (`PanelDeFiltros` de `ui/catalogo/PantallaCatalogo.kt`), Personal y General (`Pestanas` de `ui/estadisticas/PantallaEstadisticas.kt`) y el sexo de la ficha (`SexoALaVista` de `ui/elementos/PantallaElementos.kt`). Los dos primeros son casi iguales (.78 frente a .76 rem; el del catálogo no dice al lector de pantalla cuál está elegido); el de Estadísticas pinta la elegida en el primario y a 44 dp, y el de la ficha, en la superficie.
+  - **Qué se espera lograr:** un `Segmentado` en `ui/componentes/`, con su grupo de opciones accesible.
+  - **Por qué no se ha hecho:** el lienzo dibuja un solo `.seg` (contenedor primario, 40 dp, 13 px de 700), pero el código copia el Sass de cada vista. Qué variante gana es de diseño: va al diseñador, y luego es un cambio pequeño.
+- [ ] **16. Las píldoras de filtro de Avisos y de Mensajes**
+  - **Descripción:** `Filtro` de `ui/avisos/PanelDeAvisos.kt` y `Filtros` de `ui/mensajes/PantallaMensajes.kt` son el mismo código (40 dp, el contenedor primario la elegida, el contorno las demás, .75 rem de 700); `PestanaDePalabra` con `enCaja` (`ui/comunidad/ComponentesDeComunidad.kt`) es casi igual, a 36 dp y con el texto de `.m-chip`.
+  - **Qué se espera lograr:** una sola pieza; probablemente `PestanaDePalabra`, movida a `ui/componentes/`, con la medida de cada uso.
+  - **Por qué no se ha hecho:** es código anterior a la ronda 1 y las medidas difieren; unirlo cambia una de las dos. Peligro bajo.
+- [ ] **17. La insignia de no leídos**
+  - **Descripción:** `Insignia` (`ui/comunidad/ComponentesDeComunidad.kt`, 20 dp y .6 rem) y la de `FilaDeConversacion` (`ui/mensajes/PantallaMensajes.kt`, 24 dp y .65 rem) hacen lo mismo con «99+».
+  - **Qué se espera lograr:** `Insignia` con su tamaño, usada por las dos.
+  - **Por qué no se ha hecho:** el tamaño es de diseño. Peligro bajo.
 
 ## Lo que ya da (o debería dar) la librería de la sesión
 
@@ -45,3 +58,6 @@ Alcance: `android-nativa/app/`, rutas bajo `android-nativa/app/src/main/java/es/
 - `FichaEditable` y `CapituloEditable` leen su JSON con `getString`/`getInt` estrictos: es el borrador propio, no la API, y uno roto se descarta.
 - Las tablas de etiquetas (`Perfil`, `EtiquetasDeClubes`) se parecen en la forma (un `mapOf`), pero son de dominios distintos.
 - La librería `yosiftware-sesion/`: fuera de alcance.
+- El icono del estado de lectura con su nombre accesible en la tarjeta de la biblioteca, la del catálogo y la actividad del Perfil: cada uno es una línea sobre `iconoDeEstado` y `nombreDeEstado` (`ui/biblioteca/`), con su tinte, su tamaño y su texto sin estado («Sin estado», «En tu biblioteca»).
+- `ElementoDeLista` de Comunidad (una fila de lista) y el de `ui/elementos/ListaDeElementos.kt` (un dato) solo comparten el nombre.
+- `textoDeSinLeer` (el perfil, «3 mensajes sin leer») y «Mensajes, 3 sin leer» de la hoja «Más» y de Comunidad: dos frases distintas, de una línea.
