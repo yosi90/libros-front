@@ -19,10 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -36,15 +33,12 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.ui.adaptable.LocalVentana
+import es.yosiftware.libros.ui.componentes.CampoDeBusqueda
 import es.yosiftware.libros.ui.componentes.Chip
 import es.yosiftware.libros.ui.componentes.SinResultados
 import es.yosiftware.libros.ui.componentes.EstadoDeChip
@@ -120,29 +114,11 @@ private fun BarraDeLaBusqueda(vm: BusquedaViewModel, total: Int, desplazada: Boo
         Box(Modifier.fillMaxWidth().heightIn(min = 24.dp).padding(horizontal = Espacios.e2), contentAlignment = Alignment.CenterEnd) {
             if (total > 0) Text("$total resultados", style = Textos.cuerpo.copy(fontSize = rem(0.7), fontWeight = FontWeight(750), color = colores.tintaSuave))
         }
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = Espacios.e4, end = Espacios.e2),
-            horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(painterResource(Iconos.search), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
-            BasicTextField(
-                value = vm.consulta,
-                onValueChange = vm::escribir,
-                modifier = Modifier.weight(1f).semantics { contentDescription = "Buscar dentro del libro" },
-                singleLine = true,
-                textStyle = Textos.cuerpo.copy(color = colores.tinta),
-                cursorBrush = SolidColor(colores.primario),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                // La lupa sola (ronda 1 de interfaz, opción A): las categorías de debajo ya dicen dónde busca.
-                decorationBox = { campo -> Box { campo() } },
-            )
-            if (vm.consulta.isNotEmpty()) {
-                Box(Modifier.size(44.dp).clip(CircleShape).clickable(onClick = vm::limpiar), contentAlignment = Alignment.Center) {
-                    Icon(painterResource(Iconos.close), contentDescription = "Limpiar búsqueda", tint = colores.primario, modifier = Modifier.size(24.dp))
-                }
-            }
-        }
+        // La lupa sola (ronda 1 de interfaz, opción A): las categorías de debajo ya dicen dónde busca.
+        CampoDeBusqueda(
+            vm.consulta, vm::escribir, "Buscar dentro del libro",
+            conLimpiar = vm.consulta.isNotEmpty(), alLimpiar = vm::limpiar, tintaDeLimpiar = colores.primario, modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

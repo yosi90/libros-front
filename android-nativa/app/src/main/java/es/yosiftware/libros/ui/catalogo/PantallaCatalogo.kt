@@ -56,13 +56,13 @@ import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.ui.adaptable.LocalVentana
-import es.yosiftware.libros.ui.biblioteca.CampoDeBusquedaConAmbitos
 import es.yosiftware.libros.ui.biblioteca.ChipQuitable
 import es.yosiftware.libros.ui.biblioteca.SugerenciasDeAmbito
 import es.yosiftware.libros.ui.biblioteca.iconoDeEstado
 import es.yosiftware.libros.ui.biblioteca.nombreDeEstado
 import es.yosiftware.libros.ui.biblioteca.ultimoEstado
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.CampoDeBusqueda
 import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.ColumnaEstirada
 import es.yosiftware.libros.ui.componentes.Portada
@@ -150,10 +150,10 @@ private fun BarraDeBusqueda(vm: CatalogoViewModel, desplazada: Boolean) {
             },
     ) {
         Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-            CampoDeBusquedaConAmbitos(
-                vm.borrador, vm::escribir, { vm.confirmarBorrador() }, "Título o autor…", "Buscar en catálogo",
-                hayFiltros = vm.hayFiltros, alLimpiar = vm::limpiarFiltros, tintaDeLimpiar = colores.primario,
-                alCambiarFoco = { enfocada = it }, modifier = Modifier.weight(1f),
+            CampoDeBusqueda(
+                vm.borrador, vm::escribir, "Buscar en catálogo",
+                conLimpiar = vm.hayFiltros, alLimpiar = vm::limpiarFiltros, tintaDeLimpiar = colores.primario, modifier = Modifier.weight(1f),
+                marcador = "Título o autor…", alConfirmar = { vm.confirmarBorrador() }, alCambiarFoco = { enfocada = it },
             )
             BotonCuadrado(Iconos.tune, "Filtros", vm.filtrosAbiertos, vm::alternarFiltros)
             BotonCuadrado(Iconos.add, "Solicitar un libro nuevo", false) { vm.pedirNuevo() }

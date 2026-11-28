@@ -31,11 +31,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,17 +45,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -71,6 +64,7 @@ import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.datos.modelos.Universo
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.CampoDeBusqueda
 import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.Chip
 import es.yosiftware.libros.ui.componentes.EstadoDeChip
@@ -204,10 +198,10 @@ private fun BarraDeBusqueda(vm: BibliotecaViewModel, desplazada: Boolean) {
             },
     ) {
         Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-            CampoDeBusquedaConAmbitos(
-                vm.borrador, vm::escribir, { vm.confirmarBorrador() }, "Título, autor, universo…", "Buscar en tu colección",
-                hayFiltros = vm.hayFiltros, alLimpiar = vm::limpiarFiltros, tintaDeLimpiar = colores.tinta,
-                alCambiarFoco = { enfocada = it }, modifier = Modifier.weight(1f),
+            CampoDeBusqueda(
+                vm.borrador, vm::escribir, "Buscar en tu colección",
+                conLimpiar = vm.hayFiltros, alLimpiar = vm::limpiarFiltros, tintaDeLimpiar = colores.tinta, modifier = Modifier.weight(1f),
+                marcador = "Título, autor, universo…", alConfirmar = { vm.confirmarBorrador() }, alCambiarFoco = { enfocada = it },
             )
             // El botón de los filtros: 56 dp, cuadrado en la APK, en el primario; abierto, sobre el contenedor primario.
             Box(
@@ -239,55 +233,6 @@ private fun BarraDeBusqueda(vm: BibliotecaViewModel, desplazada: Boolean) {
  * `m-scoped-search__suggestions`: con algo escrito y el foco, un botón por ámbito con el [borrador] (la Biblioteca y el
  * Catálogo). [modifier] va entre el ancho completo y el resto, para los márgenes de cada pantalla.
  */
-/**
- * El campo de `m-scoped-search` de la Biblioteca y del Catálogo: la lupa, el texto con su marcador y, con filtros, la
- * X de limpiar. Cada pantalla pone sus botones al lado y sus sugerencias y chips debajo.
- */
-@Composable
-internal fun CampoDeBusquedaConAmbitos(
-    borrador: String,
-    alEscribir: (String) -> Unit,
-    alConfirmar: () -> Unit,
-    marcador: String,
-    descripcion: String,
-    hayFiltros: Boolean,
-    alLimpiar: () -> Unit,
-    tintaDeLimpiar: Color,
-    alCambiarFoco: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colores = LocalColores.current
-    Row(
-        modifier.heightIn(min = 56.dp).padding(start = Espacios.e4, end = Espacios.e2),
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(painterResource(Iconos.search), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
-        BasicTextField(
-            value = borrador,
-            onValueChange = alEscribir,
-            modifier = Modifier.weight(1f).onFocusChanged { alCambiarFoco(it.isFocused) }
-                .semantics { contentDescription = descripcion },
-            singleLine = true,
-            textStyle = Textos.cuerpo.copy(color = colores.tinta),
-            cursorBrush = SolidColor(colores.primario),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { alConfirmar() }),
-            decorationBox = { campo ->
-                Box {
-                    if (borrador.isEmpty()) Text(marcador, style = Textos.cuerpo.copy(color = colores.tintaSuave), maxLines = 1)
-                    campo()
-                }
-            },
-        )
-        if (hayFiltros) {
-            Box(Modifier.size(44.dp).clip(CircleShape).clickable(onClick = alLimpiar), contentAlignment = Alignment.Center) {
-                Icon(painterResource(Iconos.close), contentDescription = "Limpiar búsqueda", tint = tintaDeLimpiar, modifier = Modifier.size(24.dp))
-            }
-        }
-    }
-}
-
 @Composable
 internal fun SugerenciasDeAmbito(ambitos: List<Ambito>, borrador: String, alElegir: (Ambito) -> Unit, modifier: Modifier = Modifier) {
     val colores = LocalColores.current
