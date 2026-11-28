@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -42,14 +41,14 @@ import es.yosiftware.libros.ui.tema.mezclar
 /**
  * La app bar (src/app/components/mobile/ui/mobile-app-bar/): 64 dp como mínimo contando la zona segura de arriba, con
  * 8 dp de relleno (o la zona segura, si es mayor), 12 a los lados y 10 entre piezas. A la izquierda, la acción
- * inicial si la hay; luego el eyebrow (.64rem en el primario) y el título (display, 1.08rem), y a la derecha las
- * acciones. El fondo es el lienzo al 88 % y abajo lleva un borde del contorno al 64 %.
+ * inicial si la hay; luego el título (display, 1.08rem), y a la derecha las acciones. El fondo es el lienzo al 88 % y
+ * abajo lleva un borde del contorno al 64 %. Sin el antetítulo «Memoria Bibliográfica» de la web (ronda 1 de interfaz,
+ * kit 1.111: el título basta).
  */
 @Composable
 fun BarraSuperior(
     titulo: String,
     modifier: Modifier = Modifier,
-    eyebrow: String = "Memoria Bibliográfica",
     @DrawableRes iconoInicial: Int? = null,
     etiquetaInicial: String = "Inicio",
     alPulsarInicial: () -> Unit = {},
@@ -78,17 +77,14 @@ fun BarraSuperior(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (iconoInicial != null) BotonDeIcono(iconoInicial, etiquetaInicial, alPulsarInicial, color = colores.primario)
-        Column(Modifier.weight(1f)) {
-            Text(eyebrow.uppercase(), color = colores.primario, style = Textos.eyebrowDeBarra, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(
-                titulo,
-                Modifier.padding(top = 2.dp),
-                color = colores.tinta,
-                style = Textos.tituloDeBarra,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text(
+            titulo,
+            Modifier.weight(1f),
+            color = colores.tinta,
+            style = Textos.tituloDeBarra,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e1), verticalAlignment = Alignment.CenterVertically, content = acciones)
     }
 }

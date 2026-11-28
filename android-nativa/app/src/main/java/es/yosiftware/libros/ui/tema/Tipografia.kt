@@ -71,9 +71,6 @@ object Textos {
     /** La etiqueta de la navegación inferior y del rail: `700 .68rem/1.2`. */
     val etiquetaDeNavegacion = cuerpo.copy(fontSize = rem(0.68), fontWeight = FontWeight.Bold, lineHeight = 1.2.em)
 
-    /** .m-appbar__identity span: .64rem, 800, .12em y en mayúsculas. */
-    val eyebrowDeBarra = cuerpo.copy(fontSize = rem(0.64), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.12.em)
-
     /** .m-appbar__identity strong: display, 1.08rem y 600. */
     val tituloDeBarra = cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.08), fontWeight = FontWeight.SemiBold)
 
