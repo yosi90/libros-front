@@ -101,7 +101,7 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Un
                 ) {
                     val tinta = if (activa) colores.sobreContenedorPrimario else colores.tintaSuave
                     Icon(painterResource(cada.icono), contentDescription = null, tint = tinta, modifier = Modifier.size(20.dp))
-                    Text(cada.etiqueta, color = tinta, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, lineHeight = rem(0.72)))
+                    Text(cada.etiqueta, color = tinta, style = Textos.rotulo.copy(lineHeight = rem(0.72)))
                 }
             }
         }
@@ -121,7 +121,7 @@ fun PantallaPreferencias(alAbrirPrivacidad: () -> Unit, alElegirAvisos: () -> Un
                     "Libros ${BuildConfig.VERSION_NAME}",
                     Modifier.fillMaxWidth().padding(top = Espacios.e4),
                     color = colores.tintaSuave,
-                    style = Textos.cuerpo.copy(fontSize = rem(0.72)),
+                    style = Textos.nota,
                     textAlign = TextAlign.Center,
                 )
             }

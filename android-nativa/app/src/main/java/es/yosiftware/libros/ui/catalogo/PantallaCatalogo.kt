@@ -244,7 +244,7 @@ private fun PanelDeFiltros(vm: CatalogoViewModel, ancha: Boolean) {
 private fun <T> Desplegable(etiqueta: String, actual: String, opciones: List<Pair<String, T>>, alElegir: (T) -> Unit, modifier: Modifier = Modifier) {
     val colores = LocalColores.current
     var abierto by remember { mutableStateOf(false) }
-    val letra = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold)
+    val letra = Textos.rotulo
     val forma = RoundedCornerShape(Radios.sm)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(etiqueta, style = letra.copy(color = colores.tintaSuave))
@@ -362,7 +362,7 @@ private fun TarjetaDeCatalogo(obra: Obra, alAbrir: () -> Unit) {
                 modifier = Modifier.padding(top = 5.dp, bottom = Espacios.e3),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
-                val estilo = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.Bold, color = colores.tintaSuave)
+                val estilo = Textos.nota.copy(fontWeight = FontWeight.Bold, color = colores.tintaSuave)
                 if (suya) {
                     val icono = if (Catalogo.tieneSoloEdicion(obra)) Iconos.libraryBooks else iconoDeEstado(obra.ultimoEstado)
                     Icon(painterResource(icono), contentDescription = null, tint = colores.tintaSuave, modifier = Modifier.size(16.dp))

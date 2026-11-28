@@ -629,7 +629,7 @@ private fun CampoDeEstructura(etiqueta: String, valor: String, alCambiar: (Strin
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.sm)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(etiqueta, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
+        Text(etiqueta, style = Textos.rotulo.copy(color = colores.tintaSuave))
         BasicTextField(
             value = valor,
             onValueChange = alCambiar,
@@ -659,7 +659,7 @@ private fun SelectorDeCapitulo(vm: LibroViewModel, etiqueta: String, valor: Int?
     }
     val actual = opciones.firstOrNull { it.first == valor }?.second ?: valor?.toString().orEmpty()
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(etiqueta, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
+        Text(etiqueta, style = Textos.rotulo.copy(color = colores.tintaSuave))
         Box {
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(forma).background(colores.superficie).border(1.dp, colores.contornoFuerte, forma)
@@ -687,7 +687,7 @@ private fun SelectorDeParte(vm: LibroViewModel, editor: EditorDeEstructura, modi
     val partes = vm.libro?.partes.orEmpty()
     val actual = partes.firstOrNull { it.id == editor.idPartePredecesor }?.nombre ?: "Sin parte"
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("Parte predecesora", style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
+        Text("Parte predecesora", style = Textos.rotulo.copy(color = colores.tintaSuave))
         Box {
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(forma).background(colores.superficie).border(1.dp, colores.contornoFuerte, forma)

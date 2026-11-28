@@ -192,7 +192,7 @@ private fun AccionDeAntologia(icono: Int, texto: String, modifier: Modifier, alP
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(20.dp))
-        Text(texto, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, lineHeight = 1.1.em, color = colores.primario), maxLines = 1)
+        Text(texto, style = Textos.rotulo.copy(lineHeight = 1.1.em, color = colores.primario), maxLines = 1)
     }
 }
 
@@ -215,8 +215,8 @@ private fun TarjetaDeSeccion(seccion: Obra, numero: Int, vm: BibliotecaViewModel
             Column(Modifier.weight(1f).padding(vertical = Espacios.e2), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text("SECCIÓN $numero", style = Textos.cuerpo.copy(fontSize = rem(0.68), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.08.em, color = colores.primario))
                 Text(seccion.nombre, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.0), fontWeight = FontWeight.Bold, lineHeight = 1.15.em, color = colores.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text(etiquetaDePaginasDeSeccion(seccion), style = Textos.cuerpo.copy(fontSize = rem(0.72), color = colores.tintaSuave))
-                if (progreso > 0) Text("${numero(progreso)}% leído", style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.Bold, color = colores.primario))
+                Text(etiquetaDePaginasDeSeccion(seccion), style = Textos.nota.copy(color = colores.tintaSuave))
+                if (progreso > 0) Text("${numero(progreso)}% leído", style = Textos.nota.copy(fontWeight = FontWeight.Bold, color = colores.primario))
             }
             Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
                 if (leyendo) {

@@ -69,7 +69,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -401,7 +400,7 @@ private fun Burbuja(vm: ConversacionViewModel, mensaje: MensajeDelChat, compacta
                     Modifier.heightIn(min = 40.dp).clickable(role = Role.Button) { vm.reintentar(mensaje) }.padding(horizontal = Espacios.e2),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("Reintentar", color = colores.error, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, lineHeight = rem(0.72)))
+                    Text("Reintentar", color = colores.error, style = Textos.rotulo.copy(lineHeight = rem(0.72)))
                 }
             }
         }

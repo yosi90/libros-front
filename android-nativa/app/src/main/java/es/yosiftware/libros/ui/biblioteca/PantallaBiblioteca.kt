@@ -91,7 +91,7 @@ import es.yosiftware.libros.ui.tema.sombra2
 // queda anclada arriba y los universos son tarjetas con sus sagas colgando de una línea guía.
 
 /** El rótulo pequeño en mayúsculas de las secciones («Continúa leyendo», «Sagas», «Historias independientes»). */
-private val rotulo = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.08.em)
+private val rotulo = Textos.rotulo.copy(letterSpacing = 0.08.em)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -308,7 +308,7 @@ internal fun SugerenciasDeAmbito(ambitos: List<Ambito>, borrador: String, alEleg
                 horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(ambito.etiqueta.replaceFirstChar { it.uppercase() }, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.primario))
+                Text(ambito.etiqueta.replaceFirstChar { it.uppercase() }, style = Textos.rotulo.copy(color = colores.primario))
                 Text(borrador.trim(), style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
@@ -577,12 +577,12 @@ private fun FilaDeSaga(
             Column(Modifier.weight(1f)) {
                 Text(saga.nombre, style = Textos.cuerpo.copy(fontSize = rem(0.9), fontWeight = FontWeight.SemiBold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 saga.subtitulo?.takeIf { it.isNotBlank() }?.let {
-                    Text(it, style = Textos.cuerpo.copy(fontSize = rem(0.72), color = colores.tintaSuave), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(it, style = Textos.nota.copy(color = colores.tintaSuave), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 leyendaDeCadena(saga, mostradas)?.let { leyenda ->
                     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         Icon(painterResource(Iconos.link), contentDescription = null, tint = acentoDeSaga, modifier = Modifier.size(16.dp).padding(top = 1.dp))
-                        Text(leyenda, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.SemiBold, lineHeight = 1.3.em, color = acentoDeSaga))
+                        Text(leyenda, style = Textos.nota.copy(fontWeight = FontWeight.SemiBold, lineHeight = 1.3.em, color = acentoDeSaga))
                     }
                 }
             }
@@ -600,7 +600,7 @@ private fun FilaDeSaga(
             }
             Text(
                 obras.size.toString(),
-                style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave),
+                style = Textos.rotulo.copy(color = colores.tintaSuave),
                 modifier = Modifier.clip(Radios.pildora).background(colores.superficieContenedor).padding(horizontal = 8.dp, vertical = 1.dp),
             )
             Icon(painterResource(if (abierta) Iconos.expandLess else Iconos.expandMore), contentDescription = if (abierta) "Plegar ${saga.nombre}" else "Desplegar ${saga.nombre}", tint = colores.tintaSuave, modifier = Modifier.size(20.dp))

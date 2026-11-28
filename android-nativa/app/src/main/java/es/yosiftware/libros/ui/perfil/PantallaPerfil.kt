@@ -290,7 +290,7 @@ private fun Actividad(vm: PerfilViewModel, alAbrir: (ActividadReciente) -> Unit)
                     Column(Modifier.weight(1f)) {
                         Text(actividad.nombre, color = colores.tinta, style = Textos.filaPrincipal, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         listOf(Perfil.autores(actividad.autores), actividad.estado?.nombre.orEmpty()).forEach {
-                            Text(it, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.72)), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(it, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.nota, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                     Icon(painterResource(Iconos.chevronRight), contentDescription = null, tint = colores.tintaSuave, modifier = Modifier.width(32.dp))
@@ -422,7 +422,7 @@ private fun TarjetaDePeticion(vm: PerfilViewModel, peticion: PeticionDeCatalogo)
             Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                 campos.forEach { campo ->
                     Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                        Text(campo.etiqueta, Modifier.weight(0.35f).widthIn(min = 90.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.72)))
+                        Text(campo.etiqueta, Modifier.weight(0.35f).widthIn(min = 90.dp), color = colores.tintaSuave, style = Textos.nota)
                         Text(campo.valor, Modifier.weight(1f), color = colores.tinta, style = Textos.cuerpo)
                     }
                 }

@@ -50,6 +50,15 @@ object Textos {
     /** .m-eyebrow: .72rem, 800, .14em, interlineado 1.2 y en mayúsculas (el texto se pasa con `uppercase()`). */
     val eyebrow = cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.14.em, lineHeight = 1.2.em)
 
+    /**
+     * El texto pequeño de apoyo (fechas, versiones, datos al pie): .72rem. El color va aparte, casi siempre la tinta
+     * suave.
+     */
+    val nota = cuerpo.copy(fontSize = rem(0.72))
+
+    /** El rótulo pequeño: la [nota] en 800 (encabezados de lista, etiquetas de campo). */
+    val rotulo = nota.copy(fontWeight = FontWeight.ExtraBold)
+
     /** .m-supporting: .94rem e interlineado 1.55. */
     val apoyo = cuerpo.copy(fontSize = rem(0.94), lineHeight = 1.55.em)
 

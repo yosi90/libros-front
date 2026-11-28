@@ -135,7 +135,7 @@ private fun TarjetaDeNovedad(vm: ActividadViewModel, novedad: Novedad, acciones:
                     },
                     color = colores.tinta, style = Textos.cuerpo,
                 )
-                Text(fechaDeNovedad(novedad.creada), Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.72)))
+                Text(fechaDeNovedad(novedad.creada), Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.nota)
                 novedad.enlace?.let { enlace ->
                     Row(
                         Modifier.heightIn(min = 44.dp).clickable(role = Role.Button) { acciones.abrirEnlace(enlace) },

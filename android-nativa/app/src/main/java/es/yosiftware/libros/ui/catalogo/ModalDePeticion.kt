@@ -141,7 +141,7 @@ private fun Contexto(nombre: String, valor: String) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.sm)
     Column(Modifier.border(1.dp, colores.contorno, forma).padding(horizontal = Espacios.e3, vertical = Espacios.e2)) {
-        Text(nombre, style = Textos.cuerpo.copy(fontSize = rem(0.72), color = colores.tintaSuave))
+        Text(nombre, style = Textos.nota.copy(color = colores.tintaSuave))
         Text(valor, style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta))
     }
 }
@@ -167,7 +167,7 @@ private fun CampoDePeticion(
     val forma = RoundedCornerShape(Radios.sm)
     val estilo = Textos.cuerpo.copy(color = colores.tinta)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(etiqueta, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
+        Text(etiqueta, style = Textos.rotulo.copy(color = colores.tintaSuave))
         BasicTextField(
             value = valor,
             onValueChange = alCambiar,

@@ -364,7 +364,7 @@ private fun TarjetaDeCifra(cifra: Cifra, modifier: Modifier) {
             Icon(painterResource(cifra.icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
             // El interlineado, medido en la captura: el `strong` de la rejilla deja más aire que el de la letra.
             Text(cifra.valor, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.7), fontWeight = FontWeight.Bold, lineHeight = 1.85.em, color = colores.tinta))
-            Text(cifra.nombre, style = Textos.cuerpo.copy(fontSize = rem(0.72), color = colores.tintaSuave))
+            Text(cifra.nombre, style = Textos.nota.copy(color = colores.tintaSuave))
         }
     }
 }

@@ -571,7 +571,7 @@ internal fun CampoNativo(
     if (campo.text != valor) campo = campo.copy(text = valor, selection = TextRange(minOf(campo.selection.start, valor.length), minOf(campo.selection.end, valor.length)))
     var teniaFoco by remember { mutableStateOf(false) }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (etiqueta != null) Text(etiqueta, style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
+        if (etiqueta != null) Text(etiqueta, style = Textos.rotulo.copy(color = colores.tintaSuave))
         BasicTextField(
             value = campo,
             onValueChange = { nuevo ->

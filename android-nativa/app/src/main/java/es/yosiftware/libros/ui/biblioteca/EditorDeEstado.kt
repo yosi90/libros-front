@@ -89,7 +89,7 @@ fun EditorDeEstado(
     val direccion = LocalLayoutDirection.current
     val volver = { if (!guardando) alVolver() }
     BackHandler(onBack = volver)
-    val etiqueta = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.Bold, letterSpacing = 0.08.em, color = colores.tintaSuave)
+    val etiqueta = Textos.nota.copy(fontWeight = FontWeight.Bold, letterSpacing = 0.08.em, color = colores.tintaSuave)
 
     Column(Modifier.fillMaxSize().background(colores.lienzo).clickable(enabled = false) {}.imePadding()) {
         // La cabecera: volver | «Mi biblioteca» y el título, centrados | hueco del mismo ancho.
