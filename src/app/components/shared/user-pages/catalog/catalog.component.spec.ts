@@ -9,7 +9,7 @@ describe('CatalogComponent', () => {
     function createComponent() {
         const catalogSrv = jasmine.createSpyObj('CatalogService', ['getWorkPublicDetail', 'getWorkEditions', 'getBooks', 'getAnthologies', 'getLanguages', 'getStyles', 'getAuthors', 'getUniverses', 'getSagas']);
         const collectionSrv = jasmine.createSpyObj('CollectionService', ['updateWorkStatus', 'updateWorkRating', 'updateWorkReview', 'updateWorkEditions', 'getUniverses']);
-        const catalogRequestSrv = jasmine.createSpyObj('CatalogRequestService', ['create', 'listMine']);
+        const catalogRequestSrv = jasmine.createSpyObj('CatalogRequestService', ['create', 'listMine', 'respond']);
         catalogRequestSrv.listMine.and.returnValue(of([]));
         const universeStore = jasmine.createSpyObj('UniverseStoreService', ['setUniverses']);
         const sessionSrv = {
@@ -125,6 +125,34 @@ describe('CatalogComponent', () => {
         component.requestSuggestedPublicationDate = '2008-02-30';
         component.submitRequest();
         expect(catalogRequestSrv.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('corrige una petición devuelta: el formulario sale relleno y al enviarlo se reenvía, sin crear otra', () => {
+        const { component, catalogRequestSrv, snackBar } = createComponent();
+        catalogRequestSrv.respond.and.returnValue(of({ Id: 21, Estado: 'pendiente' }));
+        component.openResendRequest({
+            Id: 21, TipoEntidad: 'libro', Accion: 'alta', EntidadId: null, Estado: 'devuelta',
+            Payload: { Nombre: 'La guardia del fin', ISBN: '0', FechaPublicacion: '2008', Comentario: 'Era el primero.' }
+        });
+
+        expect(component.isRequestModalOpen).toBeTrue();
+        expect(component.requestModalTitle()).toBe('Corregir y reenviar');
+        expect(component.requestSuggestedName).toBe('La guardia del fin');
+        expect(component.requestComment).toBe('Era el primero.');
+
+        // El ISBN de relleno no vale: se corrige antes de reenviar.
+        component.submitRequest();
+        expect(catalogRequestSrv.respond).not.toHaveBeenCalled();
+        component.requestSuggestedIsbn = '978-0-306-40615-7';
+        component.submitRequest();
+
+        expect(catalogRequestSrv.respond).toHaveBeenCalledWith(21, { Payload: {
+            Nombre: 'La guardia del fin', ISBN: '978-0-306-40615-7', FechaPublicacion: '2008', Comentario: 'Era el primero.'
+        } });
+        expect(catalogRequestSrv.create).not.toHaveBeenCalled();
+        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Petición reenviada', 'successBar');
+        expect(component.isRequestModalOpen).toBeFalse();
+        expect(component.resendingRequest).toBeNull();
     });
 
     it('exige ISBN en altas de obra y muestra el error del backend en el campo', () => {

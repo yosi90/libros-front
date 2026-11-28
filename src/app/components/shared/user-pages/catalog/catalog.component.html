@@ -256,7 +256,7 @@
         <h2>{{requestModalTitle()}}</h2>
         <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closeRequestModal()"><mat-icon>close</mat-icon></button>
       </header>
-      <div class="request-target request-allowance" aria-live="polite">
+      <div class="request-target request-allowance" aria-live="polite" [hidden]="resendingRequest">
         @if (isLoadingRequestAllowance) {<span>Consultando tus peticiones activas…</span>}
         @else if (activeRequestCount !== null) {
           <strong>{{activeRequestCount}} de 5 peticiones activas</strong>
@@ -356,7 +356,7 @@
       </mat-form-field>
       <footer>
         <button type="button" (click)="closeRequestModal()">Cancelar</button>
-        <button type="submit" [disabled]="isSendingRequest">Enviar</button>
+        <button type="submit" [disabled]="isSendingRequest">{{resendingRequest ? 'Reenviar' : 'Enviar'}}</button>
       </footer>
     </form>
   </section>

@@ -26,6 +26,7 @@ import {
     CatalogItemType,
     CatalogNewWorksWindow,
     CatalogQuery,
+    CatalogRequest,
     CatalogRequestAction,
     CATALOG_NEW_WORKS_OPTIONS,
     isCatalogNewWorksWindow
@@ -138,6 +139,10 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
     filtersOpen = false;
 
     isRequestModalOpen = false;
+
+    /** La petición devuelta que se está corrigiendo para reenviarla, o `null` si es una petición nueva. */
+
+    resendingRequest: CatalogRequest | null = null;
     requestEntityType: CatalogEntityType = 'libro';
     requestAction: CatalogRequestAction = 'alta';
     requestEntityId: number | null = null;
@@ -194,6 +199,10 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         const requested = this.router.url ? this.router.parseUrl(this.router.url).queryParams['request'] : null;
         if (requested === 'libro' || requested === 'antologia' || requested === 'autor' || requested === 'universo' || requested === 'saga')
             this.openNewRequest(requested);
+        // «Corregir y reenviar» de Mis peticiones: abre el formulario con lo que se envió.
+        const resendId = Number(this.router.url ? this.router.parseUrl(this.router.url).queryParams['reenviar'] : 0);
+        if (Number.isInteger(resendId) && resendId > 0)
+            this.openResendFromQuery(resendId);
         const requestedSaga = Number(this.router.url ? this.router.parseUrl(this.router.url).queryParams['saga'] : 0);
         if (Number.isInteger(requestedSaga) && requestedSaga > 0)
             this.openSaga(requestedSaga);
@@ -748,7 +757,44 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         this.isRequestModalOpen = true;
     }
 
+    /**
+     * Corregir una petición devuelta antes de reenviarla: el mismo formulario, relleno con lo que se envió. Al enviarlo
+     * se reenvía (`PATCH …/mias/{id}/responder`) en vez de crear otra; no cuenta para el límite de activas.
+     */
+    openResendRequest(request: CatalogRequest): void {
+        const text = (key: string) => typeof request.Payload?.[key] === 'string' ? (request.Payload[key] as string) : '';
+        this.requestAllowance?.unsubscribe();
+        this.activeRequestCount = null;
+        this.requestAllowanceError = '';
+        this.resendingRequest = request;
+        this.requestEntityType = request.TipoEntidad;
+        this.requestAction = request.Accion;
+        this.requestPicksEntity = false;
+        this.requestEntityId = request.EntidadId ?? null;
+        this.requestTargetName = '';
+        this.requestSuggestedName = text('Nombre');
+        this.requestSuggestedIsbn = text('ISBN');
+        this.requestIsbnError = '';
+        this.requestSuggestedPublicationDate = text('FechaPublicacion');
+        this.requestSuggestedSynopsis = text('Sinopsis');
+        this.requestComment = text('Comentario');
+        this.isRequestModalOpen = true;
+    }
+
+    private openResendFromQuery(requestId: number): void {
+        void this.router.navigate([], { relativeTo: this.route, queryParams: { reenviar: null }, queryParamsHandling: 'merge', replaceUrl: true });
+        this.catalogRequestSrv.listMine('devuelta').subscribe({
+            next: requests => {
+                const request = requests.find(item => item.Id === requestId && item.Estado === 'devuelta' && item.TipoEntidad !== 'otro');
+                if (request) this.openResendRequest(request);
+                else this.snackBar.openSnackBar('Esa petición ya no está devuelta.', 'errorBar');
+            },
+            error: error => this.snackBar.openApiError(error, 'No se pudo abrir la petición')
+        });
+    }
+
     closeRequestModal(): void {
+        this.resendingRequest = null;
         this.requestAllowance?.unsubscribe();
         this.cancelCorrectionSearch();
         this.isRequestModalOpen = false;
@@ -780,6 +826,8 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
     }
 
     requestModalTitle(): string {
+        if (this.resendingRequest)
+            return 'Corregir y reenviar';
         if (this.requestPicksEntity)
             return 'Proponer corrección';
         if (this.requestAction === 'edicion')
@@ -849,6 +897,24 @@ export class CatalogComponent extends PublicDetailHost implements OnInit, OnDest
         }
 
         this.isSendingRequest = true;
+        if (this.resendingRequest) {
+            this.catalogRequestSrv.respond(this.resendingRequest.Id, { Payload: payload }).subscribe({
+                next: () => {
+                    this.snackBar.openSnackBar('Petición reenviada', 'successBar');
+                    this.closeRequestModal();
+                },
+                error: error => {
+                    if (getApiErrorCode(error) === 'catalog_request_isbn_required' && getApiErrorField(error) === 'Payload.ISBN')
+                        this.requestIsbnError = getApiErrorMessage(error, 'Revisa el ISBN de esta edición.');
+                    this.snackBar.openApiError(error, 'No se pudo reenviar la petición');
+                    this.isSendingRequest = false;
+                },
+                complete: () => {
+                    this.isSendingRequest = false;
+                }
+            });
+            return;
+        }
         this.catalogRequestSrv.create({
             TipoEntidad: this.requestEntityType,
             Accion: this.requestAction,
