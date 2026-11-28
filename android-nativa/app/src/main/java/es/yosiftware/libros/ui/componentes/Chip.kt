@@ -49,6 +49,8 @@ fun Chip(
     tamanoDelIcono: Dp = 24.dp,
     alPulsar: (() -> Unit)? = null,
     descripcion: String? = null,
+    /** Los 13 dp de `.m-chip`; los chips de solo icono que van en fila (los seis estados de la ficha) bajan a 9. */
+    rellenoHorizontal: Dp = 13.dp,
 ) {
     val colores = LocalColores.current
     val (fondo, tinta, borde) = when (estado) {
@@ -68,7 +70,7 @@ fun Chip(
                 if (estado == EstadoDeChip.Seleccionado) selected = true
                 if (descripcion != null) contentDescription = descripcion
             }
-            .padding(horizontal = 13.dp, vertical = 7.dp),
+            .padding(horizontal = rellenoHorizontal, vertical = 7.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

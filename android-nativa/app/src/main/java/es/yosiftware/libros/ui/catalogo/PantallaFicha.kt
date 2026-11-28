@@ -36,6 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,15 +52,17 @@ import es.yosiftware.libros.datos.modelos.ResenaPublica
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.zonaSegura
+import es.yosiftware.libros.ui.biblioteca.Estrella
 import es.yosiftware.libros.ui.biblioteca.iconoDeEstado
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.Chip
+import es.yosiftware.libros.ui.componentes.EstadoDeChip
 import es.yosiftware.libros.ui.componentes.MarcoDeBarraDePantallaCompleta
 import es.yosiftware.libros.ui.componentes.Portada
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.TextoDeApoyo
-import es.yosiftware.libros.ui.componentes.TextoEyebrow
 import es.yosiftware.libros.ui.componentes.TextoTitulo
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
@@ -71,8 +75,12 @@ import es.yosiftware.libros.ui.tema.sombra2
 
 /**
  * La ficha pública de una obra del catálogo (`.m-detail`, a pantalla completa): portada, nombre, autoría y nota media;
- * las acciones («Actualizar lectura» y «Abrir lectura», o «Añadir como…»); los datos; las ediciones; lo de la persona;
- * la comunidad lectora y las reseñas, de tres en tres.
+ * las acciones («Actualizar lectura» y «Abrir lectura», o «Añadir» y los seis estados); los datos; las ediciones; lo de
+ * la persona; la comunidad lectora y las reseñas, de tres en tres.
+ *
+ * Ronda 1 de interfaz (C2): de los rótulos se quedan «Ediciones» y «Evolución de la nota», que separan bloques que se
+ * confundirían; fuera «Ficha pública», «Libro/Antología», «Mi biblioteca», «Comunidad lectora» y «Reseñas», y sin
+ * reseñas la sección no se pinta.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -85,7 +93,7 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
 
     Column(Modifier.fillMaxSize().background(colores.lienzo).clickable(enabled = false) {}) {
         BarraDePantallaCompleta(
-            titulo = "Ficha pública",
+            titulo = "",
             izquierda = { BotonDeIcono(Iconos.arrowBack, "Volver al catálogo", vm::cerrarFicha) },
             derecha = { BotonDeIcono(Iconos.rateReview, "Proponer corrección", vm::proponerCorreccion) },
         )
@@ -99,7 +107,6 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
                     val forma = RoundedCornerShape(Radios.sm)
                     Portada(ficha.portada, "Portada de ${obra.nombre}", Modifier.width(if (ancha) 160.dp else 112.dp).aspectRatio(2f / 3f).sombra2(forma, colores).clip(forma))
                     Column(Modifier.weight(1f)) {
-                        TextoEyebrow(if (obra.esAntologia) "Antología" else "Libro")
                         TextoTitulo(ficha.titulo)
                         TextoDeApoyo(ficha.autores)
                         Text(ficha.notaMedia, style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.primario), modifier = Modifier.padding(top = Espacios.e3))
@@ -109,21 +116,32 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
                 // `.m-detail__actions`
                 if (ficha.enColeccion) {
                     FlowRow(Modifier.fillMaxWidth().padding(top = Espacios.e6), horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                        Boton("Actualizar lectura", { vm.abrirEditor(obra) }, variante = VarianteDeBoton.Tonal, icono = Iconos.edit)
-                        if (!obra.esAntologia) Boton("Abrir lectura", { vm.abrirLectura()?.let(alAbrirLectura) }, icono = Iconos.menuBook)
+                        Boton("Actualizar lectura", { vm.abrirEditor(obra) }, variante = VarianteDeBoton.Tonal)
+                        if (!obra.esAntologia) Boton("Abrir lectura", { vm.abrirLectura()?.let(alAbrirLectura) })
                     }
                 } else {
-                    Column(Modifier.fillMaxWidth().padding(top = Espacios.e6), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                        Text("Añadir como…", style = Textos.cuerpo.copy(fontSize = rem(0.78), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave))
-                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                            TipoDeEstado.entries.forEach { estado ->
-                                Chip(estado.nombre, icono = iconoDeEstado(estado), alPulsar = if (vm.guardando) null else ({ vm.anadirComo(obra, estado) }))
-                            }
+                    // «Añadir» y los seis estados, solo con su icono: con los chips sin texto, el verbo hace falta. Cada
+                    // chip se lee «Añadir como: Leído», así que el verbo no se lee aparte.
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = Espacios.e6).horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Añadir", style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta), modifier = Modifier.padding(end = 4.dp).clearAndSetSemantics {})
+                        TipoDeEstado.entries.forEach { estado ->
+                            Chip(
+                                "",
+                                icono = iconoDeEstado(estado),
+                                tamanoDelIcono = 20.dp,
+                                alPulsar = if (vm.guardando) null else ({ vm.anadirComo(obra, estado) }),
+                                descripcion = "Añadir como: ${estado.nombre}",
+                                rellenoHorizontal = 9.dp,
+                            )
                         }
                     }
                 }
 
-                if (ficha.cargando) Aviso(Iconos.hourglassTop, "Cargando datos públicos…")
+                if (ficha.cargando) Cargando("Cargando datos públicos", Modifier.padding(top = Espacios.e2), alturaMinima = 48.dp, tamano = 24.dp)
                 if (ficha.fallo) Aviso(Iconos.info, "Las estadísticas públicas no están disponibles.")
 
                 // `.m-detail__meta`
@@ -145,10 +163,20 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
 
                 if (ficha.enColeccion) {
                     Tarjeta(Modifier.fillMaxWidth().padding(top = Espacios.e6)) {
-                        TextoEyebrow("Mi biblioteca", Modifier.padding(top = Espacios.e2))
-                        Text(ficha.estadoPropio.ifEmpty { "Sin estado" }, style = tituloH3.copy(color = colores.tinta))
-                        ficha.puntuacionPropia?.takeIf { it > 0 }?.let {
-                            Text("$it de 5 estrellas", style = Textos.cuerpo.copy(color = colores.tinta), modifier = Modifier.padding(top = Espacios.e2))
+                        // Lo tuyo: el estado con su icono y tu puntuación con estrellas.
+                        Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e3), verticalAlignment = Alignment.CenterVertically) {
+                            Chip(
+                                "",
+                                estado = EstadoDeChip.Seleccionado,
+                                icono = iconoDeEstado(TipoDeEstado.deNombre(ficha.estadoPropio)),
+                                tamanoDelIcono = 20.dp,
+                                descripcion = ficha.estadoPropio.ifEmpty { "Sin estado" },
+                            )
+                            ficha.puntuacionPropia?.takeIf { it > 0 }?.let { puntuacion ->
+                                Row(Modifier.clearAndSetSemantics { contentDescription = "Tu puntuación: $puntuacion de 5" }) {
+                                    (1..5).forEach { Estrella(it <= puntuacion, colores.atencion, colores.contornoFuerte, Modifier.size(20.dp)) }
+                                }
+                            }
                         }
                         if (ficha.resenaPropia.isNotEmpty()) Cita(ficha.resenaPropia)
                         if (!ficha.obra.esAntologia) TituloDelLibro(ficha.obra.id, SitioDelTitulo.FRANJA, Modifier.padding(top = Espacios.e4))
@@ -157,7 +185,6 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
 
                 ficha.detalle?.estadisticas?.let { estadisticas ->
                     Column(Modifier.fillMaxWidth().padding(top = Espacios.e6)) {
-                        TextoEyebrow("Comunidad lectora")
                         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                             Metrica(estadisticas.usuariosEnBiblioteca, "bibliotecas", Modifier.weight(1f))
                             Metrica(estadisticas.totalLeidos, "lecturas", Modifier.weight(1f))
@@ -174,7 +201,7 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
                             }
                         }
                         if (estadisticas.evolucionNota.isNotEmpty()) {
-                            TextoEyebrow("Evolución de la nota", Modifier.padding(top = Espacios.e4))
+                            Text("Evolución de la nota", style = tituloH3.copy(color = colores.tinta), modifier = Modifier.padding(top = Espacios.e6))
                             estadisticas.evolucionNota.chunked(3).forEach { fila ->
                                 Row(Modifier.fillMaxWidth().padding(top = Espacios.e2).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                                     fila.forEach { mes -> Metrica(Catalogo.hastaDosDecimales(mes.nota ?: 0.0), Catalogo.mesCorto(mes.anio, mes.mes), Modifier.weight(1f)) }
@@ -185,7 +212,7 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
                     }
                 }
 
-                Resenas(vm, ficha)
+                if (ficha.resenas.isNotEmpty()) Resenas(vm, ficha)
             }
         }
     }
@@ -193,20 +220,24 @@ fun PantallaFicha(vm: CatalogoViewModel, ficha: FichaPublica, alAbrirLectura: (O
 
 /**
  * `.m-fullscreen-surface__bar` ([MarcoDeBarraDePantallaCompleta]) con tres columnas: 48 dp, el título centrado en
- * negrita y 48 dp.
+ * negrita (o nada, si va vacío) y 48 dp.
  */
 @Composable
 internal fun BarraDePantallaCompleta(titulo: String, izquierda: @Composable () -> Unit, derecha: @Composable () -> Unit) {
     val colores = LocalColores.current
     MarcoDeBarraDePantallaCompleta {
         izquierda()
-        Text(
-            titulo,
-            style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta, textAlign = TextAlign.Center),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
-        )
+        if (titulo.isEmpty()) {
+            Spacer(Modifier.weight(1f))
+        } else {
+            Text(
+                titulo,
+                style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta, textAlign = TextAlign.Center),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
+            )
+        }
         derecha()
     }
 }
@@ -273,7 +304,7 @@ private fun Ediciones(vm: CatalogoViewModel, ficha: FichaPublica) {
                 icono = if (elegida.enMiBiblioteca) Iconos.removeCircleOutline else Iconos.libraryAdd,
                 habilitado = !vm.guardandoEdiciones,
             )
-            if (elegida.enMiBiblioteca) TextoDeApoyo("Retirarla conserva la obra y su historial de lectura.", Modifier.padding(top = Espacios.e2))
+            // Lo que se conserva al retirarla se dice una vez, en el aviso de después (CatalogoViewModel.alternarEdicion).
         }
         if (conError) Text(ficha.errorDeEdicion, style = Textos.cuerpo.copy(color = colores.error), modifier = Modifier.padding(top = Espacios.e2))
     }
@@ -302,15 +333,12 @@ private fun Metrica(valor: String, nombre: String, modifier: Modifier) {
     }
 }
 
-/** Las reseñas públicas visibles, de tres en tres, con el paginador si hay más. */
+/** Las reseñas públicas visibles, de tres en tres, con el paginador si hay más. Sin reseñas, no se pinta. */
 @Composable
 private fun Resenas(vm: CatalogoViewModel, ficha: FichaPublica) {
     val colores = LocalColores.current
-    Column(Modifier.fillMaxWidth().padding(top = Espacios.e6)) {
-        TextoEyebrow("Reseñas")
-        // Los márgenes de arriba (12 dp las reseñas y 8 el texto) se juntan con los 8 de debajo del rótulo.
-        ficha.resenasDeLaPagina.forEachIndexed { i, resena -> TarjetaDeResena(resena, arriba = if (i == 0) Espacios.e1 else Espacios.e3) }
-        if (ficha.resenas.isEmpty()) TextoDeApoyo("No hay reseñas públicas visibles.")
+    Column(Modifier.fillMaxWidth().padding(top = Espacios.e3)) {
+        ficha.resenasDeLaPagina.forEach { resena -> TarjetaDeResena(resena, arriba = Espacios.e3) }
         if (ficha.hayPaginasDeResenas) {
             Row(Modifier.fillMaxWidth().padding(top = Espacios.e4), horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
                 Boton("Anterior", vm::paginaDeResenasAnterior, variante = VarianteDeBoton.Contorno, habilitado = ficha.paginaDeResenas > 0)

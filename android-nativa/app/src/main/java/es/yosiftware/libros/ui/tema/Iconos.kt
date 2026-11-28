@@ -94,7 +94,6 @@ object Iconos {
     @DrawableRes val libraryAdd = R.drawable.mi_library_add
     @DrawableRes val libraryBooks = R.drawable.mi_library_books
     @DrawableRes val arrowForward = R.drawable.mi_arrow_forward
-    @DrawableRes val hourglassTop = R.drawable.mi_hourglass_top
     @DrawableRes val refresh = R.drawable.mi_refresh
     @DrawableRes val bookmarkBorder = R.drawable.mi_bookmark_border
     @DrawableRes val donutLarge = R.drawable.mi_donut_large
