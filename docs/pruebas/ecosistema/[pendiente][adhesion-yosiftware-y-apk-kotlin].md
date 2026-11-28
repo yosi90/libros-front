@@ -1,6 +1,6 @@
 # Checklist - Adhesión a Yosiftware (web) y APK nativa en Kotlin
 
-> Estado: pendiente. Matriz de `docs/roadmaps/ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (cerrado el 29/10/2026; corte en producción el 25/10/2026). Sale de `ecosistema-kit/LISTA_DE_COMPROBACION.md` (kit 1.57 para la web; la «App Android», del 1.62, en `docs/roadmaps/ecosistema/EVIDENCIA_app-android.md`). Cada punto lleva su evidencia o **No aplica** con su motivo. Web y APK se acreditan por separado. Lo que dice «API» lo acredita `docs/backend/api/ADHESION_YOSIFTWARE.md`. Lo que queda de la adhesión en el backend: `../Libros API/docs/roadmaps/FINALIZADO_tras-la-adhesion/`.
+> Estado: pendiente. Matriz de `docs/roadmaps/ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (cerrado el 29/10/2026; corte en producción el 25/10/2026). Sale de `ecosistema-kit/LISTA_DE_COMPROBACION.md` (kit 1.57 para la web; la «App Android», del 1.62, en `docs/roadmaps/ecosistema/EVIDENCIA_app-android.md`). Cada punto lleva su evidencia o **No aplica** con su motivo. Web y APK se acreditan por separado. Lo que dice «API» lo acredita `docs/backend/api/ADHESION_YOSIFTWARE.md`. Lo que quedó de la adhesión en el backend, ya cerrado: `../Libros API/docs/roadmaps/FINALIZADO_tras-la-adhesion/`.
 
 ## Requisitos de adscripción
 
@@ -138,7 +138,7 @@ El propietario validó el corte directamente en producción (humo del 25/10/2026
 - [x] Capturas de referencia de la APK de Capacitor (441, fuera de Git en `referencias-apk-capacitor/`, hito 5), con contenido real; cada pantalla del clon comparada con ellas en su hito.
 - [x] Varias cuentas (panel de cuentas y limpieza A → B → A, hito 6), push central registrado por cuenta (hito 12, visto en el Honor) y espacios con `sesion.espacios` (visto en el Honor con QA).
 
-- [ ] **La interfaz, sin repeticiones ni explicaciones de más** (kits 1.111 a 2026.11.6): el revisor de interfaz está en `.claude/agents/revisor-de-interfaz.md`. Su primera pasada (27/11/2026, `docs/diseno/interfaz-apk-2026-11/INFORME_REVISOR_1.md`) dejó 112 hallazgos; queda la ronda de arreglos del diseñador, programarla y que el revisor vuelva a pasar (`docs/roadmaps/ecosistema/ROADMAP_ACTIVO_kits-2026-11.md`).
+- [ ] **La interfaz, sin repeticiones ni explicaciones de más** (kits 1.111 a 2026.11.6): el revisor de interfaz está en `.claude/agents/revisor-de-interfaz.md`. Su primera pasada (27/11/2026, `docs/diseno/interfaz-apk-2026-11/INFORME_REVISOR_1.md`) dejó 112 hallazgos. Queda que el propietario elija en la maqueta de arreglos, programarla y que el revisor vuelva a pasar (`docs/roadmaps/ecosistema/ROADMAP_ACTIVO_kits-2026-11.md`).
 
 ## Revisor de duplicados
 

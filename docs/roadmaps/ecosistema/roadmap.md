@@ -8,7 +8,7 @@
 
 ## Línea activa
 
-- `ROADMAP_ACTIVO_kits-2026-11.md`: los kits 1.111, 1.112, 2026.11.1 y 2026.11.2.
+- `ROADMAP_ACTIVO_kits-2026-11.md`: los kits 1.111 a 2026.11.6.
 
 ## Líneas pausadas
 

@@ -1,7 +1,7 @@
 # Los kits de finales de noviembre: la interfaz sin repeticiones, el versionado y la librería 1.12.0
 
 Estado: ACTIVO (abierto el 2026-11-27)
-Origen: las peticiones `docs/peticiones/adoptar-los-kits-1-111-y-2026-11-1.md` y `docs/peticiones/respondidas/ACEPTADA_adoptar-el-kit-1-112.md`. Las de 2026.11.3, 2026.11.4 y 2026.11.6 (el contenido y el texto necesario se quedan; las dudas del revisor, al diseñador) ya están en `respondidas/`. El kit vigente es el 2026.11.6, copiado el 2026-11-27.
+Origen: las peticiones `docs/peticiones/adoptar-los-kits-1-111-y-2026-11-1.md` y `docs/peticiones/respondidas/ACEPTADA_adoptar-el-kit-1-112.md`. Las de 2026.11.3, 2026.11.4 y 2026.11.6 (el contenido y el texto necesario se quedan; las dudas del revisor, al diseñador), en `respondidas/`.
 
 ## Hecho
 
@@ -11,13 +11,13 @@ Origen: las peticiones `docs/peticiones/adoptar-los-kits-1-111-y-2026-11-1.md` y
 
 - [x] El revisor de interfaz en `.claude/agents/revisor-de-interfaz.md`, adaptado a `android-nativa/` y versionado, con su puente en la carpeta común, y ya con las correcciones de 2026.11.3 y 2026.11.4: solo los problemas reales (icono y texto que dicen lo mismo, título, subtítulo y explicación en cada sección, párrafos que explican la interfaz, avisos que narran), sin quitar el texto necesario ni el contenido.
 - [x] Una pasada en modo `completo` por todas las pantallas de la APK (27/11/2026): 112 hallazgos y 8 dudas, en `docs/diseno/interfaz-apk-2026-11/INFORME_REVISOR_1.md`, con las decisiones del propietario sobre cuatro dudas.
-- [ ] La ronda de arreglos del diseñador, con las opciones dibujadas de lo que admite más de una salida; el propietario elige en el lienzo.
+- [ ] La ronda de arreglos del diseñador, con las opciones dibujadas de lo que admite más de una salida; el propietario elige en el lienzo. Maqueta en `docs/diseno/interfaz-apk-2026-11/arreglos-ronda-1.html` (`caedc370`), con siete decisiones: falta que el propietario elija.
 - [ ] Programarla a partir de su maqueta, con capturas del Honor, y que el revisor vuelva a pasar sobre lo cambiado.
 - [ ] Desde entonces, el revisor pasa antes de cada APK de QA o de producción, sobre lo nuevo desde la última publicada. No se publica con hallazgos abiertos.
 
 ## El diseñador (kit 1.111, obligatorio)
 
-- [x] Llevar a `.claude/agents/disenador.md` lo nuevo de la plantilla: la ronda de arreglos tras cada ronda del revisor y, en la APK, la interfaz sin repeticiones (2026.11.4). De paso, la vista «Cuaderno» como decisión vigente.
+- [x] Llevar a `.claude/agents/disenador.md` lo nuevo de la plantilla: la ronda de arreglos tras cada ronda del revisor y, en la APK, la interfaz sin repeticiones (2026.11.4) y las dudas del revisor en lienzos con opciones (2026.11.6). De paso, la vista «Cuaderno» como decisión vigente.
 
 ## El versionado común (kit 2026.11.1, obligatorio desde la próxima publicación)
 
@@ -28,7 +28,7 @@ Origen: las peticiones `docs/peticiones/adoptar-los-kits-1-111-y-2026-11-1.md` y
 
 ## El bloque y la lista
 
-- [x] El bloque de `AGENTS.md` de los dos repositorios, al día con el de 2026.11.2 (`ecosistema-kit/BLOQUE_AGENTS.md`), y el kit anotado con su número por fecha en `docs/codex/PROJECT_WORKING_NOTES.md` y en el contexto de la API.
+- [x] El bloque de `AGENTS.md` de los dos repositorios, al día con el de 2026.11.6 (`ecosistema-kit/BLOQUE_AGENTS.md`), y el kit anotado con su número por fecha en `docs/codex/PROJECT_WORKING_NOTES.md` y en el contexto de la API.
 - [x] Las casillas nuevas de `ecosistema-kit/LISTA_DE_COMPROBACION.md` en la matriz `docs/pruebas/ecosistema/[pendiente][adhesion-yosiftware-y-apk-kotlin].md`: versionado y diseñador, hechas; la interfaz de la APK, pendiente de la ronda de arreglos.
 - [ ] Resolver la petición de los kits 1.111 y 2026.11.1 y pasarla a `respondidas/`.
 
