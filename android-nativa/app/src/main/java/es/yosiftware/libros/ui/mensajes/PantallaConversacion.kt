@@ -1,6 +1,5 @@
 package es.yosiftware.libros.ui.mensajes
 
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -67,6 +66,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -78,6 +80,7 @@ import androidx.compose.ui.unit.min
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import es.yosiftware.libros.ui.adaptable.LocalVentana
+import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.FilaDeLista
 import es.yosiftware.libros.ui.componentes.BotonesDeDialogo
@@ -85,6 +88,7 @@ import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
 import es.yosiftware.libros.ui.componentes.DialogoModal
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.comunidad.CampoDeFormulario
 import es.yosiftware.libros.ui.comunidad.EstadoDePantalla
@@ -105,8 +109,9 @@ import kotlinx.coroutines.launch
 // Sass de la APK de Capacitor (5dc3120). Rejilla de cinco filas: la app bar, la búsqueda, los mensajes (o la gestión del
 // grupo encima, que tapa también el campo), la franja de error o de solo lectura y el campo de escribir.
 
+/** [avatar] completa la ruta de una miniatura de la plataforma (la foto de cada participante). */
 @Composable
-fun PantallaConversacion(vm: ConversacionViewModel, volver: () -> Unit, resaltado: Long? = null) {
+fun PantallaConversacion(vm: ConversacionViewModel, volver: () -> Unit, resaltado: Long? = null, avatar: (String?) -> String? = { null }) {
     val colores = LocalColores.current
     val compacta = LocalVentana.current.anchoDp < 600
     // Marca leído solo con la pantalla a la vista y la app en primer plano.
@@ -131,7 +136,7 @@ fun PantallaConversacion(vm: ConversacionViewModel, volver: () -> Unit, resaltad
         if (vm.busquedaAbierta) BarraDeBusquedaDelChat(vm)
         val detalle = vm.detalle
         if (vm.gestionAbierta && detalle?.tipo == "grupo") {
-            Box(Modifier.weight(1f)) { GestionDelGrupo(vm, detalle, compacta) }
+            Box(Modifier.weight(1f)) { GestionDelGrupo(vm, detalle, compacta, avatar) }
         } else {
             Box(Modifier.weight(1f)) {
                 when {
@@ -188,7 +193,10 @@ private fun BarraDeLaConversacion(vm: ConversacionViewModel, volver: () -> Unit,
     }
 }
 
-/** `.m-conversation__search`: la lupa, el campo, buscar y, con resultados, cerrarlos. */
+/**
+ * `.m-conversation__search`: el campo, vacío, y la lupa al final, que busca (ronda 1 de interfaz, opción A); con
+ * resultados, la X que los cierra, antes de la lupa. El nombre accesible del campo dice qué busca.
+ */
 @Composable
 private fun BarraDeBusquedaDelChat(vm: ConversacionViewModel) {
     val colores = LocalColores.current
@@ -199,23 +207,19 @@ private fun BarraDeBusquedaDelChat(vm: ConversacionViewModel) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Espacios.e1),
     ) {
-        Icon(painterResource(Iconos.search), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
         BasicTextField(
-            vm.busqueda, { vm.busqueda = it }, Modifier.weight(1f).heightIn(min = 54.dp),
+            vm.busqueda, { vm.busqueda = it }, Modifier.weight(1f).heightIn(min = 54.dp).semantics { contentDescription = "Buscar mensajes" },
             singleLine = true,
             textStyle = Textos.cuerpo.copy(color = colores.tinta),
             cursorBrush = SolidColor(colores.primario),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { vm.buscar() }),
             decorationBox = { interior ->
-                Box(Modifier.heightIn(min = 54.dp), contentAlignment = Alignment.CenterStart) {
-                    if (vm.busqueda.isEmpty()) Text("Buscar mensajes", color = colores.tintaSuave, style = Textos.cuerpo, maxLines = 1)
-                    interior()
-                }
+                Box(Modifier.heightIn(min = 54.dp), contentAlignment = Alignment.CenterStart) { interior() }
             },
         )
-        BotonDeIcono(Iconos.arrowForward, "Buscar", vm::buscar, habilitado = vm.busqueda.trim().length >= 2 && !vm.buscando)
-        if (vm.resultados != null) BotonDeIcono(Iconos.close, "Cerrar resultados", vm::cerrarResultados)
+        if (vm.resultados != null) BotonDeIcono(Iconos.close, "Cerrar los resultados", vm::cerrarResultados, color = colores.tintaSuave)
+        BotonDeIcono(Iconos.search, "Buscar", vm::buscar, color = colores.primario, habilitado = vm.busqueda.trim().length >= 2 && !vm.buscando)
     }
 }
 
@@ -605,39 +609,34 @@ private fun Escritura(vm: ConversacionViewModel) {
     }
 }
 
-/** `.m-conversation-management`: participantes, renombrar, los roles, retirar, añadir amistades y salir. */
+/**
+ * `.m-conversation-management` (ronda 1 de interfaz, duda 4, opción A): «Participantes 4 / 50» y «Salir» en una línea,
+ * renombrar, los participantes con su foto y sus roles, y «Añadir amistades» sobre las candidatas, sin «Añadir al
+ * grupo» en cada fila: lo dice su botón.
+ */
 @Composable
-private fun GestionDelGrupo(vm: ConversacionViewModel, detalle: DetalleDelChat, compacta: Boolean) {
+private fun GestionDelGrupo(vm: ConversacionViewModel, detalle: DetalleDelChat, compacta: Boolean, avatar: (String?) -> String?) {
     val colores = LocalColores.current
     val ocupado = vm.accionDeGestion.isNotEmpty()
     Column(
         Modifier.fillMaxSize().background(colores.lienzo).verticalScroll(rememberScrollState()).padding(if (compacta) Espacios.e3 else Espacios.e4),
         verticalArrangement = Arrangement.spacedBy(Espacios.e3),
     ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = if (compacta) Alignment.Top else Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-            Column(Modifier.weight(1f)) {
-                Text("Participantes", color = colores.tinta, style = Textos.filaPrincipal)
-                Text("${detalle.participantes.size} / 50", color = colores.tintaSuave, style = Textos.cuerpo)
-            }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+            Text("Participantes", Modifier.semantics { heading() }, color = colores.tinta, style = Textos.filaPrincipal)
+            Text("${detalle.participantes.size} / 50", Modifier.weight(1f), color = colores.tintaSuave, style = Textos.cuerpo)
             BotonDeSalir(vm::pedirSalir, habilitado = !ocupado)
         }
         if (detalle.puedeGestionar) {
             val puedeGuardar = vm.nombreDelGrupo.trim().length >= MensajesViewModel.MINIMO_DEL_TITULO && !ocupado
-            if (compacta) {
-                CampoDeFormulario(vm.nombreDelGrupo, { vm.nombreDelGrupo = it }, "Nombre del grupo", maximo = MensajesViewModel.MAXIMO_DEL_TITULO)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { Boton("Guardar nombre", vm::renombrar, habilitado = puedeGuardar) }
-            } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
-                    CampoDeFormulario(vm.nombreDelGrupo, { vm.nombreDelGrupo = it }, "Nombre del grupo", Modifier.weight(1f), maximo = MensajesViewModel.MAXIMO_DEL_TITULO)
-                    Boton("Guardar nombre", vm::renombrar, habilitado = puedeGuardar)
-                }
+            Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
+                CampoDeFormulario(vm.nombreDelGrupo, { vm.nombreDelGrupo = it }, "Nombre del grupo", Modifier.weight(1f), maximo = MensajesViewModel.MAXIMO_DEL_TITULO)
+                Boton(if (compacta) "Guardar" else "Guardar nombre", vm::renombrar, variante = VarianteDeBoton.Contorno, habilitado = puedeGuardar)
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
             detalle.participantes.forEach { participante ->
-                FilaDeParticipante(
-                    Iconos.person, participante.persona.nombre, if (participante.admin) "Administrador" else "Miembro",
-                ) {
+                FilaDePersona(participante.persona, avatar, if (participante.admin) "Administrador" else "Miembro") {
                     if (detalle.puedeGestionar && participante.persona.id != vm.yoId) {
                         BotonDeIcono(Iconos.adminPanelSettings, if (participante.admin) "Hacer miembro" else "Hacer administrador", { vm.cambiarRol(participante) }, habilitado = !ocupado)
                         BotonDeIcono(Iconos.personRemove, "Retirar participante", { vm.pedirRetirar(participante) }, color = colores.error, habilitado = !ocupado)
@@ -647,13 +646,15 @@ private fun GestionDelGrupo(vm: ConversacionViewModel, detalle: DetalleDelChat, 
         }
         if (detalle.puedeGestionar) {
             Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                Text("Añadir amistades", color = colores.tinta, style = Textos.filaPrincipal)
-                if (vm.cargandoGestion) Text("Cargando candidatos…", color = colores.tintaSuave, style = Textos.cuerpo)
+                Text("Añadir amistades", Modifier.padding(top = Espacios.e2).semantics { heading() }, color = colores.tinta, style = Textos.filaPrincipal)
+                if (vm.cargandoGestion) Cargando("Cargando las amistades", alturaMinima = 72.dp, tamano = 24.dp)
                 if (vm.candidatos.isEmpty()) {
-                    if (!vm.cargandoGestion) Text("No hay amistades elegibles fuera del grupo.", color = colores.tintaSuave, style = Textos.cuerpo)
+                    if (!vm.cargandoGestion) ListaVacia("Sin amistades fuera del grupo", alturaMinima = 72.dp)
                 } else {
                     vm.candidatos.forEach { persona ->
-                        FilaDeParticipante(Iconos.personAdd, persona.nombre, "Añadir al grupo", alPulsar = if (ocupado) null else ({ vm.invitar(persona) }))
+                        FilaDePersona(persona, avatar) {
+                            BotonDeIcono(Iconos.personAdd, "Añadir a ${persona.nombre} al grupo", { vm.invitar(persona) }, color = colores.primario, habilitado = !ocupado)
+                        }
                     }
                 }
             }
@@ -662,7 +663,7 @@ private fun GestionDelGrupo(vm: ConversacionViewModel, detalle: DetalleDelChat, 
     }
 }
 
-/** `.m-button--outline.is-danger`: «Salir», en el color de error. */
+/** `.m-button--outline.is-danger`: «Salir», en el color de error, con la palabra sola. */
 @Composable
 private fun BotonDeSalir(alPulsar: () -> Unit, habilitado: Boolean) {
     val colores = LocalColores.current
@@ -672,23 +673,17 @@ private fun BotonDeSalir(alPulsar: () -> Unit, habilitado: Boolean) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
     ) {
-        Icon(painterResource(Iconos.logout), contentDescription = null, tint = colores.error, modifier = Modifier.size(24.dp))
         Text("Salir", color = colores.error, style = Textos.boton)
     }
 }
 
-/** Un `.m-list-item` con borde de la gestión: icono, nombre, línea de apoyo y, a la derecha, sus botones. */
+/** Un `.m-list-item` con borde de la gestión: la foto (o la inicial), el nombre, su papel si lo hay y sus botones. */
 @Composable
-private fun FilaDeParticipante(
-    @DrawableRes icono: Int,
-    nombre: String,
-    apoyo: String,
-    alPulsar: (() -> Unit)? = null,
-    acciones: @Composable () -> Unit = {},
-) {
+private fun FilaDePersona(persona: PersonaDelChat, avatar: (String?) -> String?, papel: String? = null, acciones: @Composable () -> Unit = {}) {
     FilaDeLista(
-        nombre, Modifier.fillMaxWidth(), secundario = apoyo, icono = icono, borde = true, lineasDelTitulo = 2,
-        alPulsar = alPulsar, alFinal = { Row { acciones() } },
+        persona.nombre, Modifier.fillMaxWidth(), secundario = papel, borde = true, lineasDelTitulo = 2,
+        inicio = { Avatar(42.dp, url = avatar(persona.imagen), nombre = persona.nombre, conBorde = false) },
+        alFinal = { Row { acciones() } },
     )
 }
 
@@ -706,7 +701,7 @@ private fun DialogoDeDenuncia(vm: ConversacionViewModel, mensaje: MensajeDelChat
             style = Textos.cuerpo.copy(fontSize = rem(0.8)), maxLines = 3, overflow = TextOverflow.Ellipsis,
         )
         Column(Modifier.padding(top = Espacios.e3), verticalArrangement = Arrangement.spacedBy(Espacios.e1)) {
-            if (vm.motivos.isEmpty() && vm.errorDeDenuncia.isEmpty()) Text("Cargando motivos…", color = colores.tintaSuave, style = Textos.cuerpo)
+            if (vm.motivos.isEmpty() && vm.errorDeDenuncia.isEmpty()) Cargando("Cargando los motivos", alturaMinima = 72.dp, tamano = 24.dp)
             vm.motivos.forEach { motivo ->
                 val elegido = vm.motivoElegido == motivo.clave
                 Row(

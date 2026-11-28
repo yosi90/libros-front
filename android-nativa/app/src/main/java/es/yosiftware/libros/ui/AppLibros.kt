@@ -436,7 +436,7 @@ fun AppLibros(app: LibrosApp) {
                                             AccionesDeComunidad(
                                                 abrirWebSocial = { vista -> acceso?.let { Enlaces.abrir(contexto, it.direccionWebSocial(vista)) } },
                                                 mensajes = {
-                                                    PantallaMensajes(mensajes, app.datos.bandeja) { id ->
+                                                    PantallaMensajes(mensajes, app.datos.bandeja, avatar = app.datos::imagenDeLaPlataforma) { id ->
                                                         // Una por cuenta y conversación: el borrador y la posición se quedan al ir y volver.
                                                         val clave = app.datos.ambito.clave("chat") ?: "sin-cuenta"
                                                         val conversacion: ConversacionViewModel = viewModel(key = "$clave-chat-$id") {
@@ -449,7 +449,7 @@ fun AppLibros(app: LibrosApp) {
                                                             )
                                                         }
                                                         conversacion.alPerderAcceso = mensajes::cerrar
-                                                        PantallaConversacion(conversacion, volver = { mensajes.cerrar() }, resaltado = mensajes.resaltado)
+                                                        PantallaConversacion(conversacion, volver = { mensajes.cerrar() }, resaltado = mensajes.resaltado, avatar = app.datos::imagenDeLaPlataforma)
                                                     }
                                                 },
                                                 alElegirMensajes = mensajes::cerrar,
