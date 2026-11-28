@@ -3,7 +3,7 @@
     <div>
       <h1>Biblioteca</h1>
       @if (!controller.isLoadingUniverses && controller.hasLibraryItems) {
-        <p>{{controller.hasActiveLibraryFilters ? controller.searchResultCount + ' resultados' : 'Tu colección personal'}}</p>
+        @if (controller.hasActiveLibraryFilters) {<p>{{controller.searchResultCount}} resultados</p>}
       }
     </div>
 
@@ -13,40 +13,36 @@
       (committed)="commit($event)" (removed)="controller.removeTextFilter($event)" (cleared)="controller.clearLibraryFilters()"></app-web-scoped-search>
   </header>
 
-  @if (!controller.isLoadingUniverses && !controller.hasActiveLibraryFilters && controller.runningBooks(3).length) {
-    <section class="continue" aria-label="Continúa leyendo">
-      @for (book of controller.runningBooks(3); track book.Id; let first = $first) {
-        <article class="continue__item" [class.is-primary]="first" (click)="controller.openBook(book)">
-          <img [src]="book.Portada | coverCache | async" [alt]="'Portada de ' + book.Nombre" (error)="controller.handleCoverImageError($event)">
-          <div class="continue__body">
-            @if (first) { <p class="web-eyebrow">Continúa leyendo</p> }
-            <h2>{{book.Nombre}}</h2>
-            @if (book | ownFunTitle; as funTitle) {<p class="fun-title-line">{{funTitle}}</p>}
-            <p class="continue__meta">{{controller.getAuthors(book.Autores).join(', ')}}</p>
-            <div class="web-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="controller.completionPercent(book)"
-              [attr.aria-label]="'Progreso de ' + book.Nombre"><span [style.width.%]="controller.completionPercent(book)"></span></div>
-            @if (first) {
-              <div class="continue__actions">
-                <button class="web-button web-button--primary" type="button" (click)="$event.stopPropagation(); controller.openBook(book)"><mat-icon>menu_book</mat-icon>Abrir libro</button>
-                <button class="web-button" type="button" (click)="edit({ kind: 'book', item: book }, $event)"><mat-icon>edit_note</mat-icon>Mi lectura</button>
-              </div>
-            }
-          </div>
-        </article>
-      }
+  <!-- Continúa leyendo: una fila de portadas, cada una un enlace al libro. -->
+  @if (!controller.isLoadingUniverses && !controller.hasActiveLibraryFilters && controller.runningBooks(6).length) {
+    <section class="continue" aria-labelledby="continue-title">
+      <h2 class="continue__title" id="continue-title">Continúa leyendo</h2>
+      <ul class="continue__row">
+        @for (book of controller.runningBooks(6); track book.Id) {
+          <li class="continue__item">
+            <a class="continue__link" [href]="'/book/' + book.Id" (click)="openFromLink({ kind: 'book', item: book }, $event)">
+              <img [src]="book.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
+              <span class="continue__name">{{book.Nombre}}</span>
+            </a>
+            <span class="web-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="controller.completionPercent(book)"
+              [attr.aria-label]="'Progreso de ' + book.Nombre"><span [style.width.%]="controller.completionPercent(book)"></span></span>
+          </li>
+        }
+      </ul>
     </section>
   }
 
   <div class="web-library__toolbar">
-    <div class="web-segmented" role="group" aria-label="Organizar por">
-      <button type="button" [class.is-selected]="controller.collectionView === 'universes'" [attr.aria-pressed]="controller.collectionView === 'universes'" (click)="controller.setCollectionView('universes')">Universos</button>
-      <button type="button" [class.is-selected]="controller.collectionView === 'statuses'" [attr.aria-pressed]="controller.collectionView === 'statuses'" (click)="controller.setCollectionView('statuses')">Estados</button>
-    </div>
+    <!-- La vista, como pestañas; la disponibilidad, como fichas de filtro. -->
+    <nav class="view-tabs" aria-label="Organizar por">
+      <button type="button" [class.is-selected]="controller.collectionView === 'universes'" [attr.aria-current]="controller.collectionView === 'universes' ? 'true' : null" (click)="controller.setCollectionView('universes')">Universos</button>
+      <button type="button" [class.is-selected]="controller.collectionView === 'statuses'" [attr.aria-current]="controller.collectionView === 'statuses' ? 'true' : null" (click)="controller.setCollectionView('statuses')">Estados</button>
+    </nav>
     @if (controller.collectionView === 'universes') {
-      <div class="web-segmented" role="group" aria-label="Disponibilidad">
+      <div class="filter-chips" role="group" aria-label="Disponibilidad">
         <button type="button" [class.is-selected]="controller.availabilityFilter === 'all'" [attr.aria-pressed]="controller.availabilityFilter === 'all'" (click)="controller.setAvailabilityFilter('all')">Todos</button>
-        <button type="button" [class.is-selected]="controller.availabilityFilter === 'purchased'" [attr.aria-pressed]="controller.availabilityFilter === 'purchased'" (click)="controller.setAvailabilityFilter('purchased')">Comprados</button>
-        <button type="button" [class.is-selected]="controller.availabilityFilter === 'unpurchased'" [attr.aria-pressed]="controller.availabilityFilter === 'unpurchased'" (click)="controller.setAvailabilityFilter('unpurchased')">Por comprar</button>
+        <button type="button" [class.is-selected]="controller.availabilityFilter === 'purchased'" [attr.aria-pressed]="controller.availabilityFilter === 'purchased'" (click)="controller.setAvailabilityFilter('purchased')">@if (controller.availabilityFilter === 'purchased') {<mat-icon aria-hidden="true">check</mat-icon>}Comprados</button>
+        <button type="button" [class.is-selected]="controller.availabilityFilter === 'unpurchased'" [attr.aria-pressed]="controller.availabilityFilter === 'unpurchased'" (click)="controller.setAvailabilityFilter('unpurchased')">@if (controller.availabilityFilter === 'unpurchased') {<mat-icon aria-hidden="true">check</mat-icon>}Por comprar</button>
       </div>
     }
   </div>
@@ -79,7 +75,7 @@
           <button class="group__head" type="button" [attr.aria-expanded]="controller.isUniverseExpanded(universe)"
             [attr.aria-controls]="'web-universe-' + universe.Id" (click)="toggleUniverse(universe)">
             <mat-icon class="group__chevron" aria-hidden="true">{{controller.isUniverseExpanded(universe) ? 'expand_more' : 'chevron_right'}}</mat-icon>
-            <span class="group__name">@if (!isNeutralUniverse(universe)) {<mat-icon aria-hidden="true">public</mat-icon>}{{universe.Nombre}}</span>
+            <h2 class="group__name">{{universe.Nombre}}</h2>
             <span class="group__author">{{universeAuthors(universe)}}</span>
             <span class="group__count">{{itemCountLabel(controller.getTotalBooksFromUniverse(universe))}}</span>
           </button>
@@ -146,23 +142,30 @@
 </main>
 
 <ng-template #bookCard let-entry>
-  <article class="book-card" [attr.data-library-item]="entry.kind + '-' + entry.item.Id" tabindex="0" role="link"
-    [attr.aria-label]="entry.item.Nombre" (click)="open(entry)" (keydown.enter)="open(entry)">
+  <!-- Un enlace de verdad: el del título cubre la tarjeta (se abre en otra pestaña con el botón central o Ctrl). Los
+       botones de la tarjeta quedan por encima de él. Una antología abre su panel, así que es un botón. -->
+  <article class="book-card" [attr.data-library-item]="entry.kind + '-' + entry.item.Id">
     <img class="book-card__cover" [src]="entry.item.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
     <div class="book-card__body">
-      <h3>{{entry.item.Nombre}}</h3>
+      <h3>
+        @if (entry.kind === 'book') {
+          <a class="book-card__link" [href]="'/book/' + entry.item.Id" (click)="openFromLink(entry, $event)">{{entry.item.Nombre}}</a>
+        } @else {
+          <button class="book-card__link" type="button" (click)="open(entry)">{{entry.item.Nombre}}</button>
+        }
+      </h3>
       @if (entry.item | ownFunTitle; as funTitle) {<p class="fun-title-line">{{funTitle}}</p>}
       <p>{{controller.getAuthors(entry.item.Autores).join(', ')}}</p>
       <span class="book-card__meta">
         <span class="web-status" [attr.data-status]="controller.latestStatusClass(entry.item)"><mat-icon aria-hidden="true">{{controller.latestStatusIcon(entry.item)}}</mat-icon>{{controller.latestStatusName(entry.item)}}</span>
         @if (entry.item.Puntuacion; as rating) {
-          <span class="book-card__rating" [attr.aria-label]="rating + ' de 5 estrellas'">@for (star of controller.ratingStars; track star) {@if (star <= rating) {<mat-icon aria-hidden="true">star</mat-icon>}}</span>
+          <span class="book-card__rating" role="img" [attr.aria-label]="rating + ' de 5 estrellas'">@for (star of controller.ratingStars; track star) {@if (star <= rating) {<mat-icon aria-hidden="true">star</mat-icon>}}</span>
         }
         @if (entry.kind === 'antology') { <span class="book-card__kind">Antología</span> }
       </span>
-      @if (controller.hasMultipleOwnedEditions(entry.item)) {<button class="web-button web-button--small" type="button" [attr.aria-label]="'Ver ediciones de ' + entry.item.Nombre" (keydown.enter)="$event.stopPropagation()" (click)="controller.openWorkEditions(entry.kind, entry.item, $event)">Ver ediciones</button>}
+      @if (controller.hasMultipleOwnedEditions(entry.item)) {<button class="web-button web-button--small book-card__above" type="button" [attr.aria-label]="'Ver ediciones de ' + entry.item.Nombre" (click)="controller.openWorkEditions(entry.kind, entry.item, $event)">Ver ediciones</button>}
     </div>
-    <button class="book-card__more" type="button" [attr.aria-label]="'Estado y puntuación de ' + entry.item.Nombre" (click)="edit(entry, $event)"><mat-icon>more_horiz</mat-icon></button>
+    <button class="book-card__more book-card__above" type="button" [attr.aria-label]="'Estado y puntuación de ' + entry.item.Nombre" (click)="edit(entry, $event)"><mat-icon>more_horiz</mat-icon></button>
     @if (entry.kind === 'book' && controller.completionPercent(entry.item) > 1) {
       <span class="book-card__progress" aria-hidden="true"><span [style.width.%]="controller.completionPercent(entry.item)"></span></span>
     }
