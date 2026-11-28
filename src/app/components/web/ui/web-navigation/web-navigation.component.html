@@ -1,7 +1,4 @@
 <header class="web-topbar">
-  <button class="web-topbar__button" type="button" aria-label="Abrir menú" [attr.aria-expanded]="drawerOpen()" (click)="drawerOpen.set(true)">
-    <mat-icon>menu</mat-icon>
-  </button>
   <span class="web-topbar__title">Memoria bibliográfica</span>
   <!-- Las webs del ecosistema, la campana y la cuenta de Yosiftware (el avatar abre el panel de cuentas). El Perfil de
        Libros está en el menú. -->
@@ -23,7 +20,7 @@
   </a>
 
   <nav class="web-nav__list">
-    @for (item of items; track item.route) {
+    @for (item of drawerItems; track item.route) {
       <a class="web-nav__item" [routerLink]="item.route" [class.is-active]="isActive(item)" [attr.aria-current]="isActive(item) ? 'page' : null"
         [matTooltip]="item.label" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right">
         <mat-icon aria-hidden="true">{{item.icon}}</mat-icon>
@@ -54,3 +51,22 @@
     </div>
   </div>
 </aside>
+
+<!-- Compact: los destinos principales, abajo; «Más» abre el cajón con el resto. Mensajes está dentro de Comunidad, que
+     lleva su insignia de no leídos. -->
+<nav class="web-tabbar" aria-label="Navegación principal">
+  @for (item of tabItems; track item.route) {
+    <a class="web-tabbar__item" [routerLink]="item.route" [class.is-active]="isTabActive(item)" [attr.aria-current]="isTabActive(item) ? 'page' : null">
+      <span class="web-tabbar__icon">
+        <mat-icon aria-hidden="true">{{item.icon}}</mat-icon>
+        @if (item.badge) { <span class="web-tabbar__badge" aria-hidden="true">{{item.badge}}</span> }
+      </span>
+      <span class="web-tabbar__label">{{item.label}}</span>
+      @if (item.badge) { <span class="web-tabbar__sr">, {{item.badge}} sin leer</span> }
+    </a>
+  }
+  <button class="web-tabbar__item" type="button" [class.is-active]="drawerOpen()" [attr.aria-expanded]="drawerOpen()" (click)="drawerOpen.set(true)">
+    <span class="web-tabbar__icon"><mat-icon aria-hidden="true">more_horiz</mat-icon></span>
+    <span class="web-tabbar__label">Más</span>
+  </button>
+</nav>
