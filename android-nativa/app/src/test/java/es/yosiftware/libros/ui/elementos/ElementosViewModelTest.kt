@@ -181,6 +181,31 @@ class ElementosViewModelTest {
     }
 
     @Test
+    fun conLaFichaAlLadoSeAbreLaDelPrimeroSinTocarLaAbiertaNiElAlta() = runTest {
+        val m = montar()
+        val vm = m.vm()
+        vm.abrir(libro, VistaDelLibro.DeElemento(Elemento.PERSONAJES))
+        advanceUntilIdle()
+        assertEquals(ModoDeElementos.Lista, vm.modo)
+        // El primero de la lista: Kaladin (por nombre, antes que Lirin y Tien).
+        vm.abrirElPrimero()
+        assertEquals(ModoDeElementos.Ficha(12), vm.modo)
+        vm.cambiarA(6)
+        advanceUntilIdle()
+        vm.abrirElPrimero()
+        assertEquals(ModoDeElementos.Ficha(6), vm.modo)
+        vm.abrirAlta()
+        vm.abrirElPrimero()
+        assertEquals(ModoDeElementos.Alta, vm.modo)
+        // Un tipo sin elementos se queda en la lista.
+        val citas = m.vm(ViewModelStore())
+        citas.abrir(libro, VistaDelLibro.DeElemento(Elemento.CITAS))
+        advanceUntilIdle()
+        citas.abrirElPrimero()
+        assertEquals(ModoDeElementos.Lista, citas.modo)
+    }
+
+    @Test
     fun elNombreSeGuardaAlSalirDelCampoYNoMientrasSeEscribe() = runTest {
         val m = montar()
         val vm = m.vm()

@@ -86,6 +86,7 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.componentes.rayaAbajo
 import es.yosiftware.libros.ui.componentes.rayaArriba
@@ -146,6 +147,8 @@ fun PantallaElementos(libroVm: LibroViewModel, vista: VistaDelLibro.DeElemento, 
     val tipo = vista.elemento
     val ficha = vm.ficha.takeIf { vm.modo is ModoDeElementos.Ficha }
     var buscado by rememberSaveable(tipo) { mutableStateOf("") }
+    // Con la ficha al lado, la del primero abierta: así no queda la columna vacía (ronda 1 de interfaz).
+    LaunchedEffect(aLaVez, vm.modo, libro) { if (aLaVez) vm.abrirElPrimero() }
     // En el móvil, Atrás en la ficha vuelve a la lista (guardando antes); la hoja de alta se cierra sola.
     BackHandler(enabled = !aLaVez && ficha != null) { vm.volver() }
     if (aLaVez) {
@@ -154,7 +157,6 @@ fun PantallaElementos(libroVm: LibroViewModel, vista: VistaDelLibro.DeElemento, 
             Box(Modifier.width(1.dp).fillMaxHeight().background(colores.contorno))
             Box(Modifier.weight(1f).fillMaxHeight().background(colores.superficie)) {
                 if (ficha != null) Ficha(libroVm, vm, libro, ficha, conVolver = false)
-                else Text("Elige uno de la lista.", style = Textos.cuerpo.copy(color = colores.tintaSuave), modifier = Modifier.padding(horizontal = 40.dp, vertical = 48.dp))
             }
         }
     } else if (ficha != null) {
@@ -177,7 +179,7 @@ fun PantallaElementos(libroVm: LibroViewModel, vista: VistaDelLibro.DeElemento, 
 // --- La lista. ---
 
 /**
- * La lista del tipo, sobre el lienzo: arriba, fijos, el buscador y «Nuevo»; debajo, las filas agrupadas como las manda
+ * La lista del tipo, sobre el lienzo: arriba, fijos, el buscador y el +; debajo, las filas agrupadas como las manda
  * el servidor ([ListaDeElementos.grupos]). En personajes, junto al nombre, en cuántos capítulos salen.
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -194,18 +196,14 @@ private fun Lista(vm: ElementosViewModel, libro: Libro, tipo: Elemento, buscado:
                 horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Buscador(buscado, "Buscar", "Buscar en ${tipo.etiqueta.lowercase()}", alBuscar, Modifier.weight(1f))
-                BotonNuevo(nuevo(tipo)) { vm.abrirAlta() }
+                // La lupa sola y el + (ronda 1 de interfaz, opciones A): lo que buscan y lo que crean va en su nombre.
+                Buscador(buscado, "", "Buscar en ${tipo.etiqueta.lowercase()}", alBuscar, Modifier.weight(1f))
+                BotonDeIcono(Iconos.add, nuevo(tipo), { vm.abrirAlta() }, color = colores.sobrePrimario, fondo = colores.primario)
             }
         }
+        // Dos palabras: el + ya está arriba.
         if (grupos.isEmpty()) item(key = "vacia") {
-            Column(Modifier.padding(horizontal = 20.dp, vertical = Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-                if (buscado.isNotBlank()) Text("Nada coincide con «${buscado.trim()}».", style = Textos.cuerpo.copy(color = colores.tintaSuave))
-                else {
-                    Text("Aún no hay ${tipo.etiqueta.lowercase()}.", style = Textos.cuerpo.copy(color = colores.tintaSuave))
-                    Boton(nuevo(tipo), { vm.abrirAlta() }, icono = Iconos.add)
-                }
-            }
+            ListaVacia(if (buscado.isNotBlank()) "Sin coincidencias" else "Sin ${tipo.etiqueta.lowercase()}", alturaMinima = 120.dp)
         }
         grupos.forEach { grupo ->
             if (grupo.etiqueta.isNotEmpty()) item(key = "g:${grupo.etiqueta}") {
@@ -239,23 +237,10 @@ private fun FilaDeLista(nombre: String, detalle: String, activa: Boolean, alPuls
     }
 }
 
-/** «+ Nuevo»: la píldora pequeña del primario. */
-@Composable
-private fun BotonNuevo(descripcion: String, alPulsar: () -> Unit) {
-    val colores = LocalColores.current
-    Row(
-        Modifier.heightIn(min = 40.dp).clip(Radios.pildora).background(colores.primario)
-            .clickable(role = Role.Button, onClick = alPulsar).semantics { contentDescription = descripcion }
-            .padding(start = 10.dp, end = 14.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(painterResource(Iconos.add), contentDescription = null, tint = colores.sobrePrimario, modifier = Modifier.size(18.dp))
-        Text("Nuevo", style = Textos.boton.copy(fontSize = 14.sp, color = colores.sobrePrimario))
-    }
-}
-
-/** El buscador en píldora, con la lupa (`web.search-field`). */
+/**
+ * El buscador en píldora, con la lupa (`web.search-field`); [descripcion], su nombre accesible. El de la lista va con la
+ * lupa sola, sin [ejemplo] (ronda 1 de interfaz, opción A).
+ */
 @Composable
 private fun Buscador(valor: String, ejemplo: String, descripcion: String, alCambiar: (String) -> Unit, modifier: Modifier = Modifier) {
     val colores = LocalColores.current

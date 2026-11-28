@@ -177,6 +177,16 @@ class ElementosViewModel(
         recuperar()
     }
 
+    /**
+     * Con la ficha al lado (desde 600 dp) y ninguna abierta, la del primero de la lista: así la columna de la ficha no se
+     * queda vacía (ronda 1 de interfaz). No toca el alta ni una ficha ya abierta.
+     */
+    fun abrirElPrimero() {
+        if (modo != ModoDeElementos.Lista) return
+        val libro = libro ?: return
+        ListaDeElementos.grupos(libro, tipo, "").firstOrNull()?.elementos?.firstOrNull()?.let { abrirFicha(it.id) }
+    }
+
     fun abrirFicha(id: Int) {
         val libro = libro ?: return
         val abierta = ReglasDeLaFicha.deElemento(tipo, libro, id, estadosDeLugar, ::clave) ?: return
