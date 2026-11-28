@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +50,7 @@ import es.yosiftware.libros.datos.modelos.CrecimientoDelCatalogo
 import es.yosiftware.libros.datos.modelos.EstadisticasDeComunidad
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.Superficie
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.TextoDeApoyo
@@ -143,32 +145,32 @@ private fun Bloques.personal(vm: EstadisticasViewModel) {
     completo {
         Cifras(
             listOf(
-                Cifra(Iconos.menuBook, datos.datos.librosLeidos?.toString() ?: "—", "Libros leídos"),
-                Cifra(Iconos.bookmarkBorder, datos.datos.librosNoLeidos?.toString() ?: "—", "No leídos"),
-                Cifra(Iconos.collectionsBookmark, datos.datos.antologiasLeidas?.toString() ?: "—", "Antologías"),
-                Cifra(Iconos.schedule, datos.datos.promedioDiasCompraLectura?.let { numero(it) } ?: "—", "Días compra-lectura"),
+                Cifra(datos.datos.librosLeidos?.toString() ?: "—", "Libros leídos"),
+                Cifra(datos.datos.librosNoLeidos?.toString() ?: "—", "No leídos"),
+                Cifra(datos.datos.antologiasLeidas?.toString() ?: "—", "Antologías"),
+                Cifra(datos.datos.promedioDiasCompraLectura?.let { numero(it) } ?: "—", "Días compra-lectura"),
             ),
         )
     }
     mitad {
-        Panel(Iconos.donutLarge, "Estados de lectura") {
+        Panel("Estados de lectura") {
             if (datos.estados.isEmpty()) {
-                TextoDeApoyo("Aún no hay lecturas para distribuir.")
+                TextoDeApoyo("Sin datos suficientes.")
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) { datos.estados.forEach { BarraDeEstado(it) } }
             }
         }
     }
-    mitad { Panel(Iconos.bolt, "Lecturas más rápidas") { FilasDeEstadistica(datos.rapidas, ordenadas = true, vacio = "No hay tiempos de lectura calculables.") } }
-    mitad { Panel(Iconos.hourglassBottom, "Más tiempo en espera") { FilasDeEstadistica(datos.enEspera, ordenadas = true, vacio = "No tienes libros en espera.") } }
-    mitad { Panel(Iconos.personSearch, "Autores que más lees") { FilasDeEstadistica(datos.autores, vacio = "Aún no hay libros leídos.") } }
-    mitad { Panel(Iconos.palette, "Estilos que más lees") { FilasDeEstadistica(datos.estilos, vacio = "Tus libros leídos no tienen estilo asignado.") } }
-    mitad { Panel(Iconos.star, "Tus puntuaciones") { FilasDeEstadistica(datos.puntuaciones, vacio = "Aún no has puntuado ningún libro.") } }
+    mitad { Panel("Lecturas más rápidas") { FilasDeEstadistica(datos.rapidas, ordenadas = true) } }
+    mitad { Panel("Más tiempo en espera") { FilasDeEstadistica(datos.enEspera, ordenadas = true) } }
+    mitad { Panel("Autores que más lees") { FilasDeEstadistica(datos.autores) } }
+    mitad { Panel("Estilos que más lees") { FilasDeEstadistica(datos.estilos) } }
+    mitad { Panel("Tus puntuaciones") { FilasDeEstadistica(datos.puntuaciones) } }
     mitad {
         val porComprar = datos.datos.librosPorComprar
-        Panel(Iconos.shoppingCart, "Pendientes de comprar · ${porComprar.size}") {
+        Panel("Pendientes de comprar · ${porComprar.size}") {
             if (porComprar.isEmpty()) {
-                TextoDeApoyo("No tienes libros pendientes.")
+                TextoDeApoyo("Ninguno")
             } else {
                 val colores = LocalColores.current
                 Column(Modifier.padding(start = Espacios.e5), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
@@ -192,29 +194,29 @@ private fun Bloques.ritmoYPuntuaciones(datos: EstadisticasPersonales) {
         completo {
             Cifras(
                 listOf(
-                    Cifra(Iconos.localFireDepartment, ritmo.rachaActual.toString(), "Días seguidos"),
-                    Cifra(Iconos.emojiEvents, ritmo.mejorRacha.toString(), "Mejor racha"),
-                    Cifra(Iconos.eventAvailable, ritmo.diasConLectura.toString(), "Días con lectura"),
-                    Cifra(Iconos.autoStories, numero(ritmo.paginasPorDiaActivo), "Págs./día leído"),
+                    Cifra(ritmo.rachaActual.toString(), "Días seguidos"),
+                    Cifra(ritmo.mejorRacha.toString(), "Mejor racha"),
+                    Cifra(ritmo.diasConLectura.toString(), "Días con lectura"),
+                    Cifra(numero(ritmo.paginasPorDiaActivo), "Págs./día leído"),
                 ),
             )
         }
-        mitad { Panel(Iconos.calendarMonth, "Páginas por mes") { FilasDeEstadistica(datos.paginasPorMes, vacio = "Aún no hay meses con lectura registrada.") } }
-        mitad { Panel(Iconos.dateRange, "Qué días lees") { FilasDeEstadistica(datos.diasQueLees) } }
-        mitad { Panel(Iconos.schedule, "A qué hora lees") { FilasDeEstadistica(datos.horasQueLees) } }
+        mitad { Panel("Páginas por mes") { FilasDeEstadistica(datos.paginasPorMes) } }
+        mitad { Panel("Qué días lees") { FilasDeEstadistica(datos.diasQueLees) } }
+        mitad { Panel("A qué hora lees") { FilasDeEstadistica(datos.horasQueLees) } }
     }
     val valoraciones = datos.datos.valoraciones
     if (valoraciones != null) {
         completo {
             Cifras(
                 listOf(
-                    Cifra(Iconos.starHalf, valoraciones.notaMedia?.let { numero(it) } ?: "—", "Tu nota media"),
-                    Cifra(Iconos.rateReview, datos.resenasDelAnio.toString(), "Reseñas en el año"),
+                    Cifra(valoraciones.notaMedia?.let { numero(it) } ?: "—", "Tu nota media"),
+                    Cifra(datos.resenasDelAnio.toString(), "Reseñas en el año"),
                 ),
             )
         }
-        mitad { Panel(Iconos.calendarMonth, "Puntuaciones por mes") { FilasDeEstadistica(datos.puntuacionesPorMes, vacio = "Aún no hay meses con puntuaciones.") } }
-        mitad { Panel(Iconos.star, "Tu nota media por mes") { FilasDeEstadistica(datos.notaMediaPorMes) } }
+        mitad { Panel("Puntuaciones por mes") { FilasDeEstadistica(datos.puntuacionesPorMes) } }
+        mitad { Panel("Tu nota media por mes") { FilasDeEstadistica(datos.notaMediaPorMes) } }
     }
 }
 
@@ -222,9 +224,7 @@ private fun Bloques.ritmoYPuntuaciones(datos: EstadisticasPersonales) {
 
 private fun Bloques.general(vm: EstadisticasViewModel, alVerNuevos: (String) -> Unit) {
     when {
-        vm.cargandoGeneral -> completo {
-            TextoDeApoyo("Cargando el catálogo…", Modifier.fillMaxWidth().padding(Espacios.e4))
-        }
+        vm.cargandoGeneral -> completo { Cargando("Cargando las estadísticas generales") }
         vm.errorGeneral -> completo { NoDisponible("No se pudo cargar el catálogo", null, vm::cargarGeneral) }
         vm.generalCargado -> {
             if (vm.compartir != null) completo { Compartir(vm) }
@@ -243,40 +243,40 @@ private fun Bloques.comunidad(comunidad: EstadisticasDeComunidad) {
     completo {
         Cifras(
             listOf(
-                Cifra(Iconos.groups, comunidad.lectoresActivos?.toString() ?: "—", "Lectores"),
-                Cifra(Iconos.menuBook, comunidad.librosLeidos?.toString() ?: "—", "Libros leídos"),
-                Cifra(Iconos.speed, comunidad.ritmoComunidad?.ritmoMedio?.let { numero(it) } ?: "—", "Págs./día"),
+                Cifra(comunidad.lectoresActivos?.toString() ?: "—", "Lectores"),
+                Cifra(comunidad.librosLeidos?.toString() ?: "—", "Libros leídos"),
+                Cifra(comunidad.ritmoComunidad?.ritmoMedio?.let { numero(it) } ?: "—", "Págs./día"),
             ),
         )
     }
     val paginas = Estadisticas.paginasDeLaComunidad(comunidad.ritmoComunidad)
-    if (paginas.isNotEmpty()) mitad { Panel(Iconos.autoStories, "Páginas leídas por mes") { FilasDeEstadistica(paginas) } }
+    if (paginas.isNotEmpty()) mitad { Panel("Páginas leídas por mes") { FilasDeEstadistica(paginas) } }
     val puntuaciones = Estadisticas.puntuacionesPorMes(comunidad.valoracionesComunidad)
-    if (puntuaciones.isNotEmpty()) mitad { Panel(Iconos.hotelClass, "Puntuaciones por mes") { FilasDeEstadistica(puntuaciones) } }
+    if (puntuaciones.isNotEmpty()) mitad { Panel("Puntuaciones por mes") { FilasDeEstadistica(puntuaciones) } }
     val notas = Estadisticas.notaMediaPorMes(comunidad.valoracionesComunidad)
-    if (notas.isNotEmpty()) mitad { Panel(Iconos.star, "Nota media por mes") { FilasDeEstadistica(notas) } }
+    if (notas.isNotEmpty()) mitad { Panel("Nota media por mes") { FilasDeEstadistica(notas) } }
     val meses = Estadisticas.lecturasPorMes(comunidad)
-    if (meses.isNotEmpty()) mitad { Panel(Iconos.calendarMonth, "Lecturas por mes") { FilasDeEstadistica(meses) } }
+    if (meses.isNotEmpty()) mitad { Panel("Lecturas por mes") { FilasDeEstadistica(meses) } }
     val rankings = Estadisticas.rankings(comunidad)
-    rankings.forEach { (titulo, filas) -> mitad { Panel(iconoDeRanking(titulo), titulo) { FilasDeEstadistica(filas, ordenadas = true) } } }
+    rankings.forEach { (titulo, filas) -> mitad { Panel(titulo) { FilasDeEstadistica(filas, ordenadas = true) } } }
     if (rankings.isEmpty() && meses.isEmpty()) {
         mitad {
-            Panel(Iconos.lockPerson, "Aún no hay datos suficientes", discontinuo = true) {}
+            Panel("Aún no hay datos suficientes", discontinuo = true, icono = Iconos.lockPerson) {}
         }
     }
     completo { Actividad(comunidad.actividad30Dias) }
-    mitad { Panel(Iconos.groups2, "Clubes más amplios") { FilasDeEstadistica(Estadisticas.filasDeClubes(comunidad.clubesMasAmplios), ordenadas = true, vacio = "Todavía no hay clubes abiertos.") } }
-    mitad { Panel(Iconos.localFireDepartment, "Clubes más activos") { FilasDeEstadistica(Estadisticas.filasDeClubes(comunidad.clubesMasActivos, porActividad = true), ordenadas = true, vacio = "Ningún club ha tenido actividad este mes.") } }
+    mitad { Panel("Clubes más amplios") { FilasDeEstadistica(Estadisticas.filasDeClubes(comunidad.clubesMasAmplios), ordenadas = true) } }
+    mitad { Panel("Clubes más activos") { FilasDeEstadistica(Estadisticas.filasDeClubes(comunidad.clubesMasActivos, porActividad = true), ordenadas = true) } }
 }
 
 private fun Bloques.catalogo(catalogo: ResumenDelCatalogo, crecimiento: CrecimientoDelCatalogo?, alVerNuevos: (String) -> Unit) {
     completo {
         Cifras(
             listOf(
-                Cifra(Iconos.libraryBooks, catalogo.titulos.toString(), "Títulos"),
-                Cifra(Iconos.person, catalogo.autores.toString(), "Autores"),
-                Cifra(Iconos.palette, catalogo.estilos.size.toString(), "Estilos"),
-                Cifra(Iconos.translate, catalogo.idiomas.size.toString(), "Idiomas"),
+                Cifra(catalogo.titulos.toString(), "Títulos"),
+                Cifra(catalogo.autores.toString(), "Autores"),
+                Cifra(catalogo.estilos.size.toString(), "Estilos"),
+                Cifra(catalogo.idiomas.size.toString(), "Idiomas"),
             ),
         )
     }
@@ -285,34 +285,23 @@ private fun Bloques.catalogo(catalogo: ResumenDelCatalogo, crecimiento: Crecimie
         completo {
             Cifras(
                 listOf(
-                    Cifra(Iconos.fiberNew, crecimiento.nuevas24h.toString(), "Nuevos en 24 horas") { alVerNuevos("24h") },
-                    Cifra(Iconos.fiberNew, crecimiento.nuevas7d.toString(), "Nuevos esta semana") { alVerNuevos("7d") },
-                    Cifra(Iconos.fiberNew, crecimiento.nuevas30d.toString(), "Nuevos este mes") { alVerNuevos("30d") },
+                    Cifra(crecimiento.nuevas24h.toString(), "Nuevos en 24 horas") { alVerNuevos("24h") },
+                    Cifra(crecimiento.nuevas7d.toString(), "Nuevos esta semana") { alVerNuevos("7d") },
+                    Cifra(crecimiento.nuevas30d.toString(), "Nuevos este mes") { alVerNuevos("30d") },
                 ),
             )
         }
     }
-    mitad { Panel(Iconos.addCircle, "Obras añadidas por mes") { FilasDeEstadistica(Estadisticas.altasPorMes(crecimiento), vacio = "Aún no hay altas con fecha.") } }
-    mitad { Panel(Iconos.palette, "Títulos por estilo") { FilasDeEstadistica(catalogo.estilos, vacio = "Los libros aún no tienen estilo asignado.") } }
-    mitad { Panel(Iconos.personSearch, "Autores con más títulos") { FilasDeEstadistica(catalogo.autoresConMasTitulos, ordenadas = true, vacio = "Sin autores en el catálogo.") } }
-    mitad { Panel(Iconos.translate, "Idiomas disponibles") { FilasDeEstadistica(catalogo.idiomas, vacio = "Sin idiomas registrados.") } }
-    mitad { Panel(Iconos.historyEdu, "Publicación por décadas") { FilasDeEstadistica(catalogo.decadas, vacio = "Sin fechas de publicación.") } }
-}
-
-private fun iconoDeRanking(titulo: String): Int = when (titulo) {
-    "Libros más leídos" -> Iconos.menuBook
-    "Mejor valorados" -> Iconos.star
-    "Estilos más leídos" -> Iconos.palette
-    "Autores más leídos" -> Iconos.personSearch
-    "Idiomas más leídos" -> Iconos.translate
-    "Sagas más leídas" -> Iconos.collectionsBookmark
-    "Universos más leídos" -> Iconos.public
-    else -> Iconos.libraryBooks
+    mitad { Panel("Obras añadidas por mes") { FilasDeEstadistica(Estadisticas.altasPorMes(crecimiento)) } }
+    mitad { Panel("Títulos por estilo") { FilasDeEstadistica(catalogo.estilos) } }
+    mitad { Panel("Autores con más títulos") { FilasDeEstadistica(catalogo.autoresConMasTitulos, ordenadas = true) } }
+    mitad { Panel("Idiomas disponibles") { FilasDeEstadistica(catalogo.idiomas) } }
+    mitad { Panel("Publicación por décadas") { FilasDeEstadistica(catalogo.decadas) } }
 }
 
 // --- Piezas. ---
 
-/** `.m-stats__tabs`: Personal y General, en una píldora sobre el contenedor de la superficie. */
+/** `.m-stats__tabs`: Personal y General, con la palabra, en una píldora sobre el contenedor de la superficie. */
 @Composable
 private fun Pestanas(vm: EstadisticasViewModel) {
     val colores = LocalColores.current
@@ -320,25 +309,24 @@ private fun Pestanas(vm: EstadisticasViewModel) {
         Modifier.fillMaxWidth().clip(Radios.pildora).background(colores.superficieContenedor).padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        listOf(PestanaDeEstadisticas.PERSONAL to (Iconos.person to "Personal"), PestanaDeEstadisticas.GENERAL to (Iconos.public to "General"))
-            .forEach { (pestana, icono) ->
+        listOf(PestanaDeEstadisticas.PERSONAL to "Personal", PestanaDeEstadisticas.GENERAL to "General")
+            .forEach { (pestana, nombre) ->
                 val activa = vm.pestana == pestana
                 val tinta = if (activa) colores.sobrePrimario else colores.tintaSuave
-                Row(
+                Box(
                     Modifier.weight(1f).heightIn(min = 44.dp).clip(Radios.pildora)
                         .background(if (activa) colores.primario else Color.Transparent)
-                        .clickable(role = Role.Tab) { vm.elegir(pestana) },
-                    horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .selectable(selected = activa, role = Role.Tab) { vm.elegir(pestana) },
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Icon(painterResource(icono.first), contentDescription = null, tint = tinta, modifier = Modifier.size(20.dp))
-                    Text(icono.second, style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = tinta))
+                    Text(nombre, style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = tinta))
                 }
             }
     }
 }
 
-private class Cifra(@DrawableRes val icono: Int, val valor: String, val nombre: String, val alPulsar: (() -> Unit)? = null)
+/** Una cifra: el valor y su nombre, sin icono (ronda 1 de interfaz, S1). */
+private class Cifra(val valor: String, val nombre: String, val alPulsar: (() -> Unit)? = null)
 
 /** `.m-stats__metrics`: dos columnas en el móvil y cuatro desde 600 dp. */
 @Composable
@@ -361,7 +349,6 @@ private fun TarjetaDeCifra(cifra: Cifra, modifier: Modifier) {
     val pulsable = cifra.alPulsar?.let { accion -> Modifier.clip(RoundedCornerShape(Radios.lg)).clickable(role = Role.Button, onClick = accion) } ?: Modifier
     Tarjeta(modifier.then(pulsable)) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Icon(painterResource(cifra.icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
             // El interlineado, medido en la captura: el `strong` de la rejilla deja más aire que el de la letra.
             Text(cifra.valor, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.7), fontWeight = FontWeight.Bold, lineHeight = 1.85.em, color = colores.tinta))
             Text(cifra.nombre, style = Textos.nota.copy(color = colores.tintaSuave))
@@ -369,13 +356,16 @@ private fun TarjetaDeCifra(cifra: Cifra, modifier: Modifier) {
     }
 }
 
-/** `.m-stats__panel`: una tarjeta con su título de display e icono, y lo suyo debajo. */
+/**
+ * `.m-stats__panel`: una tarjeta con su título de display y lo suyo debajo. Sin icono (ronda 1 de interfaz, S1), salvo
+ * el candado del umbral de privacidad ([icono]).
+ */
 @Composable
-private fun Panel(@DrawableRes icono: Int, titulo: String, discontinuo: Boolean = false, contenido: @Composable ColumnScope.() -> Unit) {
+private fun Panel(titulo: String, discontinuo: Boolean = false, @DrawableRes icono: Int? = null, contenido: @Composable ColumnScope.() -> Unit) {
     val colores = LocalColores.current
     val cuerpo: @Composable ColumnScope.() -> Unit = {
         Row(Modifier.padding(bottom = Espacios.e4), horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
-            Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
+            if (icono != null) Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
             Text(titulo, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.15), lineHeight = 1.25.em, color = colores.tinta))
         }
         contenido()
@@ -451,18 +441,18 @@ private fun Pista(porcentaje: Int, fondo: Color) {
     }
 }
 
-/** `.m-stats__activity`: la actividad de 30 días, en tantas columnas de 100 dp como quepan. */
+/** `.m-stats__activity`: la actividad de 30 días, en tantas columnas de 100 dp como quepan; sin icono. */
 @Composable
 private fun Actividad(actividad: Map<String, Int?>) {
     val colores = LocalColores.current
     val piezas = listOf(
-        Triple("Publicaciones", "Publicaciones", Iconos.article),
-        Triple("Comentarios", "Comentarios", Iconos.chatBubble),
-        Triple("Reacciones", "Reacciones", Iconos.favorite),
-        Triple("Debates", "Debates", Iconos.forum),
-        Triple("VotosEncuesta", "Votos", Iconos.howToVote),
-        Triple("Eventos", "Eventos", Iconos.event),
-        Triple("NuevosMiembros", "Nuevos miembros", Iconos.groupAdd),
+        "Publicaciones" to "Publicaciones",
+        "Comentarios" to "Comentarios",
+        "Reacciones" to "Reacciones",
+        "Debates" to "Debates",
+        "VotosEncuesta" to "Votos",
+        "Eventos" to "Eventos",
+        "NuevosMiembros" to "Nuevos miembros",
     )
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val hueco: Dp = Espacios.e2
@@ -470,10 +460,9 @@ private fun Actividad(actividad: Map<String, Int?>) {
         Column(verticalArrangement = Arrangement.spacedBy(hueco)) {
             piezas.chunked(columnas).forEach { fila ->
                 Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(hueco)) {
-                    fila.forEach { (clave, nombre, icono) ->
+                    fila.forEach { (clave, nombre) ->
                         Superficie(Modifier.weight(1f).fillMaxHeight()) {
                             Column(Modifier.padding(Espacios.e3 + 1.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(20.dp))
                                 Text(actividad[clave]?.toString() ?: "—", style = Textos.cuerpo.copy(fontSize = rem(1.2), fontWeight = FontWeight.Bold, color = colores.tinta))
                                 Text(nombre, style = Textos.cuerpo.copy(fontSize = rem(0.75), lineHeight = 1.3.em, color = colores.tintaSuave))
                             }
