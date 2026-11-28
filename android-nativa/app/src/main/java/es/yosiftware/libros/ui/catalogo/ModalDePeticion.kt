@@ -44,6 +44,8 @@ import es.yosiftware.libros.ui.tema.rem
 /**
  * El modal de petición del catálogo: pedir un libro nuevo (el «+») o proponer una corrección de la ficha abierta, con el
  * cupo de peticiones activas de la persona en una línea y, al llegar al límite, el aviso que hace falta para decidir.
+ * También «Corregir y reenviar» una petición devuelta desde Mis peticiones: relleno con lo enviado y sin el cupo, que el
+ * reenvío no cuenta.
  * Sin «Entidad», «Solicitud» ni «Ficha» sobre los campos (el título ya lo dice) y con una sola ayuda corta por campo
  * (ronda 1 de interfaz, C4).
  *
@@ -63,8 +65,8 @@ fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
             }
 
             // El cupo, en una línea: cuántas peticiones pendientes o devueltas tiene la persona («2 de 5 peticiones
-            // activas»); mientras se consulta, la rueda.
-            Column(
+            // activas»); mientras se consulta, la rueda. Al reenviar una devuelta no se enseña: no cuenta.
+            if (!formulario.esReenvio) Column(
                 Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(Radios.sm)).background(colores.superficieContenedor).padding(Espacios.e3),
                 verticalArrangement = Arrangement.spacedBy(Espacios.e1, Alignment.CenterVertically),
             ) {
@@ -84,9 +86,10 @@ fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
 
             val fecha = formulario.fechaPublicacion
             // Nombre, ISBN y fecha: en una columna o, desde 600 dp, uno al lado del otro (`request-form-grid--fields`).
+            // Autores, universos y sagas (solo al reenviar una devuelta de la web) llevan el nombre y el comentario.
             val datos: @Composable (Modifier) -> Unit = { m ->
                 CampoDePeticion(formulario.etiquetaDeNombre, formulario.nombre, { cambiar(formulario.copy(nombre = it)) }, modifier = m)
-                CampoDePeticion(
+                if (formulario.tipo.esObra) CampoDePeticion(
                     formulario.etiquetaDeIsbn,
                     formulario.isbn,
                     { cambiar(formulario.copy(isbn = it, errorDeIsbn = "")) },
@@ -94,7 +97,7 @@ fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
                     error = formulario.errorDeIsbn.ifEmpty { null },
                     modifier = m,
                 )
-                CampoDePeticion(
+                if (formulario.tipo.esObra) CampoDePeticion(
                     "Fecha de publicación",
                     fecha,
                     { if (it.length <= 10) cambiar(formulario.copy(fechaPublicacion = it)) },
@@ -109,7 +112,7 @@ fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(Espacios.e4)) { datos(Modifier.fillMaxWidth()) }
             }
-            if (!formulario.esCorreccion) {
+            if (formulario.conSinopsis) {
                 CampoDePeticion(
                     "Sinopsis (opcional)",
                     formulario.sinopsis,
@@ -123,7 +126,7 @@ fun ModalDePeticion(vm: CatalogoViewModel, peticion: PeticionAbierta) {
             Row(Modifier.fillMaxWidth().padding(top = Espacios.e2)) {
                 Boton("Cancelar", vm::cerrarPeticion, variante = VarianteDeBoton.Contorno)
                 Spacer(Modifier.weight(1f))
-                Boton("Enviar", vm::enviarPeticion, habilitado = !peticion.enviando)
+                Boton(formulario.boton, vm::enviarPeticion, habilitado = !peticion.enviando)
             }
         }
     }

@@ -53,7 +53,8 @@ import org.json.JSONObject
  *
  * Vistas: `lista`, `filtros`, `busqueda-con-saga` («general: Nacidos», sin resultados), `ficha-libro-en-coleccion`
  * («El imperio final»), `ficha-libro-fuera-coleccion` («El hobbit»), `ficha-antologia` («Arcanum ilimitado»),
- * `hoja-saga`, `peticion`, `cargando`, `error` y `aviso` (el de «Añadido a tu biblioteca»).
+ * `hoja-saga`, `peticion`, `peticion-reenvio` («Corregir y reenviar» una devuelta), `cargando`, `error` y `aviso` (el
+ * de «Añadido a tu biblioteca»).
  */
 class MuestrasDeCatalogo : ActividadDeLibros() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,6 +81,12 @@ class MuestrasDeCatalogo : ActividadDeLibros() {
             "ficha-antologia" -> vm.mostrarFichaDeMuestra(arcanum, detalle(arcanum, ARCANUM_JSON))
             "hoja-saga" -> vm.mostrarHojaDeMuestra(HojaDeSaga(bruma, listOf(heroe, imperio, pozo), cargando = false))
             "peticion" -> vm.mostrarPeticionDeMuestra(PeticionAbierta(FormularioDePeticion.alta(TipoDePeticion.LIBRO), activas = 0, consultandoActivas = false))
+            "peticion-reenvio" -> vm.mostrarPeticionDeMuestra(
+                PeticionAbierta(
+                    FormularioDePeticion(TipoDePeticion.LIBRO, nombre = "El ritmo de la guerra", isbn = "9788418037191", fechaPublicacion = "2021", comentario = "Edición en tapa dura", reenvio = 1),
+                    consultandoActivas = false,
+                ),
+            )
             "error" -> vm.mostrarErrorDeMuestra("No hemos podido cargar el catálogo. Comprueba tu conexión e inténtalo de nuevo.")
             "aviso" -> avisos.exito("Añadido a tu biblioteca", titulo = "El hobbit")
         }

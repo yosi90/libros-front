@@ -76,6 +76,7 @@ class MuestrasDePerfil : ActividadDeLibros() {
                                 identidad = IdentidadDelPerfil("QA Usuario A", "qa-usuario-a", null),
                                 recuentos = 6 to 2,
                                 alAbrirActividad = {},
+                                alCorregirPeticion = {},
                                 alEditarPerfil = {},
                                 alVerPerfilEnLaWeb = {},
                                 alVolverDeEditar = {},

@@ -5,7 +5,13 @@
 ## Pendiente
 
 - [ ] Registrar la tarea programada «Libros QA nocturna» con `scripts/qa/registrar-nocturna-servidor.ps1`. Depende del propietario: el modo automático del agente no puede registrarla. La campaña ya pasa entera desde el servidor (`scripts/qa/nocturna-servidor.ps1`, registros en `.runtime/qa-nocturna/`, aviso por Notificapp si falla). Desde GitHub no se puede: Cloudflare desafía al runner (`cf-mitigated=challenge`), y `qa-nightly.yml` solo corre `qa:ci` y `qa:browsers`.
-- [ ] Mejora tras el clon: reenviar una petición devuelta no deja corregir sus campos (el ISBN, por ejemplo), solo añadir un comentario.
+- [ ] Para la próxima ronda del diseñador (dudas del revisor de interfaz, 28/11/2026, antes de la APK 2.3.0; no bloquean):
+  - el formulario en modo reenvío se titula «Corregir y reenviar», igual que el botón que lo abre: con título o sin él;
+  - en una petición devuelta, «Reenviar» y «Corregir y reenviar» van seguidos y se parecen: otro nombre para el segundo («Corregir datos») o «Reenviar» solo con respuesta escrita;
+  - la denuncia de un club dice «Describe brevemente el motivo…»: ¿basta el contador «n / 1000», como en la solicitud de acceso?
+  - convendría acortar o plegar la frase del club eliminado.
+
+  Van en el mismo lienzo que las propuestas de duplicados que piden diseño (las de la F6 de abajo y las 15 a 17 de `docs/roadmaps/ecosistema/ROADMAP_PAUSADO_duplicados-apk-kotlin.md`).
 - [ ] Regenerar con Docker la referencia Linux de `chapter-editor` (Wood): cambió la alineación de los iconos de prefijo al compartir la paleta de campos.
 - [ ] El Sass de `narrative-entity-placeholder` pasa de su presupuesto: 60 kB de 40 (aviso del `ng build` de producción, 26/11/2026). Viene de antes de la F1. Son los estilos de Mobile y Wood de ese controlador: la F3 rehízo los de la Web en su propia vista y no lo cambió. Repartirlo por presentación, al tocar Mobile o Wood.
 - [ ] Duplicados del «Cuaderno» (revisor, 26/11/2026, `1dc79411..0f3901f2`), de más coste a menos:

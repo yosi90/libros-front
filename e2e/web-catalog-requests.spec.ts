@@ -51,3 +51,36 @@ test('Mis peticiones muestra el nombre primero y el texto largo a ancho de lectu
     const synopsisBox = await synopsis.boundingBox();
     expect(synopsisBox!.width).toBeGreaterThan(documentBox!.width * 0.8);
 });
+
+test('una petición devuelta se corrige en su formulario y se reenvía, sin crear otra', async ({ page }) => {
+    await installLocalVisualSession(page, { webPresentation: true });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const devuelta = {
+        Id: 92, TipoEntidad: 'libro', Accion: 'alta', Estado: 'devuelta', FechaCreacion: '2026-11-20T10:00:00Z',
+        ComentarioResolucion: 'El ISBN no es válido.',
+        Payload: { Nombre: 'La guardia del fin', ISBN: '9780306406158', FechaPublicacion: '2008', Comentario: 'El primero de la saga.' }
+    };
+    await page.route('**/catalogo/**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/peticiones/catalogo/mias?*', route => route.fulfill({ status: 200, json: [devuelta] }));
+    let created = false;
+    await page.route('**/peticiones/catalogo', route => { created = true; return route.fulfill({ status: 500, json: {} }); });
+    let resent: Record<string, unknown> | null = null;
+    await page.route('**/peticiones/catalogo/mias/92/responder', async route => {
+        resent = route.request().postDataJSON();
+        await route.fulfill({ status: 200, json: { ...devuelta, Estado: 'pendiente' } });
+    });
+
+    await page.goto('/dashboard/profile?section=requests');
+    await page.getByRole('link', { name: 'Corregir y reenviar' }).click();
+    const modal = page.locator('.catalog-modal--request');
+    await expect(modal.getByRole('heading', { name: 'Corregir y reenviar' })).toBeVisible();
+    await expect(modal.getByRole('textbox', { name: 'Nombre' })).toHaveValue('La guardia del fin');
+    await modal.getByRole('textbox', { name: /ISBN/ }).fill('9780306406157');
+    await modal.getByRole('button', { name: 'Reenviar' }).click();
+
+    await expect.poll(() => resent).toEqual({ Payload: {
+        Nombre: 'La guardia del fin', ISBN: '9780306406157', FechaPublicacion: '2008', Comentario: 'El primero de la saga.'
+    } });
+    expect(created).toBe(false);
+    await expect(modal).toBeHidden();
+});

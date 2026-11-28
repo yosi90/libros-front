@@ -154,6 +154,21 @@ class PerfilViewModelTest {
     }
 
     @Test
+    fun laReenviadaDesdeCorregirYReenviarSustituyeALaDevuelta() = runTest {
+        val m = montar()
+        m.fuente.peticionesDelServidor = listOf(peticion(4, "devuelta"), peticion(5, "pendiente"))
+        m.vm.alEntrar()
+        runCurrent()
+        m.vm.escribirRespuesta(4, "A medias")
+        m.vm.recibirPeticion(PeticionDeCatalogo.de(JSONObject("""{"Id": 4, "TipoEntidad": "libro", "Accion": "alta", "Payload": {"ISBN": "9780306406157"}, "Estado": "pendiente"}""")))
+        assertEquals(listOf("pendiente", "pendiente"), m.vm.peticiones.map { it.estado })
+        assertEquals("9780306406157", m.vm.peticiones[0].payload.getString("ISBN"))
+        assertFalse(4 in m.vm.respuestas)
+        // El reenvío lo hizo el Catálogo: el Perfil no llama a la API.
+        assertTrue(m.fuente.respondidas.isEmpty())
+    }
+
+    @Test
     fun siElReenvioFallaSeConservaLoEscrito() = runTest {
         val m = montar()
         m.fuente.peticionesDelServidor = listOf(peticion(4, "devuelta", tipo = "otro"))

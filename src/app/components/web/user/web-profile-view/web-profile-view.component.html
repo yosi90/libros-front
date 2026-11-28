@@ -111,7 +111,11 @@
                   @if (request.Estado === 'devuelta') {
                     <div class="document__reply">
                       <textarea [(ngModel)]="controller.requestResponses[request.Id]" rows="3" placeholder="Tu respuesta para reenviar la petición" aria-label="Respuesta para reenviar la petición"></textarea>
-                      <button class="web-button web-button--primary" type="button" [disabled]="controller.isRespondingRequest" (click)="controller.respondReturnedRequest(request)">Reenviar</button>
+                      <span class="document__reply-actions">
+                        <!-- Corregir los datos (el ISBN, por ejemplo): el formulario del Catálogo, relleno con lo enviado. -->
+                        @if (request.TipoEntidad !== 'otro') {<a class="web-button" routerLink="/dashboard/catalog" [queryParams]="{ reenviar: request.Id }">Corregir y reenviar</a>}
+                        <button class="web-button web-button--primary" type="button" [disabled]="controller.isRespondingRequest" (click)="controller.respondReturnedRequest(request)">Reenviar</button>
+                      </span>
                     </div>
                   }
                 </article>
