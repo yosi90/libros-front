@@ -37,6 +37,7 @@
 
 ## Finalizado
 
+- [x] Reenviar una petición devuelta deja corregir sus campos (28/11/2026): «Corregir y reenviar» abre el formulario de petición relleno con lo enviado, en la web (1.5.0) y en la APK (2.3.0).
 Lo cerrado de la APK de Capacitor, Firebase, la sesión y el login propios, la página de administración, las normas y la moderación propias se retiró con la adhesión (etiqueta `apk-capacitor-final`); su historial está en Git.
 
 ### APK Kotlin
