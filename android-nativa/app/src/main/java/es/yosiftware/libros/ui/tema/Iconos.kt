@@ -66,7 +66,6 @@ object Iconos {
     @DrawableRes val collectionsBookmark = R.drawable.mi_collections_bookmark
     @DrawableRes val star = R.drawable.mi_star
     @DrawableRes val starBorder = R.drawable.mi_star_border
-    @DrawableRes val searchOff = R.drawable.mi_search_off
     @DrawableRes val cloudOff = R.drawable.mi_cloud_off
     @DrawableRes val edit = R.drawable.mi_edit
     @DrawableRes val autoAwesome = R.drawable.mi_auto_awesome
@@ -116,15 +115,12 @@ object Iconos {
     @DrawableRes val translate = R.drawable.mi_translate
     @DrawableRes val historyEdu = R.drawable.mi_history_edu
     @DrawableRes val keyboardArrowDown = R.drawable.mi_keyboard_arrow_down
-    @DrawableRes val queryStats = R.drawable.mi_query_stats
-    @DrawableRes val stickyNote2 = R.drawable.mi_sticky_note_2
     @DrawableRes val language = R.drawable.mi_language
     @DrawableRes val manageSearch = R.drawable.mi_manage_search
     @DrawableRes val cloudDone = R.drawable.mi_cloud_done
     @DrawableRes val noteAdd = R.drawable.mi_note_add
     @DrawableRes val segment = R.drawable.mi_segment
     @DrawableRes val formatListBulleted = R.drawable.mi_format_list_bulleted
-    @DrawableRes val category = R.drawable.mi_category
     @DrawableRes val coPresent = R.drawable.mi_co_present
     @DrawableRes val myLocation = R.drawable.mi_my_location
     @DrawableRes val place = R.drawable.mi_place
@@ -134,7 +130,6 @@ object Iconos {
     @DrawableRes val recordVoiceOver = R.drawable.mi_record_voice_over
     @DrawableRes val insights = R.drawable.mi_insights
     @DrawableRes val calendarToday = R.drawable.mi_calendar_today
-    @DrawableRes val analytics = R.drawable.mi_analytics
     @DrawableRes val delete = R.drawable.mi_delete
     @DrawableRes val notes = R.drawable.mi_notes
     @DrawableRes val badge = R.drawable.mi_badge
