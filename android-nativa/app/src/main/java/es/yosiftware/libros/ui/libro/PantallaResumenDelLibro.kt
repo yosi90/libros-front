@@ -60,6 +60,7 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.tema.LocalColores
@@ -76,13 +77,10 @@ import java.time.LocalDate
 
 @Composable
 fun PantallaResumenDelLibro(vm: LibroViewModel) {
-    val colores = LocalColores.current
     val libro = vm.libro
+    // Sin libro, es que aún se está cargando (si falla, el libro se cierra con su aviso): la rueda sola.
     if (libro == null) {
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Icon(painterResource(Iconos.analytics), contentDescription = null, tint = colores.primario, modifier = Modifier.size(44.dp))
-            Text("Abre un libro para ver sus estadísticas.", style = Textos.cuerpo.copy(color = colores.tintaSuave))
-        }
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Cargando("Cargando el libro") }
         return
     }
     val resumen = remember(libro) { EstadisticasDelLibro.de(libro) }
