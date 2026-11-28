@@ -97,14 +97,10 @@ internal fun DictadoPorVoz() {
 
     Column(Modifier.fillMaxWidth().padding(top = Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
         Text("Dictado por voz", color = colores.tinta, style = Textos.cuerpo.copy(fontSize = rem(0.84), fontWeight = FontWeight.Bold))
-        Text(
-            "El micrófono de la barra del editor, en las escenas y las entradas.",
-            color = colores.tintaSuave,
-            style = Textos.cuerpo.copy(fontSize = rem(0.76), lineHeight = rem(0.76 * 1.45)),
-        )
+        // De cada opción, solo el dato que hace falta para elegir (ronda 1 de interfaz, R1).
         Opcion(
             titulo = "Del móvil",
-            detalle = if (delMovil) "Gratis. El reconocedor de voz del móvil escribe cada frase al terminarla." else "Este móvil no tiene reconocedor de voz.",
+            detalle = if (delMovil) "Gratis" else "Sin reconocedor de voz",
             elegida = !conIA,
             habilitada = delMovil,
         ) { elegir(eleccion.copy(modo = ModoDeDictado.DEL_MOVIL)) }
@@ -113,9 +109,9 @@ internal fun DictadoPorVoz() {
             titulo = "Con tu clave de IA",
             detalle = when {
                 vm.error -> "No se ha podido consultar tu IA."
-                estado == null -> "Consultando tu IA…"
-                modelos.isEmpty() -> "Necesitas una clave de OpenAI o ElevenLabs lista para Libros."
-                else -> "Más fino, y con los nombres de tu libro. Gasta de tu clave, dentro de su tope."
+                estado == null -> "Consultando…"
+                modelos.isEmpty() -> "Sin clave de OpenAI ni ElevenLabs"
+                else -> "Gasta de tu clave"
             },
             elegida = conIA,
             habilitada = modelos.isNotEmpty(),
