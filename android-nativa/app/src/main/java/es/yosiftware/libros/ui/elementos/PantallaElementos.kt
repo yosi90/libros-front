@@ -112,16 +112,6 @@ import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
 import es.yosiftware.libros.ui.tema.Textos
 
-/** El icono de cada tipo (`entityToolbarActions`). */
-fun iconoDe(elemento: Elemento): Int = when (elemento) {
-    Elemento.PERSONAJES -> Iconos.coPresent
-    Elemento.ORGANIZACIONES -> Iconos.groups
-    Elemento.EVENTOS -> Iconos.event
-    Elemento.LOCALIZACIONES -> Iconos.myLocation
-    Elemento.CONCEPTOS -> Iconos.autoAwesome
-    Elemento.CITAS -> Iconos.formatQuote
-}
-
 /** «Nuevo personaje», «Nueva organización»… */
 private fun nuevo(tipo: Elemento) = "${if (tipo.femenino) "Nueva" else "Nuevo"} ${tipo.singular}"
 

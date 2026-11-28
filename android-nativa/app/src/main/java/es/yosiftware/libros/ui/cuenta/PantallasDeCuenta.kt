@@ -76,10 +76,6 @@ import kotlinx.coroutines.delay
 // públicas de la APK de Capacitor (PaginaPublica.kt). `ConSesion` es el shell; con las normas de Libros pendientes,
 // [PantallaDeNormasDeLibros] antes de seguir.
 
-/** Un paso a medias de entrar: tiene su propia pantalla hasta que se termina o se cancela. */
-fun EstadoSesion.esUnPaso() = this is EstadoSesion.AltaRequerida || this is EstadoSesion.SegundoFactorRequerido ||
-    this is EstadoSesion.AbrirEnNavegador || this is EstadoSesion.BorradoProgramado || this is EstadoSesion.NormasDeUsoPendientes
-
 /**
  * La pantalla de un estado sin el shell: entrar, los pasos de entrar y el arranque. [cuentas] son las guardadas en la
  * app (para volver a una al salir de otra).
