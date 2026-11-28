@@ -51,6 +51,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.ui.adaptable.zonaSegura
+import es.yosiftware.libros.ui.componentes.Chip
+import es.yosiftware.libros.ui.componentes.EstadoDeChip
 import es.yosiftware.libros.ui.componentes.rayaAbajo
 import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.tema.Espacios
@@ -133,29 +135,26 @@ fun EditorDeEstado(
                 .padding(start = Espacios.e4 + zona.calculateLeftPadding(direccion), end = Espacios.e4 + zona.calculateRightPadding(direccion), top = Espacios.e5, bottom = Espacios.e5),
             verticalArrangement = Arrangement.spacedBy(Espacios.e4),
         ) {
-            // Los seis estados, solo con su icono (decisión del propietario), y el nombre del elegido debajo.
+            // Los seis estados, solo con su icono (decisión del propietario), y el nombre del elegido debajo: los chips
+            // de solo icono de la ficha, como opciones de un grupo.
             Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                 Row(
                     Modifier.fillMaxWidth().semantics { contentDescription = "Estado" }.selectableGroup(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     TipoDeEstado.entries.forEach { estado ->
-                        val activo = valores.estado == estado
-                        Box(
-                            Modifier.weight(1f).heightIn(min = 48.dp).clip(Radios.pildora)
-                                .background(if (activo) colores.contenedorPrimario else colores.superficie)
-                                .border(1.dp, if (activo) Color.Transparent else colores.contorno, Radios.pildora)
-                                .selectable(activo, role = Role.RadioButton) { alElegirEstado(estado) }
-                                .semantics { contentDescription = estado.nombre },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                painterResource(iconoDeEstado(estado)),
-                                contentDescription = null,
-                                tint = if (activo) colores.sobreContenedorPrimario else colores.tintaSuave,
-                                modifier = Modifier.size(22.dp),
-                            )
-                        }
+                        Chip(
+                            "",
+                            Modifier.weight(1f),
+                            estado = if (valores.estado == estado) EstadoDeChip.Seleccionado else EstadoDeChip.Normal,
+                            icono = iconoDeEstado(estado),
+                            tamanoDelIcono = 22.dp,
+                            alPulsar = { alElegirEstado(estado) },
+                            descripcion = estado.nombre,
+                            rellenoHorizontal = 0.dp,
+                            alturaMinima = 48.dp,
+                            rol = Role.RadioButton,
+                        )
                     }
                 }
                 // El nombre ya lo dice el estado elegido al lector de pantalla; aquí solo se ve.

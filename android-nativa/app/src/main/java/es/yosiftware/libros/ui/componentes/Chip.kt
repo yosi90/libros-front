@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +39,9 @@ enum class EstadoDeChip { Normal, Seleccionado, Exito }
  *
  * Con [descripcion], ese es su nombre accesible y el texto visible no se lee aparte: los chips de estado de lectura van
  * solo con el icono y su número («Leído, 14»; ronda 1 de interfaz). Sin [texto], solo el icono.
+ *
+ * Con [rol] `Role.RadioButton`, es una opción de un grupo (`selectable`, elegida si va [EstadoDeChip.Seleccionado]):
+ * los seis estados del editor de estado, a partes iguales y de [alturaMinima] 48. El contenido va centrado.
  */
 @Composable
 fun Chip(
@@ -51,6 +55,8 @@ fun Chip(
     descripcion: String? = null,
     /** Los 13 dp de `.m-chip`; los chips de solo icono que van en fila (los seis estados de la ficha) bajan a 9. */
     rellenoHorizontal: Dp = 13.dp,
+    alturaMinima: Dp = 32.dp,
+    rol: Role = Role.Button,
 ) {
     val colores = LocalColores.current
     val (fondo, tinta, borde) = when (estado) {
@@ -61,17 +67,23 @@ fun Chip(
     }
     Row(
         modifier
-            .heightIn(min = 32.dp)
+            .heightIn(min = alturaMinima)
             .clip(Radios.pildora)
             .background(fondo)
             .border(1.dp, borde, Radios.pildora)
-            .then(if (alPulsar != null) Modifier.clickable(role = Role.Button, onClick = alPulsar) else Modifier)
+            .then(
+                when {
+                    alPulsar == null -> Modifier
+                    rol == Role.RadioButton -> Modifier.selectable(estado == EstadoDeChip.Seleccionado, role = rol, onClick = alPulsar)
+                    else -> Modifier.clickable(role = rol, onClick = alPulsar)
+                },
+            )
             .semantics {
                 if (estado == EstadoDeChip.Seleccionado) selected = true
                 if (descripcion != null) contentDescription = descripcion
             }
             .padding(horizontal = rellenoHorizontal, vertical = 7.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // `.m-chip` no fija el tamaño del icono (el de `mat-icon`, 24); cada vista lo cambia en su Sass si quiere.
