@@ -394,12 +394,14 @@ private fun PestanasDeEstado(vm: BibliotecaViewModel, arriba: Dp) {
         horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
     ) {
         vm.grupos.forEach { grupo ->
+            // Solo el icono y cuántas obras tiene; el nombre, en el accesible (ronda 1 de interfaz).
             Chip(
-                "${grupo.estado.nombre} · ${grupo.obras.size}",
+                "${grupo.obras.size}",
                 estado = if (grupo.estado == activo) EstadoDeChip.Seleccionado else EstadoDeChip.Normal,
                 icono = iconoDeEstado(grupo.estado),
-                tamanoDelIcono = 16.dp,
+                tamanoDelIcono = 20.dp,
                 alPulsar = { vm.elegirEstado(grupo.estado) },
+                descripcion = "${grupo.estado.nombre}, ${grupo.obras.size}",
             )
         }
     }

@@ -139,10 +139,13 @@ fun TarjetaDeObra(obra: Obra, alAbrir: () -> Unit, alEditar: () -> Unit, alVerEd
                     }
                 }
                 Row(Modifier.fillMaxWidth().padding(top = Espacios.e3), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(painterResource(iconoDeEstado(estado)), contentDescription = null, tint = acento, modifier = Modifier.size(16.dp))
-                        Text(nombreDeEstado(obra.estadoActual), style = Textos.cuerpo.copy(fontSize = rem(0.72), fontWeight = FontWeight.Bold, color = colores.tintaSuave))
-                    }
+                    // El estado, solo con su icono y su nombre accesible (ronda 1 de interfaz).
+                    Icon(
+                        painterResource(iconoDeEstado(estado)),
+                        contentDescription = nombreDeEstado(obra.estadoActual).ifEmpty { "Sin estado" },
+                        tint = acento,
+                        modifier = Modifier.size(18.dp),
+                    )
                     obra.puntuacion?.takeIf { it > 0 }?.let { puntuacion ->
                         // Las estrellas, de 12 dp de ancho y montadas 2 dp una sobre otra, como en el Sass.
                         Row(Modifier.semantics { contentDescription = "$puntuacion de 5 estrellas" }) {
