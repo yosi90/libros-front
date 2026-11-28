@@ -149,7 +149,8 @@ class PerfilViewModelTest {
         assertEquals("pendiente", m.vm.peticiones[0].estado)
         assertFalse(4 in m.vm.respuestas)
         assertTrue(m.vm.reenviando.isEmpty())
-        assertEquals(listOf("éxito: Petición reenviada"), m.avisos.anotados)
+        // Ni error ni aviso de éxito: la petición vuelve a «pendiente» y eso ya se ve (ronda 1 de interfaz).
+        assertEquals(emptyList<String>(), m.avisos.anotados)
     }
 
     @Test

@@ -458,7 +458,6 @@ class ElementosViewModel(
                 return@cargar
             }
             terminarAlta(actual, id)
-            avisos.exito("${tipo.singularConMayuscula} ${tipo.participio("cread")}")
         }
     }
 
@@ -526,8 +525,7 @@ class ElementosViewModel(
     }
 
     private fun avisarDelAlta(fallos: List<String>) {
-        if (fallos.isEmpty()) avisos.exito("Personaje creado")
-        else avisos.error("Personaje creado, pero no se ha podido guardar ${enumerar(fallos, "ni")}. Revísalo en su ficha.")
+        if (fallos.isNotEmpty()) avisos.error("Personaje creado, pero no se ha podido guardar ${enumerar(fallos, "ni")}. Revísalo en su ficha.")
     }
 
     // --- El alta rápida desde una escena. ---

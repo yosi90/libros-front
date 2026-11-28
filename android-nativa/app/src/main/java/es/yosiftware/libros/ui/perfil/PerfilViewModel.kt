@@ -167,7 +167,6 @@ class PerfilViewModel(
             peticiones = peticiones.map { if (it.id == actualizada.id) actualizada else it }
             respuestas = respuestas - peticion.id
             reenviando = reenviando - peticion.id
-            avisos.exito("Petición reenviada")
         }
     }
 

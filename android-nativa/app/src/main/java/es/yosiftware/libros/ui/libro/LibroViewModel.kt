@@ -380,7 +380,6 @@ class LibroViewModel(
             poniendoEnMarcha = false
             val conFecha = estado.copy(fecha = estado.fecha ?: Instant.now().toString())
             libro?.takeIf { it.id == actual.id }?.let { ponerLibro(it.copy(obra = it.obra.copy(estados = it.obra.estados + conFecha))) }
-            avisos.exito("Libro puesto en marcha")
         }
     }
 
@@ -401,7 +400,6 @@ class LibroViewModel(
         }) { nuevo ->
             guardandoCompra = false
             if (abierto?.id == actual.id) ponerLibro(nuevo)
-            avisos.exito("Fecha de compra añadida")
         }
     }
 
@@ -508,7 +506,6 @@ class LibroViewModel(
                 guardandoEstructura = false
                 if (abierto?.id == actual.id) ponerLibro(nuevo)
                 estructura = null
-                avisos.exito("Estructura del libro actualizada")
             }
         }
     }

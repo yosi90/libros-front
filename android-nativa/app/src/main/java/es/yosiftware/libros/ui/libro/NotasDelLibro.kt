@@ -380,7 +380,6 @@ class NotasViewModel(
                 carpeta?.let { c -> runCatching { BorradoresLocales.borrar(c, NotasDelLibro.claveDelBorrador(libroId, id)) } }
                 cargarEnElCompositor(EditorDeNota())
             }
-            avisos.exito("Nota eliminada")
             avisos.sonar(Sonido.BORRAR)
         }
     }

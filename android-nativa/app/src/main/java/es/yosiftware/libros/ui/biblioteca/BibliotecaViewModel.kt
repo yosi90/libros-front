@@ -206,7 +206,6 @@ class BibliotecaViewModel(
         ) { nuevos ->
             guardando = false
             ponerUniversos(nuevos)
-            avisos.exito("Biblioteca personal actualizada")
             CuandoSuena.alGuardarEstado(actual.valores.estado, actual.original.estado, entra = false)?.let(avisos::sonar)
             cerrarEditor()
         }
@@ -306,7 +305,6 @@ class BibliotecaViewModel(
             guardando = false
             ponerDetalle(detalle, actual.antologiaId)
             edicionDeSeccion = null
-            avisos.exito("Sección actualizada")
             CuandoSuena.alGuardarEstado(cambio.estado, actual.original.estado, entra = false)?.let(avisos::sonar)
         }
     }
