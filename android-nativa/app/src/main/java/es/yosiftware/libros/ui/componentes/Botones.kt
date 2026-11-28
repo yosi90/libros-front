@@ -42,8 +42,11 @@ import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
 import es.yosiftware.libros.ui.tema.Textos
 
-/** Las variantes de `.m-button`: la normal, `--tonal` y `--outline`. */
-enum class VarianteDeBoton { Primario, Tonal, Contorno }
+/**
+ * Las variantes de `.m-button`: la normal, `--tonal`, `--outline` y `--outline.is-danger` (lo que no tiene vuelta
+ * atrás: denunciar, abandonar o eliminar el club, salir de un grupo).
+ */
+enum class VarianteDeBoton { Primario, Tonal, Contorno, Peligro }
 
 /**
  * .m-button: píldora de 48 dp de alto como mínimo, `padding: 10px 20px`, borde de 1 px (transparente salvo en
@@ -68,6 +71,7 @@ fun Boton(
         VarianteDeBoton.Primario -> Triple(colores.primario, colores.sobrePrimario, Color.Transparent)
         VarianteDeBoton.Tonal -> Triple(colores.contenedorPrimario, colores.sobreContenedorPrimario, Color.Transparent)
         VarianteDeBoton.Contorno -> Triple(Color.Transparent, colores.primario, colores.contorno)
+        VarianteDeBoton.Peligro -> Triple(Color.Transparent, colores.error, colores.contorno)
     }
     val interaccion = remember { MutableInteractionSource() }
     val pulsado by interaccion.collectIsPressedAsState()

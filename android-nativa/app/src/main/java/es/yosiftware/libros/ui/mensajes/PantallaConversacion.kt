@@ -622,7 +622,7 @@ private fun GestionDelGrupo(vm: ConversacionViewModel, detalle: DetalleDelChat, 
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
             Text("Participantes", Modifier.semantics { heading() }, color = colores.tinta, style = Textos.filaPrincipal)
             Text("${detalle.participantes.size} / 50", Modifier.weight(1f), color = colores.tintaSuave, style = Textos.cuerpo)
-            BotonDeSalir(vm::pedirSalir, habilitado = !ocupado)
+            Boton("Salir", vm::pedirSalir, variante = VarianteDeBoton.Peligro, habilitado = !ocupado)
         }
         if (detalle.puedeGestionar) {
             val puedeGuardar = vm.nombreDelGrupo.trim().length >= MensajesViewModel.MINIMO_DEL_TITULO && !ocupado
@@ -657,20 +657,6 @@ private fun GestionDelGrupo(vm: ConversacionViewModel, detalle: DetalleDelChat, 
             }
         }
         if (vm.errorDeGestion.isNotEmpty()) Franja(vm.errorDeGestion, error = true)
-    }
-}
-
-/** `.m-button--outline.is-danger`: «Salir», en el color de error, con la palabra sola. */
-@Composable
-private fun BotonDeSalir(alPulsar: () -> Unit, habilitado: Boolean) {
-    val colores = LocalColores.current
-    Row(
-        Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(50)).border(1.dp, colores.contorno, RoundedCornerShape(50))
-            .clickable(enabled = habilitado, role = Role.Button, onClick = alPulsar).padding(horizontal = 21.dp, vertical = 11.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
-    ) {
-        Text("Salir", color = colores.error, style = Textos.boton)
     }
 }
 

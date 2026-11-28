@@ -35,7 +35,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
@@ -205,7 +204,7 @@ private fun Cabecera(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesD
                     Boton("Abrir chat", { club.conversacionId?.let(acciones.abrirChat) }, ancho, habilitado = vm.chatDisponible)
                 }
                 if (!vm.esPropietario) {
-                    BotonDePeligro(if (vm.denunciandoClub) "Enviando…" else "Denunciar", vm::denunciarClub, ancho, habilitado = !vm.denunciandoClub)
+                    Boton(if (vm.denunciandoClub) "Enviando…" else "Denunciar", vm::denunciarClub, ancho, VarianteDeBoton.Peligro, habilitado = !vm.denunciandoClub)
                 }
             }
             // En el móvil, en una fila repartida (no un botón por línea: petición del propietario, 06/11/2026).
@@ -217,21 +216,6 @@ private fun Cabecera(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesD
             // Sin chat siendo miembro, el porqué, en una línea: es lo único que explica el botón apagado.
             if (vm.esMiembro && !vm.chatDisponible) Text(vm.motivoSinChat, color = colores.tintaSuave, style = Textos.nota)
         }
-    }
-}
-
-/** `.m-button--outline.is-danger`. */
-@Composable
-private fun BotonDePeligro(texto: String, alPulsar: () -> Unit, modifier: Modifier = Modifier, habilitado: Boolean = true) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(50)
-    Row(
-        modifier.heightIn(min = 48.dp).alpha(if (habilitado) 1f else 0.6f).clip(forma).border(1.dp, colores.contorno, forma)
-            .clickable(enabled = habilitado, role = Role.Button, onClick = alPulsar).padding(horizontal = 21.dp, vertical = 11.dp),
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(texto, color = colores.error, style = Textos.boton)
     }
 }
 
@@ -726,8 +710,8 @@ private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, ancha: 
     }
     if (club.miembros.isEmpty()) Vacio("Sin miembros")
     // Lo que no tiene vuelta atrás, al final de la sección.
-    if (vm.esMiembro && !vm.esPropietario) BotonDePeligro(if (vm.saliendo) "Saliendo…" else "Abandonar club", vm::salir, habilitado = !vm.saliendo)
-    if (vm.esPropietario) BotonDePeligro(if (vm.eliminando) "Eliminando…" else "Eliminar club", vm::eliminar, habilitado = !vm.eliminando)
+    if (vm.esMiembro && !vm.esPropietario) Boton(if (vm.saliendo) "Saliendo…" else "Abandonar club", vm::salir, variante = VarianteDeBoton.Peligro, habilitado = !vm.saliendo)
+    if (vm.esPropietario) Boton(if (vm.eliminando) "Eliminando…" else "Eliminar club", vm::eliminar, variante = VarianteDeBoton.Peligro, habilitado = !vm.eliminando)
 }
 
 /**
