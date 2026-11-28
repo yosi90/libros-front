@@ -1,13 +1,11 @@
 package es.yosiftware.libros.ui.mensajes
 
-import androidx.annotation.DrawableRes
 import es.yosiftware.libros.datos.leerFecha
 import es.yosiftware.libros.datos.modelos.ConversacionDePlataforma
 import es.yosiftware.libros.datos.modelos.DetalleDeConversacion
 import es.yosiftware.libros.datos.modelos.MensajeDePlataforma
 import es.yosiftware.libros.datos.modelos.PersonaDeYosiftware
 import es.yosiftware.libros.ui.comunidad.FechasDeClubes
-import es.yosiftware.libros.ui.tema.Iconos
 import java.time.Instant
 import java.time.ZoneId
 
@@ -229,14 +227,6 @@ object TextosDelChat {
         "web" -> "Chat de club"
         "grupo" -> "Grupo"
         else -> "Conversación directa"
-    }
-
-    /** El icono de la fila (`chatConversationIcon`): `groups` el club, `group` el grupo y `person` la directa. */
-    @DrawableRes
-    fun icono(conversacion: ConversacionDelChat): Int = when (conversacion.tipo) {
-        "web" -> Iconos.groups
-        "grupo" -> Iconos.group
-        else -> Iconos.person
     }
 
     fun cumple(conversacion: ConversacionDelChat, filtro: FiltroDeChat): Boolean = when (filtro) {
