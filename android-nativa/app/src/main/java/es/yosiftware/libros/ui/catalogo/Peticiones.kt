@@ -1,42 +1,70 @@
 package es.yosiftware.libros.ui.catalogo
 
+import es.yosiftware.libros.datos.modelos.PeticionDeCatalogo
 import java.time.YearMonth
 
-// Las peticiones de catálogo de la vista Mobile (catalog.component.ts en 5dc3120): pedir un libro nuevo (el botón «+»)
-// y proponer una corrección de la ficha abierta. Sin red ni Compose.
+// Las peticiones de catálogo de la vista Mobile (catalog.component.ts en 5dc3120): pedir un libro nuevo (el botón «+»),
+// proponer una corrección de la ficha abierta y corregir una petición devuelta antes de reenviarla. Sin red ni Compose.
 
-/** Para qué es la petición (`CatalogEntityType`); la vista Mobile pide libros y corrige libros o antologías. */
-enum class TipoDePeticion(val api: String, val etiqueta: String) {
-    LIBRO("libro", "Libro"),
-    ANTOLOGIA("antologia", "Antología"),
+/**
+ * Para qué es la petición (`CatalogEntityType`). La vista Mobile pide libros y corrige libros o antologías; autores,
+ * universos y sagas solo llegan al corregir una devuelta que se pidió en la web.
+ */
+enum class TipoDePeticion(val api: String, val etiqueta: String, private val nueva: String) {
+    LIBRO("libro", "Libro", "Pedir nuevo libro"),
+    ANTOLOGIA("antologia", "Antología", "Pedir nueva antología"),
+    AUTOR("autor", "Autor", "Pedir nuevo autor"),
+    UNIVERSO("universo", "Universo", "Pedir nuevo universo"),
+    SAGA("saga", "Saga", "Pedir nueva saga");
+
+    /** Libros y antologías llevan ISBN, fecha y sinopsis (`isBookLikeRequest`); el resto, solo nombre y comentario. */
+    val esObra: Boolean get() = this == LIBRO || this == ANTOLOGIA
+
+    /** El título de un alta (`requestModalTitle`). */
+    val tituloDeAlta: String get() = nueva
+
+    companion object {
+        fun de(api: String): TipoDePeticion? = entries.firstOrNull { it.api == api }
+    }
 }
 
 /** El formulario de una petición, con lo que la persona escribe. */
 data class FormularioDePeticion(
     val tipo: TipoDePeticion,
-    /** `null` en un alta; el id de la obra en una corrección. */
-    val obraId: Int? = null,
+    /** `null` en un alta; el id de la entidad en una corrección. */
+    val entidadId: Int? = null,
     val nombre: String = "",
     val isbn: String = "",
     val fechaPublicacion: String = "",
     val sinopsis: String = "",
     val comentario: String = "",
     val errorDeIsbn: String = "",
+    /**
+     * El id de la petición devuelta que se corrige para reenviarla (`resendingRequest`), o `null` si es una petición
+     * nueva. Al enviarla se reenvía esa (`responder`) en vez de crear otra, y no cuenta para el cupo de activas.
+     */
+    val reenvio: Int? = null,
 ) {
-    val esCorreccion: Boolean get() = obraId != null
+    val esCorreccion: Boolean get() = entidadId != null
+    val esReenvio: Boolean get() = reenvio != null
     val accion: String get() = if (esCorreccion) "edicion" else "alta"
 
-    /** «Pedir nuevo libro» o «Proponer corrección de libro» (`requestModalTitle`). */
+    /** «Pedir nuevo libro», «Proponer corrección de libro» o «Corregir y reenviar» (`requestModalTitle`). */
     val titulo: String
         get() = when {
+            esReenvio -> "Corregir y reenviar"
             esCorreccion -> "Proponer corrección de ${tipo.etiqueta.lowercase()}"
-            tipo == TipoDePeticion.LIBRO -> "Pedir nuevo libro"
-            else -> "Pedir nueva antología"
+            else -> tipo.tituloDeAlta
         }
+
+    val boton: String get() = if (esReenvio) "Reenviar" else "Enviar"
 
     val etiquetaDeNombre: String get() = if (esCorreccion) "Nombre correcto" else "Nombre"
     val etiquetaDeIsbn: String get() = if (esCorreccion) "ISBN correcto" else "ISBN *"
     val etiquetaDeComentario: String get() = if (esCorreccion) "Coméntanos qué deberíamos cambiar" else "Nota con más detalles"
+
+    /** La sinopsis va en las altas de obra y, al reenviar, también en sus correcciones, como en la web. */
+    val conSinopsis: Boolean get() = tipo.esObra && (!esCorreccion || esReenvio)
 
     companion object {
         fun alta(tipo: TipoDePeticion) = FormularioDePeticion(tipo)
@@ -44,6 +72,29 @@ data class FormularioDePeticion(
         /** Una corrección empieza con el nombre, el ISBN y la fecha que tiene la ficha (`openCorrectionRequest`). */
         fun correccion(tipo: TipoDePeticion, id: Int, nombre: String, isbn: String?, fecha: String?) =
             FormularioDePeticion(tipo, id, nombre, isbn.orEmpty(), fecha.orEmpty())
+
+        /**
+         * «Corregir y reenviar» una petición devuelta (`openResendRequest`): el mismo formulario, relleno con su `Payload`,
+         * con su tipo, su acción y su entidad. `null` si no se corrige así: las de tipo `otro` (y las que no conoce esta
+         * versión) solo se reenvían con un comentario.
+         */
+        fun reenvio(peticion: PeticionDeCatalogo): FormularioDePeticion? {
+            if (peticion.estado != "devuelta") return null
+            val tipo = TipoDePeticion.de(peticion.tipoEntidad) ?: return null
+            if (peticion.accion != "alta" && peticion.accion != "edicion") return null
+            val entidadId = if (peticion.accion == "edicion") peticion.entidadId ?: return null else null
+            fun texto(clave: String) = peticion.payload.opt(clave) as? String ?: ""
+            return FormularioDePeticion(
+                tipo = tipo,
+                entidadId = entidadId,
+                nombre = texto("Nombre"),
+                isbn = texto("ISBN"),
+                fechaPublicacion = texto("FechaPublicacion"),
+                sinopsis = texto("Sinopsis"),
+                comentario = texto("Comentario"),
+                reenvio = peticion.id,
+            )
+        }
     }
 }
 
@@ -60,15 +111,17 @@ object Peticiones {
     /** Las comprobaciones de `submitRequest`, en su orden, y la carga útil (`buildRequestPayload`) sin campos vacíos. */
     fun validar(formulario: FormularioDePeticion): ResultadoDeValidacion {
         val isbn = formulario.isbn.trim()
-        if ((!formulario.esCorreccion || isbn.isNotEmpty()) && !isbnValido(formulario.isbn))
+        val obra = formulario.tipo.esObra
+        if (obra && (!formulario.esCorreccion || isbn.isNotEmpty()) && !isbnValido(formulario.isbn))
             return ResultadoDeValidacion.ErrorDeIsbn("Indica un ISBN-10 o ISBN-13 válido para el alta.")
-        if (!fechaValida(formulario.fechaPublicacion.trim()))
+        if (obra && !fechaValida(formulario.fechaPublicacion.trim()))
             return ResultadoDeValidacion.Error("Escribe un año, un año y mes o una fecha completa válidos")
+        // ISBN, fecha y sinopsis solo en libros y antologías; y la sinopsis, solo si el formulario la enseña.
         val datos = linkedMapOf(
             "Nombre" to formulario.nombre.trim(),
-            "ISBN" to isbn,
-            "FechaPublicacion" to formulario.fechaPublicacion.trim(),
-            "Sinopsis" to formulario.sinopsis.trim(),
+            "ISBN" to if (obra) isbn else "",
+            "FechaPublicacion" to if (obra) formulario.fechaPublicacion.trim() else "",
+            "Sinopsis" to if (formulario.conSinopsis) formulario.sinopsis.trim() else "",
             "Comentario" to formulario.comentario.trim(),
         ).filterValues { it.isNotEmpty() }
         if (datos.isEmpty()) return ResultadoDeValidacion.Error("Indica al menos un dato o comentario para la petición")

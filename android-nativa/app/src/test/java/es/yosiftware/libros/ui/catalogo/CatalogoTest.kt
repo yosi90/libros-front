@@ -6,6 +6,7 @@ import es.yosiftware.libros.datos.modelos.DetallePublico
 import es.yosiftware.libros.datos.modelos.Edicion
 import es.yosiftware.libros.datos.modelos.EstadoDeLectura
 import es.yosiftware.libros.datos.modelos.Obra
+import es.yosiftware.libros.datos.modelos.PeticionDeCatalogo
 import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.ui.biblioteca.Ambito
 import org.json.JSONObject
@@ -160,5 +161,50 @@ class CatalogoTest {
         assertEquals(ResultadoDeValidacion.Listo(mapOf("Nombre" to "Arcanum")), Peticiones.validar(correccion))
         assertTrue(Peticiones.validar(correccion.copy(nombre = "", fechaPublicacion = "")) is ResultadoDeValidacion.Error)
         assertTrue(Peticiones.validar(correccion.copy(fechaPublicacion = "20-1")) is ResultadoDeValidacion.Error)
+    }
+
+    private fun devuelta(tipo: String, accion: String = "alta", entidadId: Int? = null, payload: String = "{}", estado: String = "devuelta") =
+        PeticionDeCatalogo.de(JSONObject("""{"Id": 21, "TipoEntidad": "$tipo", "Accion": "$accion", "EntidadId": ${entidadId ?: "null"}, "Estado": "$estado", "Payload": $payload}"""))
+
+    @Test
+    fun corregirYReenviarRellenaElFormularioConLoEnviado() {
+        val alta = FormularioDePeticion.reenvio(
+            devuelta("libro", payload = """{"Nombre": "La guardia del fin", "ISBN": "0", "FechaPublicacion": "2008", "Sinopsis": "Una saga.", "Comentario": "Era el primero.", "Paginas": 320}"""),
+        )!!
+        assertEquals(
+            FormularioDePeticion(TipoDePeticion.LIBRO, null, "La guardia del fin", "0", "2008", "Una saga.", "Era el primero.", reenvio = 21),
+            alta,
+        )
+        assertEquals("Corregir y reenviar", alta.titulo)
+        assertEquals("Reenviar", alta.boton)
+        assertEquals("alta", alta.accion)
+        // El ISBN de relleno no se envía: hay que corregirlo.
+        assertTrue(Peticiones.validar(alta) is ResultadoDeValidacion.ErrorDeIsbn)
+        assertEquals(
+            ResultadoDeValidacion.Listo(mapOf("Nombre" to "La guardia del fin", "ISBN" to "978-0-306-40615-7", "FechaPublicacion" to "2008", "Sinopsis" to "Una saga.", "Comentario" to "Era el primero.")),
+            Peticiones.validar(alta.copy(isbn = "978-0-306-40615-7")),
+        )
+
+        // Una corrección conserva su acción y su ficha, y enseña la sinopsis que se envió.
+        val edicion = FormularioDePeticion.reenvio(devuelta("antologia", "edicion", 9, """{"Nombre": "Arcanum", "Sinopsis": "Relatos."}"""))!!
+        assertEquals("edicion", edicion.accion)
+        assertEquals(9, edicion.entidadId)
+        assertTrue(edicion.conSinopsis)
+        assertEquals(ResultadoDeValidacion.Listo(mapOf("Nombre" to "Arcanum", "Sinopsis" to "Relatos.")), Peticiones.validar(edicion))
+        assertEquals("Enviar", FormularioDePeticion.alta(TipoDePeticion.LIBRO).boton)
+    }
+
+    @Test
+    fun soloSeCorrigenLasDevueltasQueNoSonDeTipoOtro() {
+        assertNull(FormularioDePeticion.reenvio(devuelta("otro", "comentario", payload = """{"Texto": "Falta un libro"}""")))
+        assertNull(FormularioDePeticion.reenvio(devuelta("libro", estado = "pendiente")))
+        assertNull(FormularioDePeticion.reenvio(devuelta("libro", "edicion")))
+
+        // Un autor (pedido en la web) lleva el nombre y el comentario, sin ISBN ni fecha.
+        val autor = FormularioDePeticion.reenvio(devuelta("autor", payload = """{"Nombre": "Brandon Sanderson", "ISBN": "x", "Comentario": "Falta"}"""))!!
+        assertEquals(TipoDePeticion.AUTOR, autor.tipo)
+        assertFalse(autor.conSinopsis)
+        assertEquals(ResultadoDeValidacion.Listo(mapOf("Nombre" to "Brandon Sanderson", "Comentario" to "Falta")), Peticiones.validar(autor))
+        assertEquals("Pedir nueva saga", FormularioDePeticion.alta(TipoDePeticion.SAGA).titulo)
     }
 }

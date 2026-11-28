@@ -15,6 +15,7 @@ import es.yosiftware.libros.datos.modelos.EdicionesDeObra
 import es.yosiftware.libros.datos.modelos.MiColeccion
 import es.yosiftware.libros.datos.modelos.Obra
 import es.yosiftware.libros.datos.modelos.Opcion
+import es.yosiftware.libros.datos.modelos.PeticionDeCatalogo
 import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
 import es.yosiftware.libros.datos.modelos.Universo
@@ -168,6 +169,8 @@ class CatalogoViewModel(
 
     /** A dónde vuelve la ficha si se abrió desde otra pantalla (`MobileFullscreenReturnService`). */
     private var volverDeLaFicha: (() -> Unit)? = null
+    /** Quién recibe la petición reenviada desde «Corregir y reenviar» (Mis peticiones, en el Perfil). */
+    private var alReenviar: ((PeticionDeCatalogo) -> Unit)? = null
     private var carga: Job? = null
     private var cargaDeSagas: Job? = null
     private var cargaDeHoja: Job? = null
@@ -465,12 +468,24 @@ class CatalogoViewModel(
         abrirPeticion(FormularioDePeticion.correccion(tipoDePeticion, obra.id, obra.nombre, obra.isbn, obra.fechaPublicacion))
     }
 
+    /**
+     * «Corregir y reenviar» una petición devuelta (`openResendRequest`): el mismo modal, relleno con lo que se envió y
+     * sin el cupo de activas, porque el reenvío no cuenta. [alReenviar] recibe la petición ya reenviada.
+     */
+    fun corregirYReenviar(devuelta: PeticionDeCatalogo, alReenviar: (PeticionDeCatalogo) -> Unit = {}) {
+        val formulario = FormularioDePeticion.reenvio(devuelta) ?: return
+        cargaDeActivas?.cancel()
+        this.alReenviar = alReenviar
+        peticion = PeticionAbierta(formulario, consultandoActivas = false)
+    }
+
     fun cambiarPeticion(formulario: FormularioDePeticion) {
         peticion = peticion?.copy(formulario = formulario)
     }
 
     fun cerrarPeticion() {
         cargaDeActivas?.cancel()
+        alReenviar = null
         peticion = null
     }
 
@@ -492,8 +507,12 @@ class CatalogoViewModel(
             is ResultadoDeValidacion.Listo -> resultado.datos
         }
         peticion = actual.copy(formulario = formulario.copy(errorDeIsbn = ""), enviando = true)
+        formulario.reenvio?.let { id ->
+            reenviarPeticion(id, datos)
+            return
+        }
         val tipoDePeticion = formulario.tipo
-        cargar({ peticiones.crear(tipoDePeticion.api, formulario.accion, JSONObject(datos), formulario.obraId) }, alFallar = { error ->
+        cargar({ peticiones.crear(tipoDePeticion.api, formulario.accion, JSONObject(datos), formulario.entidadId) }, alFallar = { error ->
             peticion = peticion?.copy(enviando = false)
             if (error.codigo == "catalog_active_request_limit") {
                 consultarActivas()
@@ -518,7 +537,22 @@ class CatalogoViewModel(
         }
     }
 
+    /** Reenvía la petición devuelta con lo corregido (`PATCH …/mias/{id}/responder`) en vez de crear otra. */
+    private fun reenviarPeticion(id: Int, datos: Map<String, String>) {
+        cargar({ peticiones.responder(id, JSONObject(datos)) }, alFallar = { error ->
+            peticion = peticion?.copy(enviando = false)
+            if (error.codigo == "catalog_request_isbn_required" && error.campo == "Payload.ISBN")
+                peticion = peticion?.let { it.copy(formulario = it.formulario.copy(errorDeIsbn = error.mensajeO("Revisa el ISBN de esta edición."))) }
+            avisos.deError(error, "No se pudo reenviar la petición")
+        }) { reenviada ->
+            avisos.exito("Petición reenviada")
+            alReenviar?.invoke(reenviada)
+            cerrarPeticion()
+        }
+    }
+
     private fun abrirPeticion(formulario: FormularioDePeticion) {
+        alReenviar = null
         peticion = PeticionAbierta(formulario)
         consultarActivas()
     }
@@ -624,6 +658,7 @@ class CatalogoViewModel(
         edicion = null
         guardando = false
         peticion = null
+        alReenviar = null
         cargando = identidad != null
         if (identidad != null) {
             cargarMetadatos()
