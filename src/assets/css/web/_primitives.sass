@@ -124,6 +124,32 @@
             font-weight: 600
             background: var(--web-color-primary-soft)
 
+// La ficha puesta: el filtro elegido o un filtro activo.
+@mixin chip-selected
+    color: var(--web-color-primary)
+    font-weight: 600
+    background: var(--web-color-primary-soft)
+    border-color: transparent
+
+// Ficha (chip) Web, con el radio de 8 px de M3: las de filtro de la Biblioteca y las de filtro activo del Catálogo.
+// Cada vista pone antes sus colores en reposo y su cursor (para que la regla no se parta en dos al emitirse); con
+// `$selected`, la ficha está siempre puesta.
+@mixin chip($gap: 4px, $padding: 0 var(--web-space-3), $selected: false)
+    display: inline-flex
+    align-items: center
+    gap: $gap
+    min-height: 32px
+    padding: $padding
+    font: 500 13px/1 var(--web-font-ui)
+    border-radius: 8px
+    @if $selected
+        @include chip-selected
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
+
 // Estados de lectura: data-status recibe el nombre normalizado (en_marcha, leido…).
 @mixin status-pill
     display: inline-flex

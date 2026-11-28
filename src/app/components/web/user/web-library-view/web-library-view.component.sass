@@ -151,29 +151,15 @@
     gap: var(--web-space-2)
 
     button
-        display: inline-flex
-        align-items: center
-        gap: 4px
-        min-height: 32px
-        padding: 0 var(--web-space-3)
         color: var(--web-color-ink-muted)
-        font: 500 13px/1 var(--web-font-ui)
         background: var(--web-color-surface)
         border: 1px solid var(--web-color-outline)
-        border-radius: 8px
         cursor: pointer
+        @include web.chip
         @include web.focus-ring
 
-        mat-icon
-            width: 16px
-            height: 16px
-            font-size: 16px
-
         &.is-selected
-            color: var(--web-color-primary)
-            font-weight: 600
-            background: var(--web-color-primary-soft)
-            border-color: transparent
+            @include web.chip-selected
 
 .web-library__status-tabs
     display: flex

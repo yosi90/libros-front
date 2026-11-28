@@ -119,16 +119,9 @@
     padding: 0
     list-style: none
 
+    // Una ficha siempre puesta; el × lleva su propia caja, así que el relleno de la derecha es menor.
     li
-        display: inline-flex
-        align-items: center
-        gap: 2px
-        min-height: 32px
-        padding: 0 4px 0 var(--web-space-3)
-        color: var(--web-color-primary)
-        font: 600 13px/1 var(--web-font-ui)
-        background: var(--web-color-primary-soft)
-        border-radius: 8px
+        @include web.chip($gap: 2px, $padding: 0 4px 0 var(--web-space-3), $selected: true)
 
     button
         display: inline-grid
@@ -142,11 +135,6 @@
         border-radius: 999px
         cursor: pointer
         @include web.focus-ring
-
-        mat-icon
-            width: 16px
-            height: 16px
-            font-size: 16px
 
 .web-catalog__badge
     display: inline-grid
