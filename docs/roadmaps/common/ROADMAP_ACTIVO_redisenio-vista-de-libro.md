@@ -151,7 +151,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
     - el universo como encabezado, sin caja;
     - la vista como pestañas y el filtro como fichas;
     - las tarjetas, como enlaces de verdad;
-  - **el Catálogo:**
+  - [x] **el Catálogo** (28/11/2026, rama `f6-catalogo`, web 1.3.0; «Añadir» directo como «Quiero leer», con la flecha para otro estado):
     - buscar y añadir, primero, con «Añadir» directo;
     - los filtros activos, visibles;
     - «Pedir un libro», como acción secundaria;

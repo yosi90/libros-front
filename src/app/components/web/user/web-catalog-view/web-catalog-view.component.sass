@@ -32,6 +32,31 @@
 .web-button--small
     @include web.button-small
 
+// Lo secundario (pedir), sin borde: se ve, pero no compite con buscar y añadir.
+.web-button--quiet
+    color: var(--web-color-ink-muted)
+    border-color: transparent
+    background: transparent
+
+.web-button--icon
+    width: 40px
+    padding: 0
+
+// «Añadir» y su flecha, pegados: un solo botón con dos partes.
+.web-split
+    display: inline-flex
+
+    .web-button:first-child
+        border-top-right-radius: 0
+        border-bottom-right-radius: 0
+
+    .web-split__more
+        width: 28px
+        padding: 0
+        border-left: 1px solid color-mix(in srgb, var(--web-color-on-primary) 35%, transparent)
+        border-top-left-radius: 0
+        border-bottom-left-radius: 0
+
 .web-segmented
     @include web.segmented
 
@@ -84,6 +109,44 @@
     app-web-scoped-search
         flex: 1 1 360px
         max-width: 520px
+
+// Los filtros activos, en fichas que se quitan con su ×.
+.web-catalog__active
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-2)
+    margin: calc(var(--web-space-1) * -1) 0 var(--web-space-4)
+    padding: 0
+    list-style: none
+
+    li
+        display: inline-flex
+        align-items: center
+        gap: 2px
+        min-height: 32px
+        padding: 0 4px 0 var(--web-space-3)
+        color: var(--web-color-primary)
+        font: 600 13px/1 var(--web-font-ui)
+        background: var(--web-color-primary-soft)
+        border-radius: 8px
+
+    button
+        display: inline-grid
+        place-items: center
+        width: 24px
+        height: 24px
+        padding: 0
+        color: inherit
+        background: none
+        border: 0
+        border-radius: 999px
+        cursor: pointer
+        @include web.focus-ring
+
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px
 
 .web-catalog__badge
     display: inline-grid

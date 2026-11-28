@@ -5,8 +5,9 @@
       <p>{{controller.isLoading ? 'Cargando…' : controller.items.length + (controller.items.length === 1 ? ' título' : ' títulos')}}</p>
     </div>
     <div class="web-catalog__requests">
-      <button class="web-button web-button--primary" type="button" (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon>Pedir un libro</button>
-      <button class="web-button" type="button" [matMenuTriggerFor]="requestsMenu"><mat-icon>more_horiz</mat-icon>Más peticiones</button>
+      <!-- Pedir es secundario: lo primero del catálogo es buscar y añadir. -->
+      <button class="web-button web-button--quiet" type="button" (click)="controller.openNewRequest('libro')">Pedir un libro</button>
+      <button class="web-button web-button--quiet web-button--icon" type="button" aria-label="Más peticiones" [matMenuTriggerFor]="requestsMenu"><mat-icon>more_horiz</mat-icon></button>
       <mat-menu #requestsMenu="matMenu" xPosition="before">
         @for (option of controller.otherRequestTypes; track option.type) {
           <button mat-menu-item type="button" (click)="controller.openNewRequest(option.type)"><mat-icon>{{option.icon}}</mat-icon><span>Pedir {{option.label.toLocaleLowerCase()}}</span></button>
@@ -32,6 +33,15 @@
       <mat-icon>tune</mat-icon>Filtros @if (activeSelectCount) {<span class="web-catalog__badge">{{activeSelectCount}}</span>}
     </button>
   </section>
+
+  <!-- Los filtros activos, siempre a la vista: cada uno se quita con su ×. -->
+  @if (!controller.filtersOpen && activeFilters.length) {
+    <ul class="web-catalog__active" aria-label="Filtros activos">
+      @for (filter of activeFilters; track filter.field) {
+        <li><span>{{filter.label}}</span><button type="button" [attr.aria-label]="'Quitar el filtro ' + filter.label" (click)="clearFilter(filter.field)"><mat-icon>close</mat-icon></button></li>
+      }
+    </ul>
+  }
 
   @if (controller.filtersOpen) {
     <section id="web-catalog-filters" class="web-catalog__filters" aria-label="Filtros del catálogo">
@@ -69,8 +79,14 @@
               @if (controller.isInCollection(item)) {
                 <span class="web-status" [attr.data-status]="controller.statusClass(item)"><mat-icon aria-hidden="true">{{controller.statusIcon(item)}}</mat-icon>{{controller.latestStatusName(item) || 'En mi biblioteca'}}</span>
               } @else {
-                <button class="web-button web-button--small" type="button" [matMenuTriggerFor]="addMenu" [disabled]="controller.isSavingCollection"
-                  [attr.aria-label]="'Añadir ' + item.Nombre + ' a tu biblioteca'" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()"><mat-icon>add</mat-icon>Añadir</button>
+                <!-- «Añadir» directo, como «Quiero leer»; la flecha deja elegir otro estado. -->
+                <span class="web-split">
+                  <button class="web-button web-button--small web-button--primary" type="button" [disabled]="controller.isSavingCollection"
+                    [attr.aria-label]="'Añadir ' + item.Nombre + ' a tu biblioteca como Quiero leer'" (click)="controller.addToCollectionWithStatus(item, wantToRead, $event)"
+                    (keydown.enter)="$event.stopPropagation()"><mat-icon>add</mat-icon>Añadir</button>
+                  <button class="web-button web-button--small web-button--primary web-split__more" type="button" [matMenuTriggerFor]="addMenu" [disabled]="controller.isSavingCollection"
+                    [attr.aria-label]="'Añadir ' + item.Nombre + ' con otro estado'" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()"><mat-icon>arrow_drop_down</mat-icon></button>
+                </span>
                 <mat-menu #addMenu="matMenu">
                   @for (status of controller.statusOptions; track status.Id) {
                     <button mat-menu-item type="button" (click)="controller.addToCollectionWithStatus(item, status.Id, $event)"><mat-icon>{{status.icon}}</mat-icon><span>{{status.Nombre}}</span></button>

@@ -38,4 +38,23 @@ describe('WebCatalogViewComponent', () => {
 
         expect(component.activeSelectCount).toBe(1);
     });
+
+    it('enseña cada filtro activo con su valor y lo quita como «Todos» en su desplegable', () => {
+        const applySelectFilter = jasmine.createSpy('applySelectFilter');
+        const applyNewFilter = jasmine.createSpy('applyNewFilter');
+        const { component } = create({
+            selectedNewFilter: '7d', selectedStatusFilter: 4, selectedRatingFilter: 3, selectedStyleFilter: 9,
+            newWorksOptions: [{ value: '7d', label: 'Última semana' }],
+            statusOptions: [{ Id: 4, Nombre: 'Quiero leer', icon: 'bookmark_add' }],
+            languages: [], styles: [{ Id: 9, Nombre: 'Fantasía' }],
+            applySelectFilter, applyNewFilter
+        } as unknown as Partial<WebCatalogController>);
+
+        expect(component.activeFilters.map(filter => filter.label)).toEqual(['Última semana', 'Quiero leer', '3 o más estrellas', 'Fantasía']);
+
+        component.clearFilter('style');
+        expect(applySelectFilter).toHaveBeenCalledWith('style', jasmine.objectContaining({ target: { value: '' } }));
+        component.clearFilter('new');
+        expect(applyNewFilter).toHaveBeenCalledWith(jasmine.objectContaining({ target: { value: '' } }));
+    });
 });
