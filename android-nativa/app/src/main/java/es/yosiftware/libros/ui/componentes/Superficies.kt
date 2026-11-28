@@ -216,9 +216,3 @@ fun Modifier.rayaArriba(color: Color, con: Boolean = true): Modifier =
 /** La raya de 1 dp debajo del elemento (`border-bottom`), en [color]; solo si [con]. */
 fun Modifier.rayaAbajo(color: Color, con: Boolean = true): Modifier =
     if (!con) this else drawBehind { drawRect(color, Offset(0f, size.height - 1.dp.toPx()), Size(size.width, 1.dp.toPx())) }
-
-/** .m-divider: una línea de 1 dp del color del contorno. */
-@Composable
-fun Divisor(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().height(1.dp).background(LocalColores.current.contorno))
-}
