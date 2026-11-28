@@ -48,7 +48,7 @@ import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.BotonDeTexto
 import es.yosiftware.libros.ui.componentes.HojaInferior
-import es.yosiftware.libros.ui.componentes.TextoEyebrow
+import es.yosiftware.libros.ui.componentes.Chip
 import es.yosiftware.libros.ui.componentes.TextoTitulo
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.componentes.rayaArriba
@@ -141,13 +141,13 @@ fun PanelDeCuentas(
                 Separador()
             }
             if (cuentas.count { !it.caducada } < MAXIMO_DE_CUENTAS) {
-                FilaDeAccion(Iconos.personAdd, "Añadir otra cuenta", y { vm.anadirCuenta() }, !vm.ocupado)
+                FilaDeAccion("Añadir otra cuenta", y { vm.anadirCuenta() }, !vm.ocupado)
                 Separador()
             }
-            FilaDeAccion(Iconos.logout, "Cerrar sesión", y { vm.salir() }, !vm.ocupado)
+            FilaDeAccion("Cerrar sesión", y { vm.salir() }, !vm.ocupado)
             if (cuentas.size > 1) {
                 Separador()
-                FilaDeAccion(Iconos.logout, "Cerrar sesión en todas las cuentas", y { vm.salirDeTodas() }, !vm.ocupado)
+                FilaDeAccion("Cerrar sesión en todas las cuentas", y { vm.salirDeTodas() }, !vm.ocupado)
             }
         }
         vm.error?.let {
@@ -213,29 +213,25 @@ fun FilaDeCuenta(
                 horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.End),
             ) {
                 if (alOlvidar != null) Boton("Olvidar", alOlvidar, variante = VarianteDeBoton.Contorno, habilitado = habilitada)
-                Boton("Volver a entrar", alVolverAEntrar, variante = VarianteDeBoton.Tonal, icono = Iconos.login, habilitado = habilitada)
+                Boton("Volver a entrar", alVolverAEntrar, variante = VarianteDeBoton.Tonal, habilitado = habilitada)
             }
         }
     }
 }
 
-/** Una acción del panel: icono de 24 dp en la tinta suave, el texto y 56 dp de alto. */
+/** Una acción del panel: la palabra sola, sin icono (ronda 1 de interfaz, U2), y 48 dp de alto. */
 @Composable
-private fun FilaDeAccion(@DrawableRes icono: Int, texto: String, alPulsar: () -> Unit, habilitada: Boolean) {
+private fun FilaDeAccion(texto: String, alPulsar: () -> Unit, habilitada: Boolean) {
     val colores = LocalColores.current
     Row(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
+            .heightIn(min = 48.dp)
             .background(colores.superficie)
             .clickable(enabled = habilitada, role = Role.Button, onClick = alPulsar)
             .padding(horizontal = Espacios.e4),
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e4),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-            Icon(painterResource(icono), contentDescription = null, tint = colores.tintaSuave, modifier = Modifier.size(24.dp))
-        }
         Text(texto, color = colores.tinta, style = textoEnlace)
     }
 }
@@ -322,7 +318,8 @@ fun LectorDeNormas(normas: Normas, alAceptar: (() -> Unit)?, ocupado: Boolean, a
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(Modifier.widthIn(max = 720.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-                TextoEyebrow("Normas · versión ${normas.version}")
+                // La versión, en un chip pequeño (ronda 1 de interfaz, U1).
+                Chip("Normas · versión ${normas.version}")
                 TextoTitulo(normas.titulo)
                 Spacer(Modifier.height(Espacios.e2))
                 bloquesDe(normas.texto).forEach { bloque ->
