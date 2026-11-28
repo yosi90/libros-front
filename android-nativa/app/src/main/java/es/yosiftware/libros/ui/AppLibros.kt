@@ -104,7 +104,6 @@ import es.yosiftware.libros.ui.componentes.Avisos
 import es.yosiftware.libros.ui.componentes.LocalAvisos
 import es.yosiftware.libros.ui.navegacion.Destino
 import es.yosiftware.libros.ui.navegacion.NavegacionViewModel
-import es.yosiftware.libros.ui.navegacion.PantallaVacia
 import es.yosiftware.libros.cuenta.AccesoALaSesion
 import es.yosiftware.libros.cuenta.ServicioDeEntrada
 import es.yosiftware.libros.ui.adaptable.LocalVentana
@@ -526,7 +525,8 @@ fun AppLibros(app: LibrosApp) {
                                         mensajes.cerrar()
                                         nav.reemplazar(Destino.Comunidad)
                                     }
-                                    else -> PantallaVacia(destino)
+                                    // «Cuenta» abre el panel de cuentas desde la hoja «Más»: no es una pantalla.
+                                    Destino.Cuenta -> Unit
                                 }
                             },
                             aviso = (estado as? EstadoSesion.SinConexion)?.let { sinConexion ->
