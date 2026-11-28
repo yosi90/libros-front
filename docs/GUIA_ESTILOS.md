@@ -166,6 +166,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 ### Biblioteca y catálogo
 
 - Wood conserva cards texturizadas y tratamiento editorial.
+- Web (F6 del rediseño, 28/11/2026): «Continúa leyendo» es una fila de portadas con su progreso, cada una un enlace; cada universo es un encabezado separado por una raya fina, sin caja ni icono; «Universos» y «Estados» son pestañas, y la disponibilidad, fichas de filtro. Las tarjetas son enlaces de verdad: el título cubre la tarjeta (se abren en otra pestaña con Ctrl o el botón central) y sus botones quedan por encima. Una antología abre su panel, así que su título es un botón.
 - Mobile usa cards limpias, una columna en compact y más columnas solo con ancho útil.
 - Filtros nunca desaparecen por breakpoint; en compact viven en panel o sheet accesible.
 - Consulta, filtros, vista y scroll se conservan al abandonar y volver.

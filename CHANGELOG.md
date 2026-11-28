@@ -4,6 +4,10 @@ Versionado semántico (`ecosistema-kit/VERSIONADO.md`): una nota por versión pu
 
 ## Web
 
+### 1.2.0 (2026-11-28)
+
+La Biblioteca, más limpia: lo que estás leyendo en una fila de portadas, cada universo como un título, y las fichas de libro como enlaces que se pueden abrir en otra pestaña.
+
 ### 1.1.0 (2026-11-28)
 
 En el móvil, la navegación va abajo: Biblioteca, Catálogo, Comunidad (con los mensajes sin leer) y «Más», que abre el resto desde abajo.

@@ -200,7 +200,7 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await expect(libraryView.getByText('Libro de Ana')).toHaveCount(0);
         await expect(libraryView.getByText('Universo de Ana')).toHaveCount(0);
         // La vista de Ana es suya: Bruno empieza con la de siempre.
-        await expect(libraryView.getByRole('button', { name: 'Universos', exact: true })).toHaveAttribute('aria-pressed', 'true');
+        await expect(libraryView.getByRole('button', { name: 'Universos', exact: true })).toHaveAttribute('aria-current', 'true');
         await statusesButton.click();
         await libraryView.getByRole('button', { name: 'Universos', exact: true }).click();
 
