@@ -43,6 +43,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -284,7 +286,10 @@ private fun <T> Desplegable(etiqueta: String, actual: String, opciones: List<Pai
 
 // --- Las sagas que coinciden. ---
 
-/** `.saga-matches` en la APK: «Sagas» y un chip por saga, en una fila que se desplaza. */
+/**
+ * `.saga-matches` en la APK: un chip por saga, en una fila que se desplaza. Sin el rótulo «Sagas»: el icono de saga de
+ * cada chip ya dice que son de otro tipo que las obras de debajo, y se lee «Saga: …» (ronda 1 de interfaz, C1).
+ */
 @Composable
 private fun SagasQueCoinciden(sagas: List<Saga>, alAbrir: (Int) -> Unit) {
     val colores = LocalColores.current
@@ -293,26 +298,19 @@ private fun SagasQueCoinciden(sagas: List<Saga>, alAbrir: (Int) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            "SAGAS",
-            style = Textos.cuerpo.copy(fontSize = rem(0.75), fontWeight = FontWeight.Bold, letterSpacing = 0.06.em, color = colores.primario),
-            modifier = Modifier.padding(end = 4.dp),
-        )
         sagas.forEach { saga ->
+            val nombre = if (saga.subtitulo.isNullOrEmpty()) saga.nombre else "${saga.nombre} · ${saga.subtitulo}"
             Row(
                 Modifier.heightIn(min = 40.dp).clip(Radios.pildora).background(colores.superficieContenedor)
                     .border(1.dp, colores.contorno, Radios.pildora)
-                    .clickable { alAbrir(saga.id) }
+                    .clickable(role = Role.Button) { alAbrir(saga.id) }
+                    .clearAndSetSemantics { contentDescription = "Saga: $nombre" }
                     .padding(start = 8.dp, end = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(painterResource(Iconos.collectionsBookmark), contentDescription = null, tint = colores.terciario, modifier = Modifier.size(20.dp))
-                Text(
-                    if (saga.subtitulo.isNullOrEmpty()) saga.nombre else "${saga.nombre} · ${saga.subtitulo}",
-                    style = Textos.cuerpo.copy(fontSize = rem(0.875), fontWeight = FontWeight.Medium, color = colores.tinta),
-                    maxLines = 1,
-                )
+                Text(nombre, style = Textos.cuerpo.copy(fontSize = rem(0.875), fontWeight = FontWeight.Medium, color = colores.tinta), maxLines = 1)
             }
         }
     }
@@ -335,7 +333,8 @@ private fun Rejilla(obras: List<Obra>, columnas: Int, tarjeta: @Composable (Obra
 
 /**
  * `.m-catalog-card`: la portada de 76 dp a todo el alto, la autoría en el primario, el nombre en la letra de display (dos
- * líneas como mucho), el estado de la persona y la flecha. Si la obra es suya, el borde lleva el primario.
+ * líneas como mucho), el estado de la persona y la flecha. Si la obra es suya, el borde lleva el primario y el estado va
+ * solo con su icono y su nombre accesible; si no, nada (fuera «Fuera de tu biblioteca»; ronda 1 de interfaz, C1).
  */
 @Composable
 private fun TarjetaDeCatalogo(obra: Obra, alAbrir: () -> Unit) {
@@ -361,15 +360,14 @@ private fun TarjetaDeCatalogo(obra: Obra, alAbrir: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 5.dp, bottom = Espacios.e3),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
-                val estilo = Textos.nota.copy(fontWeight = FontWeight.Bold, color = colores.tintaSuave)
-                if (suya) {
-                    val icono = if (Catalogo.tieneSoloEdicion(obra)) Iconos.libraryBooks else iconoDeEstado(obra.ultimoEstado)
-                    Icon(painterResource(icono), contentDescription = null, tint = colores.tintaSuave, modifier = Modifier.size(16.dp))
-                    Text(nombreDeEstado(obra.estadoActual).ifEmpty { "En mi biblioteca" }, style = estilo)
-                } else {
-                    Text("Fuera de tu biblioteca", style = estilo)
-                }
+            if (suya) {
+                val icono = if (Catalogo.tieneSoloEdicion(obra)) Iconos.libraryBooks else iconoDeEstado(obra.ultimoEstado)
+                Icon(
+                    painterResource(icono),
+                    contentDescription = nombreDeEstado(obra.estadoActual).ifEmpty { "En tu biblioteca" },
+                    tint = colores.tintaSuave,
+                    modifier = Modifier.size(18.dp),
+                )
             }
         }
         Box(Modifier.width(32.dp), contentAlignment = Alignment.CenterStart) {
