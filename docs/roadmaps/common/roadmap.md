@@ -12,12 +12,13 @@
 - La navbar Wood combina clases Bootstrap con estilos propios, lo que puede provocar efectos de layout no intencionados si los hijos no tienen cajas acotadas.
 - Bootstrap queda como dependencia legacy: no se amplía su uso en temas, shells ni componentes nuevos.
 
-## Líneas activas
+## Líneas pausadas
 
-- `ROADMAP_ACTIVO_redisenio-vista-de-libro.md`: el rediseño «Cuaderno» de la vista de libro y del resto de la web.
 - `ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: presentación Web claro/oscuro, Wood elegible y navegación reorganizada; queda su checklist manual.
 
 ## Referencias útiles
+
+- `ROADMAP_FINALIZADO_redisenio-vista-de-libro.md`: el rediseño «Cuaderno» de la vista de libro y del resto de la web (cerrado el 28/11/2026).
 
 - `src/app/components/shared/common/navbar/`: la navbar.
 - Roadmaps finalizados de la vertical (Wood, Mobile, responsive, lector persistente, referencias humanas, rediseño): en esta carpeta, con el prefijo `ROADMAP_FINALIZADO_`.

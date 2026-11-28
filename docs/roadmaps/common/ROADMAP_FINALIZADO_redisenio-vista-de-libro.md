@@ -1,6 +1,6 @@
 # Rediseño de la vista de libro («Cuaderno»)
 
-**Activo desde el 26/11/2026.** El propietario aprobó entera la maqueta del diseñador. La vista de libro le parecía fea y sus formularios, poco usables. Fuentes:
+**Finalizado el 28/11/2026** (activo desde el 26/11/2026; la web, de F0 a F6, hasta la 1.4.0, y la APK, F5, en la 2.1.0). El propietario aprobó entera la maqueta del diseñador. La vista de libro le parecía fea y sus formularios, poco usables. Fuentes:
 - la maqueta: https://claude.ai/code/artifact/b3201e50-a8e0-4dd8-9829-7d32ec498167 (privada; sus archivos, en `docs/diseno/vista-de-libro-2026-11/`);
 - la revisión escrita del resto de la web, al final de esa misma maqueta.
 

@@ -1,6 +1,6 @@
 # Pruebas del rediseño de la vista de libro
 
-Roadmap: `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`. Cada casilla se prueba en el móvil (360 × 800), el plegable (840 × 900) y la pantalla ancha (1440 × 900), en claro y en oscuro; lo de la APK, en el Honor.
+Roadmap: `docs/roadmaps/common/ROADMAP_FINALIZADO_redisenio-vista-de-libro.md`. Cada casilla se prueba en el móvil (360 × 800), el plegable (840 × 900) y la pantalla ancha (1440 × 900), en claro y en oscuro; lo de la APK, en el Honor.
 
 ## Web
 
@@ -14,8 +14,8 @@ Roadmap: `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`. Cada
 - [x] El alta rápida de personaje se completa con el nombre y Intro; Esc y el gesto de volver la cierran (F3: `e2e/web-character-creation.spec.ts`).
 - [x] Elementos: lista y ficha a la vez desde 600 px (F3).
 - [x] Estados: libro sin empezar, lista vacía, cargando, error y recuperado (F4; el recuperado, en `e2e/account-switch.spec.ts`).
-- [ ] axe sin infracciones críticas ni graves en las vistas nuevas, en los dos temas.
-- [ ] Sin peticiones a orígenes de fuentes externos.
+- [x] axe sin infracciones críticas ni graves en las vistas nuevas, en los dos temas (`e2e/web-accessibility.spec.ts`: la Biblioteca, el Perfil, el capítulo, el Resumen, las notas y Elementos; 28/11/2026).
+- [x] Sin peticiones a orígenes de fuentes externos (`e2e/own-fonts.spec.ts`, 28/11/2026).
 
 ## APK
 

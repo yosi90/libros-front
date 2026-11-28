@@ -15,7 +15,7 @@
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`: el rediseño «Cuaderno» de la vista de libro y después del resto de la web, aprobado por el propietario el 26/11/2026 (maqueta en `docs/diseno/vista-de-libro-2026-11/`).
+Ninguno.
 
 ## Roadmaps pausados
 
@@ -24,4 +24,4 @@
 
 ## Roadmaps finalizados
 
-En su vertical, con el prefijo `ROADMAP_FINALIZADO_`. El último, `common/ROADMAP_FINALIZADO_duplicados-frontend.md` (cerrado el 26/11/2026, con sus 11 propuestas). La adhesión, `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (cerrado el 29/10/2026); lo que dejó abierto, en `../Libros API/docs/roadmaps/FINALIZADO_tras-la-adhesion/` (cerrado el 27/11/2026).
+En su vertical, con el prefijo `ROADMAP_FINALIZADO_`. El último, `common/ROADMAP_FINALIZADO_redisenio-vista-de-libro.md` (el rediseño «Cuaderno» y el resto de la web, cerrado el 28/11/2026). Antes, `ecosistema/ROADMAP_FINALIZADO_kits-2026-11.md` y `common/ROADMAP_FINALIZADO_duplicados-frontend.md`. La adhesión, `ecosistema/ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (cerrado el 29/10/2026); lo que dejó abierto, en `../Libros API/docs/roadmaps/FINALIZADO_tras-la-adhesion/` (cerrado el 27/11/2026).
