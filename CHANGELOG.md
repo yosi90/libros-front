@@ -4,6 +4,10 @@ Versionado semántico (`ecosistema-kit/VERSIONADO.md`): una nota por versión pu
 
 ## Web
 
+### 1.4.0 (2026-11-28)
+
+Menos títulos y explicaciones en Comunidad, los clubes, Estadísticas y Preferencias.
+
 ### 1.3.0 (2026-11-28)
 
 En el Catálogo, «Añadir» guarda el libro con un clic como «Quiero leer» (la flecha de al lado deja elegir otro estado), y los filtros puestos se ven siempre.

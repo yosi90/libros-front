@@ -1,9 +1,5 @@
 <section class="activity" [attr.aria-busy]="c.loading">
   <header class="activity__head">
-    <div>
-      <h2>Actividad</h2>
-      <p>Lo que comparten en Libros tus amistades y quienes sigues.</p>
-    </div>
     <div class="activity__head-actions">
       <a class="activity__settings" [href]="c.settingsUrl" target="_blank" rel="noopener"><app-yosiftware-mark></app-yosiftware-mark>Qué compartes</a>
       <button class="icon-button" type="button" aria-label="Actualizar actividad" [disabled]="c.loading" (click)="c.load()"><mat-icon>refresh</mat-icon></button>
