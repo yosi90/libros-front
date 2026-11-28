@@ -120,7 +120,8 @@ test.describe('Los clubes en los espacios de la plataforma (hito 3)', () => {
         await dialog.getByRole('button', { name: 'Aceptar' }).click();
 
         await expect(page).toHaveURL(/\/dashboard\/community\/clubs\/70$/);
-        await expect(page.locator('app-web-club-detail-view .club__title h2')).toHaveText('Club de Dune');
+        // El nombre lleva al lado su ficha «Abierto» (web 1.4.0).
+        await expect(page.locator('app-web-club-detail-view .club__title h2')).toHaveText('Club de Dune Abierto');
         expect(world.platformCalls.map(call => `${call.method} ${call.path}`)).toEqual(expect.arrayContaining([
             'POST /v1/espacios/invitaciones/por-codigo', 'POST /v1/espacios/invitaciones/por-codigo/aceptar'
         ]));
