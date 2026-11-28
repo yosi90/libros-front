@@ -95,7 +95,7 @@ fun BarraSuperior(
  */
 @Composable
 fun BotonDePerfil(mensajesSinLeer: Int, avatar: String? = null, nombre: String? = null, alPulsar: () -> Unit) {
-    val descripcion = if (mensajesSinLeer > 0) "Abrir perfil, $mensajesSinLeer mensajes sin leer" else "Abrir perfil"
+    val descripcion = if (mensajesSinLeer > 0) "Abrir perfil, ${textoDeSinLeer(mensajesSinLeer)}" else "Abrir perfil"
     Avatar(
         tamanoFoto = 34.dp,
         tamanoCaja = Alturas.botonDeIcono,
