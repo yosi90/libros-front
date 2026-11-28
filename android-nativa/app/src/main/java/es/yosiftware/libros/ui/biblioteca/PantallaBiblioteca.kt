@@ -29,6 +29,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -53,6 +55,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -89,9 +92,6 @@ import es.yosiftware.libros.ui.tema.sombra2
 // La Biblioteca de la APK: src/app/components/mobile/user/mobile-library-view/, en su versión de la APK de Capacitor
 // (las reglas `native-mobile` del Sass de 5dc3120, la que se capturó): la vista ocupa el lienzo entero, la búsqueda
 // queda anclada arriba y los universos son tarjetas con sus sagas colgando de una línea guía.
-
-/** El rótulo pequeño en mayúsculas de las secciones («Continúa leyendo», «Sagas», «Historias independientes»). */
-private val rotulo = Textos.rotulo.copy(letterSpacing = 0.08.em)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -333,21 +333,26 @@ internal fun ChipQuitable(texto: String, descripcion: String, alQuitar: () -> Un
 
 // --- Los filtros. ---
 
-/** `.m-library__filters`: «Organizar por» (Universos/Estados) y, con universos, la disponibilidad. Dos columnas desde 600 dp. */
+/**
+ * `.m-library__filters`: cómo se organiza (Universos/Estados) y, con universos, la disponibilidad. Dos columnas desde
+ * 600 dp. Sin las etiquetas «Organizar por» y «Disponibilidad», que quedan como nombre accesible de cada grupo: las
+ * opciones ya se nombran (ronda 1 de interfaz, B2).
+ */
 @Composable
 private fun PanelDeFiltros(vm: BibliotecaViewModel, ancha: Boolean) {
     val colores = LocalColores.current
-    val etiqueta = Textos.cuerpo.copy(fontSize = rem(0.76), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave)
     val organizar: @Composable (Modifier) -> Unit = { m ->
         Column(m) {
-            Text("Organizar por", style = etiqueta, modifier = Modifier.padding(bottom = Espacios.e2))
-            Row(Modifier.fillMaxWidth().clip(Radios.pildora).background(colores.superficieContenedor).padding(4.dp)) {
+            Row(
+                Modifier.fillMaxWidth().clip(Radios.pildora).background(colores.superficieContenedor).padding(4.dp)
+                    .semantics { contentDescription = "Organizar por" }.selectableGroup(),
+            ) {
                 Vista.entries.forEach { opcion ->
                     val activa = vm.vista == opcion
                     Box(
                         Modifier.weight(1f).heightIn(min = 40.dp).clip(Radios.pildora)
                             .background(if (activa) colores.contenedorPrimario else Color.Transparent)
-                            .clickable { vm.elegirVista(opcion) },
+                            .selectable(selected = activa, role = Role.RadioButton) { vm.elegirVista(opcion) },
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -362,8 +367,10 @@ private fun PanelDeFiltros(vm: BibliotecaViewModel, ancha: Boolean) {
     }
     val disponibilidad: @Composable (Modifier) -> Unit = { m ->
         Column(m) {
-            Text("Disponibilidad", style = etiqueta, modifier = Modifier.padding(bottom = Espacios.e2))
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+            Row(
+                Modifier.horizontalScroll(rememberScrollState()).semantics { contentDescription = "Disponibilidad" }.selectableGroup(),
+                horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
+            ) {
                 Disponibilidad.entries.forEach { opcion ->
                     Chip(opcion.etiqueta, estado = if (vm.disponibilidad == opcion) EstadoDeChip.Seleccionado else EstadoDeChip.Normal, alPulsar = { vm.elegirDisponibilidad(opcion) })
                 }
@@ -409,12 +416,14 @@ private fun PestanasDeEstado(vm: BibliotecaViewModel, arriba: Dp) {
 
 // --- Continúa leyendo. ---
 
-/** `.m-library__continue`: un carrusel con los libros en marcha (hasta 6): portada, autoría y progreso. */
+/**
+ * `.m-library__continue`: un carrusel con los libros en marcha (hasta 6): portada, autoría y progreso. Sin el rótulo
+ * «Continúa leyendo» encima: la barra de progreso ya lo dice (ronda 1 de interfaz, B1).
+ */
 @Composable
 private fun ContinuaLeyendo(libros: List<Obra>, alAbrir: (Obra) -> Unit) {
     val colores = LocalColores.current
-    Column(Modifier.fillMaxWidth().padding(bottom = Espacios.e3), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-        Text("CONTINÚA LEYENDO", style = rotulo.copy(color = colores.tintaSuave), modifier = Modifier.padding(horizontal = Espacios.e2))
+    Column(Modifier.fillMaxWidth().padding(bottom = Espacios.e3)) {
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             // `flex: 0 0 min(84%, 320px)`: el 84 % del carril sin sus 8 dp de relleno a cada lado.
             val anchoDeTarjeta: Dp = minOf((maxWidth - Espacios.e2 * 2) * 0.84f, 320.dp)
@@ -455,8 +464,9 @@ private fun ContinuaLeyendo(libros: List<Obra>, alAbrir: (Obra) -> Unit) {
 // --- Universos y sagas. ---
 
 /**
- * Un universo (`.m-library__universe`): tarjeta con su nombre, el icono de mundo en su color, cuántos títulos tiene y,
- * abierto, sus sagas y sus historias independientes. «Sin universo» va sin icono ni color.
+ * Un universo (`.m-library__universe`): tarjeta con su nombre, cuántos títulos tiene y, abierto, sus sagas y sus
+ * historias independientes. Sin el icono de mundo ni los rótulos «Sagas» e «Historias independientes»: las sagas son
+ * filas y las sueltas, tarjetas (decisión del propietario, duda 5 A de la ronda 1 de interfaz).
  */
 @Composable
 private fun TarjetaDeUniverso(
@@ -470,8 +480,7 @@ private fun TarjetaDeUniverso(
 ) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.lg)
-    val tono = tonoDeUniverso(universo)
-    val acento = tono?.let { Color.hsl(it, 0.48f, 0.43f) } ?: colores.tinta
+    val conUniverso = tonoDeUniverso(universo) != null
     val abierto = vm.estaAbierto(universo)
     val total = totalDeObras(universo)
     Column(modifier.fillMaxWidth().clip(forma).background(colores.superficie).border(1.dp, colores.contorno, forma)) {
@@ -482,24 +491,22 @@ private fun TarjetaDeUniverso(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2), verticalAlignment = Alignment.CenterVertically) {
-                    if (tono != null) Icon(painterResource(Iconos.public), contentDescription = null, tint = acento, modifier = Modifier.size(18.dp))
-                    Text(
-                        universo.nombre,
-                        style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(if (ancha) 1.18 else 1.08), lineHeight = 1.1.em, fontWeight = FontWeight.Bold, color = colores.tinta),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                Text(
+                    universo.nombre,
+                    style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(if (ancha) 1.18 else 1.08), lineHeight = 1.1.em, fontWeight = FontWeight.Bold, color = colores.tinta),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 // Los autores del universo solo caben desde 600 dp.
-                if (ancha && tono != null && universo.autores.isNotEmpty()) {
+                if (ancha && conUniverso && universo.autores.isNotEmpty()) {
                     Text(universo.autores.joinToString(", ") { it.nombre }, style = Textos.cuerpo.copy(fontSize = rem(0.76), color = colores.tintaSuave), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
+            // En el móvil, el número solo; se lee entero («5 títulos»).
             Text(
                 if (ancha) etiquetaDeTitulos(total) else total.toString(),
                 style = Textos.cuerpo.copy(fontSize = rem(0.76), fontWeight = FontWeight.ExtraBold, color = colores.tintaSuave, textAlign = TextAlign.End),
-                modifier = Modifier.widthIn(min = if (ancha) 66.dp else 18.dp),
+                modifier = Modifier.widthIn(min = if (ancha) 66.dp else 18.dp).semantics { contentDescription = etiquetaDeTitulos(total) },
             )
             Icon(painterResource(if (abierto) Iconos.expandLess else Iconos.expandMore), contentDescription = if (abierto) "Plegar ${universo.nombre}" else "Desplegar ${universo.nombre}", tint = colores.tinta, modifier = Modifier.size(24.dp))
         }
@@ -508,10 +515,9 @@ private fun TarjetaDeUniverso(
             val sueltas = obrasIndependientes(universo)
             Column(Modifier.fillMaxWidth().padding(start = Espacios.e3, end = Espacios.e3, bottom = Espacios.e3), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
                 if (sagas.isNotEmpty()) {
-                    Text("SAGAS", style = rotulo.copy(fontSize = rem(0.7), color = colores.tintaSuave), modifier = Modifier.padding(top = Espacios.e2, start = Espacios.e1, end = Espacios.e1))
                     // Las sagas cuelgan de una línea guía de 2 dp.
                     Column(
-                        Modifier.fillMaxWidth().padding(start = Espacios.e1)
+                        Modifier.fillMaxWidth().padding(start = Espacios.e1, top = Espacios.e2)
                             .drawBehind { drawRect(colores.contorno, Offset.Zero, Size(2.dp.toPx(), size.height)) }
                             .padding(start = 2.dp + Espacios.e2),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -522,10 +528,7 @@ private fun TarjetaDeUniverso(
                     }
                 }
                 if (sueltas.isNotEmpty()) {
-                    if (sagas.isNotEmpty()) {
-                        Text("HISTORIAS INDEPENDIENTES", style = rotulo.copy(fontSize = rem(0.7), color = colores.tintaSuave), modifier = Modifier.padding(top = Espacios.e2, start = Espacios.e1, end = Espacios.e1))
-                    }
-                    Rejilla(sueltas, columnas) { obra -> Revelable(vm, obra) { TarjetaDeObra(obra, { alAbrir(obra) }, { vm.abrirEditor(obra) }, { alVerEdiciones(obra) }) } }
+                    Rejilla(sueltas, columnas, Modifier.padding(top = if (sagas.isNotEmpty()) Espacios.e2 else 0.dp)) { obra -> Revelable(vm, obra) { TarjetaDeObra(obra, { alAbrir(obra) }, { vm.abrirEditor(obra) }, { alVerEdiciones(obra) }) } }
                 }
             }
         }
@@ -533,8 +536,8 @@ private fun TarjetaDeUniverso(
 }
 
 /**
- * Una saga (`.m-library__saga`): icono, nombre, subtítulo, «Sigue a…/Continúa en…», las portadas (plegada), cuántas
- * obras tiene y el chevrón. Abierta, sobre el contenedor al 70 % y con sus obras. Las encadenadas llevan la barra de
+ * Una saga (`.m-library__saga`): nombre, subtítulo, «Sigue a…/Continúa en…» (texto, sin el eslabón), las portadas
+ * (plegada), cuántas obras tiene y el chevrón; sin el icono de saga (duda 5 A de la ronda 1 de interfaz). Abierta, sobre el contenedor al 70 % y con sus obras. Las encadenadas llevan la barra de
  * acento a la izquierda y se juntan entre sí.
  */
 @Composable
@@ -573,17 +576,13 @@ private fun FilaDeSaga(
             horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(painterResource(Iconos.collectionsBookmark), contentDescription = null, tint = acentoDeSaga, modifier = Modifier.size(20.dp))
             Column(Modifier.weight(1f)) {
                 Text(saga.nombre, style = Textos.cuerpo.copy(fontSize = rem(0.9), fontWeight = FontWeight.SemiBold, color = colores.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 saga.subtitulo?.takeIf { it.isNotBlank() }?.let {
                     Text(it, style = Textos.nota.copy(color = colores.tintaSuave), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 leyendaDeCadena(saga, mostradas)?.let { leyenda ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Icon(painterResource(Iconos.link), contentDescription = null, tint = acentoDeSaga, modifier = Modifier.size(16.dp).padding(top = 1.dp))
-                        Text(leyenda, style = Textos.nota.copy(fontWeight = FontWeight.SemiBold, lineHeight = 1.3.em, color = acentoDeSaga))
-                    }
+                    Text(leyenda, style = Textos.nota.copy(fontWeight = FontWeight.SemiBold, lineHeight = 1.3.em, color = acentoDeSaga))
                 }
             }
             if (!abierta) {

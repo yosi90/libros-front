@@ -64,7 +64,6 @@ object Iconos {
     @DrawableRes val expandLess = R.drawable.mi_expand_less
     @DrawableRes val expandMore = R.drawable.mi_expand_more
     @DrawableRes val collectionsBookmark = R.drawable.mi_collections_bookmark
-    @DrawableRes val link = R.drawable.mi_link
     @DrawableRes val star = R.drawable.mi_star
     @DrawableRes val starBorder = R.drawable.mi_star_border
     @DrawableRes val searchOff = R.drawable.mi_search_off
