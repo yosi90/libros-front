@@ -4,6 +4,10 @@ Versionado semántico (`ecosistema-kit/VERSIONADO.md`): una nota por versión pu
 
 ## Web
 
+### 1.4.1 (2026-11-28)
+
+La descripción de un club vuelve a verse con su letra y sus saltos de línea.
+
 ### 1.4.0 (2026-11-28)
 
 Menos títulos y explicaciones en Comunidad, los clubes, Estadísticas y Preferencias.
