@@ -41,6 +41,7 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
@@ -89,7 +90,7 @@ fun PantallaActividad(vm: ActividadViewModel, acciones: AccionesDeComunidad) {
         }
         if (vm.error.isNotEmpty()) Text(vm.error, color = colores.error, style = Textos.cuerpo)
         when {
-            vm.cargando && vm.lista.isEmpty() -> EstadoDePantalla(Iconos.hourglassTop, "Cargando la actividad…")
+            vm.cargando && vm.lista.isEmpty() -> Cargando("Cargando la actividad", alturaMinima = 220.dp)
             vm.lista.isEmpty() && vm.cargada -> {
                 EstadoDePantalla(
                     Iconos.dynamicFeed,

@@ -61,8 +61,10 @@ import es.yosiftware.libros.ui.biblioteca.iconoDeEstado
 import es.yosiftware.libros.ui.biblioteca.nombreDeEstado
 import es.yosiftware.libros.ui.biblioteca.ultimoEstado
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.ColumnaEstirada
 import es.yosiftware.libros.ui.componentes.Portada
+import es.yosiftware.libros.ui.componentes.SinResultados
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
@@ -100,7 +102,7 @@ fun PantallaCatalogo(vm: CatalogoViewModel) {
             if (vm.sagas.isNotEmpty()) item(key = "sagas") { SagasQueCoinciden(vm.sagas, vm::abrirSaga) }
             when {
                 vm.cargando -> item(key = "cargando") {
-                    Estado(Iconos.hourglassTop, null, "Cargando catálogo…", conTarjeta = false)
+                    Cargando("Cargando el catálogo", Modifier.padding(start = Espacios.e3, end = Espacios.e3, top = Espacios.e6), alturaMinima = 300.dp)
                 }
                 vm.obras.isNotEmpty() -> item(key = "rejilla") {
                     Rejilla(vm.obras, if (ancha) 2 else 1) { obra -> TarjetaDeCatalogo(obra) { vm.abrirFicha(obra) } }
@@ -111,9 +113,12 @@ fun PantallaCatalogo(vm: CatalogoViewModel) {
                     }
                 }
                 else -> item(key = "vacio") {
-                    Estado(Iconos.searchOff, "Sin resultados", "Prueba con otros filtros o solicita el título que falta.") {
-                        Boton("Solicitar un libro nuevo", { vm.pedirNuevo() }, Modifier.fillMaxWidth().padding(top = Espacios.e5), icono = Iconos.add)
-                    }
+                    SinResultados(
+                        "Sin resultados",
+                        Modifier.padding(start = Espacios.e3, end = Espacios.e3, top = Espacios.e6),
+                        accion = "Solicitar un libro nuevo",
+                        alPulsar = { vm.pedirNuevo() },
+                    )
                 }
             }
         }
@@ -373,11 +378,11 @@ private fun TarjetaDeCatalogo(obra: Obra, alAbrir: () -> Unit) {
     }
 }
 
-// --- Cargando, error y vacío. ---
+// --- El error. Cargando y sin resultados, en componentes/Estados.kt. ---
 
 /**
- * `.m-catalog__state`: 300 dp de alto como mínimo, 24 dp por encima y 32 de relleno (que en el error y el vacío
- * sustituyen a los 16 de la `.m-card`), el icono de 44 dp en el primario, el título, la explicación y la acción. Es una
+ * `.m-catalog__state`: 300 dp de alto como mínimo, 24 dp por encima y 32 de relleno (que en el error sustituyen a los
+ * 16 de la `.m-card`), el icono de 44 dp en el primario, el título, la explicación y la acción. Es una
  * rejilla centrada: lo que le sobra de alto se reparte entre sus filas ([ColumnaEstirada]).
  *
  * TODO(clon): los huecos entre el icono, el título, el texto y el botón están medidos sobre la captura

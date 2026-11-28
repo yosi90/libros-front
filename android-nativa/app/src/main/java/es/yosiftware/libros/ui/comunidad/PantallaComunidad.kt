@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
@@ -216,7 +217,7 @@ private fun PantallaResumen(comunidad: ComunidadViewModel, clubes: ClubesViewMod
         }
         if (comunidad.parcial) Aviso("Parte del resumen no está disponible. El resto continúa operativo.")
         when {
-            comunidad.cargandoResumen && comunidad.tarjetas.isEmpty() -> EstadoDePantalla(Iconos.hourglassTop, "Cargando tu actividad…", alturaMinima = 240)
+            comunidad.cargandoResumen && comunidad.tarjetas.isEmpty() -> Cargando("Cargando tu actividad", alturaMinima = 240.dp)
             comunidad.errorDelResumen.isNotEmpty() -> EstadoDePantalla(
                 Iconos.cloudOff, comunidad.errorDelResumen, titulo = "No pudimos cargar el resumen", error = true, alturaMinima = 240,
                 boton = "Reintentar" to comunidad::cargarResumen,
@@ -289,7 +290,7 @@ private fun PantallaClubes(comunidad: ComunidadViewModel, clubes: ClubesViewMode
         verticalArrangement = Arrangement.spacedBy(Espacios.e4),
     ) {
         when {
-            clubes.cargando -> EstadoDePantalla(Iconos.hourglassTop, "Cargando la comunidad…")
+            clubes.cargando -> Cargando("Cargando la comunidad", alturaMinima = 220.dp)
             clubes.falloDeCarga -> EstadoDePantalla(Iconos.cloudOff, null, titulo = "No pudimos cargar esta sección", error = true, boton = "Reintentar" to clubes::cargarDescubrir)
             else -> Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Espacios.e1)) {
@@ -431,7 +432,7 @@ private fun CentroDeAcceso(comunidad: ComunidadViewModel, acceso: CentroDeAcceso
             }
         }
         val filas = acceso.filas
-        if (acceso.cargando && filas.isEmpty()) EstadoDePantalla(Iconos.hourglassTop, "Cargando accesos…", tamanoIcono = 40, alturaMinima = 160)
+        if (acceso.cargando && filas.isEmpty()) Cargando("Cargando los accesos", alturaMinima = 160.dp)
         if (filas.isEmpty() && !acceso.cargando && acceso.error.isEmpty()) EstadoDePantalla(Iconos.inbox, acceso.mensajeVacio, tamanoIcono = 40, alturaMinima = 160)
         Rejilla(filas, columnas = if (ancha) 2 else 1) { fila -> TarjetaDeAcceso(comunidad, acceso, fila, ancha) }
     }

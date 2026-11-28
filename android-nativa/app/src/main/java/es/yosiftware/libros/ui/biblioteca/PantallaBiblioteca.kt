@@ -1,12 +1,6 @@
 package es.yosiftware.libros.ui.biblioteca
 
 import es.yosiftware.libros.ui.libro.TituloEnLinea
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -53,14 +47,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -77,10 +68,13 @@ import es.yosiftware.libros.datos.modelos.Saga
 import es.yosiftware.libros.datos.modelos.Universo
 import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.Chip
 import es.yosiftware.libros.ui.componentes.EstadoDeChip
 import es.yosiftware.libros.ui.componentes.Portada
+import es.yosiftware.libros.ui.componentes.SinResultados
 import es.yosiftware.libros.ui.componentes.Tarjeta
+import es.yosiftware.libros.ui.componentes.VacioConSalida
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
@@ -141,11 +135,13 @@ fun PantallaBiblioteca(
             if (enMarcha.isNotEmpty()) item(key = "continua") { ContinuaLeyendo(enMarcha, alAbrirLibro) }
 
             when {
-                vm.cargando -> item(key = "cargando") { Cargando() }
+                vm.cargando -> item(key = "cargando") {
+                    Cargando("Cargando tu biblioteca", Modifier.padding(horizontal = Espacios.e3).padding(top = Espacios.e6), alturaMinima = 280.dp)
+                }
                 vm.errorDeCarga != null && vm.universos.isEmpty() -> item(key = "error") {
                     // TODO(clon): la web no tiene pantalla para este fallo (el almacén de universos se queda vacío); aquí
                     // se dice y se ofrece reintentar, con el aspecto del estado vacío.
-                    Vacio(Iconos.cloudOff, "No pudimos cargar tu biblioteca", vm.errorDeCarga!!.mensajeO("Comprueba la conexión e inténtalo de nuevo."), "Reintentar", vm::reintentar)
+                    FalloDeCarga(Iconos.cloudOff, "No pudimos cargar tu biblioteca", vm.errorDeCarga!!.mensajeO("Comprueba la conexión e inténtalo de nuevo."), "Reintentar", vm::reintentar)
                 }
                 vm.vista == Vista.ESTADOS -> {
                     // Su margen de 12 dp y el de «Continúa leyendo» se juntan, como en CSS.
@@ -174,10 +170,10 @@ fun PantallaBiblioteca(
                     }
                 }
                 vm.hayObras -> item(key = "sin-coincidencias") {
-                    Vacio(Iconos.searchOff, "No encontramos coincidencias", "Prueba con otra búsqueda o limpia los filtros.", "Limpiar filtros", vm::limpiarFiltros, tonal = true)
+                    SinResultados("No encontramos coincidencias", margenDelEstado, accion = "Limpiar filtros", alPulsar = vm::limpiarFiltros)
                 }
                 else -> item(key = "vacia") {
-                    Vacio(Iconos.autoStories, "Tu biblioteca está esperando", "Explora el catálogo y añade tu primera lectura.", "Abrir catálogo", alAbrirCatalogo)
+                    VacioConSalida(Iconos.autoStories, "Tu biblioteca está vacía", "Abrir catálogo", alAbrirCatalogo, margenDelEstado)
                 }
             }
         }
@@ -646,40 +642,14 @@ private fun Rejilla(obras: List<Obra>, columnas: Int, modifier: Modifier = Modif
     }
 }
 
-// --- Cargando y vacíos. ---
+// --- Cargando, vacíos y el fallo. La rueda, la biblioteca vacía y sin coincidencias, en componentes/Estados.kt. ---
 
-@Composable
-private fun Cargando() {
-    val colores = LocalColores.current
-    Column(
-        Modifier.fillMaxWidth().padding(horizontal = Espacios.e3).padding(top = Espacios.e6).heightIn(min = 280.dp).padding(Espacios.e7)
-            .semantics { contentDescription = "Cargando tu biblioteca…" },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Rueda(38.dp, 3.dp)
-        Text("Cargando tu biblioteca…", style = Textos.cuerpo.copy(color = colores.tintaSuave, textAlign = TextAlign.Center), modifier = Modifier.padding(top = Espacios.e2))
-    }
-}
+/** Los márgenes de la biblioteca vacía y de «sin coincidencias». */
+private val margenDelEstado = Modifier.padding(start = Espacios.e3, end = Espacios.e3, top = Espacios.e6)
 
-/** La rueda de carga: un anillo de la superficie alta con un cuarto del primario que gira cada 0,8 s. */
+/** El fallo al cargar (`.m-library__empty`, una `.m-card`): icono, título, explicación y «Reintentar». */
 @Composable
-internal fun Rueda(tamano: Dp, grosor: Dp) {
-    val colores = LocalColores.current
-    val giro by rememberInfiniteTransition(label = "rueda").animateFloat(0f, 360f, infiniteRepeatable(tween(800, easing = LinearEasing), RepeatMode.Restart), label = "giro")
-    Box(
-        Modifier.size(tamano).rotate(giro).drawBehind {
-            val g = grosor.toPx()
-            val caja = Size(size.width - g, size.height - g)
-            drawArc(colores.superficieAlta, 0f, 360f, false, Offset(g / 2, g / 2), caja, style = Stroke(g))
-            drawArc(colores.primario, -135f, 90f, false, Offset(g / 2, g / 2), caja, style = Stroke(g, cap = StrokeCap.Butt))
-        },
-    )
-}
-
-/** `.m-library__empty` (una `.m-card`): icono, título, explicación y la acción. */
-@Composable
-private fun Vacio(icono: Int, titulo: String, texto: String, accion: String, alPulsar: () -> Unit, tonal: Boolean = false) {
+private fun FalloDeCarga(icono: Int, titulo: String, texto: String, accion: String, alPulsar: () -> Unit, tonal: Boolean = false) {
     val colores = LocalColores.current
     Tarjeta(Modifier.fillMaxWidth().padding(start = Espacios.e3, end = Espacios.e3, top = Espacios.e6)) {
         Column(

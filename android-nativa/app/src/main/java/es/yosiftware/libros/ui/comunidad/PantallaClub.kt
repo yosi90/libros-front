@@ -60,6 +60,7 @@ import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.FilaDeLista
 import es.yosiftware.libros.ui.componentes.BotonesDeDialogo
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
 import es.yosiftware.libros.ui.componentes.DialogoModal
 import es.yosiftware.libros.ui.componentes.Superficie
@@ -99,7 +100,7 @@ fun PantallaClub(vm: ClubViewModel, acciones: AccionesDelClub) {
     ) {
         Volver(acciones.volver)
         when {
-            vm.cargando -> EstadoDePantalla(Iconos.hourglassTop, "Cargando club…", tamanoIcono = 52, alturaMinima = 280)
+            vm.cargando -> Cargando("Cargando el club", alturaMinima = 280.dp)
             vm.error.isNotEmpty() -> EstadoDePantalla(
                 Iconos.cloudOff, vm.error, titulo = "No pudimos abrir el club", error = true, tamanoIcono = 52, alturaMinima = 280,
                 boton = "Reintentar" to { vm.recargar() },

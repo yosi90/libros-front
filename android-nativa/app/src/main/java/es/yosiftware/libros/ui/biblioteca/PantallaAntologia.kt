@@ -43,8 +43,11 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.zonaSegura
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.MarcoDeBarraDePantallaCompleta
 import es.yosiftware.libros.ui.componentes.Portada
+import es.yosiftware.libros.ui.componentes.Rueda
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.TextoDeApoyo
 import es.yosiftware.libros.ui.componentes.TextoEyebrow
@@ -111,14 +114,7 @@ fun PantallaAntologia(
             ) {
                 Cabecera(antologia, vm, ancha, alVerFicha, alBuscarSimilares)
                 when {
-                    vm.cargandoAntologia && vm.secciones.isEmpty() -> Column(
-                        Modifier.fillMaxWidth().padding(top = Espacios.e6).heightIn(min = 220.dp).padding(Espacios.e6),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Rueda(36.dp, 3.dp)
-                        Text("Cargando secciones…", style = Textos.cuerpo.copy(color = colores.tintaSuave), modifier = Modifier.padding(top = Espacios.e2))
-                    }
+                    vm.cargandoAntologia && vm.secciones.isEmpty() -> Cargando("Cargando las secciones", Modifier.padding(top = Espacios.e6), alturaMinima = 220.dp)
                     vm.falloAntologia && vm.secciones.isEmpty() -> EstadoDeAntologia(Iconos.cloudOff, "No pudimos cargar las secciones", "Comprueba la conexión e inténtalo de nuevo.") {
                         Boton("Reintentar", vm::reintentarAntologia, variante = VarianteDeBoton.Tonal)
                     }
@@ -144,7 +140,7 @@ fun PantallaAntologia(
                             }
                         }
                     }
-                    else -> EstadoDeAntologia(Iconos.autoStories, "Esta antología no tiene secciones disponibles", null) {}
+                    else -> ListaVacia("Sin secciones", Modifier.padding(top = Espacios.e6))
                 }
             }
         }

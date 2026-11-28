@@ -83,6 +83,7 @@ import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.FilaDeLista
 import es.yosiftware.libros.ui.componentes.BotonesDeDialogo
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
 import es.yosiftware.libros.ui.componentes.DialogoModal
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
@@ -135,7 +136,7 @@ fun PantallaConversacion(vm: ConversacionViewModel, volver: () -> Unit, resaltad
         } else {
             Box(Modifier.weight(1f)) {
                 when {
-                    vm.cargando -> EstadoDePantalla(Iconos.hourglassTop, "Cargando mensajes…", alturaMinima = 240)
+                    vm.cargando -> Cargando("Cargando los mensajes", alturaMinima = 240.dp)
                     vm.error.isNotEmpty() -> EstadoDePantalla(Iconos.cloudOff, vm.error, error = true, alturaMinima = 240, boton = "Reintentar" to vm::recargar)
                     else -> ListaDeMensajes(vm, compacta, resaltado)
                 }

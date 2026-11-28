@@ -42,6 +42,8 @@ import es.yosiftware.libros.datos.leerFecha
 import es.yosiftware.libros.datos.modelos.AvisoDelCentro
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
 import es.yosiftware.libros.ui.tema.Fuentes
@@ -121,9 +123,9 @@ fun PanelDeAvisos(vm: CentroDeAvisosViewModel, acciones: AccionesDelPanel, altoM
         }
         Box(Modifier.weight(1f, fill = false)) {
             when {
-                vm.cargando && vm.lista.isEmpty() -> Estado("Cargando…")
-                vm.error.isNotEmpty() && vm.lista.isEmpty() -> Estado(vm.error, error = true)
-                vm.lista.isEmpty() -> Estado(if (vm.soloSinLeer) "No tienes nada sin leer." else "Aún no tienes notificaciones.")
+                vm.cargando && vm.lista.isEmpty() -> Cargando("Cargando las notificaciones")
+                vm.error.isNotEmpty() && vm.lista.isEmpty() -> Fallo(vm.error)
+                vm.lista.isEmpty() -> ListaVacia(if (vm.soloSinLeer) "Nada sin leer" else "Sin notificaciones", alturaMinima = 120.dp)
                 else -> LazyColumn(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(Espacios.e2),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -242,16 +244,17 @@ private fun BotonDeTextoDelAviso(texto: String, habilitado: Boolean = true, alPu
     }
 }
 
+/** El fallo al leer la lista: el icono y el error. Cargando y la lista vacía, en componentes/Estados.kt. */
 @Composable
-private fun Estado(texto: String, error: Boolean = false) {
+private fun Fallo(texto: String) {
     val colores = LocalColores.current
     Column(
         Modifier.fillMaxWidth().heightIn(min = 220.dp).padding(Espacios.e4),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.CenterVertically),
     ) {
-        Icon(painterResource(Iconos.notificationsNone), contentDescription = null, tint = if (error) colores.error else colores.primario, modifier = Modifier.size(56.dp))
-        Text(texto, color = if (error) colores.error else colores.tintaSuave, style = Textos.cuerpo, textAlign = TextAlign.Center)
+        Icon(painterResource(Iconos.notificationsNone), contentDescription = null, tint = colores.error, modifier = Modifier.size(56.dp))
+        Text(texto, color = colores.error, style = Textos.cuerpo, textAlign = TextAlign.Center)
     }
 }
 

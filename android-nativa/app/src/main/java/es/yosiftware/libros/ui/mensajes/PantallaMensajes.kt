@@ -40,6 +40,7 @@ import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.componentes.Boton
 import es.yosiftware.libros.ui.componentes.FilaDeLista
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
+import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.Tarjeta
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.comunidad.CampoDeFormulario
@@ -82,7 +83,7 @@ fun PantallaMensajes(vm: MensajesViewModel, bandeja: BandejaDeChat, conversacion
         vm.creador?.let { Creador(vm, it) }
         if (vm.avisoDeAcceso.isNotEmpty()) Recuadro(vm.avisoDeAcceso)
         when {
-            estado.cargando -> EstadoDePantalla(Iconos.hourglassTop, "Cargando conversaciones…", tamanoIcono = 44, alturaMinima = 180)
+            estado.cargando -> Cargando("Cargando las conversaciones", alturaMinima = 180.dp)
             estado.error != null -> EstadoDePantalla(
                 Iconos.cloudOff, estado.error, error = true, tamanoIcono = 44, alturaMinima = 180,
                 boton = "Reintentar" to vm::recargar,
