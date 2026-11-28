@@ -28,9 +28,8 @@
     <header class="club__head">
       <span class="club__icon" aria-hidden="true"><mat-icon>groups_3</mat-icon></span>
       <div class="club__title">
-        <span class="web-eyebrow">Club de lectura · {{club.Visibilidad === 'abierto' ? 'abierto' : 'cerrado'}}</span>
-        <h2>{{club.Nombre}}</h2>
-        <p>{{club.DescripcionMarkdown || 'Este club aún no tiene descripción.'}}</p>
+        <h2>{{club.Nombre}} <span class="club__visibility">{{club.Visibilidad === 'abierto' ? 'Abierto' : 'Cerrado'}}</span></h2>
+        @if (club.DescripcionMarkdown) {<p>{{club.DescripcionMarkdown}}</p>}
       </div>
       <div class="club__actions">
         @if (c.canJoin && c.ownRequestPending) {

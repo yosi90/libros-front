@@ -144,7 +144,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 
 ## F6. El resto de la web
 
-- [ ] Por este orden, según la revisión escrita del diseñador, y en rama propia cada uno:
+- [x] Por este orden, según la revisión escrita del diseñador, y en rama propia cada uno (hecho el 28/11/2026):
   - [x] **la navegación en el móvil** (28/11/2026, rama `f6-navegacion-movil`): barra inferior con Biblioteca, Catálogo, Comunidad y «Más»; Comunidad con la insignia de no leídos y sin la entrada «Mensajes» repetida. «Más» abre desde abajo una hoja con Estadísticas y Perfil, como en la APK, y el menú hamburguesa desaparece. `e2e/web-platform-social.spec.ts` lo comprueba a 390 px;
   - [x] **la Biblioteca** (28/11/2026, rama `f6-biblioteca`, web 1.2.0; comprobada en ancha y a 360 px, axe sin infracciones):
     - «Continúa leyendo» como fila de portadas;
@@ -155,4 +155,9 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
     - buscar y añadir, primero, con «Añadir» directo;
     - los filtros activos, visibles;
     - «Pedir un libro», como acción secundaria;
-  - **Comunidad y clubes**, **Estadísticas** y **Preferencias**, con menos títulos y subtítulos.
+  - [x] **Comunidad y clubes**, **Estadísticas** y **Preferencias**, con menos títulos y subtítulos (28/11/2026, rama `f6-menos-texto`, web 1.4.0). Fuera:
+    - los títulos que repetían su pestaña (Resumen y Actividad de Comunidad, y el apartado de Preferencias);
+    - el antetítulo del club y su descripción de relleno; abierto o cerrado es ahora una ficha junto al nombre;
+    - el subtítulo de Estadísticas y los subtítulos de los gráficos que repetían su título. Se quedan el del umbral de privacidad («Sin barra: menos de tres lectores») y el de los días en espera.
+
+    Lo compartido con Mobile y Wood (el texto de privacidad de Preferencias) no se ha tocado.

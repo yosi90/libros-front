@@ -1,9 +1,6 @@
 <main class="web-stats">
   <header class="web-stats__head">
-    <div>
-      <h1>Estadísticas</h1>
-      <p>{{controller.tab === 'personal' ? 'Tu biblioteca en cifras' : 'Lo que se lee en la comunidad y lo que hay en el catálogo'}}</p>
-    </div>
+    <h1>Estadísticas</h1>
     <div class="web-stats__tabs" role="tablist" aria-label="Ámbito de las estadísticas">
       <button type="button" role="tab" [class.is-selected]="controller.tab === 'personal'" [attr.aria-selected]="controller.tab === 'personal'" (click)="selectTab('personal')"><mat-icon aria-hidden="true">person</mat-icon>Personal</button>
       <button type="button" role="tab" [class.is-selected]="controller.tab === 'general'" [attr.aria-selected]="controller.tab === 'general'" (click)="selectTab('general')"><mat-icon aria-hidden="true">public</mat-icon>General</button>
@@ -52,10 +49,10 @@
           }
         </article>
 
-        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Más tiempo en espera', subtitle: 'Libros «En espera», por días que llevan así', chart: waiting, empty: 'No tienes libros en espera.' }"></ng-container>
-        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Autores que más lees', subtitle: 'Libros leídos por autor', chart: authors, empty: 'Aún no hay libros leídos.' }"></ng-container>
-        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Estilos que más lees', subtitle: 'Libros leídos por estilo', chart: styles, empty: 'Tus libros leídos no tienen estilo asignado.' }"></ng-container>
-        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Tus puntuaciones', subtitle: 'Cuántos libros has valorado con cada nota', chart: ratings, empty: 'Aún no has puntuado ningún libro.' }"></ng-container>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Más tiempo en espera', subtitle: 'Días que llevan en espera', chart: waiting, empty: 'No tienes libros en espera.' }"></ng-container>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Autores que más lees', subtitle: '', chart: authors, empty: 'Aún no hay libros leídos.' }"></ng-container>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Estilos que más lees', subtitle: '', chart: styles, empty: 'Tus libros leídos no tienen estilo asignado.' }"></ng-container>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Tus puntuaciones', subtitle: '', chart: ratings, empty: 'Aún no has puntuado ningún libro.' }"></ng-container>
 
         <article class="web-stats__card web-stats__card--wide">
           <h2>Libros leídos por mes</h2>
@@ -93,9 +90,9 @@
           <div><strong>{{pace.CapitulosPorSemana | number:'1.0-1'}}</strong><span>Capítulos por semana</span></div>
         </section>
         <section class="web-stats__charts">
-          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Páginas por mes', subtitle: 'Lo que avanzaste cada mes', chart: paceMonths, empty: 'Aún no hay meses con lectura registrada.' }"></ng-container>
-          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Qué días lees', subtitle: 'Páginas por día de la semana', chart: paceWeekdays, empty: 'Sin datos.' }"></ng-container>
-          <ng-container *ngTemplateOutlet="barCard; context: { title: 'A qué hora lees', subtitle: 'Páginas por franja del día', chart: paceHours, empty: 'Sin datos.' }"></ng-container>
+          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Páginas por mes', subtitle: '', chart: paceMonths, empty: 'Aún no hay meses con lectura registrada.' }"></ng-container>
+          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Qué días lees', subtitle: '', chart: paceWeekdays, empty: 'Sin datos.' }"></ng-container>
+          <ng-container *ngTemplateOutlet="barCard; context: { title: 'A qué hora lees', subtitle: '', chart: paceHours, empty: 'Sin datos.' }"></ng-container>
         </section>
       } @else {
         <section class="web-stats__charts">
@@ -120,8 +117,8 @@
           <div><strong>{{controller.ratingReviews}}</strong><span>Reseñas en el último año</span></div>
         </section>
         <section class="web-stats__charts">
-          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Puntuaciones por mes', subtitle: 'Obras que puntuaste cada mes', chart: ratingsByMonth, empty: 'Aún no hay meses con puntuaciones.' }"></ng-container>
-          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Tu nota media por mes', subtitle: 'La media de lo que puntuaste ese mes', chart: ratingAverage, empty: 'Sin datos.' }"></ng-container>
+          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Puntuaciones por mes', subtitle: '', chart: ratingsByMonth, empty: 'Aún no hay meses con puntuaciones.' }"></ng-container>
+          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Tu nota media por mes', subtitle: '', chart: ratingAverage, empty: 'Sin datos.' }"></ng-container>
         </section>
       } @else {
         <section class="web-stats__charts">
@@ -175,19 +172,19 @@
           @if (communityMonthly) {
             <article class="web-stats__card web-stats__card--wide">
               <h2>Lecturas de la comunidad por mes</h2>
-              <p class="web-stats__subtitle">Libros terminados en los últimos doce meses; los meses sin barra tienen menos de tres lectores</p>
+              <p class="web-stats__subtitle">Sin barra: menos de tres lectores</p>
               <apx-chart [series]="communityMonthly.series" [chart]="communityMonthly.chart" [xaxis]="communityMonthly.xaxis" [yaxis]="communityMonthly.yaxis"
                 [plotOptions]="communityMonthly.plotOptions" [dataLabels]="communityMonthly.dataLabels" [colors]="communityMonthly.colors" [grid]="communityMonthly.grid"></apx-chart>
             </article>
           }
           @if (communityPace) {
-            <ng-container *ngTemplateOutlet="barCard; context: { title: 'Páginas leídas por mes', subtitle: 'Lo que avanzó la comunidad cada mes; sin barra, menos de tres lectores', chart: communityPace, empty: '' }"></ng-container>
+            <ng-container *ngTemplateOutlet="barCard; context: { title: 'Páginas leídas por mes', subtitle: 'Sin barra: menos de tres lectores', chart: communityPace, empty: '' }"></ng-container>
           }
           @if (communityRatingsByMonth) {
-            <ng-container *ngTemplateOutlet="barCard; context: { title: 'Puntuaciones por mes', subtitle: 'Obras puntuadas cada mes; sin barra, menos de tres personas', chart: communityRatingsByMonth, empty: '' }"></ng-container>
+            <ng-container *ngTemplateOutlet="barCard; context: { title: 'Puntuaciones por mes', subtitle: 'Sin barra: menos de tres personas', chart: communityRatingsByMonth, empty: '' }"></ng-container>
           }
           @if (communityRatingAverage) {
-            <ng-container *ngTemplateOutlet="barCard; context: { title: 'Nota media por mes', subtitle: 'La media de las puntuaciones de cada mes', chart: communityRatingAverage, empty: '' }"></ng-container>
+            <ng-container *ngTemplateOutlet="barCard; context: { title: 'Nota media por mes', subtitle: '', chart: communityRatingAverage, empty: '' }"></ng-container>
           }
           @for (card of communityCards; track card.title) {
             <ng-container *ngTemplateOutlet="barCard; context: card"></ng-container>
@@ -246,13 +243,12 @@
         <ng-container *ngTemplateOutlet="barCard; context: { title: 'Autores con más títulos', subtitle: 'Libros del catálogo por autor', chart: catalogAuthors, empty: 'Sin autores en el catálogo.' }"></ng-container>
         <article class="web-stats__card">
           <h2>Idiomas disponibles</h2>
-          <p class="web-stats__subtitle">Títulos que se pueden leer en cada idioma</p>
           @if (languages) {
             <apx-chart [series]="languages.series" [chart]="languages.chart" [labels]="languages.labels" [plotOptions]="languages.plotOptions"
               [colors]="languages.colors" [legend]="languages.legend" [stroke]="languages.stroke" [dataLabels]="languages.dataLabels"></apx-chart>
           } @else {<p class="web-stats__empty">Sin idiomas registrados.</p>}
         </article>
-        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Publicación por décadas', subtitle: 'Cuándo se publicaron los títulos del catálogo', chart: decades, empty: 'Sin fechas de publicación.' }"></ng-container>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Publicación por décadas', subtitle: '', chart: decades, empty: 'Sin fechas de publicación.' }"></ng-container>
 
       </section>
     }
@@ -262,7 +258,7 @@
 <ng-template #barCard let-title="title" let-subtitle="subtitle" let-chart="chart" let-empty="empty">
   <article class="web-stats__card">
     <h2>{{title}}</h2>
-    <p class="web-stats__subtitle">{{subtitle}}</p>
+    @if (subtitle) {<p class="web-stats__subtitle">{{subtitle}}</p>}
     @if (chart) {
       <apx-chart [series]="chart.series" [chart]="chart.chart" [xaxis]="chart.xaxis" [yaxis]="chart.yaxis" [plotOptions]="chart.plotOptions"
         [dataLabels]="chart.dataLabels" [colors]="chart.colors" [grid]="chart.grid" [tooltip]="chart.tooltip"></apx-chart>

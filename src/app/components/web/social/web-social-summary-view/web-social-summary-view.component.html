@@ -1,10 +1,9 @@
 <section class="summary" [attr.aria-busy]="c.loading">
   <header class="summary__head">
-    <h2>Tu actividad social</h2>
     <button class="icon-button" type="button" aria-label="Actualizar resumen" [disabled]="c.loading" (click)="c.load()"><mat-icon>refresh</mat-icon></button>
   </header>
   @if (c.partial) {
-    <p class="summary__notice" role="status"><mat-icon aria-hidden="true">info</mat-icon>Parte del resumen no está disponible. El resto funciona con normalidad.</p>
+    <p class="summary__notice" role="status"><mat-icon aria-hidden="true">info</mat-icon>Parte del resumen no está disponible.</p>
   }
   @if (c.loading && !c.cards.length) {
     <div class="state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando tu actividad…</p></div>

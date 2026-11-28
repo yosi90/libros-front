@@ -19,7 +19,6 @@
                 @for (item of availableSections(); track item.id) {<button type="button" [class.is-active]="activeSection === item.id" [attr.aria-current]="activeSection === item.id ? 'page' : null" (click)="select(item.id)"><mat-icon aria-hidden="true">{{item.icon}}</mat-icon>{{item.label}}</button>}
             </nav>
             <section class="web-settings__panel">
-                <header class="web-settings__panel-head"><div><h2>{{activeSectionInfo.label}}</h2><p>{{activeSectionInfo.description}}</p></div></header>
                 @if (activeSection === 'appearance') {<app-appearance-preferences></app-appearance-preferences>}
                 @if (activeSection === 'reading') {<app-reading-preferences></app-reading-preferences>}
                 @if (activeSection === 'privacy') {<app-profile-platform-privacy></app-profile-platform-privacy>}
