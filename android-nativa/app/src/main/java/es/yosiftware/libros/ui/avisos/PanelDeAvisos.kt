@@ -46,7 +46,6 @@ import es.yosiftware.libros.ui.componentes.Cargando
 import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.tema.Espacios
-import es.yosiftware.libros.ui.tema.Fuentes
 import es.yosiftware.libros.ui.tema.Iconos
 import es.yosiftware.libros.ui.tema.LocalColores
 import es.yosiftware.libros.ui.tema.Radios
@@ -83,8 +82,8 @@ internal fun cuando(iso: String, zona: ZoneId = ZoneId.systemDefault(), hoy: Loc
 }
 
 /**
- * `.m-notifications`: borde, radio de 26, el lienzo y la sombra 2; la cabecera de 64 dp con la campana, el título y
- * cerrar; los filtros y «Marcar todas como leídas»; la lista que se desplaza y el pie. [altoMaximo] lo pone quien lo
+ * `.m-notifications`: borde, radio de 26, el lienzo y la sombra 2; la fila de 64 dp con los filtros, «Marcar todas como
+ * leídas» y cerrar; la lista que se desplaza y el pie. [altoMaximo] lo pone quien lo
  * coloca (620 dp en compacto y 520 desde 600, menos lo que ocupan las barras).
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -97,22 +96,11 @@ fun PanelDeAvisos(vm: CentroDeAvisosViewModel, acciones: AccionesDelPanel, altoM
             // Lo de dentro no cierra el panel.
             .clickable(enabled = false) {},
     ) {
+        // Sin la cabecera «Notificaciones» (la abre la campana): la X sube a la fila de los filtros (ronda 1 de interfaz, A1).
         Row(
             Modifier.fillMaxWidth().heightIn(min = 64.dp).background(colores.superficie)
                 .drawBehind { drawLine(colores.contorno, Offset(0f, size.height - 0.5f), Offset(size.width, size.height - 0.5f), 1.dp.toPx()) }
-                .padding(start = Espacios.e4, end = Espacios.e2, top = Espacios.e2, bottom = Espacios.e2),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
-        ) {
-            Icon(painterResource(Iconos.notifications), contentDescription = null, tint = colores.primario)
-            Text(
-                "Notificaciones", Modifier.weight(1f), color = colores.tinta, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontWeight = FontWeight.SemiBold, fontSize = rem(1.18), lineHeight = rem(1.18 * 1.1)),
-            )
-            BotonDeIcono(Iconos.close, "Cerrar notificaciones", vm::cerrar)
-        }
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = Espacios.e3, vertical = Espacios.e2),
+                .padding(start = Espacios.e3, end = Espacios.e2, top = Espacios.e2, bottom = Espacios.e2),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Espacios.e1)) {
@@ -120,6 +108,7 @@ fun PanelDeAvisos(vm: CentroDeAvisosViewModel, acciones: AccionesDelPanel, altoM
                 Filtro(if (vm.contadores.noLeidas > 0) "Sin leer · ${vm.contadores.noLeidas}" else "Sin leer", vm.soloSinLeer) { vm.elegirFiltro(true) }
             }
             BotonDeIcono(Iconos.doneAll, "Marcar todas como leídas", vm::marcarTodas, color = colores.primario, habilitado = vm.contadores.noLeidas > 0)
+            BotonDeIcono(Iconos.close, "Cerrar notificaciones", vm::cerrar)
         }
         Box(Modifier.weight(1f, fill = false)) {
             when {
