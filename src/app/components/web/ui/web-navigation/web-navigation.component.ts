@@ -19,7 +19,9 @@ export interface WebNavigationItem {
 const COLLAPSED_KEY = 'libros:web-nav-collapsed';
 /** Compact: la cabecera es la barra superior; si no, la cuenta va al pie de la navegación lateral. */
 const COMPACT_QUERY = '(max-width: 599px)';
-const TAB_ROUTES = ['/dashboard/books', '/dashboard/catalog', '/dashboard/community'];
+const COMMUNITY_ROUTE = '/dashboard/community';
+const MESSAGES_ROUTE = '/dashboard/community/messages';
+const TAB_ROUTES = ['/dashboard/books', '/dashboard/catalog', COMMUNITY_ROUTE];
 
 /**
  * Navegación principal de la presentación Web: lateral con texto en escritorio y rail de iconos en medium. En compact,
@@ -65,12 +67,15 @@ export class WebNavigationComponent {
             });
     }
 
-    /** Mensajes vive bajo /community, pero en la navegación son destinos distintos. */
-    isActive(item: WebNavigationItem): boolean {
+    /**
+     * Mensajes vive bajo /community, pero en la navegación son destinos distintos. En la barra inferior (`tab`), Comunidad
+     * está activa también en Mensajes, que va dentro.
+     */
+    isActive(item: WebNavigationItem, tab = false): boolean {
         const path = this.currentUrl().split(/[?#]/)[0];
         if (item.exact) return path === item.route;
         if (!path.startsWith(item.route)) return false;
-        return !(item.route === '/dashboard/community' && path.startsWith('/dashboard/community/messages'));
+        return tab || !(item.route === COMMUNITY_ROUTE && path.startsWith(MESSAGES_ROUTE));
     }
 
     get items(): WebNavigationItem[] {
@@ -79,9 +84,9 @@ export class WebNavigationComponent {
             { route: '/dashboard/catalog', icon: 'travel_explore', label: 'Catálogo' }
         ];
         if (this.communityEnabled)
-            items.push({ route: '/dashboard/community', icon: 'groups', label: 'Comunidad' });
+            items.push({ route: COMMUNITY_ROUTE, icon: 'groups', label: 'Comunidad' });
         if (this.chatEnabled)
-            items.push({ route: '/dashboard/community/messages', icon: 'forum', label: 'Mensajes', badge: this.unreadChatCount || undefined });
+            items.push({ route: MESSAGES_ROUTE, icon: 'forum', label: 'Mensajes', badge: this.unreadChatCount || undefined });
         items.push({ route: '/dashboard/statistics', icon: 'insights', label: 'Estadísticas' });
         return items;
     }
@@ -90,19 +95,13 @@ export class WebNavigationComponent {
     get tabItems(): WebNavigationItem[] {
         return this.items
             .filter(item => TAB_ROUTES.includes(item.route))
-            .map(item => item.route === '/dashboard/community' ? { ...item, badge: this.unreadChatCount || undefined } : item);
+            .map(item => item.route === COMMUNITY_ROUTE ? { ...item, badge: this.unreadChatCount || undefined } : item);
     }
 
     /** En compact, el cajón solo lleva lo que no está en la barra inferior (ni Mensajes, que va dentro de Comunidad). */
     get drawerItems(): WebNavigationItem[] {
         if (!this.compact()) return this.items;
-        return this.items.filter(item => !TAB_ROUTES.includes(item.route) && item.route !== '/dashboard/community/messages');
-    }
-
-    /** En la barra inferior, Comunidad está activa también en Mensajes. */
-    isTabActive(item: WebNavigationItem): boolean {
-        const path = this.currentUrl().split(/[?#]/)[0];
-        return item.exact ? path === item.route : path.startsWith(item.route);
+        return this.items.filter(item => !TAB_ROUTES.includes(item.route) && item.route !== MESSAGES_ROUTE);
     }
 
     toggleCollapsed(): void {
