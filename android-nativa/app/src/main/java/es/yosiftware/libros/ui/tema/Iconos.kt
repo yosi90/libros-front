@@ -19,7 +19,6 @@ object Iconos {
     @DrawableRes val barChart = R.drawable.mi_bar_chart
     @DrawableRes val moreHoriz = R.drawable.mi_more_horiz
     @DrawableRes val settings = R.drawable.mi_settings
-    @DrawableRes val shield = R.drawable.mi_shield
     @DrawableRes val close = R.drawable.mi_close
     @DrawableRes val lightMode = R.drawable.mi_light_mode
     @DrawableRes val darkMode = R.drawable.mi_dark_mode
@@ -40,7 +39,6 @@ object Iconos {
     @DrawableRes val warning = R.drawable.mi_warning
     @DrawableRes val info = R.drawable.mi_info
     @DrawableRes val password = R.drawable.mi_password
-    @DrawableRes val bugReport = R.drawable.mi_bug_report
     @DrawableRes val chevronRight = R.drawable.mi_chevron_right
     @DrawableRes val addComment = R.drawable.mi_add_comment
     @DrawableRes val reply = R.drawable.mi_reply

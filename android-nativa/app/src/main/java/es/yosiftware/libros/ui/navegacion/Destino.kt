@@ -26,9 +26,11 @@ enum class Destino(
     Estadisticas("Estadísticas", "Estadísticas", Iconos.barChart, hito = 8),
     Preferencias("Preferencias", "Preferencias", Iconos.settings, hito = 11),
     // «Cuenta y seguridad» se retira con la adhesión: la entrada de la hoja «Más» abre el panel de cuentas (hito 6), no
-    // una pantalla, y lo de la seguridad está en la web social.
-    Cuenta("Cuenta", "Cuenta", Iconos.shield, hito = 6),
-    Mensajes("Mensajes", "Comunidad", Iconos.forum, hito = 12, seccion = Comunidad),
+    // una pantalla, y lo de la seguridad está en la web social. Con el carné, que se entiende mejor que el escudo sin
+    // texto (ronda 1 de interfaz).
+    Cuenta("Cuenta", "Cuenta", Iconos.badge, hito = 6),
+    // Con su propio icono: en la hoja «Más» va sin texto y no puede compartir el de Comunidad.
+    Mensajes("Mensajes", "Comunidad", Iconos.chat, hito = 12, seccion = Comunidad),
     ;
 
     /** El destino de la navegación que queda marcado (`routerLinkActive`). */

@@ -7,15 +7,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,12 +39,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import es.yosiftware.libros.ui.componentes.Avatar
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
 import es.yosiftware.libros.ui.componentes.rayaArriba
+import es.yosiftware.libros.ui.comunidad.Insignia
 import es.yosiftware.libros.ui.cuenta.EnlacesDeLaCuenta
 import es.yosiftware.libros.ui.tema.Alturas
 import es.yosiftware.libros.ui.tema.Espacios
@@ -63,15 +60,12 @@ import es.yosiftware.libros.ui.tema.sombra1
 
 // La hoja «Más» de src/app/components/mobile/user/mobile-dashboard-chrome/ (`.m-more-backdrop` y `.m-more-sheet`).
 
-private val textoTuEspacio = Textos.cuerpo.copy(fontSize = (0.76 * 16).sp)
 private val textoNombre = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = (1.15 * 16).sp, fontWeight = FontWeight.Bold)
-private val textoEnlace = Textos.cuerpo.copy(fontSize = (0.84 * 16).sp, fontWeight = FontWeight.Bold, lineHeight = 1.2.em)
-private val textoTema = Textos.cuerpo.copy(fontSize = (0.88 * 16).sp, fontWeight = FontWeight.Bold)
-private val textoTemaElegido = Textos.cuerpo.copy(fontSize = (0.74 * 16).sp)
 
 /**
- * La hoja «Más»: la foto y el nombre, los accesos a Perfil, Cuenta, Preferencias, Estadísticas y Mensajes, lo de la
- * cuenta en la web social (hito 6) y el interruptor sol/luna del tema. La capa, el velo, el asa y el movimiento son los
+ * La hoja «Más»: la foto y el nombre, los accesos a Perfil, Cuenta, Preferencias, Estadísticas y Mensajes (una fila de
+ * iconos, como la navegación: ronda 1 de interfaz, opción A), lo de la cuenta en la web social (hito 6) y el
+ * interruptor sol/luna del tema, solo. La capa, el velo, el asa y el movimiento son los
  * de [HojaInferior] (entra desde abajo en 220 ms sobre el velo y sale en 240; se cierra con la X, con Atrás, tocando
  * fuera o arrastrando la hoja hacia abajo). «Cuenta» ya no es «Cuenta y seguridad», que se retira con la adhesión: abre el panel de
  * cuentas ([alAbrirCuentas]).
@@ -88,10 +82,12 @@ fun HojaMas(
     avatar: String? = null,
     alAbrirCuentas: () -> Unit = {},
     chatActivo: Boolean = true,
+    /** Los mensajes sin leer del chat: la insignia de Mensajes. */
+    mensajesSinLeer: Int = 0,
 ) {
     HojaInferior(abierta = abierta, alCerrar = alCerrar, titulo = "Más destinos") {
         Cabecera(nombre, avatar, alCerrar)
-        Accesos(actual, chatActivo) { destino ->
+        Accesos(actual, chatActivo, mensajesSinLeer) { destino ->
             alCerrar()
             if (destino == Destino.Cuenta) alAbrirCuentas() else alElegir(destino)
         }
@@ -101,7 +97,7 @@ fun HojaMas(
     }
 }
 
-/** `.m-more-sheet__profile`: foto de 52 dp (la miniatura del perfil de la plataforma), «Tu espacio» y el nombre, y la X; 16 dp debajo y el borde del contorno. */
+/** `.m-more-sheet__profile`: foto de 52 dp (la miniatura del perfil de la plataforma), el nombre y la X; 16 dp debajo y el borde del contorno. */
 @Composable
 private fun Cabecera(nombre: String, avatar: String?, alCerrar: () -> Unit) {
     val colores = LocalColores.current
@@ -117,56 +113,62 @@ private fun Cabecera(nombre: String, avatar: String?, alCerrar: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Avatar(tamanoFoto = 52.dp, url = avatar, nombre = nombre, conBorde = false)
-        Column(Modifier.weight(1f)) {
-            Text("Tu espacio", color = colores.tintaSuave, style = textoTuEspacio, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(nombre, Modifier.padding(top = 2.dp), color = colores.tinta, style = textoNombre, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
+        Text(nombre, Modifier.weight(1f), color = colores.tinta, style = textoNombre, maxLines = 1, overflow = TextOverflow.Ellipsis)
         BotonDeIcono(Iconos.close, "Cerrar", alCerrar)
     }
 }
 
-/** `.m-more-sheet__links`: dos columnas con 8 dp de hueco y 16 dp arriba y abajo. */
+/** Los accesos, en una fila de cajas iguales con 8 dp de hueco y 16 dp arriba y abajo. */
 @Composable
-private fun Accesos(actual: Destino, chatActivo: Boolean, alElegir: (Destino) -> Unit) {
+private fun Accesos(actual: Destino, chatActivo: Boolean, mensajesSinLeer: Int, alElegir: (Destino) -> Unit) {
     val entradas = Destino.enLaHojaMas.filter { it != Destino.Mensajes || chatActivo }
-    Column(Modifier.padding(vertical = Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-        entradas.chunked(2).forEach { par ->
-            // Las dos celdas de una fila, igual de altas (la rejilla de la web las estira).
-            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                par.forEach { destino ->
-                    // Mensajes no es un enlace con `routerLinkActive`: nunca se marca.
-                    val activo = destino != Destino.Mensajes && actual == destino
-                    Acceso(destino, activo, Modifier.weight(1f).fillMaxHeight()) { alElegir(destino) }
-                }
-                if (par.size == 1) Spacer(Modifier.weight(1f))
-            }
+    Row(Modifier.fillMaxWidth().padding(vertical = Espacios.e4), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+        entradas.forEach { destino ->
+            // Mensajes no es un enlace con `routerLinkActive`: nunca se marca.
+            val activo = destino != Destino.Mensajes && actual == destino
+            val sinLeer = if (destino == Destino.Mensajes) mensajesSinLeer else 0
+            Acceso(destino, activo, sinLeer, Modifier.weight(1f)) { alElegir(destino) }
         }
     }
 }
 
-/** Un acceso: 56 dp como mínimo, 12 de relleno y entre piezas, borde del contorno y radio de 12; el icono, en el primario. */
+/**
+ * Un acceso: solo el icono, en una caja de 56 dp de alto con el borde del contorno y radio de 12; el elegido, en el
+ * contenedor primario. Su nombre accesible es el del destino (con los mensajes sin leer, si los hay), y la insignia va
+ * arriba a la derecha.
+ */
 @Composable
-private fun Acceso(destino: Destino, activo: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
+private fun Acceso(destino: Destino, activo: Boolean, sinLeer: Int, modifier: Modifier, alPulsar: () -> Unit) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(Radios.sm)
-    Row(
+    val nombre = if (sinLeer > 0) "${destino.etiqueta}, $sinLeer sin leer" else destino.etiqueta
+    Box(
         modifier
-            .heightIn(min = 56.dp)
+            .height(56.dp)
             .clip(forma)
             .background(if (activo) colores.contenedorPrimario else colores.superficie)
             .border(1.dp, if (activo) Color.Transparent else colores.contorno, forma)
             .clickable(role = Role.Button, onClick = alPulsar)
-            .semantics { selected = activo }
-            .padding(Espacios.e3 + 1.dp),
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
-        verticalAlignment = Alignment.CenterVertically,
+            .semantics {
+                selected = activo
+                contentDescription = nombre
+            },
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(painterResource(destino.icono), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
-        Text(destino.etiqueta, color = colores.tinta, style = textoEnlace)
+        Icon(
+            painterResource(destino.icono),
+            contentDescription = null,
+            tint = if (activo) colores.sobreContenedorPrimario else colores.primario,
+            modifier = Modifier.size(24.dp),
+        )
+        if (sinLeer > 0) Insignia(sinLeer, Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 8.dp))
     }
 }
 
-/** `.m-more-sheet__theme`: «Tema» y el elegido a la izquierda, y el interruptor a la derecha, bajo un borde al 72 %. */
+/**
+ * `.m-more-sheet__theme`: el interruptor, a la derecha y bajo un borde al 72 %. Sin «Tema» ni «Claro»/«Oscuro»: el sol
+ * y la luna lo dicen, y su nombre accesible y su estado también.
+ */
 @Composable
 private fun FilaDelTema(tema: TemaMobile, alAlternar: () -> Unit) {
     val colores = LocalColores.current
@@ -175,21 +177,11 @@ private fun FilaDelTema(tema: TemaMobile, alAlternar: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .padding(bottom = Espacios.e3)
-            .heightIn(min = 58.dp)
             .rayaArriba(borde)
-            .padding(top = Espacios.e2 + 1.dp, bottom = Espacios.e3),
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e4),
+            .padding(top = Espacios.e3 + 1.dp),
+        horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
-            Text("Tema", color = colores.tinta, style = textoTema)
-            Text(
-                if (tema == TemaMobile.Oscuro) "Oscuro" else "Claro",
-                Modifier.padding(top = 3.dp),
-                color = colores.tintaSuave,
-                style = textoTemaElegido,
-            )
-        }
         InterruptorDeTema(tema, alAlternar)
     }
 }

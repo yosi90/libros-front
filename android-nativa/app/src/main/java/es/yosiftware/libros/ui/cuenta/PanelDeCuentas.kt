@@ -251,8 +251,8 @@ fun BotonDeYosiftware(texto: String, alPulsar: () -> Unit) {
 
 /**
  * Lo de la cuenta que se hace fuera de la app (APK.md, «Entrar», puntos 5 y 6): el perfil, los logros, las sesiones y
- * la privacidad, en la web social y con el símbolo del ecosistema, y «Errores y propuestas», que abre la web de Libros
- * con `?reportar`.
+ * la privacidad, en la web social, y «Errores y propuestas», que abre la web de Libros con `?reportar` (el `<yosi-reportar>`
+ * de la plataforma). Todos con el símbolo del ecosistema (ronda 1 de interfaz: en vez del bicho, que repetía el texto).
  * Con el aspecto de las filas de la hoja «Más» (`.m-more-sheet`): 48 dp, el icono en el primario y el texto en negrita.
  * [alAbrir] se llama antes de salir al navegador (para cerrar la hoja).
  */
@@ -268,7 +268,7 @@ fun EnlacesDeLaCuenta(alAbrir: () -> Unit, conPerfil: Boolean = true) {
         FilaDeEnlace(Iconos.simboloYosiftware, "Tus logros") { abrir(sesion.direccionWebSocial("logros")) }
         FilaDeEnlace(Iconos.simboloYosiftware, "Sesiones") { abrir(sesion.direccionWebSocial("sesiones")) }
         FilaDeEnlace(Iconos.simboloYosiftware, "Privacidad") { abrir(sesion.direccionWebSocial("privacidad")) }
-        FilaDeEnlace(Iconos.bugReport, "Errores y propuestas") { abrir(Enlaces.reportar) }
+        FilaDeEnlace(Iconos.simboloYosiftware, "Errores y propuestas") { abrir(Enlaces.reportar) }
     }
 }
 

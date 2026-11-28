@@ -173,6 +173,7 @@ fun Armazon(
             alElegir = elegir,
             avatar = avatar,
             alAbrirCuentas = alAbrirCuentas,
+            mensajesSinLeer = mensajesSinLeer,
         )
     }
 }
