@@ -146,7 +146,7 @@ Se aplica en la presentación Web (claro y oscuro, a todos los anchos) y despué
 
 - [ ] Por este orden, según la revisión escrita del diseñador, y en rama propia cada uno:
   - [x] **la navegación en el móvil** (28/11/2026, rama `f6-navegacion-movil`): barra inferior con Biblioteca, Catálogo, Comunidad y «Más»; Comunidad con la insignia de no leídos y sin la entrada «Mensajes» repetida. «Más» abre desde abajo una hoja con Estadísticas y Perfil, como en la APK, y el menú hamburguesa desaparece. `e2e/web-platform-social.spec.ts` lo comprueba a 390 px;
-  - **la Biblioteca:**
+  - [x] **la Biblioteca** (28/11/2026, rama `f6-biblioteca`, web 1.2.0; comprobada en ancha y a 360 px, axe sin infracciones):
     - «Continúa leyendo» como fila de portadas;
     - el universo como encabezado, sin caja;
     - la vista como pestañas y el filtro como fichas;

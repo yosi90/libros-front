@@ -18,9 +18,6 @@
 .web-eyebrow
     @include web.eyebrow
 
-.web-segmented
-    @include web.segmented
-
 .web-status
     @include web.status-pill
 
@@ -53,72 +50,61 @@
         margin: var(--web-space-1) 0 0
         color: var(--web-color-ink-muted)
 
-// ---------- Continúa leyendo ----------
+// ---------- Continúa leyendo: una fila de portadas ----------
 
 .continue
-    display: grid
-    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr))
-    gap: var(--web-space-3)
     margin-bottom: var(--web-space-6)
+
+.continue__title
+    margin: 0 0 var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    font: 600 13px/1.2 var(--web-font-ui)
+
+.continue__row
+    display: flex
+    gap: var(--web-space-4)
+    margin: 0
+    padding: 0 0 var(--web-space-2)
+    overflow-x: auto
+    list-style: none
+    scroll-snap-type: x proximity
+    overscroll-behavior-x: contain
 
 .continue__item
     display: flex
-    gap: var(--web-space-4)
-    min-width: 0
-    padding: var(--web-space-4)
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline)
-    border-radius: var(--web-radius-lg)
-    cursor: pointer
-    transition: border-color var(--web-motion)
+    flex: none
+    flex-direction: column
+    gap: var(--web-space-2)
+    width: 112px
+    scroll-snap-align: start
 
-    &:hover
-        border-color: var(--web-color-outline-strong)
+.continue__link
+    display: flex
+    flex-direction: column
+    gap: var(--web-space-2)
+    color: var(--web-color-ink)
+    text-decoration: none
+    border-radius: 6px
+    @include web.focus-ring
 
     img
-        flex: none
-        width: 64px
+        width: 100%
         aspect-ratio: 2 / 3
         object-fit: cover
-        border-radius: 4px
+        background: var(--web-color-surface-muted)
+        border-radius: 6px
         box-shadow: var(--web-shadow-card)
+        transition: transform var(--web-motion)
 
-    h2
-        margin: 2px 0
-        overflow: hidden
-        font: 600 17px/1.25 var(--web-font-reading)
-        text-overflow: ellipsis
+    &:hover img
+        transform: translateY(-2px)
 
-    &.is-primary
-        grid-row: span 1
-        background: linear-gradient(120deg, var(--web-color-primary-soft), var(--web-color-surface) 60%)
-
-        img
-            width: 104px
-
-        h2
-            font-size: 26px
-
-.continue__body
-    display: flex
-    flex: 1
-    flex-direction: column
-    gap: var(--web-space-1)
-    min-width: 0
-
-    .web-progress
-        margin-top: auto
-
-.continue__meta
-    margin: 0
-    color: var(--web-color-ink-muted)
-    font-size: 13px
-
-.continue__actions
-    display: flex
-    flex-wrap: wrap
-    gap: var(--web-space-2)
-    margin-top: var(--web-space-3)
+.continue__name
+    display: -webkit-box
+    overflow: hidden
+    font: 600 14px/1.25 var(--web-font-reading)
+    -webkit-box-orient: vertical
+    -webkit-line-clamp: 2
 
 // ---------- Barra de filtros ----------
 
@@ -133,6 +119,61 @@
     margin: 0 calc(var(--web-space-2) * -1) var(--web-space-3)
     padding: var(--web-space-2)
     background: var(--web-color-surface)
+
+// La vista, como pestañas subrayadas; la disponibilidad, como fichas.
+.view-tabs
+    display: flex
+    gap: var(--web-space-1)
+    margin-right: var(--web-space-3)
+
+    button
+        min-height: 40px
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-ink-muted)
+        font: 500 15px/1 var(--web-font-ui)
+        background: none
+        border: 0
+        border-bottom: 2px solid transparent
+        cursor: pointer
+        @include web.focus-ring
+
+        &:hover
+            color: var(--web-color-ink)
+
+        &.is-selected
+            color: var(--web-color-primary)
+            font-weight: 600
+            border-bottom-color: var(--web-color-primary)
+
+.filter-chips
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-2)
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 4px
+        min-height: 32px
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-ink-muted)
+        font: 500 13px/1 var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: 8px
+        cursor: pointer
+        @include web.focus-ring
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+        &.is-selected
+            color: var(--web-color-primary)
+            font-weight: 600
+            background: var(--web-color-primary-soft)
+            border-color: transparent
 
 .web-library__status-tabs
     display: flex
@@ -173,12 +214,13 @@
 .web-library__groups
     display: flex
     flex-direction: column
-    gap: var(--web-space-2)
 
+// El universo es un encabezado de sección, sin caja: una raya fina lo separa del anterior.
 .group
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline)
-    border-radius: var(--web-radius-lg)
+    border-top: 1px solid var(--web-color-outline)
+
+    &:first-child
+        border-top: 0
 
 .group__head, .saga__head
     display: grid
@@ -195,29 +237,20 @@
 .group__head
     grid-template-columns: 24px minmax(0, 1.4fr) minmax(0, 1fr) auto
     gap: var(--web-space-3)
-    min-height: 58px
-    padding: 0 var(--web-space-4)
-    border-radius: var(--web-radius-lg)
+    min-height: 60px
+    padding: 0 var(--web-space-1)
 
-    &:hover
-        background: var(--web-color-surface-muted)
+    &:hover .group__name
+        color: var(--web-color-primary)
 
 .group__chevron
     color: var(--web-color-ink-subtle)
 
 .group__name
-    display: inline-flex
-    align-items: center
-    gap: var(--web-space-2)
     min-width: 0
-    font: 600 18px/1.25 var(--web-font-reading)
-
-    mat-icon
-        flex: none
-        width: 20px
-        height: 20px
-        font-size: 20px
-        color: var(--web-color-primary)
+    margin: 0
+    font: 600 20px/1.25 var(--web-font-reading)
+    transition: color var(--web-motion)
 
 .group__author
     overflow: hidden
@@ -234,7 +267,7 @@
     font-size: 12px
 
 .group__body
-    padding: 0 var(--web-space-3) var(--web-space-3)
+    padding: 0 0 var(--web-space-4)
 
 .group__subtitle
     margin: var(--web-space-3) var(--web-space-2) var(--web-space-2)
@@ -382,13 +415,39 @@
     background: var(--web-color-surface)
     border: 1px solid var(--web-color-outline)
     border-radius: var(--web-radius-md)
-    cursor: pointer
     transition: border-color var(--web-motion), box-shadow var(--web-motion)
-    @include web.focus-ring
 
     &:hover
         border-color: var(--web-color-outline-strong)
         box-shadow: var(--web-shadow-card)
+
+    // El foco del enlace se ve en toda la tarjeta.
+    &:has(.book-card__link:focus-visible)
+        outline: 2px solid var(--web-color-primary)
+        outline-offset: 2px
+
+// El enlace del título cubre la tarjeta entera; lo que está «encima» se puede pulsar aparte.
+.book-card__link
+    color: inherit
+    font: inherit
+    text-align: left
+    text-decoration: none
+    background: none
+    border: 0
+    padding: 0
+    cursor: pointer
+
+    &::after
+        position: absolute
+        inset: 0
+        content: ''
+
+    &:focus-visible
+        outline: none
+
+.book-card__above
+    position: relative
+    z-index: 1
 
 .book-card__cover
     flex: none
@@ -439,6 +498,7 @@
 .book-card__more
     @include web.icon-button
     position: absolute
+    z-index: 1
     top: 4px
     right: 4px
     width: 32px
@@ -582,13 +642,6 @@
 
 // ---------- Anchos ----------
 
-@media (max-width: 1280px)
-    .continue
-        grid-template-columns: minmax(0, 1fr)
-
-        .continue__item:not(.is-primary)
-            display: none
-
 @media (max-width: 1050px)
     .group__head
         grid-template-columns: 24px minmax(0, 1fr) auto
@@ -606,12 +659,8 @@
     app-web-scoped-search
         width: 100%
 
-    .continue__item.is-primary
-        img
-            width: 72px
-
-        h2
-            font-size: 20px
+    .continue__item
+        width: 96px
 
     .book-grid
         grid-template-columns: minmax(0, 1fr)

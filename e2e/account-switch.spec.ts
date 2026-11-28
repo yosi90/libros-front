@@ -193,21 +193,21 @@ test.describe('Cambio de cuenta (CAMBIO_DE_CUENTA.md) @cambio-de-cuenta @smoke',
         await page.goto('/dashboard/books');
 
         await expect(libraryView.getByText('Libro de Ana').first()).toBeVisible({ timeout: 15_000 });
-        await expect(statusesButton).toHaveAttribute('aria-pressed', 'true');
+        await expect(statusesButton).toHaveAttribute('aria-current', 'true');
 
         const asBruno = await switchTo(page, bruno);
         await expect(libraryView.getByText('Libro de Bruno').first()).toBeVisible();
         await expect(libraryView.getByText('Libro de Ana')).toHaveCount(0);
         await expect(libraryView.getByText('Universo de Ana')).toHaveCount(0);
         // La vista de Ana es suya: Bruno empieza con la de siempre.
-        await expect(libraryView.getByRole('button', { name: 'Universos', exact: true })).toHaveAttribute('aria-pressed', 'true');
+        await expect(libraryView.getByRole('button', { name: 'Universos', exact: true })).toHaveAttribute('aria-current', 'true');
         await statusesButton.click();
         await libraryView.getByRole('button', { name: 'Universos', exact: true }).click();
 
         const asAna = await switchTo(page, ana);
         await expect(libraryView.getByText('Libro de Ana').first()).toBeVisible();
         await expect(libraryView.getByText('Libro de Bruno')).toHaveCount(0);
-        await expect(statusesButton).toHaveAttribute('aria-pressed', 'true');
+        await expect(statusesButton).toHaveAttribute('aria-current', 'true');
 
         // Desde cada cambio, las llamadas van con la cuenta vigente; ninguna de la anterior se repite con la nueva.
         const libros = (await sentFromPage(page)).filter(call => call.path.endsWith('/usuarios/me') || call.path.endsWith('/coleccion/universos'));

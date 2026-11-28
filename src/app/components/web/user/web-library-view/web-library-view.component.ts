@@ -73,6 +73,16 @@ export class WebLibraryViewComponent {
             : this.controller.openAntology(entry.item.Id);
     }
 
+    /**
+     * El clic normal en el enlace de una obra abre como siempre (con el cargador); con Ctrl, Mayús, Cmd o el botón
+     * central, el navegador abre el libro en otra pestaña.
+     */
+    openFromLink(entry: LibraryCardItem, event: MouseEvent): void {
+        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        this.open(entry);
+    }
+
     edit(entry: LibraryCardItem, event: Event): void {
         event.stopPropagation();
         this.controller.openCollectionModal(entry.kind, entry.item as BookSimple | Antology);
