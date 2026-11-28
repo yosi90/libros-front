@@ -2,7 +2,6 @@ package es.yosiftware.libros.ui.comunidad
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,9 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
@@ -61,11 +58,12 @@ import es.yosiftware.libros.ui.componentes.FilaDeLista
 import es.yosiftware.libros.ui.componentes.BotonesDeDialogo
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.Cargando
+import es.yosiftware.libros.ui.componentes.Chip
+import es.yosiftware.libros.ui.componentes.ListaVacia
 import es.yosiftware.libros.ui.componentes.DialogoDeConfirmacion
 import es.yosiftware.libros.ui.componentes.DialogoModal
 import es.yosiftware.libros.ui.componentes.Superficie
 import es.yosiftware.libros.ui.componentes.Tarjeta
-import es.yosiftware.libros.ui.componentes.TextoEyebrow
 import es.yosiftware.libros.ui.componentes.TextoTitulo
 import es.yosiftware.libros.ui.componentes.VarianteDeBoton
 import es.yosiftware.libros.ui.estadisticas.FilasDeEstadistica
@@ -98,7 +96,8 @@ fun PantallaClub(vm: ClubViewModel, acciones: AccionesDelClub) {
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(if (ancha) Espacios.e4 else Espacios.e3),
         verticalArrangement = Arrangement.spacedBy(Espacios.e4),
     ) {
-        Volver(acciones.volver)
+        val club = vm.club
+        if (vm.cargando || club == null) BotonDeIcono(Iconos.arrowBack, "Volver a los clubes", acciones.volver)
         when {
             vm.cargando -> Cargando("Cargando el club", alturaMinima = 280.dp)
             vm.error.isNotEmpty() -> EstadoDePantalla(
@@ -112,7 +111,6 @@ fun PantallaClub(vm: ClubViewModel, acciones: AccionesDelClub) {
             EsperaAlFeed.AGOTADA -> Mensaje("Libros todavía no ha recibido tu entrada en el club. Puede tardar unos minutos más.", accion = "Comprobar de nuevo" to vm::empezarEspera)
             EsperaAlFeed.NADA -> Unit
         }
-        val club = vm.club
         if (!vm.cargando && club != null) {
             Cabecera(vm, club, acciones, ancha)
             if (vm.mensajeDeAccion.isNotEmpty()) {
@@ -126,10 +124,7 @@ fun PantallaClub(vm: ClubViewModel, acciones: AccionesDelClub) {
             Metricas(club)
             if (vm.abierto) {
                 Tarjeta(Modifier.fillMaxWidth()) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                        Icon(painterResource(Iconos.personSearch), contentDescription = null, tint = LocalColores.current.primario)
-                        Text("Autores más leídos", color = LocalColores.current.tinta, style = Textos.filaPrincipal)
-                    }
+                    Text("Autores más leídos", Modifier.semantics { heading() }, color = LocalColores.current.tinta, style = Textos.filaPrincipal)
                     Box(Modifier.padding(top = Espacios.e3)) {
                         FilasDeEstadistica(vm.autores, ordenadas = true, vacio = "Aún no hay datos suficientes: hacen falta tres lectores del club que compartan sus estadísticas.")
                     }
@@ -141,20 +136,6 @@ fun PantallaClub(vm: ClubViewModel, acciones: AccionesDelClub) {
     vm.confirmacion?.let { DialogoDeConfirmacion(it.texto, vm::cancelarConfirmacion, vm::aceptarConfirmacion) }
     vm.denuncia?.let { DialogoDeDenuncia(vm) }
     if (vm.hojaDeSolicitud) DialogoDeSolicitud(vm)
-}
-
-/** `.m-club-detail__back`: la flecha y «Clubes», que vuelve a la lista de clubes (la web decía «Comunidad» e iba al Resumen). */
-@Composable
-private fun Volver(alVolver: () -> Unit) {
-    val colores = LocalColores.current
-    Row(
-        Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(Radios.sm)).clickable(role = Role.Button, onClick = alVolver).padding(end = Espacios.e2),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Espacios.e2),
-    ) {
-        Icon(painterResource(Iconos.arrowBack), contentDescription = null, tint = colores.primario)
-        Text("Clubes", color = colores.primario, style = Textos.cuerpo.copy(fontWeight = FontWeight.ExtraBold))
-    }
 }
 
 /** `.m-club-detail__message`: en el contenedor primario o, si es un error, en el de error; con su acción subrayada. */
@@ -183,7 +164,7 @@ private fun Eliminado(vm: ClubViewModel, nombre: String) {
         Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
             Icon(painterResource(Iconos.inventory2), contentDescription = null, tint = LocalColores.current.primario, modifier = Modifier.size(48.dp))
             TextoTitulo("$nombre está eliminado")
-            Text("El histórico y los miembros se conservan, pero el acceso y el chat permanecen revocados.", color = LocalColores.current.tintaSuave, style = Textos.cuerpo)
+            Text("Se conservan el histórico y los miembros; el acceso y el chat siguen revocados.", color = LocalColores.current.tintaSuave, style = Textos.cuerpo)
             Boton(if (vm.restaurando) "Restaurando…" else "Restaurar club", vm::restaurar, habilitado = !vm.restaurando)
             if (vm.mensajeDeAccion.isNotEmpty()) Mensaje(vm.mensajeDeAccion)
         }
@@ -196,20 +177,19 @@ private fun Cabecera(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesD
     val colores = LocalColores.current
     Tarjeta(Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(Espacios.e4)) {
-            Column {
-                TextoEyebrow("Club de lectura · ${EtiquetasDeClubes.visibilidad(club.visibilidad)}")
-                TextoTitulo(club.nombre)
-                // La descripción, como texto: los saltos de línea se conservan (la web los perdía).
-                Text(
-                    club.descripcionMarkdown?.takeIf { it.isNotBlank() } ?: "Este club aún no ha añadido una descripción.",
-                    Modifier.padding(top = Espacios.e3), color = colores.tintaSuave, style = Textos.apoyo,
-                )
+            Row(horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+                BotonDeIcono(Iconos.arrowBack, "Volver a los clubes", acciones.volver)
+                Column(Modifier.weight(1f).padding(top = Espacios.e1), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    TextoTitulo(club.nombre)
+                    EtiquetasDeClubes.visibilidad(club.visibilidad).takeIf { it.isNotEmpty() }?.let { Chip(it) }
+                }
             }
+            // La descripción, como texto: los saltos de línea se conservan (la web los perdía). Sin ella, nada.
+            club.descripcionMarkdown?.takeIf { it.isNotBlank() }?.let { Text(it, color = colores.tintaSuave, style = Textos.apoyo) }
             val botones: @Composable (Modifier) -> Unit = { ancho ->
                 if (vm.puedeUnirse && vm.solicitudPropia) {
-                    Row(ancho.heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.CenterHorizontally)) {
-                        Icon(painterResource(Iconos.scheduleSend), contentDescription = null, tint = colores.primario)
-                        Text("Solicitud enviada", color = colores.primario, style = Textos.filaPrincipal)
+                    Box(ancho.heightIn(min = 44.dp), contentAlignment = Alignment.Center) {
+                        Text("Solicitud enviada", color = colores.primario, style = Textos.filaPrincipal, textAlign = TextAlign.Center)
                     }
                     Boton(if (vm.retirandoSolicitud) "Retirando…" else "Retirar solicitud", vm::retirarSolicitud, ancho, variante = VarianteDeBoton.Contorno, habilitado = !vm.retirandoSolicitud)
                 } else if (vm.puedeUnirse) {
@@ -219,14 +199,14 @@ private fun Cabecera(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesD
                             vm.abierto -> "Unirme"
                             else -> "Solicitar acceso"
                         },
-                        vm::unirseOSolicitar, ancho, icono = if (vm.abierto) Iconos.groupAdd else Iconos.markEmailUnread, habilitado = !vm.uniendose,
+                        vm::unirseOSolicitar, ancho, habilitado = !vm.uniendose,
                     )
                 }
                 if (vm.esMiembro) {
-                    Boton("Abrir chat", { club.conversacionId?.let(acciones.abrirChat) }, ancho, icono = Iconos.forum, habilitado = vm.chatDisponible)
+                    Boton("Abrir chat", { club.conversacionId?.let(acciones.abrirChat) }, ancho, habilitado = vm.chatDisponible)
                 }
                 if (!vm.esPropietario) {
-                    BotonDePeligro(if (vm.denunciandoClub) "Enviando…" else "Denunciar", vm::denunciarClub, ancho, icono = Iconos.flag, habilitado = !vm.denunciandoClub)
+                    BotonDePeligro(if (vm.denunciandoClub) "Enviando…" else "Denunciar", vm::denunciarClub, ancho, habilitado = !vm.denunciandoClub)
                 }
             }
             // En el móvil, en una fila repartida (no un botón por línea: petición del propietario, 06/11/2026).
@@ -241,7 +221,7 @@ private fun Cabecera(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesD
 
 /** `.m-button--outline.is-danger`. */
 @Composable
-private fun BotonDePeligro(texto: String, alPulsar: () -> Unit, modifier: Modifier = Modifier, @DrawableRes icono: Int? = null, habilitado: Boolean = true) {
+private fun BotonDePeligro(texto: String, alPulsar: () -> Unit, modifier: Modifier = Modifier, habilitado: Boolean = true) {
     val colores = LocalColores.current
     val forma = RoundedCornerShape(50)
     Row(
@@ -250,26 +230,24 @@ private fun BotonDePeligro(texto: String, alPulsar: () -> Unit, modifier: Modifi
         horizontalArrangement = Arrangement.spacedBy(Espacios.e2, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (icono != null) Icon(painterResource(icono), contentDescription = null, tint = colores.error)
         Text(texto, color = colores.error, style = Textos.boton)
     }
 }
 
 /**
  * `.m-club-detail__metrics`: Miembros y Publicaciones, en dos columnas (la web dejaba la rejilla de tres de cuando
- * había «Mensajes»: un hueco a la derecha).
+ * había «Mensajes»: un hueco a la derecha). El número y su nombre, sin icono (ronda 1 de interfaz).
  */
 @Composable
 private fun Metricas(club: DetalleDeClub) {
     val colores = LocalColores.current
     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-        listOf(Triple(Iconos.groups, club.miembrosActivos, "Miembros"), Triple(Iconos.article, club.publicaciones, "Publicaciones")).forEach { (icono, valor, etiqueta) ->
+        listOf(club.miembrosActivos to "Miembros", club.publicaciones to "Publicaciones").forEach { (valor, etiqueta) ->
             Column(
                 Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(Radios.sm)).background(colores.contenedorPrimario).padding(Espacios.e3),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                Icon(painterResource(icono), contentDescription = null, tint = colores.primario)
                 Text("$valor", color = colores.tinta, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontWeight = FontWeight.SemiBold, fontSize = rem(1.35), lineHeight = rem(1.35)))
                 Text(etiqueta, color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.68)), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
@@ -279,65 +257,104 @@ private fun Metricas(club: DetalleDeClub) {
 
 // --- Secciones. ---
 
+/** Una sección plegable del club: su título, si se abre al entrar y su cuerpo. */
+private class SeccionDelClub(val titulo: String, val abiertaAlEntrar: Boolean = false, val contenido: @Composable ColumnScope.() -> Unit)
+
+/**
+ * Las secciones del club. En el móvil, una debajo de otra; desde 600 dp, en dos columnas, y la abierta ocupa las dos
+ * (ronda 1 de interfaz, M5): las plegadas se emparejan en el orden de la lista y una que se queda sola antes de una
+ * abierta ocupa media fila.
+ */
 @Composable
 private fun SeccionesDelClub(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesDelClub, ancha: Boolean) {
-    SeccionPlegable(Iconos.collectionsBookmark, "Lecturas", "Actual e histórico", abiertaAlEntrar = true) { Lecturas(vm, ancha) }
-    if (vm.lecturas.isNotEmpty() && vm.esMiembro) SeccionPlegable(Iconos.bookmarkAdded, "Mi progreso", "Lectura personal") { MiProgreso(vm, ancha) }
-    SeccionPlegable(Iconos.flag, "Hitos", "Ritmo de lectura") { Hitos(vm, ancha) }
-    SeccionPlegable(Iconos.calendarMonth, "Calendario", "Próximos encuentros") { Calendario(vm, ancha) }
-    if (vm.esMiembro) {
-        SeccionPlegable(Iconos.chat, "Chat", "Conversación del club") {
-            if (vm.chatDisponible) {
-                Boton("Abrir el chat del club", { club.conversacionId?.let(acciones.abrirChat) }, icono = Iconos.forum)
-            } else {
-                Vacio(vm.motivoSinChat)
+    val secciones = buildList {
+        add(SeccionDelClub("Lecturas", abiertaAlEntrar = true) { Lecturas(vm, ancha) })
+        if (vm.lecturas.isNotEmpty() && vm.esMiembro) add(SeccionDelClub("Mi progreso") { MiProgreso(vm, ancha) })
+        add(SeccionDelClub("Hitos") { Hitos(vm, ancha) })
+        add(SeccionDelClub("Calendario") { Calendario(vm, ancha) })
+        if (vm.esMiembro) {
+            add(SeccionDelClub("Chat") {
+                if (vm.chatDisponible) Boton("Abrir el chat del club", { club.conversacionId?.let(acciones.abrirChat) }) else Vacio(vm.motivoSinChat)
+            })
+            add(SeccionDelClub("Publicaciones") { Publicaciones(vm) })
+        }
+        add(SeccionDelClub("Debates") { Debates(vm, ancha) })
+        add(SeccionDelClub("Encuestas") { Encuestas(vm) })
+        add(SeccionDelClub("Miembros") { Miembros(vm, club, ancha) })
+    }
+    var abiertas by rememberSaveable { mutableStateOf(secciones.filter { it.abiertaAlEntrar }.map { it.titulo }) }
+    val alternar: (String) -> Unit = { titulo -> abiertas = if (titulo in abiertas) abiertas - titulo else abiertas + titulo }
+    if (!ancha) {
+        secciones.forEach { SeccionPlegable(it, it.titulo in abiertas, alternar) }
+        return
+    }
+    val filas = mutableListOf<List<SeccionDelClub>>()
+    var sola: SeccionDelClub? = null
+    secciones.forEach { seccion ->
+        val pendiente = sola
+        when {
+            seccion.titulo in abiertas -> {
+                if (pendiente != null) filas += listOf(pendiente)
+                sola = null
+                filas += listOf(seccion)
+            }
+            pendiente == null -> sola = seccion
+            else -> {
+                filas += listOf(pendiente, seccion)
+                sola = null
             }
         }
-        SeccionPlegable(Iconos.article, "Publicaciones", "Lo que comparten los miembros") { Publicaciones(vm) }
     }
-    SeccionPlegable(Iconos.forum, "Debates", "Conversaciones persistentes") { Debates(vm, ancha) }
-    SeccionPlegable(Iconos.poll, "Encuestas", "Decisiones compartidas") { Encuestas(vm) }
-    SeccionPlegable(Iconos.groups, "Miembros", "Personas que leen juntas") { Miembros(vm, club, ancha) }
+    sola?.let { filas += listOf(it) }
+    Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
+        filas.forEach { fila ->
+            val unica = fila.singleOrNull()
+            if (unica != null && unica.titulo in abiertas) {
+                SeccionPlegable(unica, abierta = true, alternar)
+            } else {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e3)) {
+                    fila.forEach { Box(Modifier.weight(1f)) { SeccionPlegable(it, abierta = false, alternar) } }
+                    if (fila.size == 1) Box(Modifier.weight(1f))
+                }
+            }
+        }
+    }
 }
 
-/** `.m-club-section`: la cabecera con el icono, el título, el subtítulo y la flecha; el cuerpo, al abrirla. */
+/** `.m-club-section`: la cabecera con el título y la flecha, sin icono ni subtítulo (ronda 1 de interfaz); el cuerpo, al abrirla. */
 @Composable
-private fun SeccionPlegable(@DrawableRes icono: Int, titulo: String, subtitulo: String, abiertaAlEntrar: Boolean = false, contenido: @Composable ColumnScope.() -> Unit) {
+private fun SeccionPlegable(seccion: SeccionDelClub, abierta: Boolean, alternar: (String) -> Unit) {
     val colores = LocalColores.current
-    var abierta by rememberSaveable(titulo) { mutableStateOf(abiertaAlEntrar) }
     val giro by animateFloatAsState(if (abierta) 180f else 0f, label = "flecha")
     Superficie(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.fillMaxWidth().heightIn(min = 76.dp).clickable(role = Role.Button) { abierta = !abierta }
+            Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button) { alternar(seccion.titulo) }
                 .then(if (abierta) Modifier.drawBehind { drawLine(colores.contorno, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) } else Modifier)
-                .padding(Espacios.e4),
+                .padding(start = Espacios.e4, end = Espacios.e3, top = Espacios.e2, bottom = Espacios.e2),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
         ) {
-            Box(Modifier.size(42.dp).clip(CircleShape).background(colores.contenedorPrimario), contentAlignment = Alignment.Center) {
-                Icon(painterResource(icono), contentDescription = null, tint = colores.primario)
-            }
-            Column(Modifier.weight(1f)) {
-                Text(titulo, Modifier.semantics { heading() }, color = colores.tinta, style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontWeight = FontWeight.SemiBold, fontSize = rem(1.05), lineHeight = rem(1.26)))
-                Text(subtitulo, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria)
-            }
+            Text(
+                seccion.titulo, Modifier.weight(1f).semantics { heading() }, color = colores.tinta,
+                style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontWeight = FontWeight.SemiBold, fontSize = rem(1.05), lineHeight = rem(1.26)),
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
             Icon(painterResource(Iconos.expandMore), contentDescription = if (abierta) "Plegar" else "Desplegar", tint = colores.tintaSuave, modifier = Modifier.rotate(giro))
         }
         if (abierta) {
-            Column(Modifier.fillMaxWidth().padding(Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e3), content = contenido)
+            Column(Modifier.fillMaxWidth().padding(Espacios.e4), verticalArrangement = Arrangement.spacedBy(Espacios.e3), content = seccion.contenido)
         }
     }
 }
 
-/** `.m-club-row`: el icono, el título, la línea pequeña, el párrafo y, si hay, una acción. */
+/** `.m-club-row`: el título, la línea pequeña, el párrafo y, si hay, una acción; sin icono (ronda 1 de interfaz). */
 @Composable
-private fun FilaDeClub(@DrawableRes icono: Int, titulo: String, pequena: String?, parrafo: String? = null, accion: (@Composable () -> Unit)? = null) {
+private fun FilaDeClub(titulo: String, pequena: String?, parrafo: String? = null, accion: (@Composable () -> Unit)? = null) {
     val colores = LocalColores.current
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(Radios.sm)).background(colores.superficieContenedor).padding(Espacios.e3),
         horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
     ) {
-        Icon(painterResource(icono), contentDescription = null, tint = colores.primario, modifier = Modifier.width(30.dp))
         Column(Modifier.weight(1f)) {
             Text(titulo, color = colores.tinta, style = Textos.filaPrincipal)
             if (!pequena.isNullOrEmpty()) Text(pequena, Modifier.padding(top = 3.dp), color = colores.tintaSuave, style = Textos.filaSecundaria)
@@ -347,9 +364,10 @@ private fun FilaDeClub(@DrawableRes icono: Int, titulo: String, pequena: String?
     }
 }
 
+/** Una lista vacía de una sección: dos o tres palabras en gris ([ListaVacia], más baja). */
 @Composable
 private fun Vacio(texto: String) {
-    Text(texto, color = LocalColores.current.tintaSuave, style = Textos.cuerpo)
+    ListaVacia(texto, alturaMinima = 56.dp)
 }
 
 @Composable
@@ -419,12 +437,12 @@ private fun SelectorConNinguno(ninguno: String, opciones: List<Pair<Int, String>
 
 @Composable
 private fun Lecturas(vm: ClubViewModel, ancha: Boolean) {
-    if (vm.cargandoLecturas) Vacio("Cargando lecturas…")
+    if (vm.cargandoLecturas) Cargando("Cargando las lecturas", alturaMinima = 56.dp, tamano = 24.dp)
     vm.lecturas.forEach { lectura ->
         val desde = lectura.fechaInicio?.let { " · Desde ${FechasDeClubes.dia(it)}" }.orEmpty()
-        FilaDeClub(if (lectura.activa) Iconos.menuBook else Iconos.history, vm.etiquetaDeLectura(lectura), (if (lectura.activa) "Lectura actual" else "Lectura cerrada") + desde)
+        FilaDeClub(vm.etiquetaDeLectura(lectura), (if (lectura.activa) "Lectura actual" else "Lectura cerrada") + desde)
     }
-    if (!vm.cargandoLecturas && vm.lecturas.isEmpty()) Vacio("El histórico está disponible al formar parte del club.")
+    if (!vm.cargandoLecturas && vm.lecturas.isEmpty()) Vacio(if (vm.esMiembro) "Sin lecturas" else "Solo para miembros")
     if (vm.puedeGestionar) {
         Formulario {
             SelectorDeFormulario(listOf("libro" to "Libro", "saga" to "Saga", "universo" to "Universo", "antologia" to "Antología"), vm.tipoDeObjetivo, vm::elegirTipoDeObjetivo)
@@ -439,7 +457,7 @@ private fun Lecturas(vm: ClubViewModel, ancha: Boolean) {
                 if (vm.guardandoLectura) "Actualizando…" else "Establecer lectura actual", vm::establecerLectura, Modifier.align(Alignment.End),
                 habilitado = vm.objetivoId != null && !vm.guardandoLectura && vm.objetivoDisponible,
             )
-            if (obras.isEmpty()) Vacio("No tienes obras de este tipo en tu colección.")
+            if (obras.isEmpty()) Text("No tienes obras de este tipo", color = LocalColores.current.tintaSuave, style = Textos.nota)
             ErrorEnSeccion(vm.errorDeLectura)
         }
     }
@@ -472,9 +490,9 @@ private fun MiProgreso(vm: ClubViewModel, ancha: Boolean) {
 private fun Hitos(vm: ClubViewModel, ancha: Boolean) {
     vm.hitos.forEach { hito ->
         val fecha = hito.fechaOrientativa?.let { " · ${FechasDeClubes.completa(it)}" }.orEmpty()
-        FilaDeClub(if (hito.tipo == "evento") Iconos.event else Iconos.bookmark, hito.titulo, EtiquetasDeClubes.tipoDeHito(hito.tipo) + fecha, hito.objetivoTexto)
+        FilaDeClub(hito.titulo, EtiquetasDeClubes.tipoDeHito(hito.tipo) + fecha, hito.objetivoTexto)
     }
-    if (vm.hitos.isEmpty()) Vacio("No hay hitos programados todavía.")
+    if (vm.hitos.isEmpty()) Vacio("Sin hitos")
     if (vm.puedeGestionar) {
         Formulario {
             CampoDeFormulario(vm.tituloDeHito, vm::escribirTituloDeHito, "Título del hito", maximo = 200)
@@ -498,10 +516,10 @@ private fun Hitos(vm: ClubViewModel, ancha: Boolean) {
 private fun Calendario(vm: ClubViewModel, ancha: Boolean) {
     vm.eventos.forEach { evento ->
         val hasta = evento.fechaFin?.let { " · hasta ${FechasDeClubes.completa(it)}" }.orEmpty()
-        FilaDeClub(Iconos.event, evento.titulo, FechasDeClubes.completa(evento.fechaInicio) + hasta, evento.descripcionMarkdown,
+        FilaDeClub(evento.titulo, FechasDeClubes.completa(evento.fechaInicio) + hasta, evento.descripcionMarkdown,
             accion = if (vm.puedeGestionar) ({ BotonDeIcono(Iconos.deleteOutline, "Eliminar evento", { vm.borrarEvento(evento) }, color = LocalColores.current.error) }) else null)
     }
-    if (vm.eventos.isEmpty()) Vacio("No hay eventos programados.")
+    if (vm.eventos.isEmpty()) Vacio("Sin eventos")
     if (vm.puedeGestionar) {
         Formulario {
             CampoDeFormulario(vm.tituloDeEvento, vm::escribirTituloDeEvento, "Título del evento", maximo = 200)
@@ -524,7 +542,7 @@ private fun Calendario(vm: ClubViewModel, ancha: Boolean) {
 private fun ColumnScope.Publicaciones(vm: ClubViewModel) {
     vm.publicaciones.forEach { publicacion ->
         FilaDeClub(
-            Iconos.article, publicacion.titulo?.takeIf { it.isNotBlank() } ?: "Publicación",
+            publicacion.titulo?.takeIf { it.isNotBlank() } ?: "Publicación",
             "${publicacion.autor.nombre} · ${FechasDeClubes.completa(publicacion.fechaCreacion)}",
             publicacion.contenidoMarkdown ?: "Contenido oculto por spoiler.",
             accion = if (vm.puedeDenunciar(publicacion)) ({
@@ -532,7 +550,7 @@ private fun ColumnScope.Publicaciones(vm: ClubViewModel) {
             }) else null,
         )
     }
-    if (vm.publicaciones.isEmpty() && !vm.cargandoPublicaciones) Vacio("No hay publicaciones todavía.")
+    if (vm.publicaciones.isEmpty() && !vm.cargandoPublicaciones) Vacio("Sin publicaciones")
     if (vm.siguientesPublicaciones != null) Boton("Cargar más", { vm.cargarPublicaciones() }, variante = VarianteDeBoton.Contorno, habilitado = !vm.cargandoPublicaciones)
     ErrorEnSeccion(vm.errorDePublicaciones)
 }
@@ -540,7 +558,7 @@ private fun ColumnScope.Publicaciones(vm: ClubViewModel) {
 @Composable
 private fun ColumnScope.Debates(vm: ClubViewModel, ancha: Boolean) {
     val colores = LocalColores.current
-    if (!vm.revelarSpoilers && vm.esMiembro) Boton("Revelar spoilers", vm::revelar, variante = VarianteDeBoton.Contorno, icono = Iconos.visibility)
+    if (!vm.revelarSpoilers && vm.esMiembro) Boton("Revelar spoilers", vm::revelar, variante = VarianteDeBoton.Contorno)
     vm.debates.forEach { debate ->
         val forma = RoundedCornerShape(Radios.sm)
         Row(
@@ -560,7 +578,7 @@ private fun ColumnScope.Debates(vm: ClubViewModel, ancha: Boolean) {
             Icon(painterResource(Iconos.chevronRight), contentDescription = null, tint = colores.tintaSuave)
         }
     }
-    if (vm.debates.isEmpty()) Vacio("No hay debates todavía.")
+    if (vm.debates.isEmpty()) Vacio("Sin debates")
     if (vm.esMiembro) {
         Formulario {
             CampoDeFormulario(vm.tituloDeDebate, vm::escribirTituloDeDebate, "Título", maximo = 200)
@@ -630,7 +648,7 @@ private fun ColumnScope.Encuestas(vm: ClubViewModel) {
             }
         }
     }
-    if (vm.encuestas.isEmpty()) Vacio("No hay encuestas todavía.")
+    if (vm.encuestas.isEmpty()) Vacio("Sin encuestas")
     if (vm.puedeGestionar) {
         Formulario {
             CampoDeFormulario(vm.pregunta, vm::escribirPregunta, "Pregunta", maximo = 500)
@@ -668,7 +686,7 @@ private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, ancha: 
                 Boton(if (clave in vm.invitando) "Enviando…" else "Invitar", { vm.invitarPersona(persona) }, variante = VarianteDeBoton.Tonal, habilitado = clave !in vm.invitando)
             }
         }
-        if (vm.personasBuscadas && !vm.buscandoPersonas && vm.personas.isEmpty()) Vacio("No hay personas con ese nombre o alias.")
+        if (vm.personasBuscadas && !vm.buscandoPersonas && vm.personas.isEmpty()) Vacio("Sin coincidencias")
         FilaConBoton { modifier ->
             CampoDeFormulario(vm.correo, vm::escribirCorreo, "O invita a un correo", modifier, correo = true, maximo = 254, alEnviar = vm::invitarCorreo)
             Boton("Invitar", vm::invitarCorreo, variante = VarianteDeBoton.Tonal, habilitado = vm.invitando.isEmpty())
@@ -708,7 +726,7 @@ private fun ColumnScope.Miembros(vm: ClubViewModel, club: DetalleDeClub, ancha: 
             }
         }
     }
-    if (club.miembros.isEmpty()) Vacio("El listado de miembros todavía está vacío.")
+    if (club.miembros.isEmpty()) Vacio("Sin miembros")
     // Lo que no tiene vuelta atrás, al final de la sección.
     if (vm.esMiembro && !vm.esPropietario) BotonDePeligro(if (vm.saliendo) "Saliendo…" else "Abandonar club", vm::salir, habilitado = !vm.saliendo)
     if (vm.esPropietario) BotonDePeligro(if (vm.eliminando) "Eliminando…" else "Eliminar club", vm::eliminar, habilitado = !vm.eliminando)
@@ -725,12 +743,12 @@ private fun FilaConBoton(contenido: @Composable (Modifier) -> Unit) {
     }
 }
 
-/** Una persona en `.m-list-item` (con su foto si la tiene) y sus acciones. */
+/** Una persona en `.m-list-item`, con su foto o su inicial (no el icono de persona), y sus acciones. */
 @Composable
 private fun FilaDePersona(nombre: String, apoyo: String, avatar: String?, acciones: @Composable RowScope.() -> Unit) {
     FilaDeLista(
-        nombre, Modifier.fillMaxWidth(), secundario = apoyo, icono = Iconos.person,
-        inicio = avatar?.let { { Avatar(42.dp, url = it, nombre = nombre, conBorde = false) } },
+        nombre, Modifier.fillMaxWidth(), secundario = apoyo,
+        inicio = { Avatar(42.dp, url = avatar, nombre = nombre, conBorde = false) },
         borde = true, lineasDelTitulo = 1, alFinal = acciones,
     )
 }
@@ -785,9 +803,7 @@ private fun DialogoDeDenuncia(vm: ClubViewModel) {
 private fun DialogoDeSolicitud(vm: ClubViewModel) {
     val colores = LocalColores.current
     DialogoModal(alCerrar = vm::cerrarHojaDeSolicitud) {
-        TextoEyebrow("Club cerrado")
-        TextoTitulo("Solicitar acceso a ${vm.club?.nombre.orEmpty()}")
-        Text("Puedes añadir un mensaje para presentarte a quienes moderan el club.", Modifier.padding(top = Espacios.e3), color = colores.tintaSuave, style = Textos.apoyo)
+        TextoTitulo("Solicitar acceso")
         CampoDeFormulario(vm.mensajeDeSolicitud, vm::escribirMensajeDeSolicitud, "Mensaje opcional", Modifier.padding(top = Espacios.e3), lineas = 5, maximo = 500)
         Text("${vm.mensajeDeSolicitud.length} / 500", Modifier.fillMaxWidth().padding(top = Espacios.e1), color = colores.tintaSuave, style = Textos.cuerpo.copy(fontSize = rem(0.8)), textAlign = TextAlign.End)
         BotonesDeDialogo(if (vm.uniendose) "Enviando…" else "Enviar solicitud", vm::enviarSolicitud, vm::cerrarHojaDeSolicitud, habilitado = !vm.uniendose, arriba = Espacios.e3)
