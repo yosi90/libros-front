@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +39,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import es.yosiftware.libros.ui.componentes.Avatar
+import es.yosiftware.libros.ui.componentes.BotonDeCaja
 import es.yosiftware.libros.ui.componentes.BotonDeIcono
 import es.yosiftware.libros.ui.componentes.HojaInferior
 import es.yosiftware.libros.ui.componentes.rayaArriba
@@ -133,34 +132,13 @@ private fun Accesos(actual: Destino, chatActivo: Boolean, mensajesSinLeer: Int, 
 }
 
 /**
- * Un acceso: solo el icono, en una caja de 56 dp de alto con el borde del contorno y radio de 12; el elegido, en el
- * contenedor primario. Su nombre accesible es el del destino (con los mensajes sin leer, si los hay), y la insignia va
- * arriba a la derecha.
+ * Un acceso: solo el icono, en su caja ([BotonDeCaja]); el elegido, en el contenedor primario. Su nombre accesible es el
+ * del destino (con los mensajes sin leer, si los hay), y la insignia va arriba a la derecha.
  */
 @Composable
 private fun Acceso(destino: Destino, activo: Boolean, sinLeer: Int, modifier: Modifier, alPulsar: () -> Unit) {
-    val colores = LocalColores.current
-    val forma = RoundedCornerShape(Radios.sm)
     val nombre = if (sinLeer > 0) "${destino.etiqueta}, $sinLeer sin leer" else destino.etiqueta
-    Box(
-        modifier
-            .height(56.dp)
-            .clip(forma)
-            .background(if (activo) colores.contenedorPrimario else colores.superficie)
-            .border(1.dp, if (activo) Color.Transparent else colores.contorno, forma)
-            .clickable(role = Role.Button, onClick = alPulsar)
-            .semantics {
-                selected = activo
-                contentDescription = nombre
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            painterResource(destino.icono),
-            contentDescription = null,
-            tint = if (activo) colores.sobreContenedorPrimario else colores.primario,
-            modifier = Modifier.size(24.dp),
-        )
+    BotonDeCaja(destino.icono, nombre, alPulsar, modifier, activo = activo) {
         if (sinLeer > 0) Insignia(sinLeer, Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 8.dp))
     }
 }
