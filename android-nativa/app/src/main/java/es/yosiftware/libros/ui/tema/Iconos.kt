@@ -70,8 +70,6 @@ object Iconos {
     @DrawableRes val block = R.drawable.mi_block
     @DrawableRes val add = R.drawable.mi_add
     @DrawableRes val rateReview = R.drawable.mi_rate_review
-    @DrawableRes val removeCircleOutline = R.drawable.mi_remove_circle_outline
-    @DrawableRes val libraryAdd = R.drawable.mi_library_add
     @DrawableRes val libraryBooks = R.drawable.mi_library_books
     @DrawableRes val arrowForward = R.drawable.mi_arrow_forward
     @DrawableRes val refresh = R.drawable.mi_refresh
@@ -92,7 +90,6 @@ object Iconos {
     @DrawableRes val deleteOutline = R.drawable.mi_delete_outline
     @DrawableRes val adminPanelSettings = R.drawable.mi_admin_panel_settings
     @DrawableRes val personRemove = R.drawable.mi_person_remove
-    @DrawableRes val inventory2 = R.drawable.mi_inventory_2
     @DrawableRes val favoriteBorder = R.drawable.mi_favorite_border
     @DrawableRes val chatBubbleOutline = R.drawable.mi_chat_bubble_outline
     @DrawableRes val syncAlt = R.drawable.mi_sync_alt

@@ -280,10 +280,7 @@ private fun ListaDeMensajes(vm: ConversacionViewModel, compacta: Boolean, resalt
         }
         if (visibles.isEmpty()) {
             item(key = "vacio") {
-                Text(
-                    if (vm.resultados != null) "No hay mensajes que coincidan con la búsqueda." else "Aún no hay mensajes en esta conversación.",
-                    Modifier.fillMaxWidth().padding(vertical = Espacios.e6), color = LocalColores.current.tintaSuave, style = Textos.cuerpo, textAlign = TextAlign.Center,
-                )
+                ListaVacia(if (vm.resultados != null) "Sin coincidencias" else "Sin mensajes")
             }
         }
         items(visibles, key = { it.id }) { mensaje ->

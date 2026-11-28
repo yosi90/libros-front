@@ -301,7 +301,6 @@ private fun Ediciones(vm: CatalogoViewModel, ficha: FichaPublica) {
                 if (elegida.enMiBiblioteca) "Retirar esta edición" else "Tengo esta edición",
                 vm::alternarEdicion,
                 variante = VarianteDeBoton.Contorno,
-                icono = if (elegida.enMiBiblioteca) Iconos.removeCircleOutline else Iconos.libraryAdd,
                 habilitado = !vm.guardandoEdiciones,
             )
             // Lo que se conserva al retirarla se dice una vez, en el aviso de después (CatalogoViewModel.alternarEdicion).

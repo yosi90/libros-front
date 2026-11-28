@@ -576,7 +576,7 @@ fun EscenaDelLibro(idLibro: Int, alTerminar: () -> Unit) {
         if (vm.titulo == null) alTerminar()
     }
     val html = titulo?.html ?: return
-    PantallaCompletaDelTitulo(titulo.titulo.orEmpty(), html, titulo.estilos, alCerrar = alTerminar, pie = "Toca para entrar")
+    PantallaCompletaDelTitulo(titulo.titulo.orEmpty(), html, titulo.estilos, alCerrar = alTerminar)
 }
 
 /** El alto de la cabecera en lo alto del resumen (la portada viva). */

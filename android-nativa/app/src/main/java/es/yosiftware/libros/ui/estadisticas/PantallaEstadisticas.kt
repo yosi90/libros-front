@@ -501,7 +501,7 @@ private fun NoDisponible(titulo: String, texto: String?, alReintentar: () -> Uni
             Icon(painterResource(Iconos.cloudOff), contentDescription = null, tint = colores.primario, modifier = Modifier.size(40.dp))
             Text(titulo, style = Textos.cuerpo.copy(fontSize = rem(1.5), lineHeight = 1.25.em, color = colores.tinta, textAlign = TextAlign.Center))
             if (texto != null) Text(texto, style = Textos.cuerpo.copy(color = colores.tinta, textAlign = TextAlign.Center))
-            Boton("Reintentar", alReintentar, icono = Iconos.refresh)
+            Boton("Reintentar", alReintentar)
         }
     }
 }

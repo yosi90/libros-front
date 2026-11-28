@@ -111,7 +111,7 @@ fun PantallaCatalogo(vm: CatalogoViewModel) {
                 }
                 vm.errorDeCarga.isNotEmpty() -> item(key = "error") {
                     Estado(Iconos.cloudOff, "No se pudo cargar el catálogo", vm.errorDeCarga) {
-                        Boton("Reintentar", vm::reintentar, Modifier.fillMaxWidth().padding(top = Espacios.e5), icono = Iconos.refresh)
+                        Boton("Reintentar", vm::reintentar, Modifier.fillMaxWidth().padding(top = Espacios.e5))
                     }
                 }
                 else -> item(key = "vacio") {

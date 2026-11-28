@@ -162,7 +162,6 @@ private fun Mensaje(texto: String, error: Boolean = false, accion: Pair<String, 
 private fun Eliminado(vm: ClubViewModel, nombre: String) {
     Tarjeta(Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(Espacios.e3)) {
-            Icon(painterResource(Iconos.inventory2), contentDescription = null, tint = LocalColores.current.primario, modifier = Modifier.size(48.dp))
             TextoTitulo("$nombre está eliminado")
             Text("Se conservan el histórico y los miembros; el acceso y el chat siguen revocados.", color = LocalColores.current.tintaSuave, style = Textos.cuerpo)
             Boton(if (vm.restaurando) "Restaurando…" else "Restaurar club", vm::restaurar, habilitado = !vm.restaurando)
@@ -215,6 +214,8 @@ private fun Cabecera(vm: ClubViewModel, club: DetalleDeClub, acciones: AccionesD
             } else {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) { botones(Modifier.weight(1f)) }
             }
+            // Sin chat siendo miembro, el porqué, en una línea: es lo único que explica el botón apagado.
+            if (vm.esMiembro && !vm.chatDisponible) Text(vm.motivoSinChat, color = colores.tintaSuave, style = Textos.nota)
         }
     }
 }
@@ -273,9 +274,6 @@ private fun SeccionesDelClub(vm: ClubViewModel, club: DetalleDeClub, acciones: A
         add(SeccionDelClub("Hitos") { Hitos(vm, ancha) })
         add(SeccionDelClub("Calendario") { Calendario(vm, ancha) })
         if (vm.esMiembro) {
-            add(SeccionDelClub("Chat") {
-                if (vm.chatDisponible) Boton("Abrir el chat del club", { club.conversacionId?.let(acciones.abrirChat) }) else Vacio(vm.motivoSinChat)
-            })
             add(SeccionDelClub("Publicaciones") { Publicaciones(vm) })
         }
         add(SeccionDelClub("Debates") { Debates(vm, ancha) })
