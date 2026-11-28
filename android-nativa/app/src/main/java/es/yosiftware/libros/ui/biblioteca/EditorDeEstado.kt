@@ -1,26 +1,31 @@
 package es.yosiftware.libros.ui.biblioteca
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -36,6 +41,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -44,9 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import es.yosiftware.libros.datos.modelos.TipoDeEstado
-import es.yosiftware.libros.ui.adaptable.LocalVentana
 import es.yosiftware.libros.ui.adaptable.zonaSegura
-import es.yosiftware.libros.ui.componentes.ColumnaEstirada
 import es.yosiftware.libros.ui.componentes.rayaAbajo
 import es.yosiftware.libros.ui.componentes.rayaArriba
 import es.yosiftware.libros.ui.tema.Espacios
@@ -59,10 +63,11 @@ import es.yosiftware.libros.ui.tema.mezclar
 import es.yosiftware.libros.ui.tema.rem
 
 /**
- * El editor de estado, puntuación y reseña (collection-state-modal, en su versión de la APK de Capacitor: siempre a
- * pantalla completa). Arriba, «Volver a la biblioteca», «Mi biblioteca» y el título; los seis estados; la reseña con
- * sus estrellas (sin puntuación no se escribe); «No compartir esta actualización en Comunidad»; abajo, Volver y Guardar.
- * Atrás vuelve, salvo mientras se guarda.
+ * El editor de estado, puntuación y reseña (collection-state-modal, siempre a pantalla completa). Arriba, «Volver a la
+ * biblioteca» y el título; los seis estados en una fila de iconos, con el nombre del elegido debajo; las estrellas y,
+ * al puntuar, la caja de la reseña (sin puntuación no se escribe, así que no se enseña); «No compartir esta
+ * actualización en Comunidad»; abajo, Volver y Guardar. Sin los rótulos «Mi biblioteca», «Estado» y «Reseña» (ronda 1
+ * de interfaz, B3). Atrás vuelve, salvo mientras se guarda.
  */
 @Composable
 fun EditorDeEstado(
@@ -84,15 +89,13 @@ fun EditorDeEstado(
 ) {
     val puedeResenar = valores.puntuacion != null
     val colores = LocalColores.current
-    val ventana = LocalVentana.current
     val zona = WindowInsets.zonaSegura.asPaddingValues()
     val direccion = LocalLayoutDirection.current
     val volver = { if (!guardando) alVolver() }
     BackHandler(onBack = volver)
-    val etiqueta = Textos.nota.copy(fontWeight = FontWeight.Bold, letterSpacing = 0.08.em, color = colores.tintaSuave)
 
     Column(Modifier.fillMaxSize().background(colores.lienzo).clickable(enabled = false) {}.imePadding()) {
-        // La cabecera: volver | «Mi biblioteca» y el título, centrados | hueco del mismo ancho.
+        // La cabecera: volver | el título, centrado | hueco del mismo ancho.
         Row(
             Modifier.fillMaxWidth().background(colores.superficie)
                 .rayaAbajo(colores.contorno)
@@ -114,117 +117,109 @@ fun EditorDeEstado(
             ) {
                 Icon(painterResource(Iconos.arrowBack), contentDescription = null, tint = colores.primario, modifier = Modifier.size(24.dp))
             }
-            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("MI BIBLIOTECA", style = Textos.cuerpo.copy(fontSize = rem(0.68), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.1.em, color = colores.primario), modifier = Modifier.padding(bottom = 2.dp))
-                Text(
-                    titulo,
-                    style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.2), fontWeight = FontWeight.SemiBold, lineHeight = 1.18.em, color = colores.tinta, textAlign = TextAlign.Center),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            Text(
+                titulo,
+                style = Textos.cuerpo.copy(fontFamily = Fuentes.display, fontSize = rem(1.2), fontWeight = FontWeight.SemiBold, lineHeight = 1.18.em, color = colores.tinta, textAlign = TextAlign.Center),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
             Spacer(Modifier.size(48.dp))
         }
 
-        // El cuerpo es una rejilla de CSS que llena la pantalla: el alto que sobra se reparte entre sus filas (y dentro de
-        // cada una), así que los botones, el área de texto y la casilla crecen como en la APK de Capacitor.
-        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-            val relleno = Espacios.e5
-            val minimo = maxHeight - relleno * 2
-            Column(
-                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                    .padding(horizontal = Espacios.e4 + zona.calculateLeftPadding(direccion), vertical = relleno),
-            ) {
-                ColumnaEstirada(Modifier.fillMaxWidth().heightIn(min = minimo), espacio = Espacios.e5) {
-                    // Los estados: dos columnas (tres desde 600 dp).
-                    ColumnaEstirada(Modifier.fillMaxWidth(), espacio = Espacios.e2) {
-                        Box(Modifier.fillMaxWidth()) { Text("ESTADO", style = etiqueta) }
-                        val columnas = if (ventana.anchoDp >= 600) 3 else 2
-                        ColumnaEstirada(Modifier.fillMaxWidth(), espacio = Espacios.e2) {
-                            TipoDeEstado.entries.chunked(columnas).forEach { fila ->
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacios.e2)) {
-                                    fila.forEach { estado ->
-                                        val activo = valores.estado == estado
-                                        val tinta = if (activo) colores.sobreContenedorPrimario else colores.tintaSuave
-                                        Row(
-                                            Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp).clip(Radios.pildora)
-                                                .background(if (activo) colores.contenedorPrimario else colores.superficie)
-                                                .border(1.dp, if (activo) Color.Transparent else colores.contorno, Radios.pildora)
-                                                .selectable(activo, role = Role.RadioButton) { alElegirEstado(estado) }
-                                                .padding(horizontal = 13.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.CenterHorizontally),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Icon(painterResource(iconoDeEstado(estado)), contentDescription = null, tint = tinta, modifier = Modifier.size(18.dp))
-                                            Text(estado.nombre, style = Textos.cuerpo.copy(color = tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        }
-                                    }
-                                    repeat(columnas - fila.size) { Spacer(Modifier.weight(1f)) }
-                                }
-                            }
-                        }
-                    }
-
-                    // La reseña con sus estrellas.
-                    ColumnaEstirada(Modifier.fillMaxWidth(), espacio = Espacios.e2) {
-                        Row(Modifier.fillMaxWidth().heightIn(min = 30.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("RESEÑA", style = etiqueta, modifier = Modifier.weight(1f))
-                            val puntuacion = valores.puntuacion
-                            if (puntuacion != null) {
-                                Box(
-                                    Modifier.size(44.dp).clip(CircleShape).clickable { alPuntuar(null) }.semantics { contentDescription = "Quitar puntuación" },
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Icon(painterResource(Iconos.close), contentDescription = null, tint = colores.contornoFuerte, modifier = Modifier.size(18.dp))
-                                }
-                            }
-                            (1..5).forEach { valor ->
-                                val llena = puntuacion != null && valor <= puntuacion
-                                Box(
-                                    Modifier.size(44.dp).clip(CircleShape)
-                                        .selectable(puntuacion == valor, role = Role.RadioButton) { alPuntuar(valor) }
-                                        .semantics { contentDescription = "$valor de 5" },
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Estrella(llena, colores.atencion, colores.contornoFuerte, Modifier.size(22.dp))
-                                }
-                            }
-                        }
-                        val habilitada = puedeResenar
-                        val forma = RoundedCornerShape(Radios.sm)
-                        BasicTextField(
-                            value = valores.resena,
-                            onValueChange = { if (it.length <= 1000) alEscribirResena(it) },
-                            enabled = habilitada,
-                            modifier = Modifier.fillMaxWidth().fillMaxHeight().heightIn(min = 132.dp)
-                                .background(if (habilitada) colores.superficie else colores.superficieContenedor, forma)
-                                .border(1.dp, colores.contornoFuerte, forma)
-                                .padding(12.dp),
-                            textStyle = Textos.cuerpo.copy(color = if (habilitada) colores.tinta else colores.tintaSuave),
-                            cursorBrush = SolidColor(colores.primario),
-                            decorationBox = { campo ->
-                                Box {
-                                    if (valores.resena.isEmpty()) {
-                                        Text(if (habilitada) "Añade una reseña personal" else "Puntúa primero para escribir una reseña", style = Textos.cuerpo.copy(color = colores.tintaSuave))
-                                    }
-                                    campo()
-                                }
-                            },
-                        )
-                    }
-
-                    // «No compartir esta actualización en Comunidad», centrada en su fila.
-                    if (sinCompartir != null) Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Row(
-                            Modifier.heightIn(min = 44.dp).clickable(role = Role.Checkbox, onClick = alAlternarSinCompartir),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+        // El cuerpo, desplazable: con el teclado abierto, la reseña sigue a mano.
+        Column(
+            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
+                .padding(start = Espacios.e4 + zona.calculateLeftPadding(direccion), end = Espacios.e4 + zona.calculateRightPadding(direccion), top = Espacios.e5, bottom = Espacios.e5),
+            verticalArrangement = Arrangement.spacedBy(Espacios.e4),
+        ) {
+            // Los seis estados, solo con su icono (decisión del propietario), y el nombre del elegido debajo.
+            Column(verticalArrangement = Arrangement.spacedBy(Espacios.e2)) {
+                Row(
+                    Modifier.fillMaxWidth().semantics { contentDescription = "Estado" }.selectableGroup(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    TipoDeEstado.entries.forEach { estado ->
+                        val activo = valores.estado == estado
+                        Box(
+                            Modifier.weight(1f).heightIn(min = 48.dp).clip(Radios.pildora)
+                                .background(if (activo) colores.contenedorPrimario else colores.superficie)
+                                .border(1.dp, if (activo) Color.Transparent else colores.contorno, Radios.pildora)
+                                .selectable(activo, role = Role.RadioButton) { alElegirEstado(estado) }
+                                .semantics { contentDescription = estado.nombre },
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Casilla(sinCompartir)
-                            Text("No compartir esta actualización en Comunidad", style = Textos.cuerpo.copy(fontSize = rem(0.86), color = colores.tintaSuave))
+                            Icon(
+                                painterResource(iconoDeEstado(estado)),
+                                contentDescription = null,
+                                tint = if (activo) colores.sobreContenedorPrimario else colores.tintaSuave,
+                                modifier = Modifier.size(22.dp),
+                            )
                         }
                     }
                 }
+                // El nombre ya lo dice el estado elegido al lector de pantalla; aquí solo se ve.
+                valores.estado?.let {
+                    Text(it.nombre, style = Textos.cuerpo.copy(fontWeight = FontWeight.Bold, color = colores.tinta), modifier = Modifier.clearAndSetSemantics {})
+                }
+            }
+
+            // Las estrellas (los 44 dp de cada una, con la primera alineada al margen) y, con nota, quitarla.
+            val puntuacion = valores.puntuacion
+            Row(
+                Modifier.offset(x = (-11).dp).semantics { contentDescription = "Puntuación" }.selectableGroup(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                (1..5).forEach { valor ->
+                    val llena = puntuacion != null && valor <= puntuacion
+                    Box(
+                        Modifier.size(44.dp).clip(CircleShape)
+                            .selectable(puntuacion == valor, role = Role.RadioButton) { alPuntuar(valor) }
+                            .semantics { contentDescription = "$valor de 5" },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Estrella(llena, colores.atencion, colores.contornoFuerte, Modifier.size(26.dp))
+                    }
+                }
+                if (puntuacion != null) {
+                    Box(
+                        Modifier.size(44.dp).clip(CircleShape).clickable { alPuntuar(null) }.semantics { contentDescription = "Quitar puntuación" },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(painterResource(Iconos.close), contentDescription = null, tint = colores.contornoFuerte, modifier = Modifier.size(18.dp))
+                    }
+                }
+            }
+
+            // La reseña aparece al puntuar: sin nota no se escribe, y quitar la nota la vacía.
+            AnimatedVisibility(puedeResenar, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
+                val forma = RoundedCornerShape(Radios.sm)
+                BasicTextField(
+                    value = valores.resena,
+                    onValueChange = { if (it.length <= 1000) alEscribirResena(it) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp)
+                        .background(colores.superficie, forma)
+                        .border(1.dp, colores.contornoFuerte, forma)
+                        .padding(12.dp),
+                    textStyle = Textos.cuerpo.copy(color = colores.tinta),
+                    cursorBrush = SolidColor(colores.primario),
+                    decorationBox = { campo ->
+                        Box {
+                            if (valores.resena.isEmpty()) Text("Añade una reseña personal", style = Textos.cuerpo.copy(color = colores.tintaSuave))
+                            campo()
+                        }
+                    },
+                )
+            }
+
+            // «No compartir esta actualización en Comunidad».
+            if (sinCompartir != null) Row(
+                Modifier.heightIn(min = 44.dp).clickable(role = Role.Checkbox, onClick = alAlternarSinCompartir),
+                horizontalArrangement = Arrangement.spacedBy(Espacios.e3),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Casilla(sinCompartir)
+                Text("No compartir esta actualización en Comunidad", style = Textos.cuerpo.copy(fontSize = rem(0.86), color = colores.tintaSuave))
             }
         }
 
