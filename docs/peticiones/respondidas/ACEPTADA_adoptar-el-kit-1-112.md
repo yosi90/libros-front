@@ -57,4 +57,4 @@ El protocolo entre las apps no cambia: las apps con la 1.11.0 siguen funcionando
 **Aceptada** (2026-11-27).
 
 - **Modern Web Guidance, fijado:** `.claude/settings.json` (versionado) lleva el `ref` `64a6d708…` y `"autoUpdate": false`, y lo mismo el de la carpeta común `Memoria bibliográfica`, desde donde se abren las sesiones. `AGENTS.md` y el diseñador (`.claude/agents/disenador.md`) piden `modern-web-guidance@1.0.1`. El backend no carga el plugin.
-- **La librería de la sesión 1.12.0:** con la próxima APK, probando «Continuar como…» en el Honor con otra app con sesión (`docs/roadmaps/ecosistema/ROADMAP_ACTIVO_kits-2026-11.md`).
+- **La librería de la sesión 1.12.0:** con la próxima APK, probando «Continuar como…» en el Honor con otra app con sesión (`docs/roadmaps/ecosistema/ROADMAP_FINALIZADO_kits-2026-11.md`).

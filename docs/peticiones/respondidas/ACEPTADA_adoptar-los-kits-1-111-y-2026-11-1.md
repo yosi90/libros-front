@@ -4,7 +4,7 @@ Fecha: 2026-11-27
 Solicitante: Plataforma Yosiftware, por decisión del propietario
 Destinatarios: todos los proyectos con interfaz. Notificapp, Yosiftadísticas, Fichas 3.5 (Rol y 3.5 Companion), Nodaria, Lorcana, Poke-Voice, Re-Notas, Hotrods, Rasgora, 1d1n, Día a día, p.i.c., la plantilla de proyectos, MCC, Enroque y el frontend de Libros
 Afecta a: vuestro `.claude/agents/`, vuestro `AGENTS.md`, las versiones de vuestro código y, si tenéis APK o sois un juego, los textos de vuestras pantallas
-Estado: entregada el 2026-11-27, la misma copia en la carpeta de peticiones de cada proyecto
+Estado: aceptada el 2026-11-28
 
 ## Contexto
 
@@ -82,4 +82,14 @@ Sin fecha fija, pero las dos normas valen desde ya: **vuestra próxima publicaci
 
 ## Resolución
 
-<!-- La rellena cada destinatario en su copia. -->
+**Aceptada** (2026-11-28), con las correcciones de los kits 2026.11.3 a 2026.11.7.
+
+- **La interfaz de la APK:** el revisor de interfaz está en `.claude/agents/revisor-de-interfaz.md` (Sonnet), adaptado a `android-nativa/`. Su pasada completa dejó 112 hallazgos (`docs/diseno/interfaz-apk-2026-11/INFORME_REVISOR_1.md`). El diseñador los llevó a una maqueta con las opciones dibujadas, y el propietario eligió las recomendadas. Se programó, se comprobó con capturas en el Honor y el revisor volvió a pasar hasta «Lista para publicar». Está en la APK 2.2.0. Desde ahora pasa antes de cada APK.
+- **El diseñador:** `.claude/agents/disenador.md`, al día con la plantilla 2026.11.7.
+- **El versionado:**
+  - la API 1.0.1 en `/health` y `/verify`;
+  - la web 1.0.0 en `package.json` y al pie de Preferencias;
+  - la APK 2.2.0 (`versionCode` 20200), también al pie de Preferencias;
+  - una nota por versión en el `CHANGELOG.md` de cada repositorio, y las etiquetas `api-v…` y `app-v…`.
+- **`AGENTS.md`** lleva las líneas nuevas del bloque, y la matriz de la lista de comprobación, sus casillas.
+

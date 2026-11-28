@@ -138,7 +138,7 @@ El propietario validó el corte directamente en producción (humo del 25/10/2026
 - [x] Capturas de referencia de la APK de Capacitor (441, fuera de Git en `referencias-apk-capacitor/`, hito 5), con contenido real; cada pantalla del clon comparada con ellas en su hito.
 - [x] Varias cuentas (panel de cuentas y limpieza A → B → A, hito 6), push central registrado por cuenta (hito 12, visto en el Honor) y espacios con `sesion.espacios` (visto en el Honor con QA).
 
-- [ ] **La interfaz, sin repeticiones ni explicaciones de más** (kits 1.111 a 2026.11.6): el revisor de interfaz está en `.claude/agents/revisor-de-interfaz.md`. Su primera pasada (27/11/2026, `docs/diseno/interfaz-apk-2026-11/INFORME_REVISOR_1.md`) dejó 112 hallazgos. Queda que el propietario elija en la maqueta de arreglos, programarla y que el revisor vuelva a pasar (`docs/roadmaps/ecosistema/ROADMAP_ACTIVO_kits-2026-11.md`).
+- [x] **La interfaz, sin repeticiones ni explicaciones de más** (kits 1.111 a 2026.11.7): el revisor de interfaz está en `.claude/agents/revisor-de-interfaz.md`. Ronda 1 (27-28/11/2026): 112 hallazgos (`docs/diseno/interfaz-apk-2026-11/INFORME_REVISOR_1.md`), maqueta del diseñador con lo elegido por el propietario, programada y revisada hasta «Lista para publicar»; en la APK 2.2.0.
 
 ## Revisor de duplicados
 

@@ -13,9 +13,8 @@
 - `qa/`: estrategia transversal, automatización y campañas de calidad.
 - `ecosistema/`: adhesión a la plataforma común Yosiftware y APK nativa en Kotlin.
 
-## Roadmaps activos
+## Roadmap activo
 
-- `ecosistema/ROADMAP_ACTIVO_kits-2026-11.md`: los kits de finales de noviembre (la interfaz de la APK con iconos y su revisor, el versionado común y la librería de la sesión 1.12.0).
 - `common/ROADMAP_ACTIVO_redisenio-vista-de-libro.md`: el rediseño «Cuaderno» de la vista de libro y después del resto de la web, aprobado por el propietario el 26/11/2026 (maqueta en `docs/diseno/vista-de-libro-2026-11/`).
 
 ## Roadmaps pausados

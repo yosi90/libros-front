@@ -4,6 +4,10 @@ Versionado semántico (`ecosistema-kit/VERSIONADO.md`): una nota por versión pu
 
 ## APK
 
+### 2.2.0 (2026-11-28)
+
+Menos texto y sin repeticiones: la navegación, los menús y los botones dicen cada cosa una vez, con su icono o con su palabra, y sin las explicaciones de cada pantalla. Además, «Continuar como…» comprueba la cuenta que ofrece otra app antes de enseñarla.
+
 ### 2.1.0 (2026-11-27)
 
 La vista de libro «Cuaderno»: el capítulo como una página continua que se edita en el sitio, los elementos con su ficha al lado, y la ficha y las notas que se guardan solas, también sin conexión.

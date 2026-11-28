@@ -6,16 +6,13 @@
 - El kit vigente vive en `ecosistema-kit/` (ignorado por Git) y se actualiza siempre al más reciente. El bloque de la plataforma está en `AGENTS.md`.
 - La APK es la nativa en Kotlin (`android-nativa/`): primero fue un clon exacto de la de Capacitor; ahora, las mejoras.
 
-## Línea activa
-
-- `ROADMAP_ACTIVO_kits-2026-11.md`: los kits 1.111 a 2026.11.6.
-
 ## Líneas pausadas
 
 - `ROADMAP_PAUSADO_duplicados-apk-kotlin.md`: lo que la auditoría de duplicados de la APK dejó como propuesta.
 
 ## Referencias útiles
 
+- `ROADMAP_FINALIZADO_kits-2026-11.md`: los kits 1.111 a 2026.11.7 (revisor de interfaz y su ronda 1, versionado, librería 1.12.0), cerrado con la APK 2.2.0.
 - `ROADMAP_FINALIZADO_adhesion-yosiftware-y-apk-kotlin.md` (maestro y backend en `../Libros API/docs/roadmaps/FINALIZADO_adhesion-yosiftware/`); lo que quedó, en `../Libros API/docs/roadmaps/FINALIZADO_tras-la-adhesion/`.
 - Peticiones de la plataforma a Libros: `../Libros API/docs/peticiones/` (el frontend las recibe a través del propietario). Peticiones de Libros a la plataforma: `C:\Users\Yosi\Desktop\administracion yosiftware\docs\peticiones\`.
 - Guías del kit: `ecosistema-kit/MIGRACION.md`, `ACCESO.md`, `APK.md`, `CAMBIO_DE_CUENTA.md`, `LISTA_DE_COMPROBACION.md`.
