@@ -169,6 +169,12 @@ class ErrorSesion(
         get() = if (codigo != "cuenta_restringida") null else detalle?.let(RestriccionDeCuenta::de)
 
     companion object {
+        /** Lo pedido no se puede hacer en el estado de ahora (por ejemplo, completar el alta sin estar en ella). Pública desde la 1.12.0. */
+        fun estadoNoValido() = ErrorSesion("estado_no_valido", "Eso no se puede hacer ahora.")
+
+        /** No hay sesión con la que hacerlo. Pública desde la 1.12.0. */
+        fun sinSesion() = ErrorSesion("sin_sesion", "No has iniciado sesión.")
+
         /**
          * El error de una respuesta de la plataforma que no es 2xx, con su `code`, su frase para la persona (`error`) y
          * su `field` (desde la 1.7.0, para las llamadas que la app hace con su propio cliente: [SesionYosiftware.conTokenDePlataforma]).

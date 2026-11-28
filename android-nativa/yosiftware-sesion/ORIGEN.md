@@ -1,6 +1,8 @@
 # Origen de este módulo
 
-Es la librería de la sesión nativa de la plataforma Yosiftware (paquete `es.yosiftware.sesion`, versión 1.11.0), copiada **sin cambios** de `ecosistema-kit/android/sesion/` del kit 1.107, el 2026-11-25: los archivos versionados de la revisión `e9f0a9d` de la plataforma (`git archive e9f0a9d ecosistema-kit/android/sesion`), sin `build/`. Comprobado con `diff -rq` contra ese archivo: sin diferencias.
+Es la librería de la sesión nativa de la plataforma Yosiftware (paquete `es.yosiftware.sesion`, versión 1.12.0), copiada **sin cambios** de `ecosistema-kit/android/sesion/` el 2026-11-28: los archivos versionados de la revisión `80a590d` de la plataforma (`git archive 80a590d ecosistema-kit/android/sesion`), sin `build/`. Comprobado con `diff -rq` contra ese archivo: sin diferencias.
+
+La 1.12.0 (kit 1.112, a raíz de la revisión de seguridad de Día a día) comprueba cada oferta de «Continuar como…» con la plataforma antes de devolverla (`POST /v1/sesion/nativa/traspaso/comprobacion`), sin gastar el ticket: si otra app contesta con un alias falso, se salta y se espera a la siguiente. No cambia nada de lo que llama Libros. Además, `ErrorSesion.estadoNoValido()` y `ErrorSesion.sinSesion()` pasan a ser públicos.
 
 La 1.11.0 (kit 1.106) añade `sesionDeOtraApp()`: la sesión de la primera app del ecosistema que conteste, sin esperar a las demás. Libros la ofrece como un solo «Continuar como @alias · Con tu cuenta Yosiftware», sin decir de qué app viene (decisión del propietario, 2026-11-22); `sesionesEnOtrasApps()` queda obsoleta y Libros ya no la usa.
 

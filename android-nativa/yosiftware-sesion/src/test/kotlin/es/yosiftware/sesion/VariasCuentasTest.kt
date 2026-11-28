@@ -88,6 +88,7 @@ class VariasCuentasTest {
                     sesiones.remove(refresh)
                     Respuesta(204, "")
                 }
+                ruta.endsWith("/v1/sesion/nativa/traspaso/comprobacion") -> Respuesta(204, "")
                 ruta.endsWith("/v1/sesion/nativa/traspaso") -> {
                     val alias = sesiones[cuerpo.getString("refresh")] ?: return Respuesta(401, """{"code":"sesion_no_valida"}""")
                     Respuesta(200, """{"ticket":"t-$alias","caducaEn":60,"cuenta":{"id":"id-$alias","alias":"$alias"},"de":{"nombre":"Re-Notas"}}""")

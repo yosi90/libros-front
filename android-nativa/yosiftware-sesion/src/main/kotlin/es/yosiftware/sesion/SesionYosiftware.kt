@@ -1,5 +1,7 @@
 package es.yosiftware.sesion
 
+import es.yosiftware.sesion.ErrorSesion.Companion.estadoNoValido
+import es.yosiftware.sesion.ErrorSesion.Companion.sinSesion
 import android.app.Activity
 import android.content.Context
 import java.io.IOException
@@ -466,7 +468,9 @@ class SesionYosiftware internal constructor(
                 val preguntas = vecinas.buscar().map { paquete ->
                     launch {
                         val otra = vecinas.pedir(paquete, configuracion.api)?.let { otraApp(paquete, it) }
-                        if (otra != null && otra.idCuenta !in guardadas) primera.complete(otra)
+                        // Desde la 1.12.0, la oferta se comprueba antes de enseñarla: una app ajena puede contestar
+                        // con un alias falso, y entonces se espera a la siguiente.
+                        if (otra != null && otra.idCuenta !in guardadas && esBuena(otra)) primera.complete(otra)
                     }
                 }
                 launch {
@@ -508,12 +512,11 @@ class SesionYosiftware internal constructor(
         cerrojo.withLock {
             exigirSinSesionGuardada()
             conContrasena = false
-            val de = JSONObject().put("paquete", otra.paquete).put("huellas", JSONArray(huellas))
             val cuerpo = JSONObject()
                 .put("ticket", ticket)
                 .put("web", configuracion.web)
                 .put("dispositivo", configuracion.dispositivo ?: "Android")
-                .put("de", de)
+                .put("de", appAndroid(otra.paquete, huellas))
             tratarApertura(api("POST", "/v1/sesion/nativa/traspaso/canje", cuerpo))
         }
     }
@@ -538,8 +541,7 @@ class SesionYosiftware internal constructor(
         cargarIndice()
         val hueco = huecoActivo ?: anterior ?: return@withLock Oferta("sin_sesion")
         val refresh = leerDe(hueco) ?: return@withLock Oferta("sin_sesion")
-        val para = JSONObject().put("paquete", paquete).put("huellas", JSONArray(huellas))
-        val cuerpo = JSONObject().put("refresh", refresh).put("web", configuracion.web).put("para", para)
+        val cuerpo = JSONObject().put("refresh", refresh).put("web", configuracion.web).put("para", appAndroid(paquete, huellas))
         val respuesta = try {
             // La otra app deja de esperar a los 15 segundos: el refresh que rota se guarda igual.
             sinCortar {
@@ -1185,6 +1187,29 @@ class SesionYosiftware internal constructor(
         estadoActual.value = estado
     }
 
+    /**
+     * Si la plataforma da por buena la oferta de [otra]: su ticket vale para esta app y lo dio esa app, firmada como
+     * dice Android (`POST /v1/sesion/nativa/traspaso/comprobacion`, que no lo gasta). Sin red o con cualquier otra
+     * respuesta, no: el canje también fallaría.
+     */
+    private suspend fun esBuena(otra: SesionEnOtraApp): Boolean {
+        val huellas = withContext(Dispatchers.IO) { vecinas.huellas(otra.paquete) }
+        if (huellas.isEmpty()) return false
+        val cuerpo = JSONObject()
+            .put("ticket", otra.ticket)
+            .put("web", configuracion.web)
+            .put("de", appAndroid(otra.paquete, huellas))
+        return try {
+            api("POST", "/v1/sesion/nativa/traspaso/comprobacion", cuerpo).estado == 204
+        } catch (_: ErrorSesion) {
+            false
+        }
+    }
+
+    /** Una app en los traspasos, como la pide la plataforma (`AppAndroid`): su paquete y las huellas de su firma. */
+    private fun appAndroid(paquete: String, huellas: List<String>): JSONObject =
+        JSONObject().put("paquete", paquete).put("huellas", JSONArray(huellas))
+
     private fun otraApp(paquete: String, oferta: Oferta): SesionEnOtraApp? {
         if (oferta.codigo != Oferta.OFERTA) return null
         return SesionEnOtraApp(
@@ -1255,8 +1280,6 @@ class SesionYosiftware internal constructor(
             return Normas(json.getLong("id"), json.optInt("version"), json.optString("titulo"), json.optString("texto"))
         }
 
-        fun estadoNoValido() = ErrorSesion("estado_no_valido", "Eso no se puede hacer ahora.")
-        fun sinSesion() = ErrorSesion("sin_sesion", "No has iniciado sesión.")
         fun respuestaNoValida() = ErrorSesion("respuesta_no_valida", "Algo ha fallado. Inténtalo de nuevo.")
         fun normasDeUsoPendientes() =
             ErrorSesion("normas_de_uso_pendientes", "Tienes que aceptar las normas de uso para seguir.")
